@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pre-Meeting Discovery Form — Agent Hatchers</title>
+<meta name="description" content="Fill this in before our meeting so it's the most productive use of both our time." />
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0b0f17;
+  --bg-2:     #121826;
+  --panel:    #161d2b;
+  --panel-2:  #1b2333;
+  --border:   #2a3346;
+  --text:     #e8ecf4;
+  --muted:    #8b9ab8;
+  --accent:   #7c5cff;
+  --accent-2: #3ad0ff;
+  --good:     #26d07c;
+  --danger:   #ff5c7a;
+  --grad:     linear-gradient(135deg, #7c5cff 0%, #3ad0ff 100%);
+  --shadow:   0 20px 60px -20px rgba(124,92,255,0.35);
+  --r:        16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  background:var(--bg);color:var(--text);
+  font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(1000px 700px at 75% -5%,rgba(124,92,255,.14),transparent 60%),
+    radial-gradient(800px 600px at -5% 105%,rgba(58,208,255,.10),transparent 60%);
+  pointer-events:none;z-index:0;
+}
+.wrap{max-width:680px;margin:0 auto;padding:0 24px;position:relative;z-index:1;}
+
+/* NAV */
+nav{
+  position:sticky;top:0;z-index:100;
+  border-bottom:1px solid rgba(42,51,70,.7);
+  background:rgba(11,15,23,.85);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+.nav-inner{
+  max-width:1120px;margin:0 auto;padding:0 24px;
+  height:60px;display:flex;align-items:center;
+  justify-content:space-between;gap:24px;
+}
+.logo{
+  display:flex;align-items:center;gap:10px;
+  font-weight:700;font-size:16px;letter-spacing:-.01em;
+  text-decoration:none;color:var(--text);
+}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 18px;border-radius:10px;
+  font-weight:700;font-size:14px;font-family:inherit;
+  cursor:pointer;border:none;text-decoration:none;
+  transition:transform .1s,filter .15s;white-space:nowrap;
+}
+.btn-primary{background:var(--grad);color:#0b0f17;box-shadow:var(--shadow);}
+.btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px);}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none;filter:none;}
+
+/* HEADER */
+.page-header{padding:56px 0 32px;border-bottom:1px solid var(--border);margin-bottom:36px;}
+.page-header .eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent-2);background:rgba(58,208,255,.08);
+  border:1px solid rgba(58,208,255,.2);
+  padding:6px 14px;border-radius:999px;margin-bottom:18px;
+}
+.page-header h1{font-size:clamp(28px,4vw,40px);font-weight:800;letter-spacing:-.025em;line-height:1.1;margin-bottom:14px;}
+.page-header p{color:var(--muted);font-size:16px;line-height:1.6;}
+.grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+/* FORM */
+.form-card{
+  background:linear-gradient(180deg,var(--panel),var(--panel-2));
+  border:1px solid var(--border);border-radius:var(--r);
+  padding:32px 28px;margin-bottom:64px;
+}
+.field{margin-bottom:24px;}
+.field > label{display:block;font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px;}
+.field .req{color:var(--accent-2);}
+.field-help{color:var(--muted);font-size:13.5px;line-height:1.55;margin-bottom:10px;}
+.field-help span{display:block;}
+.field input,.field textarea{
+  width:100%;font-family:inherit;font-size:15px;color:var(--text);
+  background:var(--bg-2);border:1px solid var(--border);border-radius:10px;
+  padding:12px 14px;transition:border-color .15s,box-shadow .15s;
+}
+.field input::placeholder,.field textarea::placeholder{color:#5b6680;}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--accent-2);box-shadow:0 0 0 3px rgba(58,208,255,.2);}
+.field input[aria-invalid="true"],.field textarea[aria-invalid="true"]{border-color:var(--danger);}
+.field textarea{resize:vertical;min-height:104px;line-height:1.6;}
+
+/* YES / NO PILLS */
+.pill-group{display:flex;gap:10px;flex-wrap:wrap;}
+.pill{position:relative;}
+.pill input{position:absolute;opacity:0;width:1px;height:1px;}
+.pill span{
+  display:inline-block;min-width:90px;text-align:center;
+  padding:11px 24px;border:1px solid var(--border);border-radius:10px;
+  background:var(--bg-2);color:var(--text);font-size:15px;font-weight:500;
+  cursor:pointer;transition:border-color .15s,background .15s,color .15s;
+}
+.pill span:hover{border-color:var(--accent-2);}
+.pill input:checked + span{background:var(--accent-2);border-color:var(--accent-2);color:#0b0f17;font-weight:600;}
+.pill input:focus-visible + span{box-shadow:0 0 0 3px rgba(58,208,255,.3);}
+
+.form-submit{width:100%;justify-content:center;font-size:15px;padding:14px 20px;margin-top:6px;}
+.form-status{margin-top:16px;font-size:14px;text-align:center;color:var(--muted);min-height:20px;}
+.form-status.error{color:var(--danger);}
+.form-status.error a{color:var(--accent-2);}
+
+/* honeypot — off-screen, bots fill it, humans don't */
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;}
+
+/* SUCCESS STATE */
+.form-success{display:none;text-align:center;padding:48px 24px;
+  background:linear-gradient(180deg,var(--panel),var(--panel-2));
+  border:1px solid var(--border);border-radius:var(--r);margin-bottom:64px;}
+.form-success .tick{
+  width:54px;height:54px;border-radius:50%;margin:0 auto 18px;
+  display:grid;place-items:center;background:rgba(38,208,124,.12);
+  border:1px solid rgba(38,208,124,.4);color:var(--good);font-size:26px;
+}
+.form-success h2{font-size:23px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px;}
+.form-success p{color:var(--muted);max-width:420px;margin:0 auto 22px;}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:26px 0;color:var(--muted);font-size:13px;position:relative;z-index:1;}
+.footer-inner{max-width:1120px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.footer-links{display:flex;gap:18px;flex-wrap:wrap;}
+.footer-links a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .15s;}
+.footer-links a:hover{color:var(--text);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">
+      <img src="square_logo.png" alt="Agent Hatchers" style="width:32px;height:32px;border-radius:9px;object-fit:cover;" />
+      <span>Agent Hatchers</span>
+    </a>
+    <a href="index.html#book" class="btn btn-primary">Book a call →</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="page-header">
+    <div class="eyebrow">Pre-meeting</div>
+    <h1>Pre-Meeting <span class="grad-text">Discovery Form</span></h1>
+    <p>Hello, we'd love for you to fill out this form prior to our meeting to ensure it is the most productive use of both of our time.</p>
+  </div>
+
+  <form class="form-card" id="auditForm" novalidate>
+    <div class="field">
+      <label for="submitterName">Submitter Name <span class="req">*</span></label>
+      <input type="text" id="submitterName" name="submitterName" autocomplete="name" placeholder="Your answer" required />
+    </div>
+
+    <div class="field">
+      <label for="submitterEmail">Submitter Email <span class="req">*</span></label>
+      <input type="email" id="submitterEmail" name="submitterEmail" autocomplete="email" placeholder="Your answer" required />
+    </div>
+
+    <div class="field">
+      <label for="companyName">Company Name <span class="req">*</span></label>
+      <input type="text" id="companyName" name="companyName" autocomplete="organization" placeholder="Your answer" required />
+    </div>
+
+    <div class="field">
+      <label for="toolsSystems">Tools &amp; Systems</label>
+      <div class="field-help">
+        <span>List the software and services your team uses day-to-day.</span>
+        <span>E.g. Hubspot, Gmail, Monday.com, Google Drive, Xero, Slack</span>
+      </div>
+      <textarea id="toolsSystems" name="toolsSystems" placeholder="Your answer"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Has Technical Team</label>
+      <div class="pill-group" role="radiogroup" aria-label="Has Technical Team">
+        <label class="pill"><input type="radio" name="hasTechnicalTeam" value="Yes" /><span>Yes</span></label>
+        <label class="pill"><input type="radio" name="hasTechnicalTeam" value="No" /><span>No</span></label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="techTeamSize">Tech Team Size</label>
+      <div class="field-help"><span>(Leave blank if not relevant)</span></div>
+      <input type="number" id="techTeamSize" name="techTeamSize" min="0" placeholder="Number of people" />
+    </div>
+
+    <div class="field">
+      <label for="techTeamRoles">Tech Team Roles</label>
+      <div class="field-help"><span>(Leave blank if not relevant)</span></div>
+      <input type="text" id="techTeamRoles" name="techTeamRoles" placeholder="Your answer" />
+    </div>
+
+    <div class="field">
+      <label for="workflow1">Workflow #1 to improve</label>
+      <div class="field-help">
+        <span>Which workflows would benefit most from automation: the most manual, repetitive, or low-value one.</span>
+        <span>What is the workflow? (e.g. "Updating client records after a call")</span>
+        <span>Where does the data come from and where does it go?</span>
+        <span>Roughly what format is the data in? (spreadsheet, email, PDF, form submission, etc.)</span>
+      </div>
+      <textarea id="workflow1" name="workflow1" placeholder="Your answer"></textarea>
+    </div>
+
+    <div class="field">
+      <label for="workflow2">Workflow #2 to improve</label>
+      <div class="field-help">
+        <span>Which workflows would benefit most from automation: the most manual, repetitive, or low-value one.</span>
+        <span>What is the workflow? (e.g. "Updating client records after a call")</span>
+        <span>Where does the data come from and where does it go?</span>
+        <span>Roughly what format is the data in? (spreadsheet, email, PDF, form submission, etc.)</span>
+      </div>
+      <textarea id="workflow2" name="workflow2" placeholder="Your answer"></textarea>
+    </div>
+
+    <div class="field">
+      <label for="workflow3">Workflow #3 to improve</label>
+      <div class="field-help">
+        <span>Which workflows would benefit most from automation: the most manual, repetitive, or low-value one.</span>
+        <span>What is the workflow? (e.g. "Updating client records after a call")</span>
+        <span>Where does the data come from and where does it go?</span>
+        <span>Roughly what format is the data in? (spreadsheet, email, PDF, form submission, etc.)</span>
+      </div>
+      <textarea id="workflow3" name="workflow3" placeholder="Your answer"></textarea>
+    </div>
+
+    <div class="field">
+      <label for="anythingElse">Anything else?</label>
+      <textarea id="anythingElse" name="anythingElse" placeholder="Your answer"></textarea>
+    </div>
+
+    <!-- Honeypot — off-screen spam trap. Real users never fill this. -->
+    <div class="hp" aria-hidden="true">
+      <label for="company_website">Leave this empty</label>
+      <input id="company_website" name="company_website" type="text" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <button type="submit" class="btn btn-primary form-submit" id="submitBtn">Submit</button>
+    <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
+  </form>
+
+  <div class="form-success" id="formSuccess">
+    <div class="tick" aria-hidden="true">✓</div>
+    <h2>Thanks — we've got it.</h2>
+    <p>We'll be in touch shortly. Keep an eye on your inbox.</p>
+    <a href="index.html" class="btn btn-primary">Back to home →</a>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <a href="index.html" class="logo" style="font-size:14px;">
+      <img src="square_logo.png" alt="Agent Hatchers" style="width:28px;height:28px;border-radius:7px;object-fit:cover;" />
+      <span>Agent Hatchers</span>
+    </a>
+    <div class="footer-links">
+      <a href="mailto:support@agenthatchers.com">support@agenthatchers.com</a>
+      <a href="terms-of-service.html">Terms of Service</a>
+      <a href="privacy-policy.html">Privacy Policy</a>
+    </div>
+    <div>© 2026 Agent Hatchers Pty Ltd</div>
+  </div>
+</footer>
+
+<script>
+// Static site on GitHub Pages — no server-side proxy, so the browser POSTs
+// straight to the n8n webhook. The Webhook node has CORS enabled for
+// https://agenthatchers.com. Field names below match the n8n workflow schema.
+const WEBHOOK_URL = 'https://n8n.automationbuilders.ai/webhook/audit-form';
+
+const form     = document.getElementById('auditForm');
+const statusEl = document.getElementById('formStatus');
+const submitBtn= document.getElementById('submitBtn');
+const successEl= document.getElementById('formSuccess');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  // Honeypot: if the hidden field is filled, it's a bot — silently drop.
+  if (form.company_website.value) return;
+
+  if (!form.checkValidity()) {
+    statusEl.className = 'form-status error';
+    statusEl.textContent = 'Please fill in your name, email and company.';
+    form.reportValidity();
+    return;
+  }
+
+  const data = Object.fromEntries(new FormData(form).entries());
+  delete data.company_website;
+  // Notion's "Tech Team Size" is a Number column — send a number or null, never "".
+  data.techTeamSize = data.techTeamSize.trim() === '' ? null : Number(data.techTeamSize);
+  if (Number.isNaN(data.techTeamSize)) data.techTeamSize = null;
+  data.submittedAt = new Date().toISOString();
+  data.source = 'agenthatchers.com/audit';
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Sending…';
+  statusEl.className = 'form-status';
+  statusEl.textContent = '';
+
+  try {
+    const res = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Bad status ' + res.status);
+    form.style.display = 'none';
+    successEl.style.display = 'block';
+    successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } catch (err) {
+    console.warn('[audit-form] submit failed:', err);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit';
+    statusEl.className = 'form-status error';
+    statusEl.innerHTML = 'Something went wrong sending your details. Please try again, or email us at <a href="mailto:support@agenthatchers.com">support@agenthatchers.com</a>.';
+  }
+});
+</script>
+
+</body>
+</html>

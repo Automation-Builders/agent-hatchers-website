@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Privacy Policy — Agent Hatchers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0b0f17;
+  --bg-2:     #121826;
+  --panel:    #161d2b;
+  --panel-2:  #1b2333;
+  --border:   #2a3346;
+  --text:     #e8ecf4;
+  --muted:    #8b9ab8;
+  --accent:   #7c5cff;
+  --accent-2: #3ad0ff;
+  --grad:     linear-gradient(135deg, #7c5cff 0%, #3ad0ff 100%);
+  --shadow:   0 20px 60px -20px rgba(124,92,255,0.35);
+  --r:        16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  background:var(--bg);color:var(--text);
+  font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(1000px 700px at 75% -5%,rgba(124,92,255,.14),transparent 60%),
+    radial-gradient(800px 600px at -5% 105%,rgba(58,208,255,.10),transparent 60%);
+  pointer-events:none;z-index:0;
+}
+.wrap{max-width:800px;margin:0 auto;padding:0 24px;position:relative;z-index:1;}
+
+/* NAV */
+nav{
+  position:sticky;top:0;z-index:100;
+  border-bottom:1px solid rgba(42,51,70,.7);
+  background:rgba(11,15,23,.85);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+.nav-inner{
+  max-width:1120px;margin:0 auto;padding:0 24px;
+  height:60px;display:flex;align-items:center;
+  justify-content:space-between;gap:24px;
+}
+.logo{
+  display:flex;align-items:center;gap:10px;
+  font-weight:700;font-size:16px;letter-spacing:-.01em;
+  text-decoration:none;color:var(--text);
+}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 18px;border-radius:10px;
+  font-weight:700;font-size:14px;font-family:inherit;
+  cursor:pointer;border:none;text-decoration:none;
+  transition:transform .1s,filter .15s;white-space:nowrap;
+}
+.btn-primary{background:var(--grad);color:#0b0f17;box-shadow:var(--shadow);}
+.btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px);}
+
+/* LEGAL CONTENT */
+.legal-header{padding:60px 0 40px;border-bottom:1px solid var(--border);margin-bottom:48px;}
+.legal-header .eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent-2);background:rgba(58,208,255,.08);
+  border:1px solid rgba(58,208,255,.2);
+  padding:6px 14px;border-radius:999px;margin-bottom:18px;
+}
+.legal-header h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.025em;line-height:1.1;margin-bottom:12px;}
+.legal-header p{color:var(--muted);font-size:14px;}
+.grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+.legal-body{padding-bottom:80px;}
+.legal-body section{margin-bottom:44px;}
+.legal-body h2{
+  font-size:19px;font-weight:700;letter-spacing:-.015em;
+  margin-bottom:16px;padding-bottom:10px;
+  border-bottom:1px solid var(--border);
+  color:var(--text);
+}
+.legal-body h3{
+  font-size:15px;font-weight:700;color:var(--text);
+  margin:20px 0 8px;
+}
+.legal-body p{color:var(--muted);margin-bottom:12px;line-height:1.7;}
+.legal-body p strong{color:var(--text);}
+.legal-body ul{list-style:none;padding:0;margin-bottom:12px;}
+.legal-body ul li{
+  color:var(--muted);padding:5px 0 5px 18px;position:relative;line-height:1.6;
+}
+.legal-body ul li::before{content:'—';position:absolute;left:0;color:var(--accent);font-weight:700;}
+.legal-body blockquote{
+  border-left:3px solid var(--accent);
+  padding:12px 16px;margin:12px 0;
+  background:rgba(124,92,255,.06);border-radius:0 8px 8px 0;
+  color:var(--text);font-style:italic;font-size:14px;line-height:1.6;
+}
+.contact-box{
+  background:linear-gradient(180deg,var(--panel),var(--panel-2));
+  border:1px solid var(--border);border-radius:var(--r);
+  padding:24px 28px;margin-top:16px;
+}
+.contact-box p{margin-bottom:6px;}
+.contact-box a{color:var(--accent-2);text-decoration:none;}
+.contact-box a:hover{text-decoration:underline;}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:26px 0;color:var(--muted);font-size:13px;position:relative;z-index:1;}
+.footer-inner{max-width:1120px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.footer-links{display:flex;gap:18px;}
+.footer-links a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .15s;}
+.footer-links a:hover{color:var(--text);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">
+      <img src="square_logo.png" alt="Agent Hatchers" style="width:32px;height:32px;border-radius:9px;object-fit:cover;" />
+      <span>Agent Hatchers</span>
+    </a>
+    <a href="https://calendly.com/noah-automationbuilders/30min" class="btn btn-primary" target="_blank" rel="noopener">Book a call →</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="legal-header">
+    <div class="eyebrow">Legal</div>
+    <h1>Privacy <span class="grad-text">Policy</span></h1>
+    <p>Last updated: 27 August 2025 &nbsp;·&nbsp; Agent Hatchers Pty Ltd ACN 690 308 242</p>
+  </div>
+
+  <div class="legal-body">
+
+    <section>
+      <h2>1. About this Policy</h2>
+      <p>This policy outlines how Agent Hatchers Pty Ltd (ACN 690 308 242) handles personal information collection, usage, storage, and disclosure.</p>
+      <p>The organisation commits to complying with the Privacy Act 1988 (Cth), the Australian Privacy Principles, and related privacy legislation.</p>
+      <p>By using our services, you consent to the information collection practices described in this policy.</p>
+    </section>
+
+    <section>
+      <h2>2. Information We Collect</h2>
+      <p>The company gathers several categories of data:</p>
+      <ul>
+        <li><strong>Identity details</strong> — names, job titles, organisation names</li>
+        <li><strong>Contact information</strong> — emails, phone numbers, addresses</li>
+        <li><strong>Account credentials</strong> — login information and account identifiers</li>
+        <li><strong>Financial records</strong> — payment methods, invoices, transaction histories</li>
+        <li><strong>Usage metrics</strong> — automation logs, reports, analytical data</li>
+        <li><strong>System data</strong> — IP addresses, browser specifications, operating systems, device identifiers</li>
+        <li><strong>User-submitted content</strong> — form entries, communications, file uploads</li>
+        <li><strong>Business system access</strong> — temporary viewing of client systems (CRMs, ERPs, databases) during service delivery — not permanently retained</li>
+      </ul>
+      <p>The organisation avoids collecting sensitive information unless legally mandated or explicitly consented to.</p>
+    </section>
+
+    <section>
+      <h2>3. How We Collect Information</h2>
+      <p>Data collection occurs through:</p>
+      <ul>
+        <li>Direct provision during account setup and service engagement</li>
+        <li>Automatic collection via platform usage, cookies, and analytics</li>
+        <li>Third-party system integrations authorised by customers</li>
+        <li>Business partners or publicly accessible sources</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>4. How We Use Information</h2>
+      <p>Information serves these purposes:</p>
+      <ul>
+        <li>Configuring and maintaining services</li>
+        <li>Supporting automation troubleshooting</li>
+        <li>Accessing client technologies for agreed service delivery</li>
+        <li>Processing billing and account management</li>
+        <li>Sending updates, support communications, and notices</li>
+        <li>Meeting regulatory and contractual obligations</li>
+        <li>Enhancing services via analytics and monitoring</li>
+        <li>Marketing activities (unless opted out)</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>5. Data Logging, Storage, and Maintenance Records</h2>
+      <h3>5.1 Data Logging and Storage</h3>
+      <p>The organisation does not permanently store customer, client, or end-user operational information on internal systems.</p>
+      <p>Operational data stays within customer-authorised platforms (Make, Zapier, n8n, HubSpot, CRMs, ERPs). Temporary access occurs only for configuration and maintenance — no copying or external retention happens.</p>
+      <p>Internal records limited to administration (billing, accounts, projects) exclude operational customer data.</p>
+      <h3>5.2 Internal Maintenance Records</h3>
+      <p>Technical incident records contain only metadata: error types, affected integrations, timestamps, and corrective actions.</p>
+      <p>These records exclude personal customer information, raw system data, or payment details. Secure storage in project management tools restricts access to authorised personnel.</p>
+      <p>Retention supports accountability, improvement, and compliance — not external sharing without legal requirement or explicit customer agreement.</p>
+    </section>
+
+    <section>
+      <h2>6. Disclosure of Information</h2>
+      <p>Information may be shared with:</p>
+      <ul>
+        <li>Employees, contractors, and service providers involved in delivery</li>
+        <li>Third-party automation platforms and cloud services where automations operate</li>
+        <li>Regulators, law enforcement, and government bodies (when legally required)</li>
+        <li>Professional advisors (legal, accounting services)</li>
+        <li>Parties involved in merger, sale, or acquisition scenarios</li>
+      </ul>
+      <blockquote>We never sell your personal information.</blockquote>
+    </section>
+
+    <section>
+      <h2>7. Security and Compliance</h2>
+      <p>The company applies reasonable technical and organisational measures to protect information from misuse, loss, or unauthorised access.</p>
+      <p>Security depends in part on third-party platform safeguards (Make, Zapier, HubSpot). Customers must review those platforms' privacy and security documentation independently.</p>
+      <p>Industry-standard protections including encryption, access controls, and audit logs are employed where platforms support them.</p>
+    </section>
+
+    <section>
+      <h2>8. International Data Transfers</h2>
+      <p>Automations may involve overseas servers or processors. Service use constitutes consent to international transfers, acknowledging that foreign laws may offer less protection than Australian legislation.</p>
+      <p>Contractual or platform-based transfer protections are used where available.</p>
+    </section>
+
+    <section>
+      <h2>9. Your Rights</h2>
+      <p>Individuals may request to:</p>
+      <ul>
+        <li>Access held personal information</li>
+        <li>Correct inaccurate or outdated data</li>
+        <li>Request deletion when information is no longer necessary</li>
+        <li>Withdraw direct marketing consent</li>
+      </ul>
+      <p>Requests require verification before processing. The organisation aims to respond within reasonable timeframes.</p>
+    </section>
+
+    <section>
+      <h2>10. Retention</h2>
+      <p>Personal information is retained only as long as necessary for service provision and legal/contractual compliance. Unnecessary information is deleted or de-identified.</p>
+    </section>
+
+    <section>
+      <h2>11. Complaints</h2>
+      <p>If you believe the organisation has breached the Privacy Act or Australian Privacy Principles, please contact us. Unresolved complaints may be escalated to the Office of the Australian Information Commissioner (OAIC).</p>
+    </section>
+
+    <section>
+      <h2>12. Contact Us</h2>
+      <div class="contact-box">
+        <p><strong>Agent Hatchers Pty Ltd</strong></p>
+        <p>Email: <a href="mailto:support@agenthatchers.com">support@agenthatchers.com</a></p>
+        <p>Address: Engine House, Floor 1/28-30 William St, Balaclava VIC 3182</p>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <a href="index.html" class="logo" style="font-size:14px;">
+      <img src="square_logo.png" alt="Agent Hatchers" style="width:28px;height:28px;border-radius:7px;object-fit:cover;" />
+      <span>Agent Hatchers</span>
+    </a>
+    <div class="footer-links">
+      <a href="mailto:support@agenthatchers.com">support@agenthatchers.com</a>
+      <a href="terms-of-service.html">Terms of Service</a>
+      <a href="privacy-policy.html">Privacy Policy</a>
+    </div>
+    <div>© 2026 Agent Hatchers Pty Ltd</div>
+  </div>
+</footer>
+
+</body>
+</html>

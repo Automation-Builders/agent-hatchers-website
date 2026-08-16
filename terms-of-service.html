@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Terms of Service — Agent Hatchers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0b0f17;
+  --bg-2:     #121826;
+  --panel:    #161d2b;
+  --panel-2:  #1b2333;
+  --border:   #2a3346;
+  --text:     #e8ecf4;
+  --muted:    #8b9ab8;
+  --accent:   #7c5cff;
+  --accent-2: #3ad0ff;
+  --grad:     linear-gradient(135deg, #7c5cff 0%, #3ad0ff 100%);
+  --shadow:   0 20px 60px -20px rgba(124,92,255,0.35);
+  --r:        16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  background:var(--bg);color:var(--text);
+  font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(1000px 700px at 75% -5%,rgba(124,92,255,.14),transparent 60%),
+    radial-gradient(800px 600px at -5% 105%,rgba(58,208,255,.10),transparent 60%);
+  pointer-events:none;z-index:0;
+}
+.wrap{max-width:800px;margin:0 auto;padding:0 24px;position:relative;z-index:1;}
+
+/* NAV */
+nav{
+  position:sticky;top:0;z-index:100;
+  border-bottom:1px solid rgba(42,51,70,.7);
+  background:rgba(11,15,23,.85);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+.nav-inner{
+  max-width:1120px;margin:0 auto;padding:0 24px;
+  height:60px;display:flex;align-items:center;
+  justify-content:space-between;gap:24px;
+}
+.logo{
+  display:flex;align-items:center;gap:10px;
+  font-weight:700;font-size:16px;letter-spacing:-.01em;
+  text-decoration:none;color:var(--text);
+}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 18px;border-radius:10px;
+  font-weight:700;font-size:14px;font-family:inherit;
+  cursor:pointer;border:none;text-decoration:none;
+  transition:transform .1s,filter .15s;white-space:nowrap;
+}
+.btn-primary{background:var(--grad);color:#0b0f17;box-shadow:var(--shadow);}
+.btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px);}
+
+/* LEGAL CONTENT */
+.legal-header{padding:60px 0 40px;border-bottom:1px solid var(--border);margin-bottom:48px;}
+.legal-header .eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent-2);background:rgba(58,208,255,.08);
+  border:1px solid rgba(58,208,255,.2);
+  padding:6px 14px;border-radius:999px;margin-bottom:18px;
+}
+.legal-header h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.025em;line-height:1.1;margin-bottom:12px;}
+.legal-header p{color:var(--muted);font-size:14px;}
+.grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+.legal-body{padding-bottom:80px;}
+.legal-body section{margin-bottom:44px;}
+.legal-body h2{
+  font-size:19px;font-weight:700;letter-spacing:-.015em;
+  margin-bottom:16px;padding-bottom:10px;
+  border-bottom:1px solid var(--border);
+  color:var(--text);
+}
+.legal-body h3{
+  font-size:15px;font-weight:700;color:var(--text);
+  margin:20px 0 8px;
+}
+.legal-body p{color:var(--muted);margin-bottom:12px;line-height:1.7;}
+.legal-body p strong{color:var(--text);}
+.legal-body ul{list-style:none;padding:0;margin-bottom:12px;}
+.legal-body ul li{
+  color:var(--muted);padding:5px 0 5px 18px;position:relative;line-height:1.6;
+}
+.legal-body ul li::before{content:'—';position:absolute;left:0;color:var(--accent);font-weight:700;}
+.legal-body blockquote{
+  border-left:3px solid var(--accent);
+  padding:12px 16px;margin:12px 0;
+  background:rgba(124,92,255,.06);border-radius:0 8px 8px 0;
+  color:var(--text);font-style:italic;font-size:14px;line-height:1.6;
+}
+.definitions-grid{display:grid;gap:10px;margin-top:12px;}
+.def-item{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:10px;padding:12px 16px;
+}
+.def-item strong{color:var(--accent-2);font-size:13px;}
+.def-item p{margin:4px 0 0;font-size:13px;color:var(--muted);}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:26px 0;color:var(--muted);font-size:13px;position:relative;z-index:1;}
+.footer-inner{max-width:1120px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.footer-links{display:flex;gap:18px;}
+.footer-links a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .15s;}
+.footer-links a:hover{color:var(--text);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">
+      <img src="square_logo.png" alt="Agent Hatchers" style="width:32px;height:32px;border-radius:9px;object-fit:cover;" />
+      <span>Agent Hatchers</span>
+    </a>
+    <a href="https://calendly.com/noah-automationbuilders/30min" class="btn btn-primary" target="_blank" rel="noopener">Book a call →</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="legal-header">
+    <div class="eyebrow">Legal</div>
+    <h1>Terms of <span class="grad-text">Service</span></h1>
+    <p>Last updated: 27 August 2025 &nbsp;·&nbsp; Business Agent Hatchers Pty Ltd ACN 690 308 242</p>
+  </div>
+
+  <div class="legal-body">
+
+    <section>
+      <h2>1. Introduction</h2>
+      <h3>1.1 Who we are</h3>
+      <p>Business Agent Hatchers Pty Ltd operates as an Australian company based in Victoria (ACN 690 308 242), specialising in process automation, system integration, and workflow optimisation services.</p>
+      <h3>1.2 These Terms</h3>
+      <p>These terms establish the legal agreement governing service usage. Additional project-specific or consulting agreement terms may apply alongside these provisions.</p>
+      <h3>1.3 Other applicable terms</h3>
+      <p>The Privacy Policy aligns with the Privacy Act 1988 (Cth) and Australian Privacy Principles, detailing personal information handling practices.</p>
+      <h3>1.4 Changes to these Terms</h3>
+      <blockquote>We may update these Terms at any time by giving you at least 14 days' notice (by email).</blockquote>
+      <p>Disagreement permits termination; continued use implies acceptance.</p>
+    </section>
+
+    <section>
+      <h2>2. Scope of Services</h2>
+      <h3>2.1 Service offerings</h3>
+      <p>The company provides automation design, system integration, consulting, software implementation, and related business technology services.</p>
+      <h3>2.2 Service basis</h3>
+      <p>Services operate on a consultancy and implementation foundation unless expressly documented otherwise. The company functions neither as agent, employee, nor partner.</p>
+      <h3>2.3 Third-party software</h3>
+      <blockquote>Any third-party software, tools, or APIs we recommend or implement remain subject to the terms of the relevant third-party provider.</blockquote>
+      <h3>2.4 Emerging technologies</h3>
+      <p>AI-incorporated services make no guarantees regarding their accuracy, reliability, or continued availability.</p>
+    </section>
+
+    <section>
+      <h2>3. Your Obligations</h2>
+      <h3>3.1 Information and cooperation</h3>
+      <p>Clients must supply accurate, complete, and timely information as reasonably necessary for service delivery. Information delays may pause company obligations.</p>
+      <h3>3.2 Lawful use</h3>
+      <p>Services require compliance with Australian law. Prohibited conduct includes unlawful or fraudulent activity and introducing malware or harmful code.</p>
+      <h3>3.3 Account security</h3>
+      <p>Clients bear full responsibility for maintaining credential confidentiality and account usage accountability.</p>
+      <h3>3.4 Data ownership and backups</h3>
+      <p>Clients retain data ownership and backup responsibility. We are not responsible for any data loss, corruption, or unavailability in third-party systems.</p>
+      <h3>3.5 Client warranties</h3>
+      <p>Clients warrant they possess rights to provide all materials, that requested automations comply with legal standards, and that service usage creates no third-party liability exposure.</p>
+    </section>
+
+    <section>
+      <h2>4. Our Obligations</h2>
+      <h3>4.1 Service standard</h3>
+      <blockquote>We will provide the Services with due care, skill, and diligence in accordance with Australian Consumer Law (ACL) guarantees.</blockquote>
+      <h3>4.2 Quality assurance</h3>
+      <p>The company takes reasonable steps ensuring software, integrations, and automations remain defect-free and malware-free.</p>
+      <h3>4.3 Modifications</h3>
+      <p>We may make updates, modifications, or improvements to our Services from time to time without prior notice.</p>
+      <h3>4.4 Security responsibility</h3>
+      <p>The company maintains reasonable security for delivered integrations and automations, while clients secure their own systems, accounts, and third-party tools.</p>
+    </section>
+
+    <section>
+      <h2>5. Fees and Payment</h2>
+      <h3>5.1 Fee structure</h3>
+      <p>You must pay the fees specified in our proposal, invoice, or written agreement. GST (10%) applies where applicable unless stated otherwise.</p>
+      <h3>5.2 Payment terms</h3>
+      <p>Invoices require payment within 30 days. Late payments incur interest at 2% monthly.</p>
+      <h3>5.3 Refund policy</h3>
+      <p>Except as required under the ACL, all fees are non-refundable.</p>
+      <h3>5.4 Out-of-scope work</h3>
+      <p>Change requests and work exceeding agreed deliverables incur separate billing at standard rates unless otherwise negotiated.</p>
+      <h3>5.5 Usage limits</h3>
+      <p>Fair use policies apply to ongoing services. Excessive or unreasonable usage beyond agreed limits may incur additional fees or restrictions.</p>
+      <h3>5.6 Ongoing automation run costs</h3>
+      <p>External platform automation costs reflect third-party charges or agreed amounts. You acknowledge that such costs are variable and outside of our control.</p>
+    </section>
+
+    <section>
+      <h2>5A. Maintenance and Support</h2>
+      <h3>5A.1 Maintenance framework</h3>
+      <p>Support follows the selected and paid maintenance priority level specified in the service agreement.</p>
+      <h3>5A.2 Response and resolution</h3>
+      <p>The company uses reasonable efforts to address issues within specified timeframes for the chosen maintenance level.</p>
+      <h3>5A.3 Maintenance scope limitations</h3>
+      <p>Our maintenance obligations apply only to issues arising directly from automations or integrations we have delivered. Third-party issues, client-made changes, and force majeure events fall outside this scope.</p>
+      <h3>5A.4 Support without maintenance plan</h3>
+      <p>Without active maintenance, the company determines fix eligibility. Agreed repair rates may differ from standard pricing.</p>
+    </section>
+
+    <section>
+      <h2>6. Intellectual Property</h2>
+      <h3>6.1 Deliverables ownership</h3>
+      <blockquote>Unless otherwise agreed, all intellectual property rights in the deliverables we create specifically for you will transfer to you upon full payment.</blockquote>
+      <h3>6.2 Retained company IP</h3>
+      <blockquote>We retain all rights in our pre-existing materials, methodologies, templates, and know-how, which we may reuse for other projects.</blockquote>
+      <h3>6.3 Restrictions on deliverables</h3>
+      <p>Clients cannot resell, sublicense, or commercially exploit deliverables without prior written authorisation.</p>
+      <h3>6.4 Marketing usage</h3>
+      <p>You grant us a licence to use your business name, logo, and project outcomes for marketing and case study purposes unless written objection is provided.</p>
+    </section>
+
+    <section>
+      <h2>7. Limitation of Liability</h2>
+      <h3>7.1 Non-excludable rights</h3>
+      <p>These terms do not exclude rights under the Competition and Consumer Act 2010 (Cth) or other non-excludable legislation.</p>
+      <h3>7.2 Liability caps</h3>
+      <p>To the maximum legal extent, the company excludes implied warranties and conditions, limits consumer guarantee liability to resupply or replacement cost, excludes indirect or consequential loss liability, and caps total liability to fees paid within the preceding 12 months.</p>
+    </section>
+
+    <section>
+      <h2>7A. Artificial Intelligence Outputs</h2>
+      <h3>7A.1 AI incorporation</h3>
+      <p>Some services incorporate third-party AI systems provided by external model providers.</p>
+      <h3>7A.2 AI limitations acknowledgment</h3>
+      <blockquote>You acknowledge that AI systems, like other software tools, may occasionally generate outputs that are inaccurate, incomplete, or not aligned with expectations.</blockquote>
+      <h3>7A.3 AI liability exclusion</h3>
+      <p>We are not responsible or liable for any unintended AI-generated outputs. Model providers bear responsibility. Users should verify AI-generated content before relying on it.</p>
+    </section>
+
+    <section>
+      <h2>8. Indemnity</h2>
+      <p>Clients indemnify the company against claims, losses, damages, or expenses arising from term breaches, service misuse, third-party software or API reliance, or legal violations.</p>
+    </section>
+
+    <section>
+      <h2>9. Termination</h2>
+      <h3>9.1 Termination notice</h3>
+      <p>Either party may terminate with 15 days' written notice.</p>
+      <h3>9.2 Immediate suspension grounds</h3>
+      <p>The company may immediately suspend or terminate access for non-payment, term breaches, or service misuse.</p>
+      <h3>9.3 Accrued rights</h3>
+      <p>Termination does not affect previously accrued rights or obligations.</p>
+      <h3>9.4 Survival clause</h3>
+      <p>Clauses relating to confidentiality, intellectual property, limitation of liability, indemnity, warranties, data ownership, and AI outputs will survive termination.</p>
+    </section>
+
+    <section>
+      <h2>10. General</h2>
+      <h3>10.1 Force Majeure</h3>
+      <p>We are not liable for failure to perform due to events beyond our reasonable control (e.g., natural disasters, strikes, pandemics, government actions). Obligations suspend during force majeure periods.</p>
+      <h3>10.2 Service availability</h3>
+      <p>We will use reasonable efforts to keep our Services available but do not guarantee uninterrupted access. Third-party outages remain outside company control.</p>
+      <h3>10.3 Governing law</h3>
+      <p>Victoria, Australia law governs these terms. Courts in that state hold exclusive jurisdiction.</p>
+      <h3>10.4 Assignment</h3>
+      <p>Client assignment requires company consent. The company may assign rights upon client notice.</p>
+      <h3>10.5 Severance</h3>
+      <p>Invalid provisions do not affect remaining term validity.</p>
+      <h3>10.6 Waiver</h3>
+      <p>Written confirmation is necessary for any waiver effectiveness.</p>
+      <h3>10.7 Dispute resolution</h3>
+      <p>Parties must attempt good faith resolution, including negotiation and mediation, before court proceedings.</p>
+      <h3>10.8 Non-solicitation</h3>
+      <p>You must not, for 12 months after termination of these Terms, solicit, employ, or engage our employees, contractors, or consultants without written authorisation.</p>
+      <h3>10.9 Export controls</h3>
+      <p>International clients must comply with applicable local laws regarding data protection and import/export restrictions.</p>
+      <h3>10.10 Notices</h3>
+      <p>Communications occur via email or other mutually agreed methods.</p>
+    </section>
+
+    <section>
+      <h2>11. Confidentiality</h2>
+      <h3>11.1 Company confidentiality obligations</h3>
+      <p>The company protects client confidential information except when required for service delivery, with client consent, or by legal mandate.</p>
+      <h3>11.2 Client confidentiality obligations</h3>
+      <p>Clients must maintain confidentiality regarding proprietary methods, code, and processes disclosed by the company.</p>
+    </section>
+
+    <section>
+      <h2>12. Definitions</h2>
+      <div class="definitions-grid">
+        <div class="def-item"><strong>ACL</strong><p>Australian Consumer Law (Competition and Consumer Act 2010 Schedule 2)</p></div>
+        <div class="def-item"><strong>GST</strong><p>Goods and Services Tax (A New Tax System Act 1999)</p></div>
+        <div class="def-item"><strong>Services</strong><p>Business automation, integration, software, and consulting services provided by the company</p></div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <a href="index.html" class="logo" style="font-size:14px;">
+      <img src="square_logo.png" alt="Agent Hatchers" style="width:28px;height:28px;border-radius:7px;object-fit:cover;" />
+      <span>Agent Hatchers</span>
+    </a>
+    <div class="footer-links">
+      <a href="mailto:support@agenthatchers.com">support@agenthatchers.com</a>
+      <a href="terms-of-service.html">Terms of Service</a>
+      <a href="privacy-policy.html">Privacy Policy</a>
+    </div>
+    <div>© 2026 Agent Hatchers Pty Ltd</div>
+  </div>
+</footer>
+
+</body>
+</html>
