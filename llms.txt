@@ -1,6 +1,6 @@
 # Agent Hatching
 
-> An Australian, founder-led AI studio. We install Hermes — a client's own AI platform where each agent owns one clear business job from request to finished deliverable: sales follow-up, document generation, invoice processing, website updates and more. One agent. One job. Done. Clients talk to their agents in Slack, Microsoft Teams, or Hermes directly. Simple pricing: own it with a $10,000 one-off install then $499/month, or rent it all-in for $949/month with nothing upfront and a 12-month minimum. AI usage is billed at cost through OpenRouter — clients pay per token used, not per seat, and can swap the underlying AI model with one click.
+> An Australian, founder-led AI studio. We install Hermes — a client's own AI platform where each agent owns one clear business job from request to finished deliverable: sales follow-up, document generation, invoice processing, website updates and more. One agent, job done. Clients talk to their agents in Slack, Microsoft Teams, or Hermes directly. Simple pricing: own it with a $10,000 one-off install then $499/month, or rent it all-in for $949/month with nothing upfront and a 12-month minimum. AI usage is billed at cost through OpenRouter — clients pay per token used, not per seat, and can swap the underlying AI model with one click.
 
 ## Product
 - [Homepage](https://agenthatchers.com/): The authoritative entry point — what Hermes is, the interactive agent demo, how installation works, and how to book.
