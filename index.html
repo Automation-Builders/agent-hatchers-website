@@ -357,11 +357,14 @@ nav{
   color:var(--accent);
   font-size:1.04em;line-height:.98;
 }
+.hero-title .job-line .t-inner{white-space:nowrap;}
 .hero-title .done-word{
+  display:inline-block;
   font-family:var(--font-s);font-style:italic;font-weight:400;
   text-transform:none;letter-spacing:-.015em;
   color:var(--ink);
   font-size:1.04em;line-height:.98;
+  margin-left:.05em;
 }
 @media (prefers-reduced-motion: reduce){
   .js .hero-title .t-inner{transform:none;transition:none;}
@@ -1145,7 +1148,7 @@ html.lenis,html.lenis body{height:auto;}
     </div>
     <h1 class="hero-title">
       <span class="t-line"><span class="t-inner">One agent.</span></span>
-      <span class="t-line"><span class="t-inner">One job. <em class="done-word">Done.</em></span></span>
+      <span class="t-line job-line"><span class="t-inner">One job. <em class="done-word">Done.</em></span></span>
     </h1>
     <div class="hero-foot">
       <p class="hero-sub">We set up <strong>Hermes</strong> — a platform where each AI agent owns one clear business job from request to finished deliverable. <strong>You just talk to your agents — in Slack or Teams</strong>, like any other colleague.</p>
