@@ -1,0 +1,46 @@
+name: Apply brand colour update
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-brand-colour.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update orange accent to Agent Hatchers blue
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('index.html')
+          html = path.read_text()
+          replacements = {
+              'Paper + ink + international orange. Typography does the work.': 'Paper + ink + Agent Hatchers blue. Typography does the work.',
+              '--accent:   #FF4D00;': '--accent:   #2891DF;',
+              'border:1px dashed rgba(255,77,0,.4);border-radius:50%;': 'border:1px dashed rgba(40,145,223,.4);border-radius:50%;',
+              "c.setAttribute('fill', '#FF4D00');": "c.setAttribute('fill', '#2891DF');",
+              "params.set('primary_color', 'ff4d00');": "params.set('primary_color', '2891df');",
+          }
+          for old, new in replacements.items():
+              if old not in html:
+                  raise SystemExit(f'missing expected text: {old}')
+              html = html.replace(old, new, 1)
+          if any(old in html for old in ['#FF4D00', 'ff4d00', '255,77,0', 'international orange']):
+              raise SystemExit('old orange references remain')
+          path.write_text(html)
+          PY
+          rm .github/workflows/apply-brand-colour.yml
+      - name: Commit and push
+        run: |
+          git config user.name "hatchy-agent"
+          git config user.email "hatchy-agent@users.noreply.github.com"
+          git add index.html .github/workflows/apply-brand-colour.yml
+          git diff --cached --check
+          git commit -m "Update brand accent colour"
+          git push
