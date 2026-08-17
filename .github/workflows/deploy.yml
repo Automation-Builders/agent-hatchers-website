@@ -2,6 +2,7 @@ name: Deploy to GitHub Pages
 
 # Static site (vanilla index.html). Every push to main publishes to GitHub Pages,
 # which serves it at the custom domain agenthatchers.com (see the CNAME file).
+# Last touched by Hatchy to publish the corrected brand colour.
 on:
   push:
     branches: [main]
