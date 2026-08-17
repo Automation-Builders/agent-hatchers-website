@@ -1,6 +1,6 @@
 # Agent Hatchers
 
-> An Australian, founder-led AI studio. We install Hermes — a client's own AI platform where a team of AI agents does real work for their business: sales follow-up, document generation, invoice processing, website updates and more. Clients talk to their agents in Slack, Microsoft Teams, or Hermes directly. Simple pricing: a one-off installation fee, a monthly subscription (hosting, updates, support), and agents at set prices. AI usage is billed at cost through OpenRouter — clients pay per token used, not per seat, and can swap the underlying AI model with one click.
+> An Australian, founder-led AI studio. We install Hermes — a client's own AI platform where each agent owns one clear business job from request to finished deliverable: sales follow-up, document generation, invoice processing, website updates and more. One agent. One job. Done. Clients talk to their agents in Slack, Microsoft Teams, or Hermes directly. Simple pricing: a one-off installation fee, a monthly subscription (hosting, updates, support), and agents at set prices. AI usage is billed at cost through OpenRouter — clients pay per token used, not per seat, and can swap the underlying AI model with one click.
 
 ## Product
 - [Homepage](https://agenthatchers.com/): The authoritative entry point — what Hermes is, the interactive agent demo, how installation works, and how to book.
