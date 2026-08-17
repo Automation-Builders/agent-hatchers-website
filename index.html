@@ -36,7 +36,7 @@
       "url": "https://agenthatchers.com/",
       "logo": "https://agenthatchers.com/agent-hatchers-logo.png",
       "image": "https://agenthatchers.com/agent-hatchers-logo.png",
-      "description": "Australian AI studio. We install Hermes — your own AI platform where each agent owns one business job from request to finished deliverable. Choose a one-off installation with a $499 monthly subscription, a 10-agent package, a rental option, or bespoke enterprise agents. AI usage billed at cost.",
+      "description": "Australian AI studio. We install Hermes — your own AI platform where each agent owns one business job from request to finished deliverable. Choose A$10,000, A$25,000 including 10 agents, or bespoke from A$50,000. Platform-only rental is A$949/month without agents included. AI usage billed at cost.",
       "foundingLocation": { "@type": "Place", "name": "Australia" },
       "areaServed": { "@type": "Country", "name": "Australia" },
       "founder": [
@@ -123,7 +123,7 @@
           "name": "How much does it cost?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Choose the fit: own it with a $10,000 one-off installation and then $499/month, step up to a $25,000 package including 10 agents, rent it for $949/month all-in with nothing upfront and a 12-month minimum, or start from $50,000 for enterprise bespoke agents. AI usage is billed at cost: you pay only for what your agents actually use, not a per-seat licence."
+            "text": "Choose the fit: own it from $10,000 and then $499/month, step up to a $25,000 package including 10 agents, or start from $50,000 for enterprise bespoke agents. If you only want access to the platform instead of the $10,000 install, rent it for $949/month without agents included. AI usage is billed at cost: you pay only for what your agents actually use, not a per-seat licence."
           }
         },
         {
@@ -825,9 +825,9 @@ nav{
   .lib-row .lib-price{justify-self:start;}
 }
 
-/* ── PRICING — ruled columns ── */
+/* ── PRICING — clean two-row cards ── */
 .price-cols{
-  display:grid;grid-template-columns:repeat(4,1fr);
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
   border-top:1px solid var(--line);
 }
 .price-col.price-col-dark{
@@ -839,11 +839,12 @@ nav{
 .price-col.price-col-dark ul li{border-top-color:rgba(244,241,232,.2);}
 .price-col.price-col-dark ul li::before{color:var(--accent);}
 .price-col{
-  padding:clamp(28px,3vw,52px) clamp(20px,2.4vw,44px) 0 0;
+  padding:clamp(28px,3vw,52px) clamp(24px,3vw,56px) clamp(30px,3.5vw,58px) 0;
   border-right:1px solid var(--line);
   display:flex;flex-direction:column;gap:18px;
 }
-.price-col:last-child{border-right:none;padding-right:0;}
+.price-col:nth-child(even){border-right:none;padding-right:0;}
+.price-col:nth-child(n+3){border-top:1px solid var(--line);}
 .price-col + .price-col{padding-left:clamp(20px,2.4vw,44px);}
 .price-col .mono{color:var(--accent);}
 .price-col h3{
@@ -873,7 +874,7 @@ nav{
 .price-foot strong{color:var(--ink);font-weight:500;}
 @media(max-width:860px){
   .price-cols{grid-template-columns:1fr;}
-  .price-col{border-right:none;border-bottom:1px solid var(--line);padding:28px 0;}
+  .price-col,.price-col.price-col-dark{border-right:none;border-bottom:1px solid var(--line);padding:28px 0;box-shadow:none;}
   .price-col + .price-col{padding-left:0;}
   .price-col:last-child{border-bottom:none;padding-bottom:0;}
 }
@@ -1466,8 +1467,8 @@ html.lenis,html.lenis body{height:auto;}
         <div class="price-amount">A$10,000 <span>one-off install</span></div>
         <p>Then <strong>A$499 / month</strong>.</p>
         <ul>
-          <li>Yours from day one</li>
-          <li>Lowest monthly, best long-term value</li>
+          <li>Own the platform from day one</li>
+          <li>Best entry point for building your own agents</li>
           <li>Hosting, updates and support included</li>
           <li>AI usage billed at cost — only what you use</li>
         </ul>
@@ -1484,20 +1485,8 @@ html.lenis,html.lenis body{height:auto;}
           <li>AI usage billed at cost — only what you use</li>
         </ul>
       </div>
-      <div class="price-col price-col-dark reveal">
-        <span class="mono">03 / Rent it</span>
-        <h3>Rent it</h3>
-        <div class="price-amount">A$949 <span>/ month, all-in</span></div>
-        <p>Nothing upfront · 12-month minimum.</p>
-        <ul>
-          <li>Start this month</li>
-          <li>Same platform, same agents, no capital outlay</li>
-          <li>Hosting, updates and support included</li>
-          <li>AI usage billed at cost — only what you use</li>
-        </ul>
-      </div>
       <div class="price-col reveal">
-        <span class="mono">04 / Enterprise</span>
+        <span class="mono">03 / Enterprise</span>
         <h3>Enterprise</h3>
         <div class="price-amount">From A$50,000 <span>bespoke agents</span></div>
         <p>Quoted up front for complex, high-value workflows.</p>
@@ -1508,8 +1497,20 @@ html.lenis,html.lenis body{height:auto;}
           <li>AI usage billed at cost — only what you use</li>
         </ul>
       </div>
+      <div class="price-col price-col-dark reveal">
+        <span class="mono">04 / Rent it</span>
+        <h3>Rent it</h3>
+        <div class="price-amount">A$949 <span>/ month</span></div>
+        <p>Platform access without the A$10,000 install.</p>
+        <ul>
+          <li>Access the platform without owning it upfront</li>
+          <li>No agents included — add the ones you need</li>
+          <li>Hosting, updates and support included</li>
+          <li>AI usage billed at cost — only what you use</li>
+        </ul>
+      </div>
     </div>
-    <p class="price-foot reveal">Start with one agent, launch a 10-agent team, rent the platform, or go bespoke for enterprise. Ready-made agents have set prices, custom agents are quoted up front, and building your own is included. <strong>AI usage is pay-per-token through OpenRouter, at cost.</strong></p>
+    <p class="price-foot reveal">Own it from A$10,000, launch with 10 included agents for A$25,000, or go bespoke from A$50,000. If you just want platform access instead, rent it for A$949/month and add agents as needed. <strong>AI usage is pay-per-token through OpenRouter, at cost.</strong></p>
   </div>
 </section>
 
@@ -1607,7 +1608,7 @@ html.lenis,html.lenis body{height:auto;}
       </details>
       <details class="faq-item reveal" id="faq-cost">
         <summary>How much does it cost?<span class="faq-icon">+</span></summary>
-        <div class="faq-body">Choose the fit: own it with an A$10,000 one-off installation and then A$499/month, step up to A$25,000 including 10 agents, rent it for A$949/month all-in with nothing upfront and a 12-month minimum, or start from A$50,000 for enterprise bespoke agents. AI usage is billed at cost through OpenRouter: you pay for what your agents actually use, not a per-seat licence.</div>
+        <div class="faq-body">Choose the fit: own it from A$10,000 and then A$499/month, step up to A$25,000 including 10 agents, or start from A$50,000 for enterprise bespoke agents. If you only want access to the platform instead of the A$10,000 install, rent it for A$949/month without agents included. AI usage is billed at cost through OpenRouter: you pay for what your agents actually use, not a per-seat licence.</div>
       </details>
       <details class="faq-item reveal" id="faq-chatgpt">
         <summary>Why not just use ChatGPT?<span class="faq-icon">+</span></summary>

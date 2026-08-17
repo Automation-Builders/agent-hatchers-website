@@ -1,6 +1,6 @@
 # Agent Hatching
 
-> An Australian, founder-led AI studio. We install Hermes — a client's own AI platform where each agent owns one clear business job from request to finished deliverable: sales follow-up, document generation, invoice processing, website updates and more. One agent, job done. Clients talk to their agents in Slack, Microsoft Teams, or Hermes directly. Simple pricing: own it with a $10,000 one-off install then $499/month, step up to $25,000 including 10 agents, rent it all-in for $949/month with nothing upfront and a 12-month minimum, or start from $50,000 for enterprise bespoke agents. AI usage is billed at cost through OpenRouter — clients pay per token used, not per seat, and can swap the underlying AI model with one click.
+> An Australian, founder-led AI studio. We install Hermes — a client's own AI platform where each agent owns one clear business job from request to finished deliverable: sales follow-up, document generation, invoice processing, website updates and more. One agent, job done. Clients talk to their agents in Slack, Microsoft Teams, or Hermes directly. Simple pricing: own it from $10,000 then $499/month, step up to $25,000 including 10 agents, go bespoke from $50,000, or rent platform access for $949/month without agents included. AI usage is billed at cost through OpenRouter — clients pay per token used, not per seat, and can swap the underlying AI model with one click.
 
 ## Product
 - [Homepage](https://agenthatchers.com/): The authoritative entry point — what Hermes is, the interactive agent demo, how installation works, and how to book.
@@ -8,7 +8,7 @@
 - [How it works](https://agenthatchers.com/#how): Three steps — we install Hermes and connect it to the client's existing tools; the client picks agents (ready-made at set prices, custom-built, or self-built in plain English); the agents start working.
 - [Why Hermes](https://agenthatchers.com/#why): The four-part argument — pay-per-token pricing via OpenRouter instead of fixed subscriptions; hundreds of pre-installed skills so output sounds like the client, not a chatbot; one-click model swapping with no vendor lock-in; complete separation between agents.
 - [Agent library](https://agenthatchers.com/#agents): Ready-made agents at set prices (Sales, Document, Invoice, Support, Website), custom agents quoted up front, and unlimited self-built agents included with every installation.
-- [Pricing](https://agenthatchers.com/#pricing): Four ways in — own it with a $10,000 one-off install then $499/month, step up to $25,000 including 10 agents, rent it all-in for $949/month with nothing upfront and a 12-month minimum, or start from $50,000 for enterprise bespoke agents. AI usage billed at cost.
+- [Pricing](https://agenthatchers.com/#pricing): Four ways in — own it from $10,000 then $499/month, step up to $25,000 including 10 agents, go bespoke from $50,000, or rent platform access for $949/month without agents included. AI usage billed at cost.
 
 ## Company
 - [About Agent Hatching](https://agenthatchers.com/#trust): Founder-led — Hyein Yu (Founder, Head of Engineering) architects every installation; Noah Webb (Co-founder, CEO) runs every client relationship. Australian team, same-timezone delivery.
