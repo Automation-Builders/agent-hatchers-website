@@ -190,7 +190,7 @@
 <style>
 /* ════════════════════════════════════════════════════════════════════════
    AGENT HATCHERS — v3.1 editorial redesign
-   Paper + ink + international orange. Typography does the work.
+   Paper + ink + Agent Hatchers blue. Typography does the work.
    Display: Space Grotesk (caps) with Instrument Serif italic accents.
    Labels: Space Mono. Hairline rules, index rows, grain overlay.
    ════════════════════════════════════════════════════════════════════════ */
@@ -203,7 +203,7 @@
   --ink-30:   rgba(22,21,15,.30);
   --line:     rgba(22,21,15,.18);
   --line-soft:rgba(22,21,15,.10);
-  --accent:   #FF4D00;
+  --accent:   #2891DF;
 
   --font-d:  'Space Grotesk',-apple-system,sans-serif;   /* display + body */
   --font-s:  'Instrument Serif',Georgia,serif;           /* italic accents */
@@ -686,7 +686,7 @@ nav{
 .statement-ring{
   position:absolute;left:50%;top:50%;
   transform:translate(-50%,-50%);
-  border:1px dashed rgba(255,77,0,.4);border-radius:50%;
+  border:1px dashed rgba(40,145,223,.4);border-radius:50%;
   pointer-events:none;
 }
 .statement-ring.r1{
@@ -1831,7 +1831,7 @@ async function postLead(kind, payload){
       const p = flows[(Math.random() * flows.length) | 0];
       const c = document.createElementNS(SVGNS, 'circle');
       c.setAttribute('r', '3');
-      c.setAttribute('fill', '#FF4D00');
+      c.setAttribute('fill', '#2891DF');
       svg.appendChild(c);
       pulses.push({ p, c, svg, t: 0, speed: 0.007 + Math.random() * 0.008 });
     }
@@ -2059,7 +2059,7 @@ bookingForm.addEventListener('submit', async e => {
   params.set('hide_gdpr_banner', '1');
   params.set('background_color', 'f4f1ea');
   params.set('text_color', '16150f');
-  params.set('primary_color', 'ff4d00');
+  params.set('primary_color', '2891df');
   const url = CALENDLY_URL + '?' + params.toString();
 
   bookingForm.classList.add('is-leaving');
