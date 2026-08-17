@@ -1,0 +1,84 @@
+name: Apply Baloo 2 font update
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-baloo-2-font.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update website fonts
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          replacements = {
+              'index.html': [
+                  ("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&display=swap",
+                   "https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&display=swap"),
+                  ("Display: Space Grotesk (caps) with Instrument Serif italic accents.",
+                   "Display: Baloo 2 with Instrument Serif italic accents."),
+                  ("--font-d:  'Space Grotesk',-apple-system,sans-serif;   /* display + body */",
+                   "--font-d:  'Baloo 2',-apple-system,BlinkMacSystemFont,sans-serif;   /* display + body */"),
+              ],
+              'audit.html': [
+                  ("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
+                   "https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"),
+                  ("font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;",
+                   "font-family:'Baloo 2',-apple-system,BlinkMacSystemFont,sans-serif;"),
+              ],
+              'privacy-policy.html': [
+                  ("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
+                   "https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"),
+                  ("font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;",
+                   "font-family:'Baloo 2',-apple-system,BlinkMacSystemFont,sans-serif;"),
+              ],
+              'terms-of-service.html': [
+                  ("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
+                   "https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"),
+                  ("font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;",
+                   "font-family:'Baloo 2',-apple-system,BlinkMacSystemFont,sans-serif;"),
+              ],
+          }
+          for filename, pairs in replacements.items():
+              path = Path(filename)
+              text = path.read_text()
+              for old, new in pairs:
+                  if old not in text and new not in text:
+                      raise SystemExit(f'Missing expected font string in {filename}: {old}')
+                  text = text.replace(old, new)
+              path.write_text(text)
+          Path('.github/workflows/apply-baloo-2-font.yml').unlink()
+          PY
+      - name: Verify font update
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          files = ['index.html','audit.html','privacy-policy.html','terms-of-service.html']
+          for f in files:
+              text = Path(f).read_text()
+              assert 'Baloo+2' in text, f'{f} missing Baloo+2 import'
+              assert 'Baloo 2' in text, f'{f} missing Baloo 2 CSS'
+          assert 'Space+Grotesk' not in Path('index.html').read_text()
+          assert 'Space Grotesk' not in Path('index.html').read_text()
+          for f in ['audit.html','privacy-policy.html','terms-of-service.html']:
+              text = Path(f).read_text()
+              assert 'family=Inter' not in text, f'{f} still imports Inter'
+              assert "font-family:'Inter'" not in text, f'{f} still uses Inter as body font'
+          print('Baloo 2 font update verified')
+          PY
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html audit.html privacy-policy.html terms-of-service.html .github/workflows/apply-baloo-2-font.yml
+          git commit -m "Use Baloo 2 as website font" || exit 0
+          git push
