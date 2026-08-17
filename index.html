@@ -965,11 +965,6 @@ nav{
   padding:var(--sec-pad) 0;
   text-align:center;
 }
-.scarcity{
-  font-family:var(--font-m);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--ink-50);margin-bottom:clamp(28px,4vw,44px);
-}
-.scarcity strong{color:var(--accent);font-weight:400;}
 .cta-title{
   font-size:clamp(44px,8vw,128px);font-weight:500;letter-spacing:-.04em;line-height:.96;
   text-transform:uppercase;margin-bottom:28px;
@@ -1642,12 +1637,9 @@ html.lenis,html.lenis body{height:auto;}
   </div>
 </section>
 
-<!-- SCARCITY + FINAL CTA -->
+<!-- FINAL CTA -->
 <section class="cta-section" id="book">
   <div class="wrap">
-    <p class="scarcity reveal" id="scarcityLine">
-      We install Hermes for <strong>2 new clients per month</strong> · <span id="scarcityCurrent"></span> <span id="scarcityNext"></span>
-    </p>
     <h2 class="cta-title reveal">Ready to meet <em>your new team?</em></h2>
     <p class="reveal">Thirty minutes with Noah. He'll show you Hermes live, work out which agents fit your business, and give you a price on the spot. No jargon, no pressure.</p>
     <a href="#" class="btn btn-primary reveal" data-open-book data-source="final">Book a call <span class="arrow">→</span></a>
@@ -1732,16 +1724,6 @@ const CALENDLY_URL = 'https://calendly.com/noah-automationbuilders/30min';
 // node must allow this origin via "Allowed Origins (CORS)". Workflow must be Active.
 // Leave '' to disable network calls.
 const LEAD_WEBHOOK = 'https://n8n.automationbuilders.ai/webhook/5e644b5e-d54e-4a7e-83ea-ea1666b199f6';
-
-// Scarcity — edit monthly. hideAfter: the whole line disappears from this date
-// (visitor's local time) so stale availability never shows.
-const SCARCITY = {
-  currentMonth: 'August',
-  currentStatus: 'is full.',
-  nextMonth: 'September',
-  nextStatus: 'has 1 slot remaining.',
-  hideAfter: '2026-09-01T00:00:00'
-};
 
 /* ── HELPERS ── */
 function $(id){return document.getElementById(id);}
@@ -1853,15 +1835,6 @@ async function postLead(kind, payload){
   }, { threshold: 0.05 }).observe(strip);
 })();
 
-/* ── SCARCITY LINE ── */
-(function scarcity(){
-  if (SCARCITY.hideAfter && new Date() >= new Date(SCARCITY.hideAfter)) {
-    $('scarcityLine').style.display = 'none';
-    return;
-  }
-  $('scarcityCurrent').innerHTML = `<strong>${SCARCITY.currentMonth}</strong> ${SCARCITY.currentStatus}`;
-  $('scarcityNext').innerHTML    = `<strong>${SCARCITY.nextMonth}</strong> ${SCARCITY.nextStatus}`;
-})();
 
 /* ── AGENT CHAT DEMO ── */
 const AGENTS = {
