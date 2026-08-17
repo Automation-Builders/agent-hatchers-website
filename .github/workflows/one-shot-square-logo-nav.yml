@@ -1,0 +1,50 @@
+name: One-shot square logo nav restore
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/one-shot-square-logo-nav.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  restore-square-logo-nav:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Restore square logo and Agent Hatchers nav text
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          html = p.read_text()
+          html = html.replace('https://agenthatchers.com/agent-hatchers-main-logo.svg', 'https://agenthatchers.com/agent-hatchers-logo.png')
+          html = html.replace('.logo img{width:190px;height:auto;border-radius:0;object-fit:contain;display:block;}', '.logo img{width:30px;height:30px;border-radius:6px;object-fit:contain;}')
+          html = html.replace('  .logo img{width:150px;}\n  .nav-cta .btn{padding:0 16px;font-size:13px;min-height:38px;}', '  .logo span{font-size:12px;}\n  .nav-cta .btn{padding:0 16px;font-size:13px;min-height:38px;}')
+          html = html.replace('    <a href="#top" class="logo" aria-label="Agent Hatching home">\n      <img src="agent-hatchers-main-logo.svg" alt="Agent Hatching" />\n    </a>', '    <a href="#top" class="logo" aria-label="Agent Hatchers home">\n      <img src="agent-hatchers-logo.png" alt="" />\n      <span>Agent&nbsp;Hatchers</span>\n    </a>')
+          if 'agent-hatchers-main-logo.svg' in html:
+              raise SystemExit('main logo ref still present')
+          if 'Agent&nbsp;Hatchers' not in html:
+              raise SystemExit('Agent Hatchers nav text missing')
+          p.write_text(html)
+
+      - name: Commit source change
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- index.html; then
+            echo "No index.html changes needed"
+            exit 0
+          fi
+          git config user.name "hatchy-agent"
+          git config user.email "hatchy-agent@users.noreply.github.com"
+          git add index.html
+          git commit -m "Restore square logo nav"
+          git push origin HEAD:main
