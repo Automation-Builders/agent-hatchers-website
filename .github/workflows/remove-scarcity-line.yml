@@ -1,0 +1,49 @@
+name: Remove scarcity line
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/remove-scarcity-line.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  remove-scarcity-line:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Remove final CTA scarcity line
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text()
+          replacements = [
+              (""".scarcity{\n  font-family:var(--font-m);font-size:12px;letter-spacing:.14em;text-transform:uppercase;\n  color:var(--ink-50);margin-bottom:clamp(28px,4vw,44px);\n}\n.scarcity strong{color:var(--accent);font-weight:400;}\n""", ""),
+              ("<!-- SCARCITY + FINAL CTA -->", "<!-- FINAL CTA -->"),
+              ("""    <p class=\"scarcity reveal\" id=\"scarcityLine\">\n      We install Hermes for <strong>2 new clients per month</strong> · <span id=\"scarcityCurrent\"></span> <span id=\"scarcityNext\"></span>\n    </p>\n""", ""),
+              ("""\n// Scarcity — edit monthly. hideAfter: the whole line disappears from this date\n// (visitor's local time) so stale availability never shows.\nconst SCARCITY = {\n  currentMonth: 'August',\n  currentStatus: 'is full.',\n  nextMonth: 'September',\n  nextStatus: 'has 1 slot remaining.',\n  hideAfter: '2026-09-01T00:00:00'\n};\n""", ""),
+              ("""\n/* ── SCARCITY LINE ── */\n(function scarcity(){\n  if (SCARCITY.hideAfter && new Date() >= new Date(SCARCITY.hideAfter)) {\n    $('scarcityLine').style.display = 'none';\n    return;\n  }\n  $('scarcityCurrent').innerHTML = `<strong>${SCARCITY.currentMonth}</strong> ${SCARCITY.currentStatus}`;\n  $('scarcityNext').innerHTML    = `<strong>${SCARCITY.nextMonth}</strong> ${SCARCITY.nextStatus}`;\n})();\n""", "\n"),
+          ]
+          for old, new in replacements:
+              if old not in s:
+                  raise SystemExit(f'Missing expected snippet: {old[:80]!r}')
+              s = s.replace(old, new, 1)
+          p.write_text(s)
+          for text in ['2 new clients per month', 'scarcityLine', 'SCARCITY', 'August', 'September', 'slot remaining']:
+              if text in s:
+                  raise SystemExit(f'Still present: {text}')
+          PY
+      - name: Remove one-shot workflow
+        run: rm .github/workflows/remove-scarcity-line.yml
+      - name: Commit change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html .github/workflows/remove-scarcity-line.yml
+          git commit -m "Remove final CTA scarcity line"
+          git push
