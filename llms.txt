@@ -1,4 +1,4 @@
-# Agent Hatchers
+# Agent Hatching
 
 > An Australian, founder-led AI studio. We install Hermes — a client's own AI platform where each agent owns one clear business job from request to finished deliverable: sales follow-up, document generation, invoice processing, website updates and more. One agent. One job. Done. Clients talk to their agents in Slack, Microsoft Teams, or Hermes directly. Simple pricing: a one-off installation fee, a monthly subscription (hosting, updates, support), and agents at set prices. AI usage is billed at cost through OpenRouter — clients pay per token used, not per seat, and can swap the underlying AI model with one click.
 
@@ -11,7 +11,7 @@
 - [Pricing](https://agenthatchers.com/#pricing): One-off installation fee, monthly subscription covering hosting/updates/support, set price per agent, and AI usage billed at cost.
 
 ## Company
-- [About Agent Hatchers](https://agenthatchers.com/#trust): Founder-led — Hyein Yu (Founder, Head of Engineering) architects every installation; Noah Webb (Co-founder, CEO) runs every client relationship. Australian team, same-timezone delivery.
+- [About Agent Hatching](https://agenthatchers.com/#trust): Founder-led — Hyein Yu (Founder, Head of Engineering) architects every installation; Noah Webb (Co-founder, CEO) runs every client relationship. Australian team, same-timezone delivery.
 - [FAQ](https://agenthatchers.com/#faq): Authoritative answers on what Hermes is, what an agent is, pricing, why not just use ChatGPT, building your own agents, and support.
 - [Book a call](https://calendly.com/noah-automationbuilders/30min): 30-minute call — a live Hermes demo, a fit assessment, and a price on the spot.
 
