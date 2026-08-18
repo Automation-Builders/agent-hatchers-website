@@ -1,6 +1,6 @@
 # agent-hatchers-website
 
-Marketing site for Agent Hatching, served at **https://agenthatchers.com**.
+Marketing site for Agent Hatchers, served at **https://agenthatchers.com**.
 
 ## Deployment
 
