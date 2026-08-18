@@ -917,22 +917,56 @@ nav{
 
 /* ── FOUNDERS ── */
 .founders{
-  display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,4vw,64px);
+  display:grid;grid-template-columns:minmax(0,1.12fr) minmax(320px,.88fr);
+  gap:clamp(28px,5vw,78px);align-items:start;
   border-top:1px solid var(--line);padding-top:clamp(32px,4vw,56px);
 }
-@media(max-width:860px){.founders{grid-template-columns:1fr;}}
-.founder{display:flex;flex-direction:column;gap:16px;}
-.founder-top{display:flex;align-items:center;gap:18px;}
-.founder-photo{
-  width:76px;height:76px;border-radius:50%;overflow:hidden;flex-shrink:0;
-  border:1px solid var(--ink);
+.founder-gallery{display:grid;grid-template-columns:1fr 1fr;gap:clamp(16px,2.4vw,30px);}
+.founder-card{
+  position:relative;min-height:clamp(360px,42vw,560px);padding:0;
+  border:1px solid var(--ink);background:var(--paper);overflow:hidden;cursor:pointer;
+  box-shadow:0 0 0 0 var(--ink);font:inherit;color:inherit;text-align:inherit;
+  transition:transform .28s cubic-bezier(.22,1,.36,1),box-shadow .28s cubic-bezier(.22,1,.36,1);
 }
-.founder-photo img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.05);}
-.founder h3{
-  font-size:clamp(24px,2.4vw,34px);font-weight:500;letter-spacing:-.025em;text-transform:uppercase;line-height:1;
+.founder-card:hover,.founder-card.is-active{transform:translate(-6px,-6px);box-shadow:10px 10px 0 0 var(--ink);}
+.founder-card.is-active{border-color:var(--accent);}
+.founder-card.is-active .founder-card-mark{background:var(--accent);border-color:var(--accent);color:var(--paper);}
+.founder-card:focus-visible{outline:3px solid var(--accent);outline-offset:4px;}
+.founder-card img{
+  position:absolute;inset:0;
+  width:100%;height:100%;object-fit:cover;display:block;
+  filter:grayscale(1) contrast(1.05);transition:filter .28s,transform .7s cubic-bezier(.22,1,.36,1);
 }
-.founder .mono{display:block;margin-top:6px;}
-.founder p{color:var(--ink-70);font-size:15.5px;line-height:1.65;max-width:52ch;}
+.founder-card:hover img,.founder-card.is-active img{filter:grayscale(0) contrast(1.02);transform:scale(1.04);}
+.founder-card::after{
+  content:'';position:absolute;inset:auto 0 0;height:46%;
+  background:linear-gradient(0deg,rgba(22,21,15,.78),rgba(22,21,15,0));pointer-events:none;
+}
+.founder-card-caption{
+  position:absolute;left:18px;right:18px;bottom:18px;z-index:1;color:var(--paper);
+  display:flex;align-items:flex-end;justify-content:space-between;gap:16px;text-align:left;
+}
+.founder-card-caption strong{
+  display:block;font-size:clamp(23px,2.2vw,34px);font-weight:500;letter-spacing:-.03em;text-transform:uppercase;line-height:.95;
+}
+.founder-card-caption span{display:block;margin-top:8px;color:rgba(244,241,232,.72);}
+.founder-card-mark{
+  width:40px;height:40px;border:1px solid rgba(244,241,232,.6);border-radius:50%;display:grid;place-items:center;
+  font-family:var(--font-m);font-size:11px;letter-spacing:.12em;flex-shrink:0;
+}
+.founder-panel{
+  position:sticky;top:calc(var(--nav-h) + 28px);border:1px solid var(--ink);background:var(--paper-2);
+  padding:clamp(24px,3vw,42px);box-shadow:8px 8px 0 rgba(20,20,16,.12);
+}
+.founder-panel-kicker{color:var(--accent);margin-bottom:18px;display:block;}
+.founder-panel h3{
+  font-size:clamp(36px,4.8vw,72px);font-weight:500;letter-spacing:-.04em;text-transform:uppercase;line-height:.94;
+  margin-bottom:12px;
+}
+.founder-panel-role{margin-bottom:24px;display:block;color:var(--ink-50);}
+.founder-copy{display:flex;flex-direction:column;gap:16px;}
+.founder-copy[hidden]{display:none;}
+.founder-copy p{color:var(--ink-70);font-size:15.5px;line-height:1.65;max-width:52ch;}
 .founder-link{
   font-family:var(--font-m);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
   color:var(--ink);text-decoration:none;width:fit-content;
@@ -940,6 +974,14 @@ nav{
   transition:color .15s,border-color .15s;
 }
 .founder-link:hover{color:var(--accent);border-color:var(--accent);}
+@media(max-width:900px){
+  .founders{grid-template-columns:1fr;}
+  .founder-panel{position:relative;top:auto;}
+}
+@media(max-width:640px){
+  .founder-gallery{grid-template-columns:1fr;}
+  .founder-card{min-height:420px;}
+}
 
 /* ── FAQ ── */
 .faq-list{border-top:1px solid var(--line);}
@@ -1558,35 +1600,40 @@ html.lenis,html.lenis body{height:auto;}
     </div>
 
     <div class="founders">
-      <article class="founder reveal">
-        <div class="founder-top">
-          <div class="founder-photo">
-            <img src="noah.jpg" alt="Noah Webb, CEO and Co-founder at Agent Hatchers" width="76" height="76" loading="lazy" />
-          </div>
-          <div>
-            <h3>Noah Webb</h3>
-            <span class="mono">Co-founder · CEO</span>
-          </div>
-        </div>
-        <p>Noah runs the client side of Agent Hatchers: business development, partnerships, and the relationship on every engagement. He follows new AI releases closely, so when a better model comes out, your agents get it — often the same week. He's the one you'll actually talk to.</p>
-        <p>Before this, years in property finance and data, then family office investing. Monash-educated, Melbourne-based, and a Flying Fox volunteer since 2019, now on its Community Committee.</p>
-        <a class="founder-link" href="https://www.linkedin.com/in/noah-webb-5795151a6/" target="_blank" rel="noopener">LinkedIn ↗</a>
-      </article>
+      <div class="founder-gallery reveal" aria-label="Agent Hatchers founders">
+        <button class="founder-card is-active" type="button" data-founder="noah" aria-pressed="true">
+          <img src="noah.jpg" alt="Noah Webb smiling in a black-and-white portrait" loading="lazy" />
+          <span class="founder-card-caption">
+            <span><strong>Noah Webb</strong><span class="mono">Co-founder · CEO</span></span>
+            <span class="founder-card-mark">01</span>
+          </span>
+        </button>
+        <button class="founder-card" type="button" data-founder="hyein" aria-pressed="false">
+          <img src="hyein.jpg" alt="Hyein Yu smiling in a black-and-white portrait" loading="lazy" />
+          <span class="founder-card-caption">
+            <span><strong>Hyein Yu</strong><span class="mono">Founder · Head of Engineering</span></span>
+            <span class="founder-card-mark">02</span>
+          </span>
+        </button>
+      </div>
 
-      <article class="founder reveal">
-        <div class="founder-top">
-          <div class="founder-photo">
-            <img src="hyein.jpg" alt="Hyein Yu, Founder and Head of Engineering at Agent Hatchers" width="76" height="76" loading="lazy" />
-          </div>
-          <div>
-            <h3>Hyein Yu</h3>
-            <span class="mono">Founder · Head of Engineering</span>
-          </div>
+      <aside class="founder-panel reveal" aria-live="polite">
+        <span class="mono founder-panel-kicker">Tap a founder</span>
+        <div class="founder-copy" data-founder-copy="noah">
+          <h3>Noah Webb</h3>
+          <span class="mono founder-panel-role">Co-founder · CEO</span>
+          <p>Noah runs the client side of Agent Hatchers: business development, partnerships, and the relationship on every engagement. He follows new AI releases closely, so when a better model comes out, your agents get it — often the same week. He's the one you'll actually talk to.</p>
+          <p>Before this, years in property finance and data, then family office investing. Monash-educated, Melbourne-based, and a Flying Fox volunteer since 2019, now on its Community Committee.</p>
+          <a class="founder-link" href="https://www.linkedin.com/in/noah-webb-5795151a6/" target="_blank" rel="noopener">LinkedIn ↗</a>
         </div>
-        <p>Hyein is the founder of Agent Hatchers and leads the company's engineering. She architects every Hermes installation, builds the agents that need real engineering behind them, and oversees the team that keeps every platform healthy long after handover.</p>
-        <p>Her background spans several years across AI startups, where she specialised in building production systems that perform reliably across numerous industries.</p>
-        <a class="founder-link" href="https://www.linkedin.com/in/hye-in-yu/" target="_blank" rel="noopener">LinkedIn ↗</a>
-      </article>
+        <div class="founder-copy" data-founder-copy="hyein" hidden>
+          <h3>Hyein Yu</h3>
+          <span class="mono founder-panel-role">Founder · Head of Engineering</span>
+          <p>Hyein is the founder of Agent Hatchers and leads the company's engineering. She architects every Hermes installation, builds the agents that need real engineering behind them, and oversees the team that keeps every platform healthy long after handover.</p>
+          <p>Her background spans several years across AI startups, where she specialised in building production systems that perform reliably across numerous industries.</p>
+          <a class="founder-link" href="https://www.linkedin.com/in/hye-in-yu/" target="_blank" rel="noopener">LinkedIn ↗</a>
+        </div>
+      </aside>
     </div>
   </div>
 </section>
@@ -2006,6 +2053,27 @@ const AGENTS = {
   } else {
     play(current);
   }
+})();
+
+/* ── FOUNDER SPOTLIGHT ── */
+(function founderSpotlight(){
+  const cards = document.querySelectorAll('.founder-card');
+  const panels = document.querySelectorAll('[data-founder-copy]');
+  if (!cards.length || !panels.length) return;
+
+  function showFounder(key){
+    cards.forEach(card => {
+      const active = card.dataset.founder === key;
+      card.classList.toggle('is-active', active);
+      card.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    panels.forEach(panel => { panel.hidden = panel.dataset.founderCopy !== key; });
+  }
+
+  cards.forEach(card => {
+    card.addEventListener('click', () => showFounder(card.dataset.founder));
+    card.addEventListener('mouseenter', () => showFounder(card.dataset.founder));
+  });
 })();
 
 /* ── MODAL HELPERS ── */
