@@ -1,1 +1,2201 @@
-PLACEHOLDER
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="We install Hermes — your own AI platform where each agent owns one business job from request to finished deliverable. One agent, job done." />
+<title>Agent Hatchers</title>
+<link rel="canonical" href="https://agenthatchers.com/" />
+<link rel="icon" type="image/png" href="agent-hatchers-logo.png" />
+
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://agenthatchers.com/" />
+<meta property="og:title" content="Agent Hatchers | One agent, job done." />
+<meta property="og:description" content="We install Hermes — your own AI platform where each agent owns one business job from request to finished deliverable. Simple pricing. Pay only for the AI you use." />
+<meta property="og:image" content="https://agenthatchers.com/agent-hatchers-logo.png" />
+<meta property="og:locale" content="en_AU" />
+<meta property="og:site_name" content="Agent Hatchers" />
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Agent Hatchers | One agent, job done." />
+<meta name="twitter:description" content="We install Hermes — your own AI platform where each agent owns one business job from request to finished deliverable." />
+<meta name="twitter:image" content="https://agenthatchers.com/agent-hatchers-logo.png" />
+
+<!-- Structured data — Organization, Person (founders), WebSite, FAQPage -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://agenthatchers.com/#org",
+      "name": "Agent Hatchers",
+      "alternateName": "Agent Hatchers Pty Ltd",
+      "url": "https://agenthatchers.com/",
+      "logo": "https://agenthatchers.com/agent-hatchers-logo.png",
+      "image": "https://agenthatchers.com/agent-hatchers-logo.png",
+      "description": "Australian AI studio. We install Hermes — your own AI platform where each agent owns one business job from request to finished deliverable. Choose A$10,000, A$25,000 including 10 agents, or bespoke from A$50,000. Platform-only rental is A$949/month without agents included. AI usage billed at cost.",
+      "foundingLocation": { "@type": "Place", "name": "Australia" },
+      "areaServed": { "@type": "Country", "name": "Australia" },
+      "founder": [
+        { "@id": "https://agenthatchers.com/#hyein" },
+        { "@id": "https://agenthatchers.com/#noah" }
+      ],
+      "employee": [
+        { "@id": "https://agenthatchers.com/#hyein" },
+        { "@id": "https://agenthatchers.com/#noah" }
+      ],
+      "email": "support@agenthatchers.com",
+      "inLanguage": "en-AU",
+      "knowsAbout": [
+        "AI agents for business",
+        "Hermes AI platform installation",
+        "AI agent development",
+        "Business process automation",
+        "OpenRouter model routing",
+        "Sales and SDR agents",
+        "Document generation agents",
+        "Invoice processing agents"
+      ]
+    },
+    {
+      "@type": "Person",
+      "@id": "https://agenthatchers.com/#hyein",
+      "name": "Hyein Yu",
+      "givenName": "Hyein",
+      "familyName": "Yu",
+      "jobTitle": "Founder & Head of Engineering",
+      "worksFor": { "@id": "https://agenthatchers.com/#org" },
+      "image": "https://agenthatchers.com/hyein.jpg",
+      "sameAs": ["https://www.linkedin.com/in/hye-in-yu/"]
+    },
+    {
+      "@type": "Person",
+      "@id": "https://agenthatchers.com/#noah",
+      "name": "Noah Webb",
+      "givenName": "Noah",
+      "familyName": "Webb",
+      "jobTitle": "CEO & Co-founder",
+      "worksFor": { "@id": "https://agenthatchers.com/#org" },
+      "image": "https://agenthatchers.com/noah.jpg",
+      "sameAs": ["https://au.linkedin.com/in/noah-webb-5795151a6"]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://agenthatchers.com/#site",
+      "url": "https://agenthatchers.com/",
+      "name": "Agent Hatchers",
+      "publisher": { "@id": "https://agenthatchers.com/#org" },
+      "inLanguage": "en-AU"
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://agenthatchers.com/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is Hermes?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Hermes is the AI platform we install in your business. It's where your AI agents live. It comes with hundreds of pre-installed skills, connects to the tools you already use, and learns how your business sounds — so the work it produces sounds like you, not like a chatbot."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is an AI agent?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Think of an agent as a teammate in software form. Each agent has one job — chasing leads, writing documents, processing invoices, updating your website. You talk to it in plain English, it does the work. Because each agent only does its one job, it stays focused and never gets confused."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need to be technical to use Hermes?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. If you can send a message, you can use your agents. We install everything, connect your tools, and hand it over working. You just talk to your team."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How much does it cost?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Choose the fit: own it from $10,000 and then $499/month, step up to a $25,000 package including 10 agents, or start from $50,000 for enterprise bespoke agents. If you only want access to the platform instead of the $10,000 install, rent it for $949/month without agents included. AI usage is billed at cost: you pay only for what your agents actually use, not a per-seat licence."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why not just use ChatGPT or Claude?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Three reasons. Cost: those are fixed subscriptions you pay whether you use them or not — Hermes runs pay-per-use through OpenRouter, so you only pay for what you use. Voice: generic chatbots sound generic — Hermes has hundreds of pre-installed skills and learns your business, so everything sounds like you. Flexibility: with Hermes you can swap the underlying AI model with one click whenever a better or cheaper one comes out. You're never locked in."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I build my own agents?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Every installation includes the ability to build your own agents — no code, just plain instructions. Prefer to hand it off? Choose ready-made agents from our library at set prices, or we'll build custom agents for you."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Where do I talk to Hermes agents?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Wherever you already work. Hermes agents live in Slack and Microsoft Teams — you message them like any other colleague — or you can talk to them in Hermes directly. No new app for your team to learn."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is my data safe with Hermes?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Hermes is installed for your business — it's your platform, connected to your tools, not a shared workspace with other companies. Each agent works in its own lane and only touches what its job needs. Your data isn't used to train anyone's AI models. And because we maintain the platform, there's a human team accountable for it."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Will agents do things without asking?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Only what you've told them to. Agents prepare work autonomously — drafts, reports, matched invoices — but anything that leaves the building waits for your approval, and anything you've put on a schedule runs exactly as you set it. You decide where the line sits, agent by agent."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What if something breaks?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Your subscription covers it. We monitor, maintain and update your Hermes platform, keep your agents healthy, and support your team. No tickets, no portals, no chasing."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<!-- progressive-enhancement flag for reveal CSS (set synchronously to avoid flash) -->
+<script>document.documentElement.classList.add('js');</script>
+
+<style>
+/* ════════════════════════════════════════════════════════════════════════
+   AGENT HATCHERS — v3.1 editorial redesign
+   Paper + ink + Agent Hatchers main colour. Typography does the work.
+   Display: Baloo 2 with Instrument Serif italic accents.
+   Labels: Space Mono. Hairline rules, index rows, grain overlay.
+   ════════════════════════════════════════════════════════════════════════ */
+:root{
+  --paper:    #F4F1EA;
+  --paper-2:  #ECE8DD;
+  --ink:      #16150F;
+  --ink-70:   rgba(22,21,15,.72);
+  --ink-50:   rgba(22,21,15,.52);
+  --ink-30:   rgba(22,21,15,.30);
+  --line:     rgba(22,21,15,.18);
+  --line-soft:rgba(22,21,15,.10);
+  --accent:   #216BAC;
+
+  --font-d:  'Baloo 2',-apple-system,BlinkMacSystemFont,sans-serif;   /* display + body */
+  --font-s:  'Instrument Serif',Georgia,serif;           /* italic accents */
+  --font-m:  'Space Mono',ui-monospace,monospace;        /* labels, meta */
+
+  --gutter: clamp(20px, 4vw, 64px);
+  --sec-pad: clamp(88px, 12vw, 180px);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+::selection{background:var(--ink);color:var(--paper);}
+body{
+  font-family:var(--font-d);
+  background:var(--paper);
+  color:var(--ink);
+  font-size:17px;
+  line-height:1.55;
+  font-weight:400;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overflow-x:hidden;
+  text-rendering:optimizeLegibility;
+}
+p{text-wrap:pretty;}
+
+/* film grain */
+body::after{
+  content:'';position:fixed;inset:-50%;z-index:2000;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity:.05;
+  animation:grain 9s steps(6) infinite;
+}
+@keyframes grain{
+  0%,100%{transform:translate(0,0);} 20%{transform:translate(-4%,3%);}
+  40%{transform:translate(3%,-4%);} 60%{transform:translate(-3%,-2%);}
+  80%{transform:translate(4%,2%);}
+}
+@media (prefers-reduced-motion: reduce){body::after{animation:none;}}
+
+.wrap{max-width:1440px;margin:0 auto;padding:0 var(--gutter);position:relative;}
+
+/* ── type utilities ── */
+.mono{
+  font-family:var(--font-m);font-size:12px;font-weight:400;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-70);
+}
+em.s, .serif-i{
+  font-family:var(--font-s);font-style:italic;font-weight:400;
+  letter-spacing:0;text-transform:none;
+}
+
+/* ── buttons ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:12px;
+  min-height:56px;padding:0 32px;border-radius:999px;
+  font-family:var(--font-d);font-weight:500;font-size:16px;
+  cursor:pointer;border:1px solid var(--ink);text-decoration:none;
+  transition:background .22s cubic-bezier(.22,1,.36,1),color .22s,border-color .22s,transform .15s;
+  white-space:nowrap;letter-spacing:-.01em;
+}
+.btn-primary{background:var(--ink);color:var(--paper);}
+.btn-primary:hover{background:var(--accent);border-color:var(--accent);color:#fff;}
+.btn-secondary{background:transparent;color:var(--ink);}
+.btn-secondary:hover{background:var(--ink);color:var(--paper);}
+.btn .arrow{transition:transform .22s;font-weight:400;}
+.btn:hover .arrow{transform:translateX(4px);}
+
+/* text link with sliding underline */
+.tlink{
+  color:var(--ink);text-decoration:none;position:relative;
+  font-weight:500;letter-spacing:-.01em;
+  padding-bottom:2px;
+}
+.tlink::after{
+  content:'';position:absolute;left:0;bottom:0;height:1px;width:100%;
+  background:var(--ink);transform-origin:right;transition:transform .3s cubic-bezier(.22,1,.36,1);
+}
+.tlink:hover::after{transform:scaleX(0);transform-origin:left;}
+
+/* ── NAV ── */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(244,241,234,.88);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+  transition:transform .24s cubic-bezier(.22,1,.36,1);
+  will-change:transform;
+}
+@media(max-width:760px){
+  nav.mobile-nav-hidden{transform:translateY(-100%);}
+}
+.nav-inner{
+  max-width:1440px;margin:0 auto;padding:0 var(--gutter);
+  height:68px;display:flex;align-items:center;
+  justify-content:space-between;gap:24px;
+}
+.logo{
+  display:flex;align-items:center;gap:12px;
+  font-weight:600;font-size:15px;letter-spacing:-.01em;
+  text-decoration:none;color:var(--ink);text-transform:uppercase;
+}
+.logo img{width:30px;height:30px;border-radius:6px;object-fit:contain;}
+.nav-links{display:flex;align-items:center;gap:2px;list-style:none;}
+.nav-links a{
+  font-family:var(--font-m);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-70);text-decoration:none;
+  padding:8px 14px;transition:color .15s;
+}
+.nav-links a:hover{color:var(--accent);}
+.nav-cta .btn{min-height:42px;padding:0 22px;font-size:14px;}
+@media(max-width:860px){.nav-links{display:none;}}
+@media(max-width:480px){
+  .nav-inner{gap:12px;}
+  .logo{gap:8px;}
+  .logo span{font-size:12px;}
+  .nav-cta .btn{padding:0 16px;font-size:13px;min-height:38px;}
+}
+@media(max-width:350px){
+  .logo span{display:none;}
+  .nav-cta .btn .arrow{display:none;}
+}
+
+/* ── HERO ── */
+.hero{
+  padding:clamp(64px,9vw,140px) 0 0;
+  border-bottom:1px solid var(--line);
+  position:relative;
+  background-image:
+    linear-gradient(rgba(22,21,15,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(22,21,15,.045) 1px,transparent 1px);
+  background-size:96px 96px;
+}
+.hero-meta{
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  padding-bottom:clamp(28px,4vw,56px);
+}
+.hero-title{
+  font-size:clamp(52px,10.4vw,168px);
+  line-height:.94;
+  letter-spacing:-.04em;
+  font-weight:500;
+  text-transform:uppercase;
+  margin-bottom:clamp(36px,4.5vw,64px);
+}
+.hero-title .t-line{display:block;overflow:hidden;padding-bottom:.1em;margin-bottom:-.1em;}
+.hero-title .t-inner{display:block;}
+.js .hero-title .t-inner{transform:translateY(110%);}
+.hero-title .t-inner.up{
+  transform:translateY(0);
+  transition:transform 1s cubic-bezier(.22,1,.36,1);
+}
+.hero-title .serif-line{
+  font-family:var(--font-s);font-style:italic;font-weight:400;
+  text-transform:none;letter-spacing:-.015em;
+  color:var(--accent);
+  font-size:1.04em;line-height:.98;
+}
+.hero-title .job-line .t-inner{white-space:nowrap;}
+.hero-title .done-word{
+  display:inline-block;
+  font-family:var(--font-s);font-style:italic;font-weight:400;
+  text-transform:none;letter-spacing:-.015em;
+  color:var(--ink);
+  font-size:1.04em;line-height:.98;
+  margin-left:.05em;
+}
+@media (prefers-reduced-motion: reduce){
+  .js .hero-title .t-inner{transform:none;transition:none;}
+}
+.hero-foot{
+  display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);
+  gap:clamp(24px,4vw,64px);align-items:end;
+  padding-bottom:clamp(48px,6vw,88px);
+}
+.hero-sub{
+  font-size:clamp(18px,1.55vw,22px);line-height:1.5;color:var(--ink-70);
+  max-width:560px;letter-spacing:-.01em;
+}
+.hero-sub strong{color:var(--ink);font-weight:500;}
+.hero-ctas{
+  display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:flex-end;
+}
+@media(max-width:860px){
+  .hero-foot{grid-template-columns:1fr;align-items:start;}
+  .hero-ctas{justify-content:flex-start;}
+}
+
+/* ── HATCHY BRAND AGENT ACCENTS ── */
+.hatchy-illo{
+  display:block;user-select:none;pointer-events:none;
+  filter:drop-shadow(0 10px 18px rgba(22,21,15,.12));
+}
+.hero-hatchy{
+  position:absolute;right:clamp(22px,6vw,88px);top:clamp(76px,9vw,132px);
+  width:clamp(76px,9vw,132px);transform:rotate(4deg);opacity:.96;
+}
+.system-strip .wrap{position:relative;}
+.system-hatchy{
+  position:absolute;right:var(--gutter);bottom:clamp(18px,3vw,42px);
+  width:clamp(70px,8vw,116px);transform:rotate(-5deg);opacity:.94;
+}
+.statement{position:relative;overflow:hidden;}
+.statement-hatchy{
+  position:absolute;right:clamp(18px,7vw,110px);bottom:clamp(18px,4vw,62px);
+  width:clamp(72px,8vw,120px);transform:rotate(6deg);opacity:.9;
+}
+.agent-tab-icon{
+  width:34px;height:34px;object-fit:contain;flex:0 0 34px;margin-right:2px;
+  filter:drop-shadow(0 4px 8px rgba(22,21,15,.10));
+}
+.lib-row{
+  grid-template-columns:clamp(52px,6vw,74px) minmax(0,1.08fr) minmax(0,1.75fr) auto;
+}
+.lib-illo{
+  width:clamp(46px,5.2vw,62px);height:clamp(46px,5.2vw,62px);object-fit:contain;
+  align-self:center;justify-self:start;transition:transform .25s cubic-bezier(.22,1,.36,1),filter .25s;
+}
+.lib-row:hover .lib-illo{transform:translateY(-2px) rotate(-3deg);filter:drop-shadow(0 8px 14px rgba(244,241,234,.18));}
+@media(max-width:860px){
+  .hero-hatchy,.system-hatchy,.statement-hatchy{display:none;}
+  .agent-tab-icon{width:24px;height:24px;flex-basis:24px;margin-right:0;}
+  .lib-row{grid-template-columns:48px minmax(0,1fr);gap:10px 14px;padding:24px 8px;}
+  .lib-illo{grid-row:1 / span 3;width:44px;height:44px;}
+  .lib-row .lib-desc,.lib-row .lib-price{grid-column:2;}
+}
+
+@media(max-width:640px){
+  .hero-ctas{width:100%;}
+  .hero-ctas .btn{width:100%;}
+}
+
+/* ticker strip under hero */
+.ticker{
+  border-bottom:1px solid var(--line);
+  overflow:hidden;padding:14px 0;
+  background:var(--ink);color:var(--paper);
+}
+.ticker-track{
+  display:flex;gap:0;width:max-content;
+  animation:marquee 30s linear infinite;
+}
+.ticker-item{
+  font-family:var(--font-m);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+  white-space:nowrap;padding:0 18px;display:flex;align-items:center;gap:36px;
+}
+.ticker-item::after{content:'✦';color:var(--accent);font-size:10px;}
+@keyframes marquee{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+@media (prefers-reduced-motion: reduce){.ticker-track{animation:none;}}
+
+/* ── SYSTEM DIAGRAM — you → Hermes → agents → tools, drawn in ink ── */
+.system-strip{
+  border-bottom:1px solid var(--line);
+  padding:clamp(40px,6vw,84px) 0;
+  overflow:hidden;
+}
+.sys-head{
+  display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;
+  margin-bottom:clamp(28px,4vw,48px);
+}
+.sys-svg{width:100%;height:auto;display:block;}
+.sys-desktop{display:block;}
+.sys-mobile{display:none;max-width:420px;margin:0 auto;}
+@media(max-width:760px){
+  .sys-desktop{display:none;}
+  .sys-mobile{display:block;}
+}
+.sys-shape{stroke:var(--ink);stroke-width:1.2;fill:var(--paper);}
+.sys-flow{stroke:rgba(22,21,15,.35);stroke-width:1;fill:none;}
+.sys-label{
+  font-family:var(--font-m);font-size:12px;fill:var(--ink);
+  letter-spacing:.1em;
+}
+.sys-label-lg{font-size:15px;letter-spacing:.16em;}
+.sys-label-dim{fill:rgba(22,21,15,.45);font-size:11px;}
+.sys-model{fill:var(--accent);font-size:10.5px;transition:opacity .25s ease;}
+.sys-dot{fill:var(--accent);}
+.sys-mobile .sys-label{font-size:11px;}
+.sys-mobile .sys-label-lg{font-size:13px;}
+/* draw-in: pathLength="1" on every stroke → normalized dash animation */
+.system-strip .sys-flow,
+.system-strip .sys-shape{stroke-dasharray:1;stroke-dashoffset:1;}
+.system-strip .sys-label{opacity:0;transition:opacity .6s ease 1.1s;}
+.system-strip.is-drawn .sys-flow,
+.system-strip.is-drawn .sys-shape{
+  stroke-dashoffset:0;
+  transition:stroke-dashoffset 1.1s cubic-bezier(.22,1,.36,1);
+}
+.system-strip.is-drawn .sys-label{opacity:1;}
+.system-strip.is-drawn .sys-d2{transition-delay:.2s;}
+.system-strip.is-drawn .sys-d3{transition-delay:.45s;}
+.system-strip.is-drawn .sys-d4{transition-delay:.7s;}
+.system-strip.is-drawn .sys-d5{transition-delay:.95s;}
+@media (prefers-reduced-motion: reduce){
+  .system-strip .sys-flow,.system-strip .sys-shape{stroke-dasharray:none;stroke-dashoffset:0;transition:none;}
+  .system-strip .sys-label{opacity:1;transition:none;}
+}
+
+/* ── STEP MINI-DIAGRAMS — self-drawing ink sketches ── */
+.step-diag{width:126px;height:64px;display:block;margin-bottom:24px;overflow:visible;}
+.step-diag .sd-draw{
+  stroke:rgba(22,21,15,.4);fill:none;stroke-width:1.2;
+  stroke-dasharray:1;stroke-dashoffset:1;
+}
+.step.is-visible .sd-draw{
+  stroke-dashoffset:0;
+  transition:stroke-dashoffset .9s cubic-bezier(.22,1,.36,1) .2s;
+}
+.step-diag .sd-pop{
+  fill:var(--paper);stroke:var(--ink);stroke-width:1.2;
+  transform:scale(0);transform-box:fill-box;transform-origin:center;
+}
+.step-diag .sd-core{fill:var(--accent);stroke:none;}
+.step.is-visible .sd-pop{
+  transform:scale(1);
+  transition:transform .5s cubic-bezier(.34,1.56,.64,1) .6s;
+}
+.step.is-visible .sd-p2{transition-delay:.72s;}
+.step.is-visible .sd-p3{transition-delay:.84s;}
+.step.is-visible .sd-p4{transition-delay:.96s;}
+.step-diag .sd-run{fill:var(--accent);opacity:0;}
+.step.is-visible .sd-run{animation:sdrun 2.6s cubic-bezier(.45,0,.55,1) 1.1s infinite;}
+@keyframes sdrun{
+  0%{transform:translateX(0);opacity:0;}
+  12%{opacity:1;}
+  88%{opacity:1;}
+  100%{transform:translateX(92px);opacity:0;}
+}
+@media (prefers-reduced-motion: reduce){
+  .step-diag .sd-draw{stroke-dasharray:none;stroke-dashoffset:0;transition:none;}
+  .step-diag .sd-pop{transform:scale(1);transition:none;}
+  .step.is-visible .sd-run{animation:none;}
+  .step-diag .sd-run{opacity:1;transform:translateX(46px);}
+}
+
+/* ── SECTION SCAFFOLD ── */
+.section{padding:var(--sec-pad) 0;position:relative;}
+.section + .section{border-top:1px solid var(--line);}
+.sec-head{
+  display:flex;align-items:baseline;justify-content:space-between;gap:24px;
+  margin-bottom:clamp(40px,6vw,88px);
+}
+.sec-title{
+  font-size:clamp(38px,5.6vw,84px);
+  font-weight:500;letter-spacing:-.035em;line-height:1.0;
+  text-transform:uppercase;
+  max-width:18ch;
+}
+.sec-title em{
+  font-family:var(--font-s);font-style:italic;font-weight:400;
+  text-transform:none;letter-spacing:-.01em;
+}
+.sec-intro{
+  font-size:clamp(16px,1.3vw,19px);color:var(--ink-70);line-height:1.6;
+  max-width:44ch;
+}
+@media(max-width:860px){
+  .sec-head{flex-direction:column;gap:18px;}
+}
+
+/* ── CHAT DEMO ── */
+.chat-region{
+  display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.35fr);
+  gap:clamp(28px,4vw,72px);align-items:start;
+}
+@media(max-width:960px){.chat-region{grid-template-columns:1fr;}}
+.agent-tabs{display:flex;flex-direction:column;border-top:1px solid var(--line);}
+.agent-tab{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  background:none;border:none;border-bottom:1px solid var(--line);
+  font-family:var(--font-d);font-size:clamp(19px,1.9vw,26px);font-weight:500;
+  letter-spacing:-.02em;color:var(--ink-50);
+  padding:20px 4px;cursor:pointer;text-align:left;
+  transition:color .2s,padding-left .25s cubic-bezier(.22,1,.36,1);
+}
+.agent-tab .idx{
+  font-family:var(--font-m);font-size:11px;letter-spacing:.12em;color:var(--ink-30);
+  transition:color .2s;
+}
+.agent-tab:hover{color:var(--ink);}
+.agent-tab.is-active{color:var(--ink);padding-left:16px;}
+.agent-tab.is-active .idx{color:var(--accent);}
+.tabs-note{
+  margin-top:28px;font-size:15px;line-height:1.6;color:var(--ink-70);max-width:38ch;
+}
+.tabs-note strong{color:var(--ink);font-weight:500;}
+@media(max-width:960px){
+  .agent-tabs{flex-direction:row;flex-wrap:wrap;border-top:none;gap:8px;}
+  .agent-tab{
+    border:1px solid var(--line);border-radius:999px;
+    font-size:14px;padding:10px 18px;flex:0 0 auto;
+    justify-content:flex-start;gap:10px;
+  }
+  .agent-tab.is-active{padding-left:18px;border-color:var(--ink);background:var(--ink);color:var(--paper);}
+  .agent-tab.is-active .idx{color:var(--accent);}
+  .agent-tab .idx{font-size:10px;}
+}
+
+.chat-window{
+  border:1px solid var(--ink);background:var(--paper);
+  box-shadow:8px 8px 0 0 var(--ink);
+}
+.chat-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px 20px;border-bottom:1px solid var(--ink);flex-wrap:wrap;
+  background:var(--paper-2);
+}
+.chat-agent{display:flex;align-items:center;gap:12px;min-width:0;}
+.chat-avatar{
+  width:34px;height:34px;border:1px solid var(--ink);border-radius:50%;
+  display:grid;place-items:center;flex-shrink:0;background:var(--paper);
+  font-family:var(--font-m);font-size:11px;color:var(--accent);
+}
+.chat-agent-meta{line-height:1.3;min-width:0;}
+.chat-agent-name{font-size:14px;font-weight:600;letter-spacing:-.01em;text-transform:uppercase;}
+.chat-agent-status{
+  font-family:var(--font-m);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-50);display:flex;align-items:center;gap:6px;
+}
+.chat-agent-status::before{
+  content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);
+}
+.chat-agent-status .blink{
+  color:var(--accent);animation:cblink 1.1s steps(1) infinite;
+}
+@keyframes cblink{50%{opacity:0;}}
+@media (prefers-reduced-motion: reduce){.chat-agent-status .blink{animation:none;}}
+.model-pill{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--font-m);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-50);
+}
+.model-pill select{
+  background:var(--paper);border:1px solid var(--ink);color:var(--ink);
+  border-radius:999px;padding:7px 30px 7px 14px;
+  font-family:var(--font-m);font-size:12px;letter-spacing:.02em;
+  outline:none;cursor:pointer;
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7' fill='none'><path d='M1 1l4 4 4-4' stroke='%2316150F' stroke-width='1.5' stroke-linecap='round'/></svg>");
+  background-repeat:no-repeat;background-position:right 12px center;
+  transition:border-color .15s,background-color .15s;
+}
+.model-pill select:hover{border-color:var(--accent);}
+.chat-body{
+  padding:clamp(20px,2.6vw,36px);min-height:380px;
+  display:flex;flex-direction:column;gap:14px;justify-content:flex-end;
+}
+.msg{
+  max-width:75%;padding:13px 18px;
+  font-size:15px;line-height:1.55;letter-spacing:-.005em;
+  animation:msgIn .45s cubic-bezier(.22,1,.36,1);
+}
+@keyframes msgIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.msg.user{
+  align-self:flex-end;background:var(--ink);color:var(--paper);
+  border-radius:18px 18px 4px 18px;
+}
+.msg.agent{
+  align-self:flex-start;background:transparent;color:var(--ink-70);
+  border:1px solid var(--ink);border-radius:18px 18px 18px 4px;
+}
+.msg.agent strong{color:var(--ink);font-weight:600;}
+.msg .tick{color:var(--accent);font-weight:600;}
+.chat-chip{
+  align-self:center;text-align:center;
+  font-family:var(--font-m);font-size:11px;letter-spacing:.06em;
+  color:var(--accent);border:1px dashed var(--accent);
+  border-radius:999px;padding:7px 16px;
+  animation:msgIn .45s cubic-bezier(.22,1,.36,1);
+}
+.typing{
+  align-self:flex-start;display:inline-flex;gap:5px;
+  border:1px solid var(--ink);border-radius:18px 18px 18px 4px;
+  padding:15px 18px;animation:msgIn .3s ease;
+}
+.typing i{
+  width:6px;height:6px;border-radius:50%;background:var(--ink-50);display:block;
+  animation:blink 1.2s infinite;
+}
+.typing i:nth-child(2){animation-delay:.18s;}
+.typing i:nth-child(3){animation-delay:.36s;}
+@keyframes blink{0%,70%,100%{opacity:.25;}35%{opacity:1;}}
+@media (prefers-reduced-motion: reduce){
+  .msg,.chat-chip,.typing{animation:none;}
+  .typing i{animation:none;opacity:.6;}
+}
+@media(max-width:640px){
+  .chat-window{box-shadow:5px 5px 0 0 var(--ink);}
+  .chat-body{min-height:320px;}
+  .msg{max-width:88%;font-size:14px;}
+}
+
+/* ── HOW IT WORKS — three ruled columns ── */
+.steps{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  border-top:1px solid var(--line);
+}
+.step{
+  padding:clamp(28px,3vw,48px) clamp(20px,2.4vw,40px) 0 0;
+  border-right:1px solid var(--line);
+}
+.step:last-child{border-right:none;padding-right:0;}
+.step + .step{padding-left:clamp(20px,2.4vw,40px);}
+.step .mono{display:block;margin-bottom:18px;color:var(--accent);}
+.step h3{
+  font-size:clamp(22px,2.2vw,30px);font-weight:500;letter-spacing:-.025em;
+  line-height:1.1;margin-bottom:14px;text-transform:uppercase;
+}
+.step p{color:var(--ink-70);font-size:15.5px;line-height:1.65;max-width:34ch;}
+@media(max-width:860px){
+  .steps{grid-template-columns:1fr;}
+  .step{border-right:none;border-bottom:1px solid var(--line);padding:28px 0;}
+  .step + .step{padding-left:0;}
+  .step:last-child{border-bottom:none;padding-bottom:0;}
+  .step .mono{margin-bottom:14px;}
+}
+
+/* ── STATEMENT ── */
+.statement{
+  padding:var(--sec-pad) 0;text-align:center;
+  border-top:1px solid var(--line);
+  background:var(--ink);color:var(--paper);
+  position:relative;overflow:hidden;
+}
+.statement .wrap{position:relative;z-index:1;}
+.statement-ring{
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  border:1px dashed rgba(33,107,172,.4);border-radius:50%;
+  pointer-events:none;
+}
+.statement-ring.r1{
+  width:min(74vw,700px);height:min(74vw,700px);
+  animation:spinCW 90s linear infinite;
+}
+.statement-ring.r2{
+  width:min(48vw,440px);height:min(48vw,440px);
+  border-color:rgba(244,241,234,.16);
+  animation:spinCCW 60s linear infinite;
+}
+.statement-ring .ring-dot{
+  position:absolute;top:-4px;left:50%;width:7px;height:7px;border-radius:50%;
+  background:var(--accent);
+}
+@keyframes spinCW{from{transform:translate(-50%,-50%) rotate(0deg);}to{transform:translate(-50%,-50%) rotate(360deg);}}
+@keyframes spinCCW{from{transform:translate(-50%,-50%) rotate(0deg);}to{transform:translate(-50%,-50%) rotate(-360deg);}}
+@media (prefers-reduced-motion: reduce){
+  .statement-ring{animation:none;transform:translate(-50%,-50%);}
+}
+.statement-line{
+  font-size:clamp(34px,6vw,92px);
+  font-weight:500;letter-spacing:-.035em;line-height:1.02;
+  max-width:1100px;margin:0 auto;text-transform:uppercase;
+}
+.statement-line .quiet{
+  display:block;margin-top:16px;
+  font-family:var(--font-s);font-style:italic;font-weight:400;
+  text-transform:none;letter-spacing:-.01em;color:var(--accent);
+  font-size:1.02em;
+}
+
+/* ── WHY — index rows ── */
+.why-list{border-top:1px solid var(--line);}
+.why-row{
+  display:grid;
+  grid-template-columns:minmax(0,.5fr) minmax(0,1.6fr) minmax(0,1.6fr);
+  gap:clamp(16px,3vw,56px);
+  padding:clamp(28px,3.6vw,56px) 0;
+  border-bottom:1px solid var(--line);
+  align-items:start;
+}
+.why-row .mono{padding-top:10px;}
+.why-row h3{
+  font-size:clamp(26px,3.2vw,46px);font-weight:500;letter-spacing:-.03em;
+  line-height:1.02;text-transform:uppercase;
+  transition:color .2s;
+}
+.why-row h3 em{
+  font-family:var(--font-s);font-style:italic;font-weight:400;
+  text-transform:none;white-space:nowrap;
+}
+.why-row:hover h3{color:var(--accent);}
+.why-row p{color:var(--ink-70);font-size:16px;line-height:1.65;max-width:46ch;}
+.why-row p strong{color:var(--ink);font-weight:500;}
+@media(max-width:860px){
+  .why-row{grid-template-columns:1fr;gap:10px;padding:26px 0;}
+  .why-row .mono{padding-top:0;}
+}
+
+/* ── FINE GRID — the details that matter, compact ruled columns ── */
+.fine-head{
+  margin-top:clamp(48px,7vw,96px);margin-bottom:clamp(24px,3vw,40px);
+  font-family:var(--font-s);font-style:italic;font-weight:400;
+  font-size:clamp(22px,2.6vw,34px);letter-spacing:-.01em;
+}
+.fine-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  border-top:1px solid var(--line);
+}
+.fine{
+  padding:clamp(20px,2.4vw,32px) clamp(14px,1.8vw,28px) 0 0;
+  border-right:1px solid var(--line);
+}
+.fine:last-child{border-right:none;padding-right:0;}
+.fine + .fine{padding-left:clamp(14px,1.8vw,28px);}
+.fine .mono{display:block;color:var(--accent);margin-bottom:12px;}
+.fine p{font-size:14.5px;color:var(--ink-70);line-height:1.62;}
+.fine p strong{color:var(--ink);font-weight:500;}
+@media(max-width:960px){
+  .fine-grid{grid-template-columns:1fr 1fr;}
+  .fine:nth-child(2){border-right:none;padding-right:0;}
+  .fine:nth-child(n+3){border-top:1px solid var(--line);margin-top:22px;padding-top:22px;}
+  .fine:nth-child(3){padding-left:0;border-right:1px solid var(--line);padding-right:clamp(14px,1.8vw,28px);}
+}
+@media(max-width:560px){
+  .fine-grid{grid-template-columns:1fr;}
+  .fine{border-right:none!important;padding-left:0!important;padding-right:0!important;}
+  .fine:nth-child(n+2){border-top:1px solid var(--line);margin-top:20px;padding-top:20px;}
+}
+
+/* ── AGENT LIBRARY — invertable index rows ── */
+.lib{border-top:1px solid var(--line);}
+.lib-row{
+  display:grid;
+  grid-template-columns:minmax(0,1.25fr) minmax(0,1.75fr) auto;
+  gap:clamp(16px,3vw,48px);align-items:center;
+  padding:clamp(22px,2.8vw,40px) clamp(12px,1.6vw,24px);
+  border-bottom:1px solid var(--line);
+  position:relative;cursor:default;
+  transition:background .25s cubic-bezier(.22,1,.36,1),color .25s;
+}
+.lib-row:hover{background:var(--ink);}
+.lib-row h3{
+  font-size:clamp(24px,3vw,44px);font-weight:500;letter-spacing:-.03em;
+  line-height:1;text-transform:uppercase;transition:color .25s;
+}
+.lib-row:hover h3{color:var(--paper);}
+.lib-row .lib-desc{
+  color:var(--ink-70);font-size:15.5px;line-height:1.6;max-width:46ch;
+  transition:color .25s;
+}
+.lib-row:hover .lib-desc{color:rgba(244,241,234,.75);}
+.lib-row .lib-price{
+  font-family:var(--font-m);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--accent);white-space:nowrap;justify-self:end;
+  border:1px solid currentColor;border-radius:999px;padding:8px 16px;
+}
+.lib-cta{
+  display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1.75fr) auto;
+  gap:clamp(16px,3vw,48px);align-items:center;
+  padding:clamp(22px,2.8vw,40px) clamp(12px,1.6vw,24px);
+  border-bottom:1px solid var(--line);
+}
+.lib-cta h3{
+  font-size:clamp(24px,3vw,44px);font-weight:400;letter-spacing:-.02em;line-height:1.04;
+  font-family:var(--font-s);font-style:italic;
+}
+.lib-cta p{color:var(--ink-70);font-size:15.5px;line-height:1.6;max-width:46ch;}
+.lib-note{
+  margin-top:32px;font-size:15px;color:var(--ink-70);
+}
+.lib-note strong{color:var(--ink);font-weight:500;}
+@media(max-width:860px){
+  .lib-row,.lib-cta{grid-template-columns:1fr;gap:10px;padding:24px 8px;}
+  .lib-row .lib-price{justify-self:start;}
+}
+
+/* ── PRICING — clean two-row cards ── */
+.price-cols{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  border-top:1px solid var(--line);
+}
+.price-col.price-col-dark{
+  background:var(--ink);color:var(--paper);padding:clamp(28px,3vw,52px);
+  box-shadow:8px 8px 0 rgba(20,20,16,.16);
+}
+.price-col.price-col-dark .mono,.price-col.price-col-dark .price-amount span,.price-col.price-col-dark > p,.price-col.price-col-dark ul li{color:rgba(244,241,232,.74);}
+.price-col.price-col-dark h3,.price-col.price-col-dark .price-amount{color:var(--paper);}
+.price-col.price-col-dark ul li{border-top-color:rgba(244,241,232,.2);}
+.price-col.price-col-dark ul li::before{color:var(--accent);}
+.price-col{
+  padding:clamp(28px,3vw,52px) clamp(24px,3vw,56px) clamp(30px,3.5vw,58px) 0;
+  border-right:1px solid var(--line);
+  display:flex;flex-direction:column;gap:18px;
+}
+.price-col:nth-child(even){border-right:none;padding-right:0;}
+.price-col:nth-child(n+3){border-top:1px solid var(--line);}
+.price-col + .price-col{padding-left:clamp(20px,2.4vw,44px);}
+.price-col .mono{color:var(--accent);}
+.price-col h3{
+  font-size:clamp(20px,1.8vw,25px);font-weight:500;letter-spacing:-.02em;text-transform:uppercase;
+}
+.price-amount{
+  font-family:var(--font-s);font-style:italic;font-weight:400;
+  font-size:clamp(38px,3vw,62px);letter-spacing:-.02em;line-height:1;
+}
+.price-amount span{
+  font-family:var(--font-m);font-style:normal;font-size:12px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-50);
+}
+.price-col > p{color:var(--ink-70);font-size:15px;line-height:1.6;}
+.price-col ul{list-style:none;display:flex;flex-direction:column;}
+.price-col ul li{
+  font-size:14.5px;color:var(--ink-70);line-height:1.5;
+  padding:12px 0;border-top:1px solid var(--line-soft);
+  display:flex;gap:12px;
+}
+.price-col ul li::before{content:'→';color:var(--accent);flex-shrink:0;}
+.price-foot{
+  margin-top:clamp(40px,5vw,72px);
+  font-size:clamp(17px,1.6vw,22px);line-height:1.55;letter-spacing:-.01em;
+  color:var(--ink-70);max-width:52ch;
+}
+.price-foot strong{color:var(--ink);font-weight:500;}
+@media(max-width:860px){
+  .price-cols{grid-template-columns:1fr;}
+  .price-col,.price-col.price-col-dark{border-right:none;border-bottom:1px solid var(--line);padding:28px 0;box-shadow:none;}
+  .price-col + .price-col{padding-left:0;}
+  .price-col:last-child{border-bottom:none;padding-bottom:0;}
+}
+@media(min-width:861px) and (max-width:1180px){
+  .price-cols{grid-template-columns:repeat(2,1fr);}
+  .price-col:nth-child(2){border-right:none;}
+  .price-col:nth-child(n+3){border-top:1px solid var(--line);}
+}
+
+/* ── STACK — outlined text marquee ── */
+.stack-strip{
+  border-top:1px solid var(--line);
+  padding:clamp(48px,6vw,88px) 0;
+  overflow:hidden;
+}
+.stack-head{margin-bottom:clamp(28px,4vw,48px);display:flex;justify-content:space-between;align-items:baseline;gap:20px;flex-wrap:wrap;}
+.stack-track{
+  display:flex;width:max-content;
+  animation:marquee 40s linear infinite;
+}
+.stack-track:hover{animation-play-state:paused;}
+@media (prefers-reduced-motion: reduce){.stack-track{animation:none;}}
+.stack-item{
+  font-size:clamp(44px,6vw,88px);font-weight:600;letter-spacing:-.03em;
+  text-transform:uppercase;white-space:nowrap;padding:0 24px;
+  color:transparent;-webkit-text-stroke:1px var(--ink-50);
+  display:flex;align-items:center;gap:48px;line-height:1.2;
+  transition:color .25s,-webkit-text-stroke-color .25s;
+}
+.stack-item::after{
+  content:'✦';color:var(--accent);-webkit-text-stroke:0;
+  font-size:.35em;
+}
+.stack-item:hover{color:var(--ink);-webkit-text-stroke-color:var(--ink);}
+
+/* ── FOUNDERS ── */
+.founders{
+  display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,4vw,64px);
+  border-top:1px solid var(--line);padding-top:clamp(32px,4vw,56px);
+}
+@media(max-width:860px){.founders{grid-template-columns:1fr;}}
+.founder{display:flex;flex-direction:column;gap:16px;}
+.founder-top{display:flex;align-items:center;gap:18px;}
+.founder-photo{
+  width:76px;height:76px;border-radius:50%;overflow:hidden;flex-shrink:0;
+  border:1px solid var(--ink);
+}
+.founder-photo img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.05);}
+.founder h3{
+  font-size:clamp(24px,2.4vw,34px);font-weight:500;letter-spacing:-.025em;text-transform:uppercase;line-height:1;
+}
+.founder .mono{display:block;margin-top:6px;}
+.founder p{color:var(--ink-70);font-size:15.5px;line-height:1.65;max-width:52ch;}
+.founder-link{
+  font-family:var(--font-m);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink);text-decoration:none;width:fit-content;
+  border-bottom:1px solid var(--ink);padding-bottom:2px;
+  transition:color .15s,border-color .15s;
+}
+.founder-link:hover{color:var(--accent);border-color:var(--accent);}
+
+/* ── FAQ ── */
+.faq-list{border-top:1px solid var(--line);}
+.faq-item{border-bottom:1px solid var(--line);}
+.faq-item summary{
+  list-style:none;cursor:pointer;
+  padding:clamp(22px,2.6vw,34px) 0;
+  font-size:clamp(20px,2.4vw,34px);font-weight:500;letter-spacing:-.025em;
+  text-transform:uppercase;line-height:1.1;
+  display:flex;justify-content:space-between;align-items:center;gap:24px;
+  transition:color .2s;
+}
+.faq-item summary:hover{color:var(--accent);}
+.faq-item summary::-webkit-details-marker{display:none;}
+.faq-icon{
+  width:32px;height:32px;flex-shrink:0;
+  font-size:24px;line-height:1;display:grid;place-items:center;font-weight:400;
+  transition:transform .25s;color:var(--ink-50);
+}
+.faq-item[open] .faq-icon{transform:rotate(45deg);color:var(--accent);}
+.faq-item .faq-body{
+  padding:0 0 clamp(22px,2.6vw,34px);color:var(--ink-70);
+  font-size:16.5px;line-height:1.7;max-width:62ch;
+}
+
+/* ── FINAL CTA ── */
+.cta-section{
+  border-top:1px solid var(--line);
+  padding:var(--sec-pad) 0;
+  text-align:center;
+}
+.cta-title{
+  font-size:clamp(44px,8vw,128px);font-weight:500;letter-spacing:-.04em;line-height:.96;
+  text-transform:uppercase;margin-bottom:28px;
+}
+.cta-title em{
+  font-family:var(--font-s);font-style:italic;font-weight:400;
+  text-transform:none;color:var(--accent);
+}
+.cta-section > .wrap > p{
+  color:var(--ink-70);font-size:clamp(16px,1.4vw,20px);line-height:1.6;
+  max-width:52ch;margin:0 auto clamp(36px,4vw,52px);
+}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--ink);padding:0;position:relative;}
+.footer-mark{
+  font-size:clamp(38px,8.6vw,138px);font-weight:600;letter-spacing:-.03em;
+  text-transform:uppercase;line-height:.95;text-align:center;
+  padding:clamp(32px,5vw,72px) var(--gutter) clamp(24px,3vw,48px);
+  white-space:nowrap;
+}
+@media(max-width:640px){
+  .footer-mark{white-space:normal;font-size:clamp(38px,11.5vw,64px);}
+}
+.footer-inner{
+  max-width:1440px;margin:0 auto;padding:20px var(--gutter) 28px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  border-top:1px solid var(--line);
+  font-family:var(--font-m);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-50);
+}
+.footer-links{display:flex;gap:24px;flex-wrap:wrap;}
+.footer-links a{color:var(--ink-50);text-decoration:none;transition:color .15s;}
+.footer-links a:hover{color:var(--accent);}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(70px);
+  background:var(--ink);color:var(--paper);
+  padding:12px 22px;border-radius:999px;
+  font-size:14px;opacity:0;
+  transition:transform .25s,opacity .25s;pointer-events:none;z-index:2100;white-space:nowrap;
+}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+
+/* ── MODALS ── */
+.modal-overlay{
+  position:fixed;inset:0;z-index:500;
+  background:rgba(22,21,15,.5);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  opacity:0;pointer-events:none;
+  visibility:hidden;
+  transition:opacity .2s ease, visibility 0s linear .2s;
+  overflow-y:auto;
+}
+.modal-overlay.open{opacity:1;pointer-events:all;visibility:visible;transition:opacity .2s ease, visibility 0s;}
+.modal{
+  background:var(--paper);
+  border:1px solid var(--ink);
+  box-shadow:10px 10px 0 0 var(--ink);
+  padding:clamp(24px,3vw,40px);max-width:560px;width:100%;
+  transform:translateY(16px);transition:transform .2s;
+  position:relative;
+}
+.modal--wide{max-width:780px;}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px;}
+.modal-header h3{
+  font-size:clamp(24px,2.6vw,34px);font-weight:500;letter-spacing:-.025em;line-height:1.05;text-transform:uppercase;
+}
+.modal-header .modal-sub{font-size:14px;color:var(--ink-70);margin-top:10px;line-height:1.5;}
+.modal-close{
+  background:none;border:1px solid var(--ink);color:var(--ink);cursor:pointer;
+  width:38px;height:38px;border-radius:50%;
+  display:grid;place-items:center;font-size:15px;flex-shrink:0;
+  transition:background .15s,color .15s;
+}
+.modal-close:hover{background:var(--ink);color:var(--paper);}
+.modal form{display:flex;flex-direction:column;gap:20px;}
+
+.booking-step{opacity:1;transition:opacity .25s ease;}
+.booking-step[hidden]{display:none;}
+.booking-step.is-leaving{opacity:0;}
+
+.calendly-frame-wrap{
+  position:relative;margin:-6px -6px 0;overflow:hidden;
+  background:var(--paper);
+}
+.calendly-loader{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:14px;
+  font-family:var(--font-m);color:var(--ink-50);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  background:var(--paper);z-index:1;
+  transition:opacity .3s ease;
+}
+.calendly-loader.is-hidden{opacity:0;pointer-events:none;}
+.calendly-spinner{
+  width:28px;height:28px;border-radius:50%;
+  border:2px solid var(--line);
+  border-top-color:var(--accent);
+  animation:spinner .85s linear infinite;
+}
+@keyframes spinner{to{transform:rotate(360deg);}}
+@media (prefers-reduced-motion: reduce){.calendly-spinner{animation-duration:1.6s;}}
+.modal-field label{
+  display:block;font-family:var(--font-m);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-70);margin-bottom:10px;
+}
+input[type="text"],input[type="email"]{
+  width:100%;background:transparent;border:1px solid var(--ink);
+  color:var(--ink);padding:15px 16px;
+  font-size:15px;font-family:var(--font-d);font-weight:400;outline:none;
+  transition:border-color .15s,box-shadow .15s;border-radius:0;
+}
+input::placeholder{color:var(--ink-30);}
+input:focus{border-color:var(--accent);box-shadow:3px 3px 0 0 var(--accent);}
+.modal-actions{display:flex;gap:10px;margin-top:12px;}
+.modal-actions .btn{flex:1;}
+.calendly-iframe{
+  width:100%;height:680px;border:none;display:block;
+  background:var(--paper);
+}
+@media(max-width:640px){.calendly-iframe{height:560px;}}
+.modal-note{font-size:12px;color:var(--ink-50);margin-top:6px;line-height:1.55;}
+.modal-note a{color:var(--ink-50);}
+select.modal-select{
+  width:100%;background:transparent;border:1px solid var(--ink);
+  color:var(--ink);padding:15px 16px;
+  font-size:15px;font-family:var(--font-d);outline:none;border-radius:0;
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'><path d='M1 1l5 5 5-5' stroke='%2316150F' stroke-width='1.5' stroke-linecap='round'/></svg>");
+  background-repeat:no-repeat;background-position:right 16px center;padding-right:40px;
+}
+select.modal-select:focus{border-color:var(--accent);}
+
+/* visually-hidden but accessible */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+
+/* ── REVEAL ── */
+.js .reveal{opacity:0;transform:translateY(28px);}
+.reveal{
+  transition:opacity .9s cubic-bezier(.22,1,.36,1),
+             transform .9s cubic-bezier(.22,1,.36,1);
+  will-change:opacity,transform;
+}
+.reveal.is-visible{opacity:1;transform:translateY(0);}
+@media (prefers-reduced-motion: reduce){
+  .reveal{opacity:1!important;transform:none!important;transition:none!important;}
+}
+
+/* Lenis */
+html.lenis,html.lenis body{height:auto;}
+.lenis.lenis-smooth{scroll-behavior:auto !important;}
+.lenis.lenis-smooth [data-lenis-prevent]{overscroll-behavior:contain;}
+.lenis.lenis-stopped{overflow:hidden;}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#top" class="logo" aria-label="Agent Hatchers home">
+      <img src="agent-hatchers-logo.png" alt="" />
+      <span>Agent&nbsp;Hatchers</span>
+    </a>
+    <ul class="nav-links" role="navigation">
+      <li><a href="#demo">Agents</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#why">Why Hermes</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="#book" class="btn btn-primary" data-open-book>Book a call <span class="arrow">→</span></a>
+    </div>
+  </div>
+</nav>
+
+<main id="top">
+
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-meta">
+      <span class="mono">Australian AI studio — Melbourne</span>
+      <span class="mono">Powered by Hermes</span>
+    </div>
+    <h1 class="hero-title">
+      <span class="t-line"><span class="t-inner">One agent,</span></span>
+      <span class="t-line job-line"><span class="t-inner">Job done.</span></span>
+    </h1>
+    <img class="hatchy-illo hero-hatchy" src="hatchy-hero-agent.svg" alt="Hatchy hatching from an egg" width="132" height="132" loading="lazy" />
+    <div class="hero-foot">
+      <p class="hero-sub">We set up <strong>Hermes</strong> — a platform where each AI agent owns one clear business job from request to finished deliverable. <strong>You just talk to your agents — in Slack or Teams</strong>, like any other colleague.</p>
+      <div class="hero-ctas">
+        <a href="#book" class="btn btn-primary" data-open-book data-source="hero">Book a call <span class="arrow">→</span></a>
+        <a href="#demo" class="tlink">Meet the agents ↓</a>
+      </div>
+    </div>
+  </div>
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <span class="ticker-item">Installed in days, not months</span>
+      <span class="ticker-item">Pay only for the AI you use</span>
+      <span class="ticker-item">Swap models with one click</span>
+      <span class="ticker-item">Sounds like you, not a chatbot</span>
+      <span class="ticker-item">One agent, job done</span>
+      <span class="ticker-item">Works in Slack and Microsoft Teams</span>
+      <span class="ticker-item">Real deliverables, not suggestions</span>
+      <span class="ticker-item">Runs on a schedule, or on request</span>
+      <span class="ticker-item">Nothing sent without your approval</span>
+      <span class="ticker-item">Installed in days, not months</span>
+      <span class="ticker-item">Pay only for the AI you use</span>
+      <span class="ticker-item">Swap models with one click</span>
+      <span class="ticker-item">Sounds like you, not a chatbot</span>
+      <span class="ticker-item">One agent, job done</span>
+      <span class="ticker-item">Works in Slack and Microsoft Teams</span>
+      <span class="ticker-item">Real deliverables, not suggestions</span>
+      <span class="ticker-item">Runs on a schedule, or on request</span>
+      <span class="ticker-item">Nothing sent without your approval</span>
+    </div>
+  </div>
+</header>
+
+<!-- SYSTEM DIAGRAM — the whole product in one animated drawing -->
+<section class="system-strip" aria-label="How the system fits together">
+  <div class="wrap">
+    <div class="sys-head">
+      <span class="mono">(00) — The system</span>
+      <span class="mono">You talk · Hermes routes · agents deliver</span>
+    </div>
+
+    <!-- Desktop: left-to-right flow -->
+    <svg class="sys-svg sys-desktop" viewBox="0 0 1200 340" fill="none" aria-hidden="true">
+      <!-- you -->
+      <circle class="sys-shape" cx="70" cy="170" r="20" pathLength="1"/>
+      <circle class="sys-dot" cx="70" cy="170" r="4"/>
+      <text class="sys-label" x="70" y="216" text-anchor="middle">YOU</text>
+      <text class="sys-label sys-label-dim" x="70" y="236" text-anchor="middle">VIA SLACK · TEAMS</text>
+      <!-- trunk -->
+      <path class="sys-flow sys-d2" d="M90 170 L330 170" pathLength="1"/>
+      <!-- hermes -->
+      <rect class="sys-shape sys-d2" x="330" y="118" width="180" height="104" rx="2" pathLength="1"/>
+      <text class="sys-label sys-label-lg" x="420" y="162" text-anchor="middle">HERMES</text>
+      <text class="sys-label sys-model" x="420" y="194" text-anchor="middle">MODEL ▸ CLAUDE SONNET</text>
+      <!-- fan out to agents -->
+      <path class="sys-flow sys-d3" d="M510 170 C600 170 615 50 705 50" pathLength="1"/>
+      <path class="sys-flow sys-d3" d="M510 170 C600 170 615 130 705 130" pathLength="1"/>
+      <path class="sys-flow sys-d3" d="M510 170 C600 170 615 210 705 210" pathLength="1"/>
+      <path class="sys-flow sys-d3" d="M510 170 C600 170 615 290 705 290" pathLength="1"/>
+      <!-- agents -->
+      <rect class="sys-shape sys-d4" x="705" y="28"  width="150" height="44" rx="2" pathLength="1"/>
+      <rect class="sys-shape sys-d4" x="705" y="108" width="150" height="44" rx="2" pathLength="1"/>
+      <rect class="sys-shape sys-d4" x="705" y="188" width="150" height="44" rx="2" pathLength="1"/>
+      <rect class="sys-shape sys-d4" x="705" y="268" width="150" height="44" rx="2" pathLength="1"/>
+      <text class="sys-label" x="780" y="55"  text-anchor="middle">01 · SALES</text>
+      <text class="sys-label" x="780" y="135" text-anchor="middle">02 · DOCUMENTS</text>
+      <text class="sys-label" x="780" y="215" text-anchor="middle">03 · INVOICES</text>
+      <text class="sys-label" x="780" y="295" text-anchor="middle">04 · WEBSITE</text>
+      <!-- out to your tools -->
+      <path class="sys-flow sys-d5" d="M855 50 L1000 50" pathLength="1"/>
+      <path class="sys-flow sys-d5" d="M855 130 L1000 130" pathLength="1"/>
+      <path class="sys-flow sys-d5" d="M855 210 L1000 210" pathLength="1"/>
+      <path class="sys-flow sys-d5" d="M855 290 L1000 290" pathLength="1"/>
+      <text class="sys-label sys-label-dim" x="1012" y="55">HUBSPOT</text>
+      <text class="sys-label sys-label-dim" x="1012" y="135">GMAIL</text>
+      <text class="sys-label sys-label-dim" x="1012" y="215">XERO</text>
+      <text class="sys-label sys-label-dim" x="1012" y="295">YOUR SITE</text>
+    </svg>
+
+    <!-- Mobile: top-to-bottom flow -->
+    <svg class="sys-svg sys-mobile" viewBox="0 0 360 396" fill="none" aria-hidden="true">
+      <circle class="sys-shape" cx="180" cy="34" r="16" pathLength="1"/>
+      <circle class="sys-dot" cx="180" cy="34" r="3.5"/>
+      <text class="sys-label" x="152" y="31" text-anchor="end">YOU</text>
+      <text class="sys-label sys-label-dim" x="152" y="47" text-anchor="end">VIA SLACK · TEAMS</text>
+      <path class="sys-flow sys-d2" d="M180 50 L180 100" pathLength="1"/>
+      <rect class="sys-shape sys-d2" x="90" y="100" width="180" height="84" rx="2" pathLength="1"/>
+      <text class="sys-label sys-label-lg" x="180" y="136" text-anchor="middle">HERMES</text>
+      <text class="sys-label sys-model" x="180" y="162" text-anchor="middle">MODEL ▸ CLAUDE SONNET</text>
+      <path class="sys-flow sys-d3" d="M180 184 C180 220 95 218 95 250" pathLength="1"/>
+      <path class="sys-flow sys-d3" d="M180 184 C180 220 265 218 265 250" pathLength="1"/>
+      <path class="sys-flow sys-d3" d="M180 184 C180 245 95 285 95 330" pathLength="1"/>
+      <path class="sys-flow sys-d3" d="M180 184 C180 245 265 285 265 330" pathLength="1"/>
+      <rect class="sys-shape sys-d4" x="20"  y="250" width="150" height="40" rx="2" pathLength="1"/>
+      <rect class="sys-shape sys-d4" x="190" y="250" width="150" height="40" rx="2" pathLength="1"/>
+      <rect class="sys-shape sys-d4" x="20"  y="330" width="150" height="40" rx="2" pathLength="1"/>
+      <rect class="sys-shape sys-d4" x="190" y="330" width="150" height="40" rx="2" pathLength="1"/>
+      <text class="sys-label" x="95"  y="275" text-anchor="middle">01 · SALES</text>
+      <text class="sys-label" x="265" y="275" text-anchor="middle">02 · DOCS</text>
+      <text class="sys-label" x="95"  y="355" text-anchor="middle">03 · INVOICES</text>
+      <text class="sys-label" x="265" y="355" text-anchor="middle">04 · WEBSITE</text>
+    </svg>
+    <img class="hatchy-illo system-hatchy" src="hatchy-routing-agent.svg" alt="Hatchy routing work to the right agent" width="116" height="116" loading="lazy" />
+  </div>
+</section>
+
+<!-- AGENT CHAT DEMO -->
+<section class="section" id="demo">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2 class="sec-title">One agent,<br />Job done.</h2>
+      <p class="sec-intro"><span class="mono">(01) — Meet your team</span><br /><br />Every agent does exactly one thing, so it never gets confused and never goes off-topic. Pick an agent and watch a workday happen.</p>
+    </div>
+
+    <div class="chat-region">
+      <div>
+        <div class="agent-tabs reveal" role="tablist" aria-label="Choose an agent">
+          <button class="agent-tab is-active" type="button" role="tab" aria-selected="true" data-agent="sales"><img class="agent-tab-icon" src="hatchy-sales-agent.svg" alt="" aria-hidden="true" /><span>Sales Agent</span><span class="idx">A·01</span></button>
+          <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="docs"><img class="agent-tab-icon" src="hatchy-document-agent.svg" alt="" aria-hidden="true" /><span>Document Agent</span><span class="idx">A·02</span></button>
+          <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="invoice"><img class="agent-tab-icon" src="hatchy-invoice-agent.svg" alt="" aria-hidden="true" /><span>Invoice Agent</span><span class="idx">A·03</span></button>
+          <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="web"><img class="agent-tab-icon" src="hatchy-website-agent.svg" alt="" aria-hidden="true" /><span>Website Agent</span><span class="idx">A·04</span></button>
+        </div>
+        <p class="tabs-note reveal">That model dropdown is real, by the way. <strong>A better model comes out? Swap it in with one click.</strong> Your agent keeps its memory, its skills, and its voice.</p>
+      </div>
+
+      <div class="chat-window reveal">
+        <div class="chat-bar">
+          <div class="chat-agent">
+            <div class="chat-avatar" id="chatAvatar" aria-hidden="true">01</div>
+            <div class="chat-agent-meta">
+              <div class="chat-agent-name" id="chatAgentName">Sales Agent</div>
+              <div class="chat-agent-status">Online — working for you<span class="blink">▮</span></div>
+            </div>
+          </div>
+          <div class="model-pill">
+            <label for="modelSelect">Model</label>
+            <select id="modelSelect" aria-label="Swap the AI model powering this agent">
+              <option value="Claude Sonnet">Claude Sonnet</option>
+              <option value="GPT-5">GPT-5</option>
+              <option value="Gemini Pro">Gemini Pro</option>
+              <option value="a cheaper model">Something cheaper</option>
+            </select>
+          </div>
+        </div>
+        <div class="chat-body" id="chatBody" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2 class="sec-title">Three steps.<br /><em>That's the whole thing.</em></h2>
+      <p class="sec-intro"><span class="mono">(02) — How it works</span><br /><br />No jargon, no 40-page proposal, no six-month project. You could be talking to your first agent next week.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <svg class="step-diag" viewBox="0 0 126 64" aria-hidden="true">
+          <rect class="sd-draw" x="17" y="10" width="92" height="44" rx="2" pathLength="1"/>
+          <circle class="sd-pop sd-core" cx="63" cy="32" r="5"/>
+        </svg>
+        <span class="mono">Step / 01</span>
+        <h3>We install Hermes</h3>
+        <p>We set up your own AI platform inside your business and connect it to the tools you already use. It arrives with hundreds of pre-installed skills and learns how your business sounds. You don't touch a thing.</p>
+      </div>
+      <div class="step reveal">
+        <svg class="step-diag" viewBox="0 0 126 64" aria-hidden="true">
+          <path class="sd-draw" d="M17 32 H109" pathLength="1"/>
+          <circle class="sd-pop sd-p1" cx="25" cy="32" r="6"/>
+          <circle class="sd-pop sd-p2" cx="51" cy="32" r="6"/>
+          <circle class="sd-pop sd-p3" cx="77" cy="32" r="6"/>
+          <circle class="sd-pop sd-p4" cx="103" cy="32" r="6"/>
+        </svg>
+        <span class="mono">Step / 02</span>
+        <h3>You pick your agents</h3>
+        <p>Choose ready-made agents from our library at set prices, ask us to build custom ones, or build your own — it's plain English, not code. Every agent has one job and does it properly.</p>
+      </div>
+      <div class="step reveal">
+        <svg class="step-diag" viewBox="0 0 126 64" aria-hidden="true">
+          <path class="sd-draw" d="M17 32 H109" pathLength="1"/>
+          <circle class="sd-run" cx="17" cy="32" r="4"/>
+        </svg>
+        <span class="mono">Step / 03</span>
+        <h3>They get to work</h3>
+        <p>Talk to your agents like teammates — in Slack, in Microsoft Teams, or in Hermes itself. Ask for the report, the follow-up, the update — it's done. We keep everything running, updated and healthy in the background.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATEMENT -->
+<section class="statement" aria-label="Statement">
+  <img class="hatchy-illo statement-hatchy" src="hatchy-success-agent.svg" alt="Hatchy celebrating finished work" width="120" height="120" loading="lazy" />
+  <div class="statement-ring r1" aria-hidden="true"><span class="ring-dot"></span></div>
+  <div class="statement-ring r2" aria-hidden="true"></div>
+  <div class="wrap">
+    <p class="statement-line reveal">You don't need to understand AI.<span class="quiet">You just need to meet your new team.</span></p>
+  </div>
+</section>
+
+<!-- WHY HERMES -->
+<section class="section" id="why" style="border-top:none;">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2 class="sec-title">Four reasons this beats <em>everything else.</em></h2>
+      <p class="sec-intro"><span class="mono">(03) — Why Hermes</span><br /><br />The AI world is confusing on purpose. This isn't. Here's the whole argument, in plain English.</p>
+    </div>
+    <div class="why-list">
+      <div class="why-row reveal">
+        <span class="mono">R / 01</span>
+        <h3>Pay only for what <em>you use.</em></h3>
+        <p>ChatGPT and Claude charge a fixed subscription per person, every month, whether anyone uses it or not. Hermes runs on <strong>OpenRouter</strong> — you pay for the AI your agents actually use, by the token. Quiet week? Tiny bill. <strong>For most businesses that works out cheaper.</strong></p>
+      </div>
+      <div class="why-row reveal">
+        <span class="mono">R / 02</span>
+        <h3>It sounds <em>like you.</em></h3>
+        <p>The model is only half the story — the harness around it is what makes AI genuinely useful. Hermes ships with <strong>hundreds of pre-installed skills</strong> and learns your business: your tone, your templates, your way of doing things. ChatGPT sounds like ChatGPT. <strong>Your agents sound like you.</strong></p>
+      </div>
+      <div class="why-row reveal">
+        <span class="mono">R / 03</span>
+        <h3>Swap models with <em>one click.</em></h3>
+        <p>A new model just dropped and it's brilliant? Swap it in. Want to cut costs? Swap in a cheaper one. Your agents keep their memory and skills either way. <strong>You're never locked into one AI company again.</strong></p>
+      </div>
+      <div class="why-row reveal">
+        <span class="mono">R / 04</span>
+        <h3>One agent, job done.</h3>
+        <p>Your invoice agent only talks invoices. Your sales agent only talks sales. No noise, no crossed wires, no thousand-message chat where everything blurs together. <strong>Complete separation</strong> — which is exactly why the work stays sharp.</p>
+      </div>
+    </div>
+
+    <p class="fine-head reveal">And the details that matter.</p>
+    <div class="fine-grid reveal">
+      <div class="fine">
+        <span class="mono">You approve</span>
+        <p>Agents draft, prepare and process on their own — but <strong>anything important waits for your sign-off</strong> before it goes out the door. You saw it in the demo: drafted, then approved, then sent.</p>
+      </div>
+      <div class="fine">
+        <span class="mono">On a schedule</span>
+        <p>Ask once, or make it recurring. <strong>Monday pipeline summaries, monthly client reports, invoice runs</strong> — your agents keep doing the job without being asked again.</p>
+      </div>
+      <div class="fine">
+        <span class="mono">Real deliverables</span>
+        <p>Not suggestions — finished work. <strong>PDFs, reports, spreadsheets, emails sent, invoices logged, pages live.</strong> The kind of output you'd expect from a person.</p>
+      </div>
+      <div class="fine">
+        <span class="mono">Whole team</span>
+        <p><strong>One installation, everyone uses it.</strong> Your ops lead talks to the invoice agent, your salesperson talks to the sales agent — each in their own lane, straight from Slack or Teams.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AGENT LIBRARY -->
+<section class="section" id="agents">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2 class="sec-title">The agent <em>library.</em></h2>
+      <p class="sec-intro"><span class="mono">(04) — Set prices, no surprises</span><br /><br />Every agent in the library has a set price — you know exactly what it costs before you say yes. And the library keeps growing.</p>
+    </div>
+    <div class="lib">
+      <div class="lib-row reveal">
+        <img class="lib-illo" src="hatchy-sales-agent.svg" alt="Sales agent" width="62" height="62" loading="lazy" />
+        <h3>Sales</h3>
+        <p class="lib-desc">Qualifies new leads, drafts outreach in your voice, follows up so nothing goes cold.</p>
+        <span class="lib-price">Set price</span>
+      </div>
+      <div class="lib-row reveal">
+        <img class="lib-illo" src="hatchy-document-agent.svg" alt="Document agent" width="62" height="62" loading="lazy" />
+        <h3>Documents</h3>
+        <p class="lib-desc">Reports, proposals and client documents in your template and your tone, in minutes.</p>
+        <span class="lib-price">Set price</span>
+      </div>
+      <div class="lib-row reveal">
+        <img class="lib-illo" src="hatchy-invoice-agent.svg" alt="Invoice agent" width="62" height="62" loading="lazy" />
+        <h3>Invoices</h3>
+        <p class="lib-desc">Reads invoices, matches them, logs them in your accounting system, flags the odd ones out.</p>
+        <span class="lib-price">Set price</span>
+      </div>
+      <div class="lib-row reveal">
+        <img class="lib-illo" src="hatchy-support-agent.svg" alt="Support agent" width="62" height="62" loading="lazy" />
+        <h3>Support</h3>
+        <p class="lib-desc">Triages enquiries, drafts replies that sound like your team, escalates what matters.</p>
+        <span class="lib-price">Set price</span>
+      </div>
+      <div class="lib-row reveal">
+        <img class="lib-illo" src="hatchy-website-agent.svg" alt="Website agent" width="62" height="62" loading="lazy" />
+        <h3>Website</h3>
+        <p class="lib-desc">Updates your site when you ask it to — new hours, new pages, new copy. Preview, approve, live.</p>
+        <span class="lib-price">Set price</span>
+      </div>
+      <div class="lib-cta reveal">
+        <h3>Need something else?</h3>
+        <p>We'll build a custom agent for your exact job — quoted up front. Or build your own: it's included with every installation, plain English, not code.</p>
+        <a href="#book" class="btn btn-secondary" data-open-book data-source="agents">Ask us <span class="arrow">→</span></a>
+      </div>
+    </div>
+    <p class="lib-note reveal"><strong>Build your own agents free, forever.</strong> Describe the job in plain English and your new teammate exists.</p>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="section" id="pricing">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2 class="sec-title">Four ways in. <em>Pick a door.</em></h2>
+      <p class="sec-intro"><span class="mono">(05) — Pricing</span><br /><br />Every option covers hosting, updates and support. AI usage is billed at cost — you pay for what your agents actually use, by the token.</p>
+    </div>
+    <div class="price-cols">
+      <div class="price-col reveal">
+        <span class="mono">01 / Own it</span>
+        <h3>Own it</h3>
+        <div class="price-amount">A$10,000 <span>one-off install</span></div>
+        <p>Then <strong>A$499 / month</strong>.</p>
+        <ul>
+          <li>Own the platform from day one</li>
+          <li>Best entry point for building your own agents</li>
+          <li>Hosting, updates and support included</li>
+          <li>AI usage billed at cost — only what you use</li>
+        </ul>
+      </div>
+      <div class="price-col reveal">
+        <span class="mono">02 / Team</span>
+        <h3>Team</h3>
+        <div class="price-amount">A$25,000 <span>includes 10 agents</span></div>
+        <p>Then <strong>A$499 / month</strong>.</p>
+        <ul>
+          <li>10 agents included up front</li>
+          <li>Best for teams automating several jobs at once</li>
+          <li>Hosting, updates and support included</li>
+          <li>AI usage billed at cost — only what you use</li>
+        </ul>
+      </div>
+      <div class="price-col reveal">
+        <span class="mono">03 / Enterprise</span>
+        <h3>Enterprise</h3>
+        <div class="price-amount">From A$50,000 <span>bespoke agents</span></div>
+        <p>Quoted up front for complex, high-value workflows.</p>
+        <ul>
+          <li>Bespoke agents designed around your business</li>
+          <li>Deeper integrations, permissions and rollout support</li>
+          <li>Hosting, updates and support included</li>
+          <li>AI usage billed at cost — only what you use</li>
+        </ul>
+      </div>
+      <div class="price-col price-col-dark reveal">
+        <span class="mono">04 / Rent it</span>
+        <h3>Rent it</h3>
+        <div class="price-amount">A$949 <span>/ month</span></div>
+        <p>Platform access without the A$10,000 install.</p>
+        <ul>
+          <li>Access the platform without owning it upfront</li>
+          <li>No agents included — add the ones you need</li>
+          <li>Hosting, updates and support included</li>
+          <li>AI usage billed at cost — only what you use</li>
+        </ul>
+      </div>
+    </div>
+    <p class="price-foot reveal">Own it from A$10,000, launch with 10 included agents for A$25,000, or go bespoke from A$50,000. If you just want platform access instead, rent it for A$949/month and add agents as needed. <strong>AI usage is pay-per-token through OpenRouter, at cost.</strong></p>
+  </div>
+</section>
+
+<!-- STACK MARQUEE -->
+<section class="stack-strip" aria-label="Works with your existing tools">
+  <div class="wrap stack-head reveal">
+    <span class="mono">(06) — Your stack</span>
+    <span class="mono">Your agents plug into what you already use — no rip-and-replace</span>
+  </div>
+  <div class="stack-track" aria-hidden="true">
+    <span class="stack-item">Gmail</span>
+    <span class="stack-item">Xero</span>
+    <span class="stack-item">Slack</span>
+    <span class="stack-item">HubSpot</span>
+    <span class="stack-item">Notion</span>
+    <span class="stack-item">Outlook</span>
+    <span class="stack-item">QuickBooks</span>
+    <span class="stack-item">Stripe</span>
+    <span class="stack-item">Airtable</span>
+    <span class="stack-item">Zendesk</span>
+    <span class="stack-item">Gmail</span>
+    <span class="stack-item">Xero</span>
+    <span class="stack-item">Slack</span>
+    <span class="stack-item">HubSpot</span>
+    <span class="stack-item">Notion</span>
+    <span class="stack-item">Outlook</span>
+    <span class="stack-item">QuickBooks</span>
+    <span class="stack-item">Stripe</span>
+    <span class="stack-item">Airtable</span>
+    <span class="stack-item">Zendesk</span>
+  </div>
+</section>
+
+<!-- TRUST / FOUNDERS -->
+<section class="section" id="trust">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2 class="sec-title">Australian-built. <em>Founder-led.</em></h2>
+      <p class="sec-intro"><span class="mono">(07) — Who you're dealing with</span><br /><br />Two founders on every installation. One on the engineering, one on the relationship. When something needs attention, you talk to us — not a portal.</p>
+    </div>
+
+    <div class="founders">
+      <article class="founder reveal">
+        <div class="founder-top">
+          <div class="founder-photo">
+            <img src="noah.jpg" alt="Noah Webb, CEO and Co-founder at Agent Hatchers" width="76" height="76" loading="lazy" />
+          </div>
+          <div>
+            <h3>Noah Webb</h3>
+            <span class="mono">Co-founder · CEO</span>
+          </div>
+        </div>
+        <p>Noah runs the client side of Agent Hatchers: business development, partnerships, and the relationship on every engagement. He follows new AI releases closely, so when a better model comes out, your agents get it — often the same week. He's the one you'll actually talk to.</p>
+        <p>Before this, years in property finance and data, then family office investing. Monash-educated, Melbourne-based, and a Flying Fox volunteer since 2019, now on its Community Committee.</p>
+        <a class="founder-link" href="https://www.linkedin.com/in/noah-webb-5795151a6/" target="_blank" rel="noopener">LinkedIn ↗</a>
+      </article>
+
+      <article class="founder reveal">
+        <div class="founder-top">
+          <div class="founder-photo">
+            <img src="hyein.jpg" alt="Hyein Yu, Founder and Head of Engineering at Agent Hatchers" width="76" height="76" loading="lazy" />
+          </div>
+          <div>
+            <h3>Hyein Yu</h3>
+            <span class="mono">Founder · Head of Engineering</span>
+          </div>
+        </div>
+        <p>Hyein is the founder of Agent Hatchers and leads the company's engineering. She architects every Hermes installation, builds the agents that need real engineering behind them, and oversees the team that keeps every platform healthy long after handover.</p>
+        <p>Her background spans several years across AI startups, where she specialised in building production systems that perform reliably across numerous industries.</p>
+        <a class="founder-link" href="https://www.linkedin.com/in/hye-in-yu/" target="_blank" rel="noopener">LinkedIn ↗</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2 class="sec-title">Questions <em>people ask.</em></h2>
+      <p class="sec-intro"><span class="mono">(08) — FAQ</span></p>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item reveal" id="faq-hermes">
+        <summary>What exactly is Hermes?<span class="faq-icon">+</span></summary>
+        <div class="faq-body">Hermes is the AI platform we install in your business — it's where your agents live. It comes with hundreds of pre-installed skills, connects to the tools you already use, and learns how your business sounds. So the work it produces sounds like you, not like a chatbot.</div>
+      </details>
+      <details class="faq-item reveal" id="faq-agent">
+        <summary>What's an AI agent?<span class="faq-icon">+</span></summary>
+        <div class="faq-body">A teammate in software form. Each agent has one job — chasing leads, writing documents, processing invoices, updating your website. You talk to it in plain English, and it does the work. Because each agent only does its one job, it stays focused and never gets confused.</div>
+      </details>
+      <details class="faq-item reveal" id="faq-technical">
+        <summary>Do I need to be technical?<span class="faq-icon">+</span></summary>
+        <div class="faq-body">No. If you can send a message, you can use your agents. We install everything, connect your tools, and hand it over working. You just talk to your team.</div>
+      </details>
+      <details class="faq-item reveal" id="faq-cost">
+        <summary>How much does it cost?<span class="faq-icon">+</span></summary>
+        <div class="faq-body">Choose the fit: own it from A$10,000 and then A$499/month, step up to A$25,000 including 10 agents, or start from A$50,000 for enterprise bespoke agents. If you only want access to the platform instead of the A$10,000 install, rent it for A$949/month without agents included. AI usage is billed at cost through OpenRouter: you pay for what your agents actually use, not a per-seat licence.</div>
+      </details>
+      <details class="faq-item reveal" id="faq-chatgpt">
+        <summary>Why not just use ChatGPT?<span class="faq-icon">+</span></summary>
+        <div class="faq-body">Three reasons. Cost: ChatGPT is a fixed subscription you pay whether you use it or not — Hermes is pay-per-use, so quiet weeks cost almost nothing. Voice: generic chatbots sound generic — Hermes learns your business, so everything sounds like you. Flexibility: when a better or cheaper model comes out, you swap it in with one click. You're never locked in.</div>
+      </details>
+      <details class="faq-item reveal" id="faq-byo">
+        <summary>Can I build my own agents?<span class="faq-icon">+</span></summary>
+        <div class="faq-body">Yes — it's included with every installation, unlimited, and it's plain English rather than code. Prefer to hand it off? Pick ready-made agents from the library at set prices, or we'll build custom ones for you.</div>
+      </details>
+      <details class="faq-item reveal" id="faq-where">
+        <summary>Where do I talk to my agents?<span class="faq-icon">+</span></summary>
+        <div class="faq-body">Wherever you already work. Hermes agents live in Slack and Microsoft Teams — you message them like any other colleague — or you can talk to them in Hermes directly. No new app for your team to learn, no new tab to keep open.</div>
+      </details>
+      <details class="faq-item reveal" id="faq-data">
+        <summary>Is my data safe?<span class="faq-icon">+</span></summary>
+        <div class="faq-body">Hermes is installed for your business — it's your platform, connected to your tools, not a shared workspace with other companies. Each agent works in its own lane and only touches what its job needs. Your data isn't used to train anyone's AI models. And because we maintain the platform, there's a human team accountable for it — us.</div>
+      </details>
+      <details class="faq-item reveal" id="faq-control">
+        <summary>Will agents do things without asking?<span class="faq-icon">+</span></summary>
+        <div class="faq-body">Only what you've told them to. Agents prepare work autonomously — drafts, reports, matched invoices — but anything that leaves the building waits for your approval, and anything you've put on a schedule runs exactly as you set it. You decide where the line sits, agent by agent.</div>
+      </details>
+      <details class="faq-item reveal" id="faq-breaks">
+        <summary>What if something breaks?<span class="faq-icon">+</span></summary>
+        <div class="faq-body">Your subscription covers it. We monitor, maintain and update your Hermes platform, keep your agents healthy, and support your team. No tickets, no portals, no chasing.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="cta-section" id="book">
+  <div class="wrap">
+    <h2 class="cta-title reveal">Ready to meet <em>your new team?</em></h2>
+    <a href="#" class="btn btn-primary reveal" data-open-book data-source="final">Book a call <span class="arrow">→</span></a>
+  </div>
+</section>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <span>© 2026 Agent Hatchers Pty Ltd</span>
+    <div class="footer-links">
+      <a href="mailto:support@agenthatchers.com">support@agenthatchers.com</a>
+      <a href="terms-of-service.html">Terms</a>
+      <a href="privacy-policy.html">Privacy</a>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite">Done ✓</div>
+
+<!-- Lenis smooth-scroll (~5KB, vanilla, respects prefers-reduced-motion) -->
+<script src="https://unpkg.com/lenis@1.1.20/dist/lenis.min.js"></script>
+
+<!-- BOOKING MODAL -->
+<div class="modal-overlay" id="bookingModal" role="dialog" aria-modal="true" aria-labelledby="bookingTitle">
+  <div class="modal modal--wide" id="bookingModalInner">
+    <div class="modal-header">
+      <div>
+        <h3 id="bookingTitle">30 minutes. Same week.</h3>
+        <p class="modal-sub" id="bookingSub">A quick name + email so we can prep before we meet.</p>
+      </div>
+      <button class="modal-close" id="bookingClose" type="button" aria-label="Close">✕</button>
+    </div>
+
+    <!-- Step 1: collect name + email + urgency (short form) -->
+    <form id="bookingForm" class="booking-step">
+      <div class="modal-field">
+        <label for="bName">Your name</label>
+        <input type="text" id="bName" name="name" required autocomplete="name" placeholder="e.g. Sarah Chen" />
+      </div>
+      <div class="modal-field">
+        <label for="bEmail">Work email</label>
+        <input type="email" id="bEmail" name="email" required autocomplete="email" placeholder="you@company.com.au" />
+      </div>
+      <div class="modal-field">
+        <label for="bUrgency">How keen are you?</label>
+        <select id="bUrgency" name="urgency" class="modal-select">
+          <option value="">Select one…</option>
+          <option value="ASAP">Very — I want this installed ASAP</option>
+          <option value="Within 3 months">Interested — within 3 months</option>
+          <option value="Just exploring">Just exploring</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-primary">Continue <span class="arrow">→</span></button>
+      </div>
+      <p class="modal-note">By continuing you agree to our <a href="privacy-policy.html">Privacy Policy</a>. We use this to prep for the call. Nothing else.</p>
+    </form>
+
+    <!-- Step 2: Calendly iframe (revealed after submit) -->
+    <div id="bookingCalendly" class="booking-step" hidden>
+      <div class="calendly-frame-wrap">
+        <div class="calendly-loader" id="calendlyLoader" aria-hidden="true">
+          <div class="calendly-spinner"></div>
+          <span>Loading your calendar…</span>
+        </div>
+        <iframe class="calendly-iframe" id="calendlyFrame" title="Pick a time" loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── EDITABLE CONSTANTS — Noah updates these without touching anything else ── */
+const CALENDLY_URL = 'https://calendly.com/noah-automationbuilders/30min';
+// n8n PRODUCTION webhook URL (Webhook node → Production URL).
+// Receives every lead: { kind, ts, name, email, urgency, source } as JSON.
+// Static GitHub Pages site → the browser POSTs cross-origin, so the n8n Webhook
+// node must allow this origin via "Allowed Origins (CORS)". Workflow must be Active.
+// Leave '' to disable network calls.
+const LEAD_WEBHOOK = 'https://n8n.automationbuilders.ai/webhook/5e644b5e-d54e-4a7e-83ea-ea1666b199f6';
+
+/* ── HELPERS ── */
+function $(id){return document.getElementById(id);}
+function toast(msg){
+  const t = $('toast'); t.textContent = msg || 'Done ✓';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* ── MOBILE NAV — hide while scrolling down on phones ── */
+(function mobileNavHide(){
+  const nav = document.querySelector('nav');
+  const mq = matchMedia('(max-width: 760px)');
+  if (!nav) return;
+
+  let lastY = window.scrollY || 0;
+  let ticking = false;
+
+  function update(){
+    const y = window.scrollY || 0;
+    const delta = y - lastY;
+
+    if (!mq.matches || y < 24 || delta < -6) {
+      nav.classList.remove('mobile-nav-hidden');
+    } else if (delta > 6) {
+      nav.classList.add('mobile-nav-hidden');
+    }
+
+    lastY = y;
+    ticking = false;
+  }
+
+  function onScroll(){
+    if (!ticking) {
+      requestAnimationFrame(update);
+      ticking = true;
+    }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  mq.addEventListener('change', () => nav.classList.remove('mobile-nav-hidden'));
+})();
+
+// Returns true only if the lead was actually delivered to the n8n webhook.
+async function postLead(kind, payload){
+  const body = { kind, ts: new Date().toISOString(), ...payload };
+  console.log('[lead]', body);
+  if (!LEAD_WEBHOOK) {
+    console.warn('[lead] LEAD_WEBHOOK not set — lead not sent.');
+    return false;
+  }
+  try {
+    const res = await fetch(LEAD_WEBHOOK, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body),
+      keepalive: true
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('[lead] webhook failed:', err);
+    return false;
+  }
+}
+
+/* ── HERO LINE REVEAL ── */
+(function heroLines(){
+  const lines = document.querySelectorAll('.hero-title .t-inner');
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  lines.forEach((el, i) => {
+    el.style.transitionDelay = (0.08 + i * 0.11) + 's';
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('up')));
+  });
+})();
+
+/* ── SYSTEM DIAGRAM — draw-in, model chip cycle, travelling pulses ── */
+(function sysDiagram(){
+  const strip = document.querySelector('.system-strip');
+  if (!strip) return;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Draw the diagram in when it scrolls into view
+  if (reduced || !('IntersectionObserver' in window)) {
+    strip.classList.add('is-drawn');
+  } else {
+    new IntersectionObserver((entries, io) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { strip.classList.add('is-drawn'); io.disconnect(); }
+      });
+    }, { threshold: 0.3 }).observe(strip);
+  }
+
+  // The Hermes box cycles through models — the one-click swap, ambient
+  const MODELS = ['CLAUDE SONNET', 'GPT-5', 'GEMINI PRO', 'A CHEAPER ONE'];
+  let mi = 0;
+  if (!reduced) {
+    setInterval(() => {
+      mi = (mi + 1) % MODELS.length;
+      document.querySelectorAll('.sys-model').forEach(t => {
+        t.style.opacity = '0';
+        setTimeout(() => { t.textContent = 'MODEL ▸ ' + MODELS[mi]; t.style.opacity = '1'; }, 260);
+      });
+    }, 3200);
+  }
+
+  // Orange pulses travelling along the flow lines
+  if (reduced) return;
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  let pulses = [], raf = null, running = false;
+
+  function activeSvg(){
+    return [...strip.querySelectorAll('.sys-svg')].find(s => s.getBoundingClientRect().width > 0);
+  }
+  function tick(){
+    if (!running) return;
+    raf = requestAnimationFrame(tick);
+    const svg = activeSvg();
+    if (!svg) return;
+    const flows = [...svg.querySelectorAll('.sys-flow')];
+    if (flows.length && Math.random() < 0.055 && pulses.length < 9) {
+      const p = flows[(Math.random() * flows.length) | 0];
+      const c = document.createElementNS(SVGNS, 'circle');
+      c.setAttribute('r', '3');
+      c.setAttribute('fill', '#216BAC');
+      svg.appendChild(c);
+      pulses.push({ p, c, svg, t: 0, speed: 0.007 + Math.random() * 0.008 });
+    }
+    pulses = pulses.filter(o => {
+      if (o.svg !== svg || o.t >= 1) { o.c.remove(); return false; }
+      o.t += o.speed;
+      const pt = o.p.getPointAtLength(Math.min(o.t, 1) * o.p.getTotalLength());
+      o.c.setAttribute('cx', pt.x);
+      o.c.setAttribute('cy', pt.y);
+      return true;
+    });
+  }
+  new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      running = e.isIntersecting;
+      if (running && !raf) raf = requestAnimationFrame(tick);
+      if (!running && raf) { cancelAnimationFrame(raf); raf = null; }
+    });
+  }, { threshold: 0.05 }).observe(strip);
+})();
+
+
+/* ── AGENT CHAT DEMO ── */
+const AGENTS = {
+  sales: {
+    name: 'Sales Agent', idx: '01',
+    script: [
+      { who: 'user',  text: 'Morning. Any new leads overnight?' },
+      { who: 'agent', text: '<strong>3 new leads</strong> came in from the website. I’ve qualified them — two are a great fit. Intro emails are drafted in your voice, waiting for your approval.' },
+      { who: 'user',  text: 'Send the top one.' },
+      { who: 'agent', text: 'Sent to Sarah at Meridian Group <span class="tick">✓</span> If she hasn’t replied in 3 days, I’ll follow up — politely.' }
+    ]
+  },
+  docs: {
+    name: 'Document Agent', idx: '02',
+    script: [
+      { who: 'user',  text: 'I need the Q3 report for Harrison & Co.' },
+      { who: 'agent', text: 'On it. Pulling their numbers now… done. <strong>14 pages, your template, your tone</strong>, charts included. PDF or Word?' },
+      { who: 'user',  text: 'PDF. Send it to their team.' },
+      { who: 'agent', text: 'Sent <span class="tick">✓</span> and filed in the Harrison & Co folder. That used to be a Tuesday, by the way.' }
+    ]
+  },
+  invoice: {
+    name: 'Invoice Agent', idx: '03',
+    script: [
+      { who: 'user',  text: 'Where are we with this week’s invoices?' },
+      { who: 'agent', text: '<strong>27 processed.</strong> 25 matched and logged in Xero automatically. 2 need your eyes — the amounts don’t match the purchase orders.' },
+      { who: 'user',  text: 'Show me the first one.' },
+      { who: 'agent', text: 'Acme Supplies, invoice #4471: billed <strong>A$1,247</strong>, but the PO says <strong>A$1,190</strong>. Want me to query it with them? I’ll be nice about it.' }
+    ]
+  },
+  web: {
+    name: 'Website Agent', idx: '04',
+    script: [
+      { who: 'user',  text: 'Update the site — we’re open Saturdays now.' },
+      { who: 'agent', text: 'Updated the opening hours on the <strong>homepage</strong> and the <strong>contact page</strong>. Here’s a preview — approve it and it goes live.' },
+      { who: 'user',  text: 'Approved.' },
+      { who: 'agent', text: 'Live <span class="tick">✓</span> Anything else while I’m in there? The events page still says 2025 — want me to fix that too?' }
+    ]
+  }
+};
+
+(function agentDemo(){
+  const body = $('chatBody');
+  const tabs = document.querySelectorAll('.agent-tab');
+  const nameEl = $('chatAgentName');
+  const avatarEl = $('chatAvatar');
+  const modelSelect = $('modelSelect');
+  if (!body) return;
+
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let timers = [];
+  let current = 'sales';
+
+  function clearTimers(){ timers.forEach(t => clearTimeout(t)); timers = []; }
+
+  function addMsg(m){
+    const el = document.createElement('div');
+    el.className = 'msg ' + m.who;
+    el.innerHTML = m.text;
+    body.appendChild(el);
+  }
+  function addChip(text){
+    const el = document.createElement('div');
+    el.className = 'chat-chip';
+    el.innerHTML = text;
+    body.appendChild(el);
+  }
+  function showTyping(){
+    const el = document.createElement('div');
+    el.className = 'typing';
+    el.setAttribute('aria-hidden','true');
+    el.innerHTML = '<i></i><i></i><i></i>';
+    body.appendChild(el);
+    return el;
+  }
+
+  function play(key){
+    clearTimers();
+    current = key;
+    const agent = AGENTS[key];
+    nameEl.textContent = agent.name;
+    avatarEl.textContent = agent.idx;
+    body.innerHTML = '';
+
+    if (reduced) { // no animation — render the whole conversation at once
+      agent.script.forEach(addMsg);
+      return;
+    }
+
+    let delay = 350;
+    agent.script.forEach(m => {
+      if (m.who === 'agent') {
+        const typeAt = delay;
+        timers.push(setTimeout(() => {
+          const typing = showTyping();
+          timers.push(setTimeout(() => {
+            typing.remove();
+            addMsg(m);
+          }, 900));
+        }, typeAt));
+        delay += 900 + 1400;
+      } else {
+        timers.push(setTimeout(() => addMsg(m), delay));
+        delay += 1100;
+      }
+    });
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => {
+        t.classList.toggle('is-active', t === tab);
+        t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+      });
+      play(tab.dataset.agent);
+    });
+  });
+
+  modelSelect.addEventListener('change', () => {
+    addChip('⚡ Model swapped to <strong>' + modelSelect.options[modelSelect.selectedIndex].text + '</strong> — same agent, same memory, new brain.');
+  });
+
+  // Start the first conversation when the demo scrolls into view
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { play(current); io.disconnect(); }
+      });
+    }, { threshold: 0.35 });
+    io.observe(body.closest('.chat-window'));
+  } else {
+    play(current);
+  }
+})();
+
+/* ── MODAL HELPERS ── */
+function openModal(el){ el.classList.add('open'); }
+function closeModal(el){ el.classList.remove('open'); }
+function closeAllModals(){ document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open')); }
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllModals(); });
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) closeModal(m); });
+});
+
+/* ── BOOKING FLOW ── */
+const bookingModal = $('bookingModal');
+const bookingForm = $('bookingForm');
+const bookingCalendly = $('bookingCalendly');
+const calendlyFrame = $('calendlyFrame');
+let bookingSource = 'nav';
+
+function startBookingFlow(source){
+  bookingSource = source || 'nav';
+  resetBookingModal();
+  openModal(bookingModal);
+  setTimeout(()=>$('bName').focus(),120);
+}
+
+function resetBookingModal(){
+  bookingForm.reset();
+  bookingForm.hidden = false;
+  bookingCalendly.hidden = true;
+  calendlyFrame.src = '';
+  const loader = $('calendlyLoader');
+  if (loader) loader.classList.remove('is-hidden');
+  $('bookingTitle').textContent = '30 minutes. Same week.';
+  $('bookingSub').textContent = 'A quick name + email so we can prep before we meet.';
+}
+
+document.querySelectorAll('[data-open-book]').forEach(el => {
+  el.addEventListener('click', e => {
+    e.preventDefault();
+    closeAllModals();
+    startBookingFlow(el.dataset.source || 'nav');
+  });
+});
+$('bookingClose').addEventListener('click', () => closeModal(bookingModal));
+
+bookingForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const data = {
+    name:    $('bName').value.trim(),
+    email:   $('bEmail').value.trim(),
+    urgency: $('bUrgency').value,
+    source:  bookingSource
+  };
+  postLead('booking', data); // fire-and-forget — never block the calendar on the webhook
+
+  // Build Calendly URL with prefill + theme params so the iframe matches the site.
+  const params = new URLSearchParams();
+  if (data.name)  params.set('name', data.name);
+  if (data.email) params.set('email', data.email);
+  params.set('hide_event_type_details', '1');
+  params.set('hide_gdpr_banner', '1');
+  params.set('background_color', 'f4f1ea');
+  params.set('text_color', '16150f');
+  params.set('primary_color', '216bac');
+  const url = CALENDLY_URL + '?' + params.toString();
+
+  bookingForm.classList.add('is-leaving');
+  await new Promise(r => setTimeout(r, 220));
+  bookingForm.hidden = true;
+  bookingForm.classList.remove('is-leaving');
+
+  $('bookingTitle').textContent = 'Pick a time.';
+  $('bookingSub').textContent = 'Pre-filled with what you sent. Change anything you like.';
+
+  const loader = $('calendlyLoader');
+  if (loader) loader.classList.remove('is-hidden');
+  calendlyFrame.src = url;
+  bookingCalendly.hidden = false;
+
+  calendlyFrame.addEventListener('load', () => {
+    if (loader) loader.classList.add('is-hidden');
+  }, { once: true });
+});
+
+/* ── LENIS SMOOTH SCROLL ── */
+(function smoothScroll(){
+  if (typeof Lenis === 'undefined') return; // CDN failed — fall back to native
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const lenis = new Lenis({
+    duration: 0.95,
+    easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // expo-out
+    smoothWheel: true,
+    wheelMultiplier: 1.05,
+    touchMultiplier: 1.3
+  });
+
+  function raf(time){ lenis.raf(time); requestAnimationFrame(raf); }
+  requestAnimationFrame(raf);
+
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const href = a.getAttribute('href');
+      if (!href || href === '#' || href.length < 2) return;
+      const target = document.querySelector(href);
+      if (!target) return;
+      e.preventDefault();
+      lenis.scrollTo(target, { offset: -8, duration: 1.4 });
+    });
+  });
+
+  window.__lenis = lenis;
+})();
+
+/* ── SCROLL REVEAL ── */
+(function drift(){
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+    document.documentElement.classList.remove('js');
+    return;
+  }
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('is-visible');
+        io.unobserve(e.target);
+      }
+    });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.01 });
+
+  document.querySelectorAll('.reveal').forEach((el, i) => io.observe(el));
+
+  // Stagger siblings inside ruled groups
+  ['.steps', '.price-cols', '.founders'].forEach(sel => {
+    document.querySelectorAll(sel).forEach(parent => {
+      Array.from(parent.children).forEach((child, i) => {
+        child.style.transitionDelay = (i * 0.08).toFixed(2) + 's';
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
