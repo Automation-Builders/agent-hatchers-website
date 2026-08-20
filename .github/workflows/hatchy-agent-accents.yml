@@ -1,0 +1,167 @@
+name: Apply Hatchy agent accents
+
+on:
+  push:
+    paths:
+      - '.github/workflows/hatchy-agent-accents.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Restore homepage and add Hatchy agent accents
+        run: |
+          set -euo pipefail
+          git show ff81bd40c2f305688176236c4ef3099ae634546f:index.html > index.html
+          python -m pip install --quiet pymupdf pillow
+          python <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import base64, io, urllib.request, fitz
+
+          pdf_url='https://storage.googleapis.com/hyebae/uploaded/autob/8f2d7819-hatchy-brand-guidelines.pdf'
+          pdf_path=Path('/tmp/hatchy-brand-guidelines.pdf')
+          urllib.request.urlretrieve(pdf_url, pdf_path)
+          extract=Path('/tmp/hatchy-extracted'); extract.mkdir(exist_ok=True)
+          doc=fitz.open(pdf_path)
+          for pi,page in enumerate(doc, start=1):
+              for ii,img in enumerate(page.get_images(full=True), start=1):
+                  xref=img[0]
+                  data=doc.extract_image(xref)
+                  (extract/f'p{pi}_{ii}_{xref}.{data["ext"]}').write_bytes(data['image'])
+
+          mapping={
+            'hatchy-hero-agent.svg':'p1_1_7.png',
+            'hatchy-sales-agent.svg':'p2_2_35.png',
+            'hatchy-document-agent.svg':'p2_3_36.png',
+            'hatchy-invoice-agent.svg':'p2_4_37.png',
+            'hatchy-support-agent.svg':'p2_5_38.png',
+            'hatchy-website-agent.svg':'p2_1_34.png',
+            'hatchy-routing-agent.svg':'p3_1_53.png',
+            'hatchy-success-agent.svg':'p2_7_40.png',
+          }
+          for out, src in mapping.items():
+              im=Image.open(extract/src).convert('RGBA')
+              px=im.load(); w,h=im.size
+              for y in range(h):
+                  for x in range(w):
+                      r,g,b,a=px[x,y]
+                      if r<18 and g<18 and b<18:
+                          px[x,y]=(r,g,b,0)
+              bbox=im.getbbox(); im=im.crop(bbox) if bbox else im
+              pad=max(18, im.size[0]//20)
+              canvas=Image.new('RGBA',(im.size[0]+pad*2, im.size[1]+pad*2),(0,0,0,0))
+              canvas.alpha_composite(im,(pad,pad)); canvas.thumbnail((380,380), Image.Resampling.LANCZOS)
+              bio=io.BytesIO(); canvas.save(bio, format='WEBP', quality=92, method=6)
+              b64=base64.b64encode(bio.getvalue()).decode()
+              svg=(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {canvas.size[0]} {canvas.size[1]}" role="img">\n'
+                   f'  <image href="data:image/webp;base64,{b64}" width="{canvas.size[0]}" height="{canvas.size[1]}" />\n'
+                   '</svg>\n')
+              Path(out).write_text(svg)
+
+          html=Path('index.html').read_text()
+          css='''
+          /* ── HATCHY BRAND AGENT ACCENTS ── */
+          .hatchy-illo{
+            display:block;user-select:none;pointer-events:none;
+            filter:drop-shadow(0 10px 18px rgba(22,21,15,.12));
+          }
+          .hero-hatchy{
+            position:absolute;right:clamp(22px,6vw,88px);top:clamp(76px,9vw,132px);
+            width:clamp(76px,9vw,132px);transform:rotate(4deg);opacity:.96;
+          }
+          .system-strip .wrap{position:relative;}
+          .system-hatchy{
+            position:absolute;right:var(--gutter);bottom:clamp(18px,3vw,42px);
+            width:clamp(70px,8vw,116px);transform:rotate(-5deg);opacity:.94;
+          }
+          .statement{position:relative;overflow:hidden;}
+          .statement-hatchy{
+            position:absolute;right:clamp(18px,7vw,110px);bottom:clamp(18px,4vw,62px);
+            width:clamp(72px,8vw,120px);transform:rotate(6deg);opacity:.9;
+          }
+          .agent-tab-icon{
+            width:34px;height:34px;object-fit:contain;flex:0 0 34px;margin-right:2px;
+            filter:drop-shadow(0 4px 8px rgba(22,21,15,.10));
+          }
+          .lib-row{
+            grid-template-columns:clamp(52px,6vw,74px) minmax(0,1.08fr) minmax(0,1.75fr) auto;
+          }
+          .lib-illo{
+            width:clamp(46px,5.2vw,62px);height:clamp(46px,5.2vw,62px);object-fit:contain;
+            align-self:center;justify-self:start;transition:transform .25s cubic-bezier(.22,1,.36,1),filter .25s;
+          }
+          .lib-row:hover .lib-illo{transform:translateY(-2px) rotate(-3deg);filter:drop-shadow(0 8px 14px rgba(244,241,234,.18));}
+          @media(max-width:860px){
+            .hero-hatchy,.system-hatchy,.statement-hatchy{display:none;}
+            .agent-tab-icon{width:24px;height:24px;flex-basis:24px;margin-right:0;}
+            .lib-row{grid-template-columns:48px minmax(0,1fr);gap:10px 14px;padding:24px 8px;}
+            .lib-illo{grid-row:1 / span 3;width:44px;height:44px;}
+            .lib-row .lib-desc,.lib-row .lib-price{grid-column:2;}
+          }
+          '''
+          marker='''@media(max-width:860px){
+            .hero-foot{grid-template-columns:1fr;align-items:start;}
+            .hero-ctas{justify-content:flex-start;}
+          }'''
+          html=html.replace(marker, marker+'\n'+css, 1)
+          pairs=[
+          ('''    <h1 class="hero-title">
+                <span class="t-line"><span class="t-inner">One agent,</span></span>
+                <span class="t-line job-line"><span class="t-inner">Job done.</span></span>
+              </h1>''','''    <h1 class="hero-title">
+                <span class="t-line"><span class="t-inner">One agent,</span></span>
+                <span class="t-line job-line"><span class="t-inner">Job done.</span></span>
+              </h1>
+              <img class="hatchy-illo hero-hatchy" src="hatchy-hero-agent.svg" alt="Hatchy hatching from an egg" width="132" height="132" loading="lazy" />'''),
+          ('''    </svg>
+            </div>
+          </section>''','''    </svg>
+              <img class="hatchy-illo system-hatchy" src="hatchy-routing-agent.svg" alt="Hatchy routing work to the right agent" width="116" height="116" loading="lazy" />
+            </div>
+          </section>'''),
+          ('''          <button class="agent-tab is-active" type="button" role="tab" aria-selected="true" data-agent="sales"><span>Sales Agent</span><span class="idx">A·01</span></button>
+                    <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="docs"><span>Document Agent</span><span class="idx">A·02</span></button>
+                    <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="invoice"><span>Invoice Agent</span><span class="idx">A·03</span></button>
+                    <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="web"><span>Website Agent</span><span class="idx">A·04</span></button>''','''          <button class="agent-tab is-active" type="button" role="tab" aria-selected="true" data-agent="sales"><img class="agent-tab-icon" src="hatchy-sales-agent.svg" alt="" aria-hidden="true" /><span>Sales Agent</span><span class="idx">A·01</span></button>
+                    <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="docs"><img class="agent-tab-icon" src="hatchy-document-agent.svg" alt="" aria-hidden="true" /><span>Document Agent</span><span class="idx">A·02</span></button>
+                    <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="invoice"><img class="agent-tab-icon" src="hatchy-invoice-agent.svg" alt="" aria-hidden="true" /><span>Invoice Agent</span><span class="idx">A·03</span></button>
+                    <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="web"><img class="agent-tab-icon" src="hatchy-website-agent.svg" alt="" aria-hidden="true" /><span>Website Agent</span><span class="idx">A·04</span></button>'''),
+          ('''<section class="statement" aria-label="Statement">
+            <div class="statement-ring r1" aria-hidden="true"><span class="ring-dot"></span></div>''','''<section class="statement" aria-label="Statement">
+            <img class="hatchy-illo statement-hatchy" src="hatchy-success-agent.svg" alt="Hatchy celebrating finished work" width="120" height="120" loading="lazy" />
+            <div class="statement-ring r1" aria-hidden="true"><span class="ring-dot"></span></div>''')]
+          for old,new in pairs:
+              if old not in html: raise SystemExit('missing replacement')
+              html=html.replace(old,new,1)
+          rows={
+          '<div class="lib-row reveal">\n        <h3>Sales</h3>':'<div class="lib-row reveal">\n        <img class="lib-illo" src="hatchy-sales-agent.svg" alt="Sales agent" width="62" height="62" loading="lazy" />\n        <h3>Sales</h3>',
+          '<div class="lib-row reveal">\n        <h3>Documents</h3>':'<div class="lib-row reveal">\n        <img class="lib-illo" src="hatchy-document-agent.svg" alt="Document agent" width="62" height="62" loading="lazy" />\n        <h3>Documents</h3>',
+          '<div class="lib-row reveal">\n        <h3>Invoices</h3>':'<div class="lib-row reveal">\n        <img class="lib-illo" src="hatchy-invoice-agent.svg" alt="Invoice agent" width="62" height="62" loading="lazy" />\n        <h3>Invoices</h3>',
+          '<div class="lib-row reveal">\n        <h3>Support</h3>':'<div class="lib-row reveal">\n        <img class="lib-illo" src="hatchy-support-agent.svg" alt="Support agent" width="62" height="62" loading="lazy" />\n        <h3>Support</h3>',
+          '<div class="lib-row reveal">\n        <h3>Website</h3>':'<div class="lib-row reveal">\n        <img class="lib-illo" src="hatchy-website-agent.svg" alt="Website agent" width="62" height="62" loading="lazy" />\n        <h3>Website</h3>',
+          }
+          for old,new in rows.items():
+              if old not in html: raise SystemExit('missing row '+old)
+              html=html.replace(old,new,1)
+          Path('index.html').write_text(html)
+          PY
+      - name: Commit final site files
+        run: |
+          set -euo pipefail
+          git config user.name 'Hatchy'
+          git config user.email 'hatchy@agenthatchers.com'
+          git rm .github/workflows/hatchy-agent-accents.yml
+          git add index.html hatchy-*.svg
+          git commit -m 'Add Hatchy agent image accents'
+          git push
