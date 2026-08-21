@@ -314,8 +314,10 @@ nav{
   padding:8px 14px;transition:color .15s;
 }
 .nav-links a:hover{color:var(--accent);}
+.nav-cta{display:flex;align-items:center;gap:10px;}
 .nav-cta .btn{min-height:42px;padding:0 22px;font-size:14px;}
 @media(max-width:860px){.nav-links{display:none;}}
+@media(max-width:560px){.nav-cta .book-call{display:none;}}
 @media(max-width:480px){
   .nav-inner{gap:12px;}
   .logo{gap:8px;}
@@ -1186,7 +1188,8 @@ html.lenis,html.lenis body{height:auto;}
       <li><a href="#faq">FAQ</a></li>
     </ul>
     <div class="nav-cta">
-      <a href="#book" class="btn btn-primary" data-open-book>Book a call <span class="arrow">→</span></a>
+      <a href="http://agenthatchers.ai" class="btn btn-secondary login-link">Login</a>
+      <a href="#book" class="btn btn-primary book-call" data-open-book>Book a call <span class="arrow">→</span></a>
     </div>
   </div>
 </nav>
