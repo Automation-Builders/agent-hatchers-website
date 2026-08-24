@@ -686,268 +686,275 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
    composer copy) without touching the conversation underneath.
    ══════════════════════════════════════════════════════════════════════ */
 .ws{
-  --ws-brand:#4A154B;              /* Slack aubergine — overridden for Teams */
-  --ws-brand-soft:rgba(74,21,75,.08);
-  border:1px solid var(--ink);background:var(--paper);
-  box-shadow:8px 8px 0 0 var(--ink);
+  /* authentic app surface — system UI font, white canvas, soft window */
+  --ws-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --ws-surface:#ffffff;
+  --ws-text:#1d1c1d;
+  --ws-dim:#616061;
+  --ws-line:#e6e6e6;
+  --ws-body-bg:#ffffff;
+  --ws-brand:#4a154b;      /* Slack aubergine — the identity colour */
+  --ws-primary:#007a5a;    /* Slack green — primary action */
+  --ws-link:#1264a3;       /* Slack blue — links, threads */
+  --ws-hot-bg:#e8f5fa;
+  --ws-card:#ffffff;
+  --ws-card-shadow:none;
   display:flex;flex-direction:column;overflow:hidden;
-  transition:box-shadow .3s ease;
+  font-family:var(--ws-font);
+  background:var(--ws-surface);
+  border:1px solid rgba(22,21,15,.16);border-radius:12px;
+  box-shadow:0 26px 60px -30px rgba(22,21,15,.5), 6px 6px 0 0 rgba(22,21,15,.05);
 }
 .ws[data-platform="teams"]{
-  --ws-brand:#4F52B2;              /* Teams indigo */
-  --ws-brand-soft:rgba(79,82,178,.09);
+  --ws-brand:#5b5fc7;      /* Teams purple */
+  --ws-primary:#5b5fc7;
+  --ws-link:#5b5fc7;
+  --ws-text:#242424;
+  --ws-dim:#616161;
+  --ws-line:#e8e8ee;
+  --ws-body-bg:#f5f5f5;    /* Teams sits messages on light grey */
+  --ws-hot-bg:#eff0fb;
+  --ws-card-shadow:0 1px 2px rgba(0,0,0,.09);
 }
+/* brand-coloured tab strip at the very top of the window */
+.ws::before{content:'';display:block;height:4px;background:var(--ws-brand);transition:background .35s ease;}
 
-/* ── platform switch ── */
+/* ── platform switch — segmented pill, active = filled brand ── */
 .ws-switch{
-  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-  margin-bottom:18px;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px;
 }
 .ws-seg{
-  display:inline-flex;padding:4px;gap:4px;
-  border:1px solid var(--ink);border-radius:999px;background:var(--paper-2);
+  display:inline-flex;padding:5px;gap:4px;
+  border-radius:13px;background:#ececec;border:1px solid rgba(22,21,15,.08);
 }
 .ws-seg button{
-  display:inline-flex;align-items:center;gap:8px;
-  border:none;background:transparent;cursor:pointer;
-  font-family:var(--font-m);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--ink-50);padding:9px 18px;border-radius:999px;
-  transition:background .22s cubic-bezier(.22,1,.36,1),color .22s;
+  display:inline-flex;align-items:center;gap:9px;cursor:pointer;border:none;background:transparent;
+  font-family:var(--ws-font);font-weight:600;font-size:14px;letter-spacing:-.01em;
+  color:var(--ink-50);padding:9px 18px;border-radius:9px;
+  transition:background .25s cubic-bezier(.22,1,.36,1),color .25s,box-shadow .25s;
 }
 .ws-seg button:hover{color:var(--ink);}
-.ws-seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper);}
-.ws-seg button svg{width:14px;height:14px;flex-shrink:0;}
+.ws-seg button svg{width:19px;height:19px;flex-shrink:0;transition:filter .25s;}
+.ws-seg button[data-platform="slack"][aria-pressed="true"]{
+  background:#4a154b;color:#fff;box-shadow:0 3px 10px rgba(74,21,75,.4);
+}
+.ws-seg button[data-platform="teams"][aria-pressed="true"]{
+  background:#5b5fc7;color:#fff;box-shadow:0 3px 10px rgba(91,95,199,.4);
+}
+.ws-seg button[aria-pressed="true"] svg{filter:brightness(0) invert(1);} /* logo → white */
 .ws-switch-note{
   font-family:var(--font-m);font-size:11px;letter-spacing:.08em;
   color:var(--ink-50);text-transform:uppercase;
 }
 .ws-switch-note b{color:var(--accent);font-weight:400;}
 
-/* ── window chrome ── */
+/* ── window chrome — white header with the real logo ── */
 .ws-bar{
-  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
-  padding:0;border-bottom:1px solid var(--ink);background:var(--paper-2);
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:12px 16px;border-bottom:1px solid var(--ws-line);background:var(--ws-surface);
 }
 .ws-brandbar{
-  display:flex;align-items:center;gap:10px;align-self:stretch;
-  padding:14px 18px;background:var(--ws-brand);color:#fff;
-  font-family:var(--font-m);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
-  transition:background .35s cubic-bezier(.22,1,.36,1);
-  min-width:190px;
+  display:flex;align-items:center;gap:9px;flex-shrink:0;
+  font-family:var(--ws-font);font-weight:700;font-size:15px;letter-spacing:-.015em;color:var(--ws-text);
 }
-.ws-brandbar svg{width:16px;height:16px;flex-shrink:0;}
+.ws-brandbar svg{width:20px;height:20px;display:block;}
 .ws-channel{
-  flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;padding:10px 4px;
+  flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;
+  border-left:1px solid var(--ws-line);padding-left:14px;
 }
 .ws-channel-name{
-  font-family:var(--font-m);font-size:13px;letter-spacing:.02em;color:var(--ink);
+  font-family:var(--ws-font);font-weight:700;font-size:15px;letter-spacing:-.01em;color:var(--ws-text);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .ws-channel-meta{
-  font-family:var(--font-m);font-size:10px;letter-spacing:.08em;
-  color:var(--ink-50);text-transform:uppercase;
+  font-family:var(--ws-font);font-size:12px;letter-spacing:0;text-transform:none;color:var(--ws-dim);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.ws-bar .model-pill{padding:10px 18px 10px 0;}
+.ws-bar .model-pill{
+  padding:0;flex-shrink:0;font-family:var(--ws-font);letter-spacing:0;text-transform:none;color:var(--ws-dim);
+}
+.ws-bar .model-pill label{font-size:11px;}
+.ws-bar .model-pill select{
+  font-family:var(--ws-font);font-size:12.5px;letter-spacing:0;
+  border:1px solid #d6d6d6;border-radius:8px;color:var(--ws-text);
+  background-color:#fff;padding:6px 26px 6px 11px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7' fill='none'><path d='M1 1l4 4 4-4' stroke='%23616061' stroke-width='1.5' stroke-linecap='round'/></svg>");
+  background-repeat:no-repeat;background-position:right 11px center;
+}
+.ws-bar .model-pill select:hover{border-color:var(--ws-brand);}
 
 /* ── message stream ── */
 .ws-body{
-  padding:clamp(18px,2.2vw,26px) clamp(16px,2vw,26px);
-  height:clamp(440px,56vh,580px);
+  padding:14px 8px;height:clamp(440px,56vh,580px);
   display:flex;flex-direction:column;gap:2px;
+  background:var(--ws-body-bg);
   overflow-y:auto;overscroll-behavior:contain;
-  scrollbar-width:thin;scrollbar-color:var(--ink-30) transparent;
+  scrollbar-width:thin;scrollbar-color:#c7c7c7 transparent;
 }
-.ws-body::-webkit-scrollbar{width:7px;}
+.ws-body::-webkit-scrollbar{width:8px;}
 .ws-body::-webkit-scrollbar-track{background:transparent;}
-.ws-body::-webkit-scrollbar-thumb{background:var(--ink-30);border-radius:99px;}
+.ws-body::-webkit-scrollbar-thumb{background:#c7c7c7;border-radius:99px;}
 .ws-row{
-  display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;
-  padding:8px 0;animation:msgIn .45s cubic-bezier(.22,1,.36,1);
+  display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px;
+  padding:7px 16px;animation:msgIn .4s cubic-bezier(.22,1,.36,1);
 }
-.ws-row + .ws-row{margin-top:2px;}
+/* Slack: flat rows with a hover tint. Teams: each message a white chiclet on grey */
+.ws[data-platform="slack"] .ws-row:hover{background:#f8f8f8;}
+.ws[data-platform="teams"] .ws-body{padding:14px 14px;gap:8px;}
+.ws[data-platform="teams"] .ws-row{
+  background:var(--ws-card);border-radius:8px;padding:11px 14px;box-shadow:var(--ws-card-shadow);
+}
 .ws-av{
-  width:36px;height:36px;border-radius:6px;display:grid;place-items:center;
-  font-family:var(--font-m);font-size:12px;font-weight:700;
-  background:var(--paper-2);border:1px solid var(--line);color:var(--ink-70);
-  overflow:hidden;
+  width:40px;height:40px;border-radius:9px;overflow:hidden;
+  display:grid;place-items:center;flex-shrink:0;
+  background:#eaeaea;color:var(--ws-dim);
+  font-family:var(--ws-font);font-size:14px;font-weight:700;
 }
 .ws[data-platform="teams"] .ws-av{border-radius:50%;}
-.ws-av-hatchy{background:var(--ink);border-color:var(--ink);color:var(--paper);}
-.ws-av-hatchy span{color:var(--accent);}
-.ws-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:3px;}
-.ws-name{font-weight:600;font-size:15px;letter-spacing:-.01em;color:var(--ink);}
+.ws-av img{width:100%;height:100%;object-fit:cover;display:block;}
+.ws-av-hatchy{background:#1a1145;}
+.ws-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:2px;}
+.ws-name{font-family:var(--ws-font);font-weight:700;font-size:15px;letter-spacing:-.01em;color:var(--ws-text);}
 .ws-badge{
-  font-family:var(--font-m);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
-  background:var(--ws-brand);color:#fff;padding:2px 6px;border-radius:3px;
-  transition:background .35s ease;
+  font-family:var(--ws-font);font-size:10px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;
+  background:#e2e2e2;color:#5a5a5a;padding:1px 5px;border-radius:3px;
 }
-.ws-time{font-family:var(--font-m);font-size:10.5px;color:var(--ink-30);}
-.ws-text{font-size:15px;line-height:1.6;color:var(--ink-70);letter-spacing:-.005em;}
-.ws-text strong{color:var(--ink);font-weight:600;}
-.ws-text .tick{color:var(--accent);font-weight:600;}
-.ws-text .mention{
-  color:var(--accent);background:rgba(33,107,172,.1);
-  padding:1px 4px;border-radius:3px;font-weight:500;
-}
+.ws[data-platform="teams"] .ws-badge{background:#ebebfa;color:#5b5fc7;}
+.ws-time{font-family:var(--ws-font);font-size:12px;color:var(--ws-dim);}
+.ws-text{font-family:var(--ws-font);font-size:15px;line-height:1.46;color:var(--ws-text);}
+.ws-text strong{font-weight:700;color:var(--ws-text);}
+.ws-text .tick{color:var(--ws-primary);font-weight:700;}
+.ws-text .mention{color:var(--ws-link);background:var(--ws-hot-bg);padding:1px 4px;border-radius:4px;font-weight:600;}
 .ws-text code{
-  font-family:var(--font-m);font-size:13px;
-  background:var(--paper-2);border:1px solid var(--line-soft);
-  padding:1px 6px;border-radius:3px;color:var(--ink);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;
+  background:#f4f4f4;border:1px solid #e0e0e0;padding:1px 5px;border-radius:4px;color:#c0392b;
 }
-.ws-text p + p{margin-top:8px;}
-.ws-text ul{margin:8px 0 0;padding-left:18px;}
+.ws-text p + p{margin-top:7px;}
+.ws-text ul{margin:7px 0 0;padding-left:18px;}
 .ws-text li{margin-bottom:4px;}
 
-/* the slash command, typed live */
+/* the slash command — Slack-style, the /hatchy token highlighted */
 .ws-cmd{
-  font-family:var(--font-m);font-size:14px;color:var(--ink);
-  background:var(--ws-brand-soft);border-left:2px solid var(--ws-brand);
-  padding:8px 12px;border-radius:0 4px 4px 0;
-  transition:background .35s ease,border-color .35s ease;
+  font-family:var(--ws-font);font-size:15px;color:var(--ws-text);
+  background:transparent;border:none;padding:0;border-radius:0;
 }
-.ws-cmd b{color:var(--ws-brand);font-weight:700;transition:color .35s ease;}
+.ws-cmd b{color:var(--ws-link);font-weight:700;}
 .ws-caret{
-  display:inline-block;width:7px;height:15px;vertical-align:-2px;
-  background:var(--accent);margin-left:1px;animation:cblink 1s steps(1) infinite;
+  display:inline-block;width:2px;height:15px;vertical-align:-2px;
+  background:var(--ws-link);margin-left:1px;animation:cblink 1s steps(1) infinite;
 }
 
-/* Hatchy's "working" block — the bit that proves it's doing real work */
+/* Hatchy's working block */
 .ws-work{
-  margin-top:10px;border:1px solid var(--line);border-left:2px solid var(--accent);
-  border-radius:0 4px 4px 0;padding:12px 14px;background:var(--paper-2);
+  margin-top:9px;border:1px solid var(--ws-line);border-left:3px solid var(--ws-primary);
+  border-radius:6px;padding:12px 14px;background:#fafafa;max-width:460px;
 }
+.ws[data-platform="teams"] .ws-work{background:#faf9ff;}
 .ws-work-title{
-  font-family:var(--font-m);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--ink-50);margin-bottom:10px;display:flex;align-items:center;gap:8px;
+  font-family:var(--ws-font);font-size:12px;font-weight:600;letter-spacing:0;text-transform:none;
+  color:var(--ws-dim);margin-bottom:10px;display:flex;align-items:center;gap:8px;
 }
 .ws-work-title .spin{
-  width:9px;height:9px;border:1.5px solid var(--accent);border-right-color:transparent;
+  width:11px;height:11px;border:2px solid var(--ws-primary);border-right-color:transparent;
   border-radius:50%;animation:wsSpin .7s linear infinite;
 }
-.ws-work.is-done .spin{
-  border:none;width:auto;height:auto;animation:none;
-  color:var(--accent);font-size:11px;
-}
+.ws-work.is-done .spin{border:none;width:auto;height:auto;animation:none;color:var(--ws-primary);font-size:12px;}
 @keyframes wsSpin{to{transform:rotate(360deg);}}
 .ws-step{
-  display:flex;align-items:flex-start;gap:9px;
-  font-family:var(--font-m);font-size:12.5px;line-height:1.5;color:var(--ink-30);
+  display:flex;align-items:flex-start;gap:10px;
+  font-family:var(--ws-font);font-size:13.5px;line-height:1.5;color:#adadad;
   padding:3px 0;transition:color .3s ease;
 }
-.ws-step b{font-weight:400;color:inherit;}
+.ws-step b{font-weight:600;color:inherit;}
 .ws-step .box{
-  flex-shrink:0;width:12px;height:12px;margin-top:3px;
-  border:1px solid var(--ink-30);border-radius:2px;
-  display:grid;place-items:center;font-size:9px;line-height:1;
-  transition:border-color .3s,background .3s,color .3s;
+  flex-shrink:0;width:14px;height:14px;margin-top:2px;border:1.5px solid #c8c8c8;border-radius:4px;
+  display:grid;place-items:center;font-size:10px;line-height:1;color:#fff;
+  transition:border-color .3s,background .3s;
 }
-.ws-step.is-live{color:var(--ink-70);}
-.ws-step.is-live .box{border-color:var(--accent);}
-.ws-step.is-done{color:var(--ink-70);}
-.ws-step.is-done .box{background:var(--accent);border-color:var(--accent);color:#fff;}
+.ws-step.is-live{color:var(--ws-text);}
+.ws-step.is-live .box{border-color:var(--ws-primary);}
+.ws-step.is-done{color:var(--ws-text);}
+.ws-step.is-done .box{background:var(--ws-primary);border-color:var(--ws-primary);}
 
-/* attachment card — a real file, not a suggestion */
+/* attachment card */
 .ws-file{
-  margin-top:10px;display:flex;align-items:center;gap:12px;
-  border:1px solid var(--line);border-radius:5px;padding:11px 13px;
-  background:var(--paper-2);max-width:400px;
+  margin-top:10px;display:flex;align-items:center;gap:11px;max-width:400px;
+  border:1px solid var(--ws-line);border-radius:8px;padding:10px 12px;background:#fff;
 }
 .ws-file-ic{
-  flex-shrink:0;width:32px;height:32px;border-radius:4px;
-  background:var(--ink);color:var(--paper);display:grid;place-items:center;
-  font-family:var(--font-m);font-size:8.5px;letter-spacing:.06em;
+  flex-shrink:0;width:34px;height:34px;border-radius:6px;background:#c4314b;color:#fff;
+  display:grid;place-items:center;font-family:var(--ws-font);font-size:9px;font-weight:700;letter-spacing:.04em;
 }
-.ws-file-name{font-size:14px;font-weight:600;color:var(--ink);letter-spacing:-.01em;}
-.ws-file-meta{
-  font-family:var(--font-m);font-size:10.5px;color:var(--ink-50);margin-top:2px;
-}
+.ws-file-name{font-family:var(--ws-font);font-size:14px;font-weight:600;color:var(--ws-link);letter-spacing:-.01em;}
+.ws-file-meta{font-family:var(--ws-font);font-size:12px;color:var(--ws-dim);margin-top:1px;}
 
-/* approval block — nothing leaves the building without a click */
+/* approval block */
 .ws-approve{
-  margin-top:10px;border:1px solid var(--ink);border-radius:5px;
-  padding:13px 15px;background:var(--paper);
+  margin-top:10px;border:1px solid var(--ws-line);border-radius:8px;padding:13px 15px;background:#fff;max-width:460px;
 }
 .ws-approve-label{
-  font-family:var(--font-m);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--accent);margin-bottom:8px;
+  font-family:var(--ws-font);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--ws-primary);margin-bottom:8px;
 }
-.ws-approve-body{font-size:14.5px;line-height:1.55;color:var(--ink-70);}
-.ws-approve-body strong{color:var(--ink);font-weight:600;}
+.ws-approve-body{font-family:var(--ws-font);font-size:14.5px;line-height:1.5;color:var(--ws-text);}
+.ws-approve-body strong{font-weight:700;}
 .ws-btns{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
 .ws-btn{
-  font-family:var(--font-m);font-size:11.5px;letter-spacing:.06em;
-  padding:8px 15px;border-radius:4px;border:1px solid var(--ink);
-  background:var(--paper);color:var(--ink);
+  font-family:var(--ws-font);font-size:13px;font-weight:600;letter-spacing:0;
+  padding:8px 15px;border-radius:6px;border:1px solid #d0d0d0;background:#fff;color:var(--ws-text);cursor:default;
 }
-.ws-btn-go{background:var(--ink);color:var(--paper);}
-.ws-btn.is-picked{
-  background:var(--accent);border-color:var(--accent);color:#fff;
-  animation:wsPick .4s cubic-bezier(.34,1.56,.64,1);
-}
+.ws-btn-go{background:var(--ws-primary);border-color:var(--ws-primary);color:#fff;}
+.ws-btn.is-picked{background:var(--ws-primary);border-color:var(--ws-primary);color:#fff;animation:wsPick .4s cubic-bezier(.34,1.56,.64,1);}
 @keyframes wsPick{0%{transform:scale(1);}45%{transform:scale(.93);}100%{transform:scale(1);}}
 
-/* reactions + thread — the things that make it feel like a real channel */
+/* reactions */
 .ws-reacts{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;}
 .ws-react{
   display:inline-flex;align-items:center;gap:5px;
-  border:1px solid var(--line);border-radius:999px;padding:3px 9px;
-  font-family:var(--font-m);font-size:11px;color:var(--ink-50);
-  background:var(--paper-2);animation:wsPick .35s cubic-bezier(.34,1.56,.64,1);
+  border:1px solid #e0e0e0;border-radius:12px;padding:2px 9px;background:#f8f8f8;
+  font-family:var(--ws-font);font-size:12px;font-weight:600;color:var(--ws-dim);
+  animation:wsPick .35s cubic-bezier(.34,1.56,.64,1);
 }
-.ws-react.is-hot{border-color:var(--accent);color:var(--accent);background:rgba(33,107,172,.08);}
+.ws[data-platform="teams"] .ws-react{background:#fff;border-color:#e4e4ee;box-shadow:0 1px 2px rgba(0,0,0,.06);}
+.ws-react.is-hot{background:var(--ws-hot-bg);border-color:var(--ws-link);color:var(--ws-link);}
 .ws-thread{
-  margin-top:9px;display:inline-flex;align-items:center;gap:8px;
-  font-family:var(--font-m);font-size:11.5px;color:var(--accent);
+  margin-top:8px;display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--ws-font);font-size:13px;font-weight:600;color:var(--ws-link);
 }
 .ws-thread .dots{display:inline-flex;}
-.ws-thread i{
-  width:15px;height:15px;border-radius:3px;background:var(--paper-2);
-  border:1px solid var(--line);display:inline-block;margin-right:-4px;
-}
+.ws-thread i{width:20px;height:20px;border-radius:5px;background:#dcdce4;border:2px solid #fff;display:inline-block;margin-right:-7px;}
+.ws[data-platform="teams"] .ws-thread i{border-radius:50%;}
+.ws-thread .ws-thread-n{text-decoration:none;}
 .ws-sep{
-  display:flex;align-items:center;gap:12px;margin:14px 0 6px;
-  font-family:var(--font-m);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--ink-30);animation:msgIn .4s ease;
+  display:flex;align-items:center;gap:12px;margin:14px 8px 6px;
+  font-family:var(--ws-font);font-size:12px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ws-dim);
+  animation:msgIn .4s ease;
 }
-.ws-sep::before,.ws-sep::after{content:'';flex:1;height:1px;background:var(--line-soft);}
+.ws-sep::before,.ws-sep::after{content:'';flex:1;height:1px;background:var(--ws-line);}
 
-/* typing indicator, in-channel */
-.ws-typing{
-  display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;
-  padding:8px 0;animation:msgIn .3s ease;
-}
-.ws-typing-b{
-  display:inline-flex;gap:5px;align-items:center;align-self:center;
-  font-family:var(--font-m);font-size:11px;color:var(--ink-30);
-}
-.ws-typing-b i{
-  width:5px;height:5px;border-radius:50%;background:var(--ink-30);display:block;
-  animation:blink 1.2s infinite;
-}
+/* typing */
+.ws-typing{display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px;padding:7px 16px;animation:msgIn .3s ease;}
+.ws-typing-b{display:inline-flex;gap:6px;align-items:center;align-self:center;font-family:var(--ws-font);font-size:13px;color:var(--ws-dim);}
+.ws-typing-b i{width:5px;height:5px;border-radius:50%;background:#b8b8b8;display:block;animation:blink 1.2s infinite;}
 .ws-typing-b i:nth-child(2){animation-delay:.18s;}
 .ws-typing-b i:nth-child(3){animation-delay:.36s;}
 
-/* ── composer ── */
+/* composer */
 .ws-composer{
-  border-top:1px solid var(--line);padding:12px clamp(16px,2vw,26px);
-  display:flex;align-items:center;gap:12px;background:var(--paper-2);
+  border-top:1px solid var(--ws-line);padding:12px 16px;display:flex;align-items:center;gap:12px;background:var(--ws-surface);
 }
 .ws-composer-box{
-  flex:1;min-width:0;border:1px solid var(--line);border-radius:6px;
-  background:var(--paper);padding:10px 13px;
-  font-family:var(--font-m);font-size:12.5px;color:var(--ink-30);
+  flex:1;min-width:0;border:1px solid #d4d4d4;border-radius:8px;background:#fff;padding:10px 13px;
+  font-family:var(--ws-font);font-size:14px;color:#9a9a9a;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .ws-composer-send{
-  flex-shrink:0;width:32px;height:32px;border-radius:5px;
-  background:var(--ws-brand);color:#fff;display:grid;place-items:center;
-  font-size:13px;transition:background .35s ease;
+  flex-shrink:0;width:34px;height:34px;border-radius:7px;background:var(--ws-primary);color:#fff;
+  display:grid;place-items:center;font-size:13px;transition:background .35s ease;
 }
 .ws-replay{
-  display:inline-flex;align-items:center;gap:8px;background:none;border:none;
-  cursor:pointer;padding:0;flex-shrink:0;
-  font-family:var(--font-m);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--ink-50);transition:color .2s;
+  display:inline-flex;align-items:center;gap:7px;background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;
+  font-family:var(--font-m);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-50);transition:color .2s;
 }
 .ws-replay:hover{color:var(--accent);}
 
@@ -956,25 +963,19 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   .ws-work-title .spin,.ws-typing-b i,.ws-caret{animation:none;}
 }
 @media(max-width:640px){
-  .ws{box-shadow:5px 5px 0 0 var(--ink);}
-  .ws-body{height:clamp(400px,64vh,520px);padding:16px 14px;}
-  .ws-row,.ws-typing{grid-template-columns:30px minmax(0,1fr);gap:10px;}
-  .ws-av{width:30px;height:30px;font-size:11px;}
+  .ws{border-radius:10px;box-shadow:0 16px 36px -22px rgba(22,21,15,.5),4px 4px 0 0 rgba(22,21,15,.05);}
+  .ws-body{height:clamp(400px,64vh,520px);padding:12px 4px;}
+  .ws[data-platform="teams"] .ws-body{padding:12px 10px;}
+  .ws-row,.ws-typing{grid-template-columns:34px minmax(0,1fr);gap:9px;padding:7px 12px;}
+  .ws-av{width:34px;height:34px;font-size:12px;}
   .ws-text,.ws-name{font-size:14px;}
-  /* three-across doesn't fit a phone — stack the chrome instead */
-  .ws-bar{flex-direction:column;align-items:stretch;gap:0;flex-wrap:nowrap;}
-  .ws-brandbar{min-width:0;width:100%;padding:11px 14px;font-size:10px;}
-  .ws-channel{flex:none;padding:11px 14px 0;}
-  .ws-channel-meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .ws-bar .model-pill{padding:9px 14px 12px;justify-content:flex-start;}
-  .ws-composer{gap:9px;padding:10px 14px;}
-  .ws-composer-box{font-size:11.5px;padding:9px 11px;}
-  .ws-replay{font-size:10px;letter-spacing:.06em;}
-  .ws-seg button{padding:8px 13px;font-size:10.5px;}
-  .ws-switch{gap:10px;}
+  .ws-bar{gap:10px;}
+  .ws-channel{border-left:none;padding-left:0;flex-basis:100%;order:3;}
+  .ws-bar .model-pill{order:2;margin-left:auto;}
+  .ws-seg button{padding:8px 14px;font-size:13px;}
+  .ws-switch{gap:12px;}
   .ws-switch-note{font-size:10px;}
 }
-
 /* ── HOW IT WORKS — three ruled columns ── */
 .steps{
   display:grid;grid-template-columns:repeat(3,1fr);
@@ -1654,7 +1655,7 @@ html.lenis,html.lenis body{height:auto;}
       <rect class="sys-hub sys-d2" x="450" y="220" width="300" height="120" rx="2" pathLength="1"/>
       <text class="sys-label sys-hub-kicker" x="600" y="252" text-anchor="middle">AGENT HATCHERS</text>
       <text class="sys-label sys-label-lg sys-hub-name" x="600" y="286" text-anchor="middle">HERMES</text>
-      <text class="sys-label sys-model" x="600" y="316" text-anchor="middle">MODEL ▸ CLAUDE SONNET</text>
+      <text class="sys-label sys-model" x="600" y="316" text-anchor="middle">MODEL ▸ OPUS 4.8</text>
 
       <!-- labels -->
       <text class="sys-label sys-label-talk" x="228" y="177" text-anchor="middle">SLACK</text>
@@ -1694,7 +1695,7 @@ html.lenis,html.lenis body{height:auto;}
       <rect class="sys-hub sys-d2" x="70" y="150" width="220" height="104" rx="2" pathLength="1"/>
       <text class="sys-label sys-hub-kicker" x="180" y="180" text-anchor="middle">AGENT HATCHERS</text>
       <text class="sys-label sys-label-lg sys-hub-name" x="180" y="210" text-anchor="middle">HERMES</text>
-      <text class="sys-label sys-model" x="180" y="236" text-anchor="middle">MODEL ▸ CLAUDE SONNET</text>
+      <text class="sys-label sys-model" x="180" y="236" text-anchor="middle">MODEL ▸ OPUS 4.8</text>
 
       <!-- fan out to tools -->
       <path class="sys-flow sys-d4" d="M180 254 C180 290 91 300 91 330" pathLength="1"/>
@@ -1737,7 +1738,7 @@ html.lenis,html.lenis body{height:auto;}
 <section class="section" id="demo">
   <div class="wrap">
     <div class="sec-head reveal">
-      <h2 class="sec-title">Watch Hatchy <em>actually work.</em></h2>
+      <h2 class="sec-title">Watch your agent <em>actually work.</em></h2>
       <p class="sec-intro"><span class="mono">(01) — Live in your channels</span><br /><br />This is a real Hatchy conversation, replayed. You type a request like you would to a colleague. It reads your systems, does the job, and comes back with finished work — in the app your team already has open.</p>
     </div>
 
@@ -1758,11 +1759,11 @@ html.lenis,html.lenis body{height:auto;}
         <div class="ws-switch">
           <div class="ws-seg" role="group" aria-label="Choose Slack or Microsoft Teams">
             <button type="button" data-platform="slack" aria-pressed="true">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5.04 15.17a2.53 2.53 0 1 1-2.53-2.53h2.53v2.53Zm1.28 0a2.53 2.53 0 0 1 5.05 0v6.3a2.53 2.53 0 0 1-5.05 0v-6.3ZM8.85 5.04a2.53 2.53 0 1 1 2.52-2.53v2.53H8.85Zm0 1.28a2.53 2.53 0 0 1 0 5.05h-6.3a2.53 2.53 0 1 1 0-5.05h6.3ZM18.96 8.85a2.53 2.53 0 1 1 2.53 2.52h-2.53V8.85Zm-1.28 0a2.53 2.53 0 0 1-5.05 0v-6.3a2.53 2.53 0 0 1 5.05 0v6.3ZM15.15 18.96a2.53 2.53 0 1 1-2.53 2.53v-2.53h2.53Zm0-1.28a2.53 2.53 0 0 1 0-5.05h6.3a2.53 2.53 0 0 1 0 5.05h-6.3Z"/></svg>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#36C5F0" d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313z"/><path fill="#2EB67D" d="M8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312z"/><path fill="#ECB22E" d="M18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312z"/><path fill="#E01E5A" d="M15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>
               Slack
             </button>
             <button type="button" data-platform="teams" aria-pressed="false">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 7.2h6.6c.66 0 1.2.54 1.2 1.2v4.8a4.2 4.2 0 0 1-4.2 4.2h-.15a3.9 3.9 0 0 1-3.45-2.1V7.2Zm4.5-1.2a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5ZM8.4 6.6a2.7 2.7 0 1 0 0-5.4 2.7 2.7 0 0 0 0 5.4ZM1.2 8.4h10.2v9a4.8 4.8 0 0 1-4.8 4.8H6a4.8 4.8 0 0 1-4.8-4.8v-9Zm2.55 2.55v1.65h2.1v6h1.95v-6h2.1v-1.65h-6.15Z"/></svg>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#5059C9" d="M16.8 8.4h4.62c.44 0 .78.35.78.78v4.05a2.79 2.79 0 0 1-5.58 0V8.4zm4.02-1.35a1.86 1.86 0 1 0 0-3.72 1.86 1.86 0 0 0 0 3.72z"/><path fill="#7B83EB" d="M12.9 7.05a2.55 2.55 0 1 0 0-5.1 2.55 2.55 0 0 0 0 5.1zm3.15 1.35H8.55c-.5.01-.9.43-.89.93v4.62a4.62 4.62 0 0 0 9.24.36V9.3c.01-.5-.39-.9-.85-.9z"/><path fill="#000" opacity=".18" d="M13.2 8.4H8.05v8.55c.55.13 1.12.16 1.68.09A4.62 4.62 0 0 0 13.2 12.6V8.4z"/><path fill="#4B53BC" d="M2.4 6h8.1c.66 0 1.2.54 1.2 1.2v8.1c0 .66-.54 1.2-1.2 1.2H2.4c-.66 0-1.2-.54-1.2-1.2V7.2C1.2 6.54 1.74 6 2.4 6z"/><path fill="#fff" d="M8.55 9.24H4.35v1.32h1.4v3.9h1.38v-3.9h1.42V9.24z"/></svg>
               Teams
             </button>
           </div>
@@ -1772,7 +1773,7 @@ html.lenis,html.lenis body{height:auto;}
         <div class="ws" id="ws" data-platform="slack">
           <div class="ws-bar">
             <div class="ws-brandbar">
-              <svg id="wsBrandIcon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"></svg>
+              <span id="wsBrandIcon" aria-hidden="true"></span>
               <span id="wsBrandName">Slack</span>
             </div>
             <div class="ws-channel">
@@ -1782,9 +1783,9 @@ html.lenis,html.lenis body{height:auto;}
             <div class="model-pill">
               <label for="modelSelect">Model</label>
               <select id="modelSelect" aria-label="Swap the AI model powering this agent">
-                <option value="Claude Sonnet">Claude Sonnet</option>
-                <option value="GPT-5">GPT-5</option>
-                <option value="Gemini Pro">Gemini Pro</option>
+                <option value="Opus 4.8">Opus 4.8</option>
+                <option value="GPT-5.5">GPT-5.5</option>
+                <option value="Gemini 3.5 Pro">Gemini 3.5 Pro</option>
                 <option value="a cheaper model">Something cheaper</option>
               </select>
             </div>
@@ -2447,7 +2448,7 @@ async function postLead(kind, payload){
   }
 
   // The Hermes box cycles through models — the one-click swap, ambient
-  const MODELS = ['CLAUDE SONNET', 'GPT-5', 'GEMINI PRO', 'A CHEAPER ONE'];
+  const MODELS = ['OPUS 4.8', 'GPT-5.5', 'GEMINI 3.5 PRO', 'A CHEAPER ONE'];
   let mi = 0;
   if (!reduced) {
     setInterval(() => {
@@ -2507,7 +2508,7 @@ async function postLead(kind, payload){
 const PLATFORMS = {
   slack: {
     name: 'Slack',
-    icon: '<path d="M5.04 15.17a2.53 2.53 0 1 1-2.53-2.53h2.53v2.53Zm1.28 0a2.53 2.53 0 0 1 5.05 0v6.3a2.53 2.53 0 0 1-5.05 0v-6.3ZM8.85 5.04a2.53 2.53 0 1 1 2.52-2.53v2.53H8.85Zm0 1.28a2.53 2.53 0 0 1 0 5.05h-6.3a2.53 2.53 0 1 1 0-5.05h6.3ZM18.96 8.85a2.53 2.53 0 1 1 2.53 2.52h-2.53V8.85Zm-1.28 0a2.53 2.53 0 0 1-5.05 0v-6.3a2.53 2.53 0 0 1 5.05 0v6.3ZM15.15 18.96a2.53 2.53 0 1 1-2.53 2.53v-2.53h2.53Zm0-1.28a2.53 2.53 0 0 1 0-5.05h6.3a2.53 2.53 0 0 1 0 5.05h-6.3Z"/>',
+    icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#36C5F0" d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313z"/><path fill="#2EB67D" d="M8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312z"/><path fill="#ECB22E" d="M18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312z"/><path fill="#E01E5A" d="M15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>',
     channel: ch => '# ' + ch,
     composer: ch => 'Message #' + ch,
     badge: 'App',
@@ -2515,7 +2516,7 @@ const PLATFORMS = {
   },
   teams: {
     name: 'Microsoft Teams',
-    icon: '<path d="M13.2 7.2h6.6c.66 0 1.2.54 1.2 1.2v4.8a4.2 4.2 0 0 1-4.2 4.2h-.15a3.9 3.9 0 0 1-3.45-2.1V7.2Zm4.5-1.2a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5ZM8.4 6.6a2.7 2.7 0 1 0 0-5.4 2.7 2.7 0 0 0 0 5.4ZM1.2 8.4h10.2v9a4.8 4.8 0 0 1-4.8 4.8H6a4.8 4.8 0 0 1-4.8-4.8v-9Zm2.55 2.55v1.65h2.1v6h1.95v-6h2.1v-1.65h-6.15Z"/>',
+    icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#5059C9" d="M16.8 8.4h4.62c.44 0 .78.35.78.78v4.05a2.79 2.79 0 0 1-5.58 0V8.4zm4.02-1.35a1.86 1.86 0 1 0 0-3.72 1.86 1.86 0 0 0 0 3.72z"/><path fill="#7B83EB" d="M12.9 7.05a2.55 2.55 0 1 0 0-5.1 2.55 2.55 0 0 0 0 5.1zm3.15 1.35H8.55c-.5.01-.9.43-.89.93v4.62a4.62 4.62 0 0 0 9.24.36V9.3c.01-.5-.39-.9-.85-.9z"/><path fill="#000" opacity=".18" d="M13.2 8.4H8.05v8.55c.55.13 1.12.16 1.68.09A4.62 4.62 0 0 0 13.2 12.6V8.4z"/><path fill="#4B53BC" d="M2.4 6h8.1c.66 0 1.2.54 1.2 1.2v8.1c0 .66-.54 1.2-1.2 1.2H2.4c-.66 0-1.2-.54-1.2-1.2V7.2C1.2 6.54 1.74 6 2.4 6z"/><path fill="#fff" d="M8.55 9.24H4.35v1.32h1.4v3.9h1.38v-3.9h1.42V9.24z"/></svg>',
     channel: (ch, team) => team + ' › ' + ch,
     composer: (ch, team) => 'Type a new message in ' + ch,
     badge: 'Bot',
@@ -2713,7 +2714,7 @@ const AGENTS = {
 
   /* ── message parts ── */
   function avatar(who, initials){
-    if (who === 'hatchy') return '<div class="ws-av ws-av-hatchy" aria-hidden="true">H<span>·</span></div>';
+    if (who === 'hatchy') return '<div class="ws-av ws-av-hatchy" aria-hidden="true"><img src="agent-hatchers-mark.png" alt="" /></div>';
     return '<div class="ws-av" aria-hidden="true">' + initials + '</div>';
   }
 
