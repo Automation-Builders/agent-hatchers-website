@@ -1120,6 +1120,8 @@ nav{
 .jargon-tech{
   font-family:var(--font-m);font-size:12.5px;line-height:1.55;color:var(--ink-50);
 }
+.jargon-tech a{color:var(--accent);text-decoration:underline;text-underline-offset:2px;}
+.jargon-tech a:hover{color:var(--ink);}
 @media(max-width:700px){
   .jargon-row{grid-template-columns:1fr;gap:6px;}
   .jargon-arrow{text-align:left;}
@@ -2172,16 +2174,16 @@ html.lenis,html.lenis body{height:auto;}
 
       <div class="safe reveal">
         <span class="safe-n">S / 04</span>
-        <h3>We never ask for <em>your passwords.</em></h3>
+        <h3>You approve every connection <em>yourself.</em></h3>
         <div class="safe-like"><b>Like</b><span>“Sign in with Google” — you approve it, and you can un-approve it.</span></div>
-        <p>We connect through the official, approved method each app already offers. <strong>You'll never type a password into anything of ours.</strong> The connection shows up in your own admin settings, and you can cut it off from there without asking us.</p>
+        <p>Wherever an app offers its own approval screen, that's what we use — <strong>you click approve in your own account, and we never see a password.</strong> The connection then shows up in your admin settings, and you can cut it off from there without asking us.</p>
       </div>
 
       <div class="safe reveal">
         <span class="safe-n">S / 05</span>
         <h3>Everything it does <em>is written down.</em></h3>
         <div class="safe-like"><b>Like</b><span>A visitor book at reception. Who came in, when, and what they did.</span></div>
-        <p>Every action an agent takes is logged in readable English: what it did, when, which file it touched, and who asked for it. <strong>If you ever need to explain something to an auditor, an accountant or a client, the trail is already there.</strong></p>
+        <p>Actions your agents take are logged in readable English: what it did, when, which file it touched, and who asked for it. <strong>If you ever need to explain something to an auditor, an accountant or a client, the trail is already there.</strong></p>
       </div>
 
       <div class="safe reveal">
@@ -2223,9 +2225,9 @@ html.lenis,html.lenis body{height:auto;}
           <span class="jargon-tech">Least-privilege, per-agent scoped credentials. No shared service account.</span>
         </div>
         <div class="jargon-row">
-          <span class="jargon-plain">We never ask for your passwords</span>
+          <span class="jargon-plain">You approve every connection yourself</span>
           <span class="jargon-arrow">→</span>
-          <span class="jargon-tech">OAuth 2.0 against each vendor's own consent screen. Tokens encrypted at rest, revocable by your admin.</span>
+          <span class="jargon-tech">OAuth 2.0 against the vendor's own consent screen wherever the vendor offers it. Credentials encrypted at rest, revocable by your admin.</span>
         </div>
         <div class="jargon-row">
           <span class="jargon-plain">Nothing leaves without a human</span>
@@ -2235,22 +2237,22 @@ html.lenis,html.lenis body{height:auto;}
         <div class="jargon-row">
           <span class="jargon-plain">Everything is written down</span>
           <span class="jargon-arrow">→</span>
-          <span class="jargon-tech">Full action-level audit log — actor, timestamp, tool call, resource, initiating request.</span>
+          <span class="jargon-tech">Action-level audit log — actor, timestamp, tool call, resource, initiating request — to the extent the connected platform exposes it.</span>
         </div>
         <div class="jargon-row">
           <span class="jargon-plain">Your data doesn't train anyone's AI</span>
           <span class="jargon-arrow">→</span>
-          <span class="jargon-tech">Zero-data-retention routing through OpenRouter; training opt-out enforced at the provider level.</span>
+          <span class="jargon-tech">Training opt-out set at the model-provider level; prompts and outputs not retained for training.</span>
         </div>
         <div class="jargon-row">
           <span class="jargon-plain">Data in transit and at rest</span>
           <span class="jargon-arrow">→</span>
-          <span class="jargon-tech">TLS in transit, encrypted at rest. Australian data residency available on request.</span>
+          <span class="jargon-tech">TLS in transit; encryption, access controls and audit logging applied where the connected platform supports them. Some processing may run on overseas infrastructure — see the <a href="privacy-policy.html">Privacy Policy</a>.</span>
         </div>
       </div>
     </div>
 
-    <p class="lib-note reveal">Still got a question your IT person wants answered? <a href="#book" class="tlink" data-open-book data-source="security">Ask us directly</a> — we'd rather have that conversation before you buy than after.</p>
+    <p class="lib-note reveal">The binding detail lives in our <a href="privacy-policy.html" class="tlink">Privacy Policy</a> and <a href="terms-of-service.html" class="tlink">Terms of Service</a>. Still got a question your IT person wants answered? <a href="#book" class="tlink" data-open-book data-source="security">Ask us directly</a> — we'd rather have that conversation before you buy than after.</p>
   </div>
 </section>
 
