@@ -663,7 +663,6 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 @keyframes cblink{50%{opacity:0;}}
 @keyframes msgIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 @keyframes blink{0%,70%,100%{opacity:.25;}35%{opacity:1;}}
-@media (prefers-reduced-motion: reduce){.ws-caret{animation:none;}}
 .model-pill{
   display:flex;align-items:center;gap:10px;
   font-family:var(--font-m);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-50);
@@ -833,17 +832,6 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 .ws-text ul{margin:7px 0 0;padding-left:18px;}
 .ws-text li{margin-bottom:4px;}
 
-/* the slash command — Slack-style, the /hatchy token highlighted */
-.ws-cmd{
-  font-family:var(--ws-font);font-size:15px;color:var(--ws-text);
-  background:transparent;border:none;padding:0;border-radius:0;
-}
-.ws-cmd b{color:var(--ws-link);font-weight:700;}
-.ws-caret{
-  display:inline-block;width:2px;height:15px;vertical-align:-2px;
-  background:var(--ws-link);margin-left:1px;animation:cblink 1s steps(1) infinite;
-}
-
 /* Hatchy's working block */
 .ws-work{
   margin-top:9px;border:1px solid var(--ws-line);border-left:3px solid var(--ws-primary);
@@ -960,7 +948,7 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 
 @media (prefers-reduced-motion: reduce){
   .ws-row,.ws-typing,.ws-react,.ws-sep,.ws-btn.is-picked{animation:none;}
-  .ws-work-title .spin,.ws-typing-b i,.ws-caret{animation:none;}
+  .ws-work-title .spin,.ws-typing-b i{animation:none;}
 }
 @media(max-width:640px){
   .ws{border-radius:10px;box-shadow:0 16px 36px -22px rgba(22,21,15,.5),4px 4px 0 0 rgba(22,21,15,.05);}
@@ -1745,10 +1733,10 @@ html.lenis,html.lenis body{height:auto;}
     <div class="chat-region">
       <div>
         <div class="agent-tabs reveal" role="tablist" aria-label="Choose an agent">
-          <button class="agent-tab is-active" type="button" role="tab" aria-selected="true" data-agent="invoice"><img class="agent-tab-icon" src="hatchy-invoice-agent.svg" alt="" aria-hidden="true" /><span>Invoice Agent</span><span class="idx">A·01</span></button>
-          <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="sales"><img class="agent-tab-icon" src="hatchy-sales-agent.svg" alt="" aria-hidden="true" /><span>Sales Agent</span><span class="idx">A·02</span></button>
-          <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="docs"><img class="agent-tab-icon" src="hatchy-document-agent.svg" alt="" aria-hidden="true" /><span>Document Agent</span><span class="idx">A·03</span></button>
-          <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="web"><img class="agent-tab-icon" src="hatchy-website-agent.svg" alt="" aria-hidden="true" /><span>Website Agent</span><span class="idx">A·04</span></button>
+          <button class="agent-tab is-active" type="button" role="tab" aria-selected="true" data-agent="invoice"><img class="agent-tab-icon" src="hatchy-invoice.webp" alt="" aria-hidden="true" /><span>Invoice Agent</span><span class="idx">A·01</span></button>
+          <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="sales"><img class="agent-tab-icon" src="hatchy-sales.webp" alt="" aria-hidden="true" /><span>Sales Agent</span><span class="idx">A·02</span></button>
+          <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="docs"><img class="agent-tab-icon" src="hatchy-document.webp" alt="" aria-hidden="true" /><span>Document Agent</span><span class="idx">A·03</span></button>
+          <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="web"><img class="agent-tab-icon" src="hatchy-website.webp" alt="" aria-hidden="true" /><span>Website Agent</span><span class="idx">A·04</span></button>
         </div>
         <p class="tabs-note reveal">Every one of these is a single message from a human, and finished work coming back. <strong>No dashboards, no logins, no training day.</strong></p>
         <p class="tabs-note reveal">That model dropdown is real, by the way. <strong>A better model comes out? Swap it in with one click.</strong> Your agent keeps its memory, its skills, and its voice.</p>
@@ -1848,7 +1836,7 @@ html.lenis,html.lenis body{height:auto;}
 
 <!-- STATEMENT -->
 <section class="statement" aria-label="Statement">
-  <img class="hatchy-illo statement-hatchy" src="hatchy-success-agent.svg" alt="Hatchy celebrating finished work" width="120" height="120" loading="lazy" />
+  <img class="hatchy-illo statement-hatchy" src="hatchy-success.webp" alt="Hatchy celebrating finished work" width="480" height="561" loading="lazy" decoding="async" />
   <div class="statement-ring r1" aria-hidden="true"><span class="ring-dot"></span></div>
   <div class="statement-ring r2" aria-hidden="true"></div>
   <div class="wrap">
@@ -1917,31 +1905,31 @@ html.lenis,html.lenis body{height:auto;}
     </div>
     <div class="lib">
       <div class="lib-row reveal">
-        <img class="lib-illo" src="hatchy-sales-agent.svg" alt="Sales agent" width="62" height="62" loading="lazy" />
+        <img class="lib-illo" src="hatchy-sales.webp" alt="Sales agent" width="62" height="62" loading="lazy" />
         <h3>Sales</h3>
         <p class="lib-desc">Qualifies new leads, drafts outreach in your voice, follows up so nothing goes cold.</p>
         <span class="lib-price">Set price</span>
       </div>
       <div class="lib-row reveal">
-        <img class="lib-illo" src="hatchy-document-agent.svg" alt="Document agent" width="62" height="62" loading="lazy" />
+        <img class="lib-illo" src="hatchy-document.webp" alt="Document agent" width="62" height="62" loading="lazy" />
         <h3>Documents</h3>
         <p class="lib-desc">Reports, proposals and client documents in your template and your tone, in minutes.</p>
         <span class="lib-price">Set price</span>
       </div>
       <div class="lib-row reveal">
-        <img class="lib-illo" src="hatchy-invoice-agent.svg" alt="Invoice agent" width="62" height="62" loading="lazy" />
+        <img class="lib-illo" src="hatchy-invoice.webp" alt="Invoice agent" width="62" height="62" loading="lazy" />
         <h3>Invoices</h3>
         <p class="lib-desc">Reads invoices, matches them, logs them in your accounting system, flags the odd ones out.</p>
         <span class="lib-price">Set price</span>
       </div>
       <div class="lib-row reveal">
-        <img class="lib-illo" src="hatchy-support-agent.svg" alt="Support agent" width="62" height="62" loading="lazy" />
+        <img class="lib-illo" src="hatchy-support.webp" alt="Support agent" width="62" height="62" loading="lazy" />
         <h3>Support</h3>
         <p class="lib-desc">Triages enquiries, drafts replies that sound like your team, escalates what matters.</p>
         <span class="lib-price">Set price</span>
       </div>
       <div class="lib-row reveal">
-        <img class="lib-illo" src="hatchy-website-agent.svg" alt="Website agent" width="62" height="62" loading="lazy" />
+        <img class="lib-illo" src="hatchy-website.webp" alt="Website agent" width="62" height="62" loading="lazy" />
         <h3>Website</h3>
         <p class="lib-desc">Updates your site when you ask it to — new hours, new pages, new copy. Preview, approve, live.</p>
         <span class="lib-price">Set price</span>
@@ -2532,7 +2520,7 @@ const AGENTS = {
     team: 'Finance', teamChannel: 'Accounts Payable',
     blurb: 'Hatchy · Invoice Agent — in this channel',
     script: [
-      { t:'msg', who:'you', name:'You', av:'YO', time:'9:02', cmd:'/hatchy chase everything unpaid over 30 days' },
+      { t:'msg', who:'you', name:'You', av:'YO', time:'9:02', cmd:'@Hatchy chase everything unpaid over 30 days' },
       { t:'work', title:'Hatchy is working', steps:[
         'Opened Xero — 62 open invoices',
         'Filtered to 30+ days overdue — 11 invoices, <b>A$84,320</b>',
@@ -2565,7 +2553,7 @@ const AGENTS = {
     team: 'Sales', teamChannel: 'Pipeline',
     blurb: 'Hatchy · Sales Agent — in this channel',
     script: [
-      { t:'msg', who:'you', name:'You', av:'YO', time:'7:41', cmd:'/hatchy anything worth my time from overnight?' },
+      { t:'msg', who:'you', name:'You', av:'YO', time:'7:41', cmd:'@Hatchy anything worth my time from overnight?' },
       { t:'work', title:'Hatchy is working', steps:[
         'Read 14 new form fills from the website',
         'Enriched each against HubSpot and their own site',
@@ -2631,7 +2619,7 @@ const AGENTS = {
     team: 'Marketing', teamChannel: 'General',
     blurb: 'Hatchy · Website Agent — in this channel',
     script: [
-      { t:'msg', who:'you', name:'You', av:'YO', time:'4:48', cmd:'/hatchy we’re open Saturdays now, 9–2' },
+      { t:'msg', who:'you', name:'You', av:'YO', time:'4:48', cmd:'@Hatchy we’re open Saturdays now, 9–2' },
       { t:'work', title:'Hatchy is working', steps:[
         'Searched the site for opening hours — found 4 places, not 1',
         'Homepage, contact page, footer, and the booking widget',
@@ -2726,8 +2714,10 @@ const AGENTS = {
 
     let inner = '';
     if (m.cmd){
-      inner += '<div class="ws-cmd"><b>' + m.cmd.split(' ')[0] + '</b>' +
-               m.cmd.slice(m.cmd.indexOf(' ')) + '</div>';
+      // a channel message that @-mentions the bot, exactly like Slack/Teams
+      const sp = m.cmd.indexOf(' ');
+      inner += '<div class="ws-text"><span class="mention">' + m.cmd.slice(0, sp) +
+               '</span>' + m.cmd.slice(sp) + '</div>';
     }
     if (m.text) inner += '<div class="ws-text">' + m.text + '</div>';
 
