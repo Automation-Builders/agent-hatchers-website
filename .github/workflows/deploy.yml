@@ -1,16 +1,8 @@
-# Agent Hatchers  |  https://agenthatchers.com
-#
-# The public marketing site. Plain static HTML with no build step: GitHub Pages
-# serves the repo root, so every file committed here is published as-is. Keep
-# internal material out of this repo entirely — there is no private directory.
-#
-# The custom domain is pinned by CNAME; a deploy that drops that file takes the
-# domain down with it.
-
 name: Deploy to GitHub Pages
 
 # Static site (vanilla index.html). Every push to main publishes to GitHub Pages,
 # which serves it at the custom domain agenthatchers.com (see the CNAME file).
+# Last touched by Hatchy to publish the corrected brand colour.
 on:
   push:
     branches: [main]
