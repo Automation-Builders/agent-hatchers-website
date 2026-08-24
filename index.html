@@ -848,21 +848,30 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 }
 .ws-work.is-done .spin{border:none;width:auto;height:auto;animation:none;color:var(--ws-primary);font-size:12px;}
 @keyframes wsSpin{to{transform:rotate(360deg);}}
+/* the status word shimmers and cycles while Hatchy works, like a real assistant */
+.ws-work-word{
+  background:linear-gradient(90deg,var(--ws-dim) 20%,var(--ws-text) 50%,var(--ws-dim) 80%);
+  background-size:220% 100%;-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  animation:wsShimmer 1.9s linear infinite;transition:opacity .18s ease;
+}
+@keyframes wsShimmer{to{background-position:-220% 0;}}
+.ws-work.is-done .ws-work-word{
+  animation:none;background:none;color:var(--ws-dim);-webkit-text-fill-color:var(--ws-dim);
+}
+/* action lines stream in like an activity log — no checkboxes */
 .ws-step{
-  display:flex;align-items:flex-start;gap:10px;
-  font-family:var(--ws-font);font-size:13.5px;line-height:1.5;color:#adadad;
-  padding:3px 0;transition:color .3s ease;
+  display:flex;align-items:flex-start;gap:9px;
+  font-family:var(--ws-font);font-size:13.5px;line-height:1.5;color:#6b6b6b;
+  padding:3px 0;opacity:0;transform:translateY(4px);
+  transition:opacity .35s ease,transform .35s cubic-bezier(.22,1,.36,1);
 }
-.ws-step b{font-weight:600;color:inherit;}
-.ws-step .box{
-  flex-shrink:0;width:14px;height:14px;margin-top:2px;border:1.5px solid #c8c8c8;border-radius:4px;
-  display:grid;place-items:center;font-size:10px;line-height:1;color:#fff;
-  transition:border-color .3s,background .3s;
+.ws-step.is-in{opacity:1;transform:none;}
+.ws-step b{font-weight:600;color:var(--ws-text);}
+.ws-step .dot{
+  flex-shrink:0;width:6px;height:6px;margin-top:7px;border-radius:50%;
+  background:var(--ws-primary);opacity:.75;
 }
-.ws-step.is-live{color:var(--ws-text);}
-.ws-step.is-live .box{border-color:var(--ws-primary);}
-.ws-step.is-done{color:var(--ws-text);}
-.ws-step.is-done .box{background:var(--ws-primary);border-color:var(--ws-primary);}
 
 /* attachment card */
 .ws-file{
@@ -948,7 +957,7 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 
 @media (prefers-reduced-motion: reduce){
   .ws-row,.ws-typing,.ws-react,.ws-sep,.ws-btn.is-picked{animation:none;}
-  .ws-work-title .spin,.ws-typing-b i{animation:none;}
+  .ws-work-title .spin,.ws-typing-b i,.ws-work-word{animation:none;}
 }
 @media(max-width:640px){
   .ws{border-radius:10px;box-shadow:0 16px 36px -22px rgba(22,21,15,.5),4px 4px 0 0 rgba(22,21,15,.05);}
@@ -1796,8 +1805,8 @@ html.lenis,html.lenis body{height:auto;}
 <section class="section" id="how">
   <div class="wrap">
     <div class="sec-head reveal">
-      <h2 class="sec-title">Three steps.<br /><em>That's the whole thing.</em></h2>
-      <p class="sec-intro"><span class="mono">(02) — How it works</span><br /><br />No jargon, no 40-page proposal, no six-month project. You could be talking to your first agent next week.</p>
+      <h2 class="sec-title">Three steps.<br /><em>Then you're up and running.</em></h2>
+      <p class="sec-intro"><span class="mono">(02) — How it works</span><br /><br />It takes days, not months, and there's no jargon to wade through. Most people are talking to their first agent within a week.</p>
     </div>
     <div class="steps">
       <div class="step reveal">
@@ -2762,13 +2771,20 @@ const AGENTS = {
 
   /* ── the working block, ticking through in real time ── */
   const STEP_MS = 760;
+  // cycled while Hatchy works — grounded but varied, the way Claude shimmers a word
+  const WORK_WORDS = ['thinking','working','reading the data','cross-referencing','digging in',
+    'checking the details','connecting the dots','drafting','double-checking','tidying up','nearly there'];
 
   function playWork(node){
     const box = el('div');
     box.className = 'ws-work';
-    box.innerHTML = '<div class="ws-work-title"><span class="spin"></span>' + node.title + '…</div>';
+    box.innerHTML = '<div class="ws-work-title"><span class="spin"></span>' +
+      '<span class="ws-work-word">Hatchy is thinking…</span></div>';
+    const wordEl = box.querySelector('.ws-work-word');
+    const spinEl = box.querySelector('.spin');
+    // action lines start hidden; they stream in one by one
     const steps = node.steps.map(txt => {
-      const s = el('div', '<span class="box"></span><span>' + txt + '</span>');
+      const s = el('div', '<span class="dot"></span><span>' + txt + '</span>');
       s.className = 'ws-step';
       box.appendChild(s);
       return s;
@@ -2782,30 +2798,33 @@ const AGENTS = {
     body.appendChild(r);
     stick();
 
-    if (reduced){
-      steps.forEach(s => { s.classList.add('is-done'); s.querySelector('.box').textContent = '✓'; });
+    const finish = () => {
       box.classList.add('is-done');
-      box.querySelector('.ws-work-title').innerHTML = '<span class="spin">✓</span>Hatchy did this';
+      spinEl.textContent = '✓';
+      wordEl.textContent = 'Hatchy did this';
+    };
+
+    if (reduced){
+      steps.forEach(s => s.classList.add('is-in'));
+      finish();
       return;
     }
 
-    // STEP_MS must match the per-step figure the outer clock budgets for
-    let t = 0;
-    steps.forEach(s => {
-      at(() => s.classList.add('is-live'), t);
-      t += STEP_MS - 120;
-      at(() => {
-        s.classList.remove('is-live');
-        s.classList.add('is-done');
-        s.querySelector('.box').textContent = '✓';
-        stick();
-      }, t);
-      t += 120;
-    });
-    at(() => {
-      box.classList.add('is-done');
-      box.querySelector('.ws-work-title').innerHTML = '<span class="spin">✓</span>Hatchy did this';
-    }, t);
+    // cycle the status word every ~1.1s, fading between words
+    let wi = 0, working = true;
+    const cycle = () => {
+      if (!working) return;
+      wi = (wi + 1) % WORK_WORDS.length;
+      wordEl.style.opacity = '0';
+      at(() => { if (!working) return; wordEl.textContent = 'Hatchy is ' + WORK_WORDS[wi] + '…'; wordEl.style.opacity = '1'; }, 180);
+      at(cycle, 1100);
+    };
+    at(cycle, 1100);
+
+    // stream each action line in
+    let t = 260;
+    steps.forEach(s => { at(() => { s.classList.add('is-in'); stick(); }, t); t += STEP_MS; });
+    at(() => { working = false; finish(); }, t);
   }
 
   /* ── approval block, with the button clicking itself ── */
