@@ -6,7 +6,7 @@
 <meta name="description" content="We install Hermes — your own AI platform where each agent owns one business job from request to finished deliverable. One agent, job done." />
 <title>Agent Hatchers</title>
 <link rel="canonical" href="https://agenthatchers.com/" />
-<link rel="icon" type="image/png" href="agent-hatchers-logo.png" />
+<link rel="icon" type="image/png" href="agent-hatchers-mark.png" />
 
 <!-- Open Graph -->
 <meta property="og:type" content="website" />
@@ -305,6 +305,7 @@ nav{
   position:sticky;top:0;z-index:100;
   background:rgba(244,241,234,.88);
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  transition:background .25s ease,border-color .25s ease;
   border-bottom:1px solid var(--line);
   transition:transform .24s cubic-bezier(.22,1,.36,1);
   will-change:transform;
@@ -323,6 +324,8 @@ nav{
   text-decoration:none;color:var(--ink);text-transform:uppercase;
 }
 .logo img{width:30px;height:30px;border-radius:6px;object-fit:contain;}
+nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line);}
+@media (prefers-reduced-motion: reduce){nav{transition:none;}}
 .nav-links{display:flex;align-items:center;gap:2px;list-style:none;}
 .nav-links a{
   font-family:var(--font-m);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
@@ -1541,7 +1544,7 @@ html.lenis,html.lenis body{height:auto;}
 <nav>
   <div class="nav-inner">
     <a href="#top" class="logo" aria-label="Agent Hatchers home">
-      <img src="agent-hatchers-logo.png" alt="" />
+      <img src="agent-hatchers-mark.png" alt="" width="30" height="30" />
       <span>Agent&nbsp;Hatchers</span>
     </a>
     <ul class="nav-links" role="navigation">
@@ -2369,6 +2372,9 @@ function toast(msg){
   function update(){
     const y = window.scrollY || 0;
     const delta = y - lastY;
+
+    // opaque as soon as anything can pass behind the bar
+    nav.classList.toggle('is-scrolled', y > 8);
 
     if (!mq.matches || y < 24 || delta < -6) {
       nav.classList.remove('mobile-nav-hidden');
