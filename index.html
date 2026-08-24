@@ -438,20 +438,17 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   width:34px;height:34px;object-fit:contain;flex:0 0 34px;margin-right:2px;
   filter:drop-shadow(0 4px 8px rgba(22,21,15,.10));
 }
-.lib-row{
-  grid-template-columns:clamp(52px,6vw,74px) minmax(0,1.08fr) minmax(0,1.75fr) auto;
-}
 .lib-illo{
-  width:clamp(46px,5.2vw,62px);height:clamp(46px,5.2vw,62px);object-fit:contain;
+  width:clamp(40px,3.4vw,48px);height:clamp(40px,3.4vw,48px);object-fit:contain;
   align-self:center;justify-self:start;transition:transform .25s cubic-bezier(.22,1,.36,1),filter .25s;
 }
 .lib-row:hover .lib-illo{transform:translateY(-2px) rotate(-3deg);filter:drop-shadow(0 8px 14px rgba(244,241,234,.18));}
 @media(max-width:860px){
   .hero-hatchy,.system-hatchy,.statement-hatchy{display:none;}
   .agent-tab-icon{width:24px;height:24px;flex-basis:24px;margin-right:0;}
-  .lib-row{grid-template-columns:48px minmax(0,1fr);gap:10px 14px;padding:24px 8px;}
-  .lib-illo{grid-row:1 / span 3;width:44px;height:44px;}
-  .lib-row .lib-desc,.lib-row .lib-price{grid-column:2;}
+}
+@media(max-width:520px){
+  .lib{grid-template-columns:1fr;}
 }
 
 @media(max-width:640px){
@@ -846,7 +843,6 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   width:11px;height:11px;border:2px solid var(--ws-primary);border-right-color:transparent;
   border-radius:50%;animation:wsSpin .7s linear infinite;
 }
-.ws-work.is-done .spin{border:none;width:auto;height:auto;animation:none;color:var(--ws-primary);font-size:12px;}
 @keyframes wsSpin{to{transform:rotate(360deg);}}
 /* the status word shimmers and cycles while Hatchy works, like a real assistant */
 .ws-work-word{
@@ -856,22 +852,6 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   animation:wsShimmer 1.9s linear infinite;transition:opacity .18s ease;
 }
 @keyframes wsShimmer{to{background-position:-220% 0;}}
-.ws-work.is-done .ws-work-word{
-  animation:none;background:none;color:var(--ws-dim);-webkit-text-fill-color:var(--ws-dim);
-}
-/* action lines stream in like an activity log — no checkboxes */
-.ws-step{
-  display:flex;align-items:flex-start;gap:9px;
-  font-family:var(--ws-font);font-size:13.5px;line-height:1.5;color:#6b6b6b;
-  padding:3px 0;opacity:0;transform:translateY(4px);
-  transition:opacity .35s ease,transform .35s cubic-bezier(.22,1,.36,1);
-}
-.ws-step.is-in{opacity:1;transform:none;}
-.ws-step b{font-weight:600;color:var(--ws-text);}
-.ws-step .dot{
-  flex-shrink:0;width:6px;height:6px;margin-top:7px;border-radius:50%;
-  background:var(--ws-primary);opacity:.75;
-}
 
 /* attachment card */
 .ws-file{
@@ -1127,17 +1107,25 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 .jargon{
   margin-top:clamp(48px,6vw,88px);
   border:1px solid var(--ink);background:var(--paper-2);
-  padding:clamp(24px,3vw,40px);
 }
 .jargon-head{
+  list-style:none;cursor:pointer;
   display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;
-  margin-bottom:24px;
+  padding:clamp(20px,2.4vw,30px) clamp(24px,3vw,40px);
 }
+.jargon-head::-webkit-details-marker{display:none;}
 .jargon-head h3{
   font-family:var(--font-s);font-style:italic;font-weight:400;
-  font-size:clamp(20px,2.2vw,28px);letter-spacing:-.01em;
+  font-size:clamp(20px,2.2vw,28px);letter-spacing:-.01em;transition:color .2s;
 }
-.jargon-rows{display:grid;gap:0;}
+.jargon-head:hover h3{color:var(--accent);}
+.jargon-meta{display:flex;align-items:baseline;gap:16px;}
+.jargon-icon{
+  font-family:var(--font-m);font-size:20px;color:var(--accent);line-height:1;
+  transition:transform .2s;
+}
+.jargon[open] .jargon-icon{transform:rotate(45deg);}
+.jargon-rows{display:grid;gap:0;padding:0 clamp(24px,3vw,40px) clamp(20px,2.4vw,30px);}
 .jargon-row{
   display:grid;grid-template-columns:minmax(0,1fr) 24px minmax(0,1.15fr);
   gap:clamp(12px,2vw,28px);align-items:baseline;
@@ -1190,50 +1178,45 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 }
 
 /* ── AGENT LIBRARY — invertable index rows ── */
-.lib{border-top:1px solid var(--line);}
-.lib-row{
+.lib{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  border-top:1px solid var(--line);border-left:1px solid var(--line);
+}
+.lib-row,.lib-cta{
   display:grid;
-  grid-template-columns:minmax(0,1.25fr) minmax(0,1.75fr) auto;
-  gap:clamp(16px,3vw,48px);align-items:center;
-  padding:clamp(22px,2.8vw,40px) clamp(12px,1.6vw,24px);
-  border-bottom:1px solid var(--line);
+  grid-template-columns:clamp(40px,3.4vw,48px) minmax(0,1fr);
+  column-gap:16px;row-gap:6px;align-content:start;
+  padding:clamp(20px,1.9vw,28px) clamp(16px,1.5vw,22px);
+  border-bottom:1px solid var(--line);border-right:1px solid var(--line);
   position:relative;cursor:default;
   transition:background .25s cubic-bezier(.22,1,.36,1),color .25s;
 }
 .lib-row:hover{background:var(--ink);}
 .lib-row h3{
-  font-size:clamp(24px,3vw,44px);font-weight:500;letter-spacing:-.03em;
+  align-self:center;
+  font-size:clamp(19px,1.5vw,23px);font-weight:500;letter-spacing:-.02em;
   line-height:1;text-transform:uppercase;transition:color .25s;
 }
 .lib-row:hover h3{color:var(--paper);}
 .lib-row .lib-desc{
-  color:var(--ink-70);font-size:15.5px;line-height:1.6;max-width:46ch;
+  grid-column:1 / -1;
+  color:var(--ink-70);font-size:14px;line-height:1.55;
   transition:color .25s;
 }
 .lib-row:hover .lib-desc{color:rgba(244,241,234,.75);}
-.lib-row .lib-price{
-  font-family:var(--font-m);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--accent);white-space:nowrap;justify-self:end;
-  border:1px solid currentColor;border-radius:999px;padding:8px 16px;
-}
-.lib-cta{
-  display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1.75fr) auto;
-  gap:clamp(16px,3vw,48px);align-items:center;
-  padding:clamp(22px,2.8vw,40px) clamp(12px,1.6vw,24px);
-  border-bottom:1px solid var(--line);
-}
+.lib-cta{grid-template-columns:1fr;}
 .lib-cta h3{
-  font-size:clamp(24px,3vw,44px);font-weight:400;letter-spacing:-.02em;line-height:1.04;
+  font-size:clamp(22px,1.8vw,26px);font-weight:400;letter-spacing:-.02em;line-height:1.04;
   font-family:var(--font-s);font-style:italic;
 }
-.lib-cta p{color:var(--ink-70);font-size:15.5px;line-height:1.6;max-width:46ch;}
+.lib-cta p{color:var(--ink-70);font-size:14px;line-height:1.55;margin:2px 0 4px;}
+.lib-cta .btn{align-self:start;justify-self:start;}
 .lib-note{
   margin-top:32px;font-size:15px;color:var(--ink-70);
 }
 .lib-note strong{color:var(--ink);font-weight:500;}
 @media(max-width:860px){
-  .lib-row,.lib-cta{grid-template-columns:1fr;gap:10px;padding:24px 8px;}
-  .lib-row .lib-price{justify-self:start;}
+  .lib{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
 
 
@@ -1347,6 +1330,14 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   transition:color .15s,border-color .15s;
 }
 .founder-link:hover{color:var(--accent);border-color:var(--accent);}
+/* trust section runs tighter than the default section rhythm */
+#trust .sec-head{margin-bottom:clamp(26px,3.4vw,46px);}
+#trust .sec-title{font-size:clamp(34px,4.4vw,62px);max-width:14ch;}
+#trust .sec-intro{max-width:40ch;}
+#trust .founders{gap:clamp(24px,3vw,48px);padding-top:clamp(24px,3vw,40px);}
+#trust .founder{gap:13px;}
+#trust .founder p{font-size:15px;line-height:1.55;}
+#trust .founder-top{margin-bottom:2px;}
 
 /* ── FAQ ── */
 .faq-list{border-top:1px solid var(--line);}
@@ -1910,42 +1901,37 @@ html.lenis,html.lenis body{height:auto;}
   <div class="wrap">
     <div class="sec-head reveal">
       <h2 class="sec-title">The agent <em>library.</em></h2>
-      <p class="sec-intro"><span class="mono">(04) — Set prices, no surprises</span><br /><br />Every agent in the library has a set price — you know exactly what it costs before you say yes. And the library keeps growing.</p>
+      <p class="sec-intro"><span class="mono">(04) — Ready to install</span><br /><br />Ready-made agents for the jobs every business has. Install one in a click, or ask us to build the one you're missing. The library keeps growing.</p>
     </div>
     <div class="lib">
       <div class="lib-row reveal">
-        <img class="lib-illo" src="hatchy-sales.webp" alt="Sales agent" width="62" height="62" loading="lazy" />
+        <img class="lib-illo" src="hatchy-sales.webp" alt="Sales agent" width="54" height="54" loading="lazy" />
         <h3>Sales</h3>
         <p class="lib-desc">Qualifies new leads, drafts outreach in your voice, follows up so nothing goes cold.</p>
-        <span class="lib-price">Set price</span>
       </div>
       <div class="lib-row reveal">
-        <img class="lib-illo" src="hatchy-document.webp" alt="Document agent" width="62" height="62" loading="lazy" />
+        <img class="lib-illo" src="hatchy-document.webp" alt="Document agent" width="54" height="54" loading="lazy" />
         <h3>Documents</h3>
         <p class="lib-desc">Reports, proposals and client documents in your template and your tone, in minutes.</p>
-        <span class="lib-price">Set price</span>
       </div>
       <div class="lib-row reveal">
-        <img class="lib-illo" src="hatchy-invoice.webp" alt="Invoice agent" width="62" height="62" loading="lazy" />
+        <img class="lib-illo" src="hatchy-invoice.webp" alt="Invoice agent" width="54" height="54" loading="lazy" />
         <h3>Invoices</h3>
         <p class="lib-desc">Reads invoices, matches them, logs them in your accounting system, flags the odd ones out.</p>
-        <span class="lib-price">Set price</span>
       </div>
       <div class="lib-row reveal">
-        <img class="lib-illo" src="hatchy-support.webp" alt="Support agent" width="62" height="62" loading="lazy" />
+        <img class="lib-illo" src="hatchy-support.webp" alt="Support agent" width="54" height="54" loading="lazy" />
         <h3>Support</h3>
         <p class="lib-desc">Triages enquiries, drafts replies that sound like your team, escalates what matters.</p>
-        <span class="lib-price">Set price</span>
       </div>
       <div class="lib-row reveal">
-        <img class="lib-illo" src="hatchy-website.webp" alt="Website agent" width="62" height="62" loading="lazy" />
+        <img class="lib-illo" src="hatchy-website.webp" alt="Website agent" width="54" height="54" loading="lazy" />
         <h3>Website</h3>
         <p class="lib-desc">Updates your site when you ask it to — new hours, new pages, new copy. Preview, approve, live.</p>
-        <span class="lib-price">Set price</span>
       </div>
       <div class="lib-cta reveal">
         <h3>Need something else?</h3>
-        <p>We'll build a custom agent for your exact job — quoted up front. Or build your own: it's included with every installation, plain English, not code.</p>
+        <p>We'll build a custom agent for your exact job — quoted up front. Or build your own: plain English, not code.</p>
         <a href="#book" class="btn btn-secondary" data-open-book data-source="agents">Ask us <span class="arrow">→</span></a>
       </div>
     </div>
@@ -2059,81 +2045,43 @@ html.lenis,html.lenis body{height:auto;}
     <div class="safe-grid">
       <div class="safe reveal">
         <span class="safe-n">S / 01</span>
-        <h3>It's your platform, <em>not a shared one.</em></h3>
-        <div class="safe-like"><b>Like</b><span>Your own office — not a hot desk in a shared building.</span></div>
-        <p>Hermes is installed for your business and nobody else's. Your invoices, your emails and your documents don't sit in a pool with other companies' data. <strong>There is no shared filing cabinet</strong> that a mistake somewhere else could open.</p>
-      </div>
-
-      <div class="safe reveal">
-        <span class="safe-n">S / 02</span>
         <h3>Each agent gets <em>one set of keys.</em></h3>
         <div class="safe-like"><b>Like</b><span>Your bookkeeper has the accounting login. They don't have the payroll one.</span></div>
         <p>The invoice agent can reach your accounting software. It cannot touch your CRM, your website or your HR files — not because we asked it nicely, but because <strong>it was never given those keys.</strong> One job, one set of access.</p>
       </div>
 
       <div class="safe reveal">
-        <span class="safe-n">S / 03</span>
+        <span class="safe-n">S / 02</span>
         <h3>Nothing leaves the building <em>without a human.</em></h3>
         <div class="safe-like"><b>Like</b><span>A draft in your outbox. It's written, but you press send.</span></div>
         <p>Agents do the work on their own — reading, matching, drafting, preparing. But <strong>anything that reaches a customer, moves money or goes public waits for a person to click approve.</strong> You saw it in the demo above. You decide where that line sits, agent by agent.</p>
       </div>
 
       <div class="safe reveal">
-        <span class="safe-n">S / 04</span>
-        <h3>You approve every connection <em>yourself.</em></h3>
-        <div class="safe-like"><b>Like</b><span>“Sign in with Google” — you approve it, and you can un-approve it.</span></div>
-        <p>Wherever an app offers its own approval screen, that's what we use — <strong>you click approve in your own account, and we never see a password.</strong> The connection then shows up in your admin settings, and you can cut it off from there without asking us.</p>
-      </div>
-
-      <div class="safe reveal">
-        <span class="safe-n">S / 05</span>
-        <h3>Everything it does <em>is written down.</em></h3>
-        <div class="safe-like"><b>Like</b><span>A visitor book at reception. Who came in, when, and what they did.</span></div>
-        <p>Actions your agents take are logged in readable English: what it did, when, which file it touched, and who asked for it. <strong>If you ever need to explain something to an auditor, an accountant or a client, the trail is already there.</strong></p>
-      </div>
-
-      <div class="safe reveal">
-        <span class="safe-n">S / 06</span>
+        <span class="safe-n">S / 03</span>
         <h3>Your data doesn't <em>train anyone's AI.</em></h3>
         <div class="safe-like"><b>Like</b><span>A lawyer reading your file — not a journalist reading it.</span></div>
         <p>Your emails, invoices and documents are used to do <em>your</em> job and nothing else. <strong>They are not fed back to improve anyone's AI model</strong>, ours or the model providers'. That setting isn't buried in a menu — it's off, and it stays off.</p>
       </div>
 
       <div class="safe reveal">
-        <span class="safe-n">S / 07</span>
+        <span class="safe-n">S / 04</span>
         <h3>You can pull the plug <em>yourself.</em></h3>
         <div class="safe-like"><b>Like</b><span>Deactivating a staff pass. It stops working immediately.</span></div>
         <p>Pause an agent, revoke a connection, or remove the app from Slack or Teams — all from your side, in seconds, without a support ticket. <strong>There's no hostage situation and no exit fee</strong> for turning something off.</p>
       </div>
-
-      <div class="safe reveal">
-        <span class="safe-n">S / 08</span>
-        <h3>Real people are <em>accountable for it.</em></h3>
-        <div class="safe-like"><b>Like</b><span>A tradesperson who gives you their mobile, not a ticket number.</span></div>
-        <p>We're an Australian company with two founders whose names and faces are further down this page. <strong>We maintain your platform, we patch it, and if something goes wrong you talk to us</strong> — not a chatbot, not a queue, not an offshore tier-one.</p>
-      </div>
     </div>
 
-    <div class="jargon reveal">
-      <div class="jargon-head">
+    <details class="jargon reveal">
+      <summary class="jargon-head">
         <h3>If someone technical asks…</h3>
-        <span class="mono">Same answers, their words</span>
-      </div>
+        <span class="jargon-meta"><span class="mono">Same answers, their words</span><span class="jargon-icon">+</span></span>
+      </summary>
       <div class="jargon-rows">
-        <div class="jargon-row">
-          <span class="jargon-plain">It's your own platform, not a shared one</span>
-          <span class="jargon-arrow">→</span>
-          <span class="jargon-tech">Single-tenant deployment. No shared data plane between clients.</span>
-        </div>
         <div class="jargon-row">
           <span class="jargon-plain">Each agent gets one set of keys</span>
           <span class="jargon-arrow">→</span>
           <span class="jargon-tech">Least-privilege, per-agent scoped credentials. No shared service account.</span>
-        </div>
-        <div class="jargon-row">
-          <span class="jargon-plain">You approve every connection yourself</span>
-          <span class="jargon-arrow">→</span>
-          <span class="jargon-tech">OAuth 2.0 against the vendor's own consent screen wherever the vendor offers it. Credentials encrypted at rest, revocable by your admin.</span>
         </div>
         <div class="jargon-row">
           <span class="jargon-plain">Nothing leaves without a human</span>
@@ -2141,14 +2089,14 @@ html.lenis,html.lenis body{height:auto;}
           <span class="jargon-tech">Human-in-the-loop approval gates on every outbound and write action, configurable per agent.</span>
         </div>
         <div class="jargon-row">
-          <span class="jargon-plain">Everything is written down</span>
-          <span class="jargon-arrow">→</span>
-          <span class="jargon-tech">Action-level audit log — actor, timestamp, tool call, resource, initiating request — to the extent the connected platform exposes it.</span>
-        </div>
-        <div class="jargon-row">
           <span class="jargon-plain">Your data doesn't train anyone's AI</span>
           <span class="jargon-arrow">→</span>
           <span class="jargon-tech">Training opt-out set at the model-provider level; prompts and outputs not retained for training.</span>
+        </div>
+        <div class="jargon-row">
+          <span class="jargon-plain">You can pull the plug yourself</span>
+          <span class="jargon-arrow">→</span>
+          <span class="jargon-tech">Agents and connections revocable by your admin; credentials encrypted at rest, cleared on disconnect.</span>
         </div>
         <div class="jargon-row">
           <span class="jargon-plain">Data in transit and at rest</span>
@@ -2156,7 +2104,7 @@ html.lenis,html.lenis body{height:auto;}
           <span class="jargon-tech">TLS in transit; encryption, access controls and audit logging applied where the connected platform supports them. Some processing may run on overseas infrastructure — see the <a href="privacy-policy.html">Privacy Policy</a>.</span>
         </div>
       </div>
-    </div>
+    </details>
 
     <p class="lib-note reveal">The binding detail lives in our <a href="privacy-policy.html" class="tlink">Privacy Policy</a> and <a href="terms-of-service.html" class="tlink">Terms of Service</a>. Still got a question your IT person wants answered? <a href="#book" class="tlink" data-open-book data-source="security">Ask us directly</a> — we'd rather have that conversation before you buy than after.</p>
   </div>
@@ -2757,6 +2705,16 @@ const AGENTS = {
     stick();
   }
 
+  // a single reaction Hatchy leaves on the request: 👀 while working, ✅ when answered
+  function addAck(host, emoji){
+    const bar = el('div'); bar.className = 'ws-reacts';
+    const pill = el('span', emoji + ' 1'); pill.className = 'ws-react is-ack';
+    bar.appendChild(pill);
+    host.lastElementChild.appendChild(bar);
+    stick();
+    return pill;
+  }
+
   function threadLine(host, th){
     const p = PLATFORMS[platform];
     const t = el('div',
@@ -2776,19 +2734,12 @@ const AGENTS = {
     'checking the details','connecting the dots','drafting','double-checking','tidying up','nearly there'];
 
   function playWork(node){
+    // a transient "working" indicator — just the shimmering status, no step list
     const box = el('div');
     box.className = 'ws-work';
     box.innerHTML = '<div class="ws-work-title"><span class="spin"></span>' +
       '<span class="ws-work-word">Hatchy is thinking…</span></div>';
     const wordEl = box.querySelector('.ws-work-word');
-    const spinEl = box.querySelector('.spin');
-    // action lines start hidden; they stream in one by one
-    const steps = node.steps.map(txt => {
-      const s = el('div', '<span class="dot"></span><span>' + txt + '</span>');
-      s.className = 'ws-step';
-      box.appendChild(s);
-      return s;
-    });
 
     const r = el('div', avatar('hatchy') +
       '<div><div class="ws-head"><span class="ws-name">Hatchy</span>' +
@@ -2798,19 +2749,9 @@ const AGENTS = {
     body.appendChild(r);
     stick();
 
-    const finish = () => {
-      box.classList.add('is-done');
-      spinEl.textContent = '✓';
-      wordEl.textContent = 'Hatchy did this';
-    };
+    if (reduced){ r.remove(); return; } // pure animation — nothing to show statically
 
-    if (reduced){
-      steps.forEach(s => s.classList.add('is-in'));
-      finish();
-      return;
-    }
-
-    // cycle the status word every ~1.1s, fading between words
+    // cycle the status word every ~1.1s, fading between words, like a real assistant
     let wi = 0, working = true;
     const cycle = () => {
       if (!working) return;
@@ -2821,10 +2762,8 @@ const AGENTS = {
     };
     at(cycle, 1100);
 
-    // stream each action line in
-    let t = 260;
-    steps.forEach(s => { at(() => { s.classList.add('is-in'); stick(); }, t); t += STEP_MS; });
-    at(() => { working = false; finish(); }, t);
+    // the indicator lives for a spell proportional to the task, then makes way for the reply
+    at(() => { working = false; r.remove(); }, 260 + node.steps.length * STEP_MS);
   }
 
   /* ── approval block, with the button clicking itself ── */
@@ -2874,6 +2813,7 @@ const AGENTS = {
     const script = AGENTS[agentKey].script;
 
     if (reduced){
+      let firstRow = null;
       script.forEach(node => {
         if (node.t === 'work') playWork(node);
         else if (node.t === 'approve') playApprove(node);
@@ -2882,14 +2822,17 @@ const AGENTS = {
         } else {
           const r = row(node);
           body.appendChild(r);
+          if (!firstRow) firstRow = r;
           if (node.reacts) reactions(r, node.reacts);
           if (node.thread) threadLine(r, node.thread);
         }
       });
+      if (firstRow) addAck(firstRow, '✅'); // answered
       return;
     }
 
     let clock = 400;
+    let firstMsgDone = false, ackEl = null, answered = false;
     script.forEach(node => {
       if (node.t === 'work'){
         at(() => playWork(node), clock);
@@ -2914,6 +2857,8 @@ const AGENTS = {
             const r = row(node);
             body.appendChild(r);
             stick();
+            // first answer back → flip the request's 👀 to ✅
+            if (!answered && ackEl){ answered = true; ackEl.textContent = '✅ 1'; ackEl.classList.remove('is-ack'); ackEl.classList.add('is-hot'); stick(); }
             if (node.reacts) at(() => reactions(r, node.reacts), 900);
             if (node.thread) at(() => threadLine(r, node.thread), 700);
           }, 850);
@@ -2921,10 +2866,14 @@ const AGENTS = {
         clock += 850 + 2100;
 
       } else {
+        const isFirst = !firstMsgDone;
+        if (isFirst) firstMsgDone = true;
         at(() => {
           const r = row(node);
           body.appendChild(r);
           stick();
+          // Hatchy notices the request: 👀 shortly after it lands
+          if (isFirst) at(() => { ackEl = addAck(r, '👀'); }, 650);
           if (node.reacts) at(() => reactions(r, node.reacts), 800);
         }, clock);
         clock += node.cmd ? 1500 : 1200;
