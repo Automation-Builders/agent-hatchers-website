@@ -1205,64 +1205,6 @@ nav{
   .lib-row .lib-price{justify-self:start;}
 }
 
-.agent-examples{
-  margin:clamp(28px,4vw,52px) 0 clamp(34px,5vw,68px);
-  display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
-  border:1px solid var(--ink);background:var(--paper);
-  box-shadow:8px 8px 0 0 var(--ink);overflow:hidden;
-}
-.agent-example-visual{
-  min-height:440px;border-right:1px solid var(--ink);position:relative;
-  background:linear-gradient(135deg,var(--paper-2),#fff 48%,rgba(33,107,172,.18));
-  display:grid;place-items:end center;padding:clamp(26px,3vw,46px) clamp(20px,3vw,42px) 28px;
-}
-.agent-example-visual::before{
-  content:'HATCHY';position:absolute;left:18px;top:18px;font-family:var(--font-m);
-  font-size:11px;letter-spacing:.16em;color:var(--accent);border:1px solid var(--accent);
-  border-radius:999px;padding:7px 13px;background:rgba(244,241,234,.78);
-}
-.agent-example-visual img{
-  width:min(72%,320px);max-height:390px;object-fit:contain;filter:drop-shadow(0 18px 28px rgba(22,21,15,.2));
-}
-.agent-example-visual img[hidden]{display:none;}
-.agent-example-board{position:absolute;right:20px;bottom:22px;display:grid;gap:8px;width:min(45%,220px);}
-.agent-example-note{
-  border:1px solid var(--ink);background:rgba(244,241,234,.92);padding:10px 12px;
-  font-family:var(--font-m);font-size:10px;letter-spacing:.04em;text-transform:uppercase;
-}
-.agent-example-note strong{display:block;font-family:var(--font-d);font-size:16px;line-height:1.1;letter-spacing:-.02em;text-transform:none;color:var(--ink);margin-top:3px;}
-.agent-example-copy{padding:clamp(26px,3vw,46px);display:flex;flex-direction:column;gap:22px;}
-.agent-example-copy h3{font-size:clamp(34px,4vw,62px);font-weight:500;letter-spacing:-.035em;line-height:.96;text-transform:uppercase;max-width:9ch;}
-.agent-example-copy > p{color:var(--ink-70);font-size:16px;line-height:1.62;max-width:52ch;}
-.agent-example-tabs{display:flex;gap:10px;flex-wrap:wrap;}
-.agent-example-tab{
-  border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;
-  font-family:var(--font-m);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
-  border-radius:999px;padding:10px 15px;transition:background .2s,color .2s,border-color .2s;
-}
-.agent-example-tab:hover,.agent-example-tab.is-active{background:var(--ink);color:var(--paper);}
-.agent-example-tab.is-active{border-color:var(--accent);}
-.agent-example-panel{border-top:1px solid var(--line);padding-top:22px;display:grid;gap:14px;}
-.agent-example-panel[hidden]{display:none;}
-.agent-example-panel h4{font-size:clamp(24px,2.5vw,36px);font-weight:500;letter-spacing:-.025em;text-transform:uppercase;line-height:1.02;}
-.agent-example-panel p{color:var(--ink-70);font-size:15.5px;line-height:1.62;max-width:54ch;}
-.agent-example-steps{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);}
-.agent-example-steps span{padding:13px 12px 0 0;border-right:1px solid var(--line);font-family:var(--font-m);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-70);}
-.agent-example-steps span + span{padding-left:12px;}
-.agent-example-steps span:last-child{border-right:none;}
-@media(max-width:980px){
-  .agent-examples{grid-template-columns:1fr;box-shadow:5px 5px 0 0 var(--ink);}
-  .agent-example-visual{border-right:none;border-bottom:1px solid var(--ink);min-height:340px;}
-}
-@media(max-width:620px){
-  .agent-example-board{position:static;width:100%;margin-top:12px;}
-  .agent-example-visual{place-items:center;padding-bottom:24px;}
-  .agent-example-visual img{width:min(70%,260px);}
-  .agent-example-steps{grid-template-columns:1fr;}
-  .agent-example-steps span{border-right:none;border-bottom:1px solid var(--line);padding:10px 0;}
-  .agent-example-steps span + span{padding-left:0;}
-  .agent-example-steps span:last-child{border-bottom:none;}
-}
 
 /* ── PRICING — ruled columns ── */
 .price-cols{
@@ -1981,36 +1923,6 @@ html.lenis,html.lenis body{height:auto;}
       <h2 class="sec-title">The agent <em>library.</em></h2>
       <p class="sec-intro"><span class="mono">(04) — Set prices, no surprises</span><br /><br />Every agent in the library has a set price — you know exactly what it costs before you say yes. And the library keeps growing.</p>
     </div>
-    <div class="agent-examples reveal" aria-label="Hatchy agent examples">
-      <div class="agent-example-visual">
-        <img src="hatchy-envelope.svg" alt="Hatchy holding out a sealed envelope for the Sales agent example" loading="lazy" data-example-art="sales" />
-        <img src="hatchy-invoice.svg" alt="Hatchy holding a long receipt and calculator for the Invoicing agent example" loading="lazy" data-example-art="invoice" hidden />
-        <div class="agent-example-board">
-          <div class="agent-example-note">Sales lead <strong>Qualified</strong></div>
-          <div class="agent-example-note">Invoice match <strong>Ready to approve</strong></div>
-        </div>
-      </div>
-      <div class="agent-example-copy">
-        <span class="mono">Hatchy examples</span>
-        <h3>Two agents you can hatch first.</h3>
-        <p>Using the Hatchy images from the brand guidelines, here are two focused teammates we can create: one for revenue, one for finance, each with a single job and a clear approval step.</p>
-        <div class="agent-example-tabs" role="tablist" aria-label="Choose a Hatchy agent example">
-          <button class="agent-example-tab is-active" type="button" role="tab" aria-selected="true" data-example="sales">Sales</button>
-          <button class="agent-example-tab" type="button" role="tab" aria-selected="false" data-example="invoice">Invoicing</button>
-        </div>
-        <div class="agent-example-panel" data-example-panel="sales" role="tabpanel">
-          <h4>Sales agent</h4>
-          <p>Hatchy watches new enquiries, researches the company, drafts the first reply in your voice, and schedules follow-ups so good leads do not disappear.</p>
-          <div class="agent-example-steps" aria-label="Sales agent workflow"><span>01 / Qualify lead</span><span>02 / Draft outreach</span><span>03 / Follow up</span></div>
-        </div>
-        <div class="agent-example-panel" data-example-panel="invoice" role="tabpanel" hidden>
-          <h4>Invoicing agent</h4>
-          <p>Hatchy reads supplier invoices, checks the details against your records, flags anything unusual, and prepares the payment run for approval.</p>
-          <div class="agent-example-steps" aria-label="Invoicing agent workflow"><span>01 / Read invoice</span><span>02 / Match records</span><span>03 / Queue approval</span></div>
-        </div>
-      </div>
-    </div>
-
     <div class="lib">
       <div class="lib-row reveal">
         <h3>Sales</h3>
@@ -2616,28 +2528,6 @@ async function postLead(kind, payload){
   }
   $('scarcityCurrent').innerHTML = `<strong>${SCARCITY.currentMonth}</strong> ${SCARCITY.currentStatus}`;
   $('scarcityNext').innerHTML    = `<strong>${SCARCITY.nextMonth}</strong> ${SCARCITY.nextStatus}`;
-})();
-
-/* ── HATCHY EXAMPLES ── */
-(function hatchyExamples(){
-  const tabs = document.querySelectorAll('[data-example]');
-  const panels = document.querySelectorAll('[data-example-panel]');
-  const art = document.querySelectorAll('[data-example-art]');
-  if(!tabs.length || !panels.length) return;
-  function showExample(key){
-    tabs.forEach(tab => {
-      const active = tab.dataset.example === key;
-      tab.classList.toggle('is-active', active);
-      tab.setAttribute('aria-selected', String(active));
-    });
-    panels.forEach(panel => {
-      panel.hidden = panel.dataset.examplePanel !== key;
-    });
-    art.forEach(image => {
-      image.hidden = image.dataset.exampleArt !== key;
-    });
-  }
-  tabs.forEach(tab => tab.addEventListener('click', () => showExample(tab.dataset.example)));
 })();
 
 /* ── HATCHY IN SLACK / TEAMS ──────────────────────────────────────────────
