@@ -520,15 +520,10 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 .tabs-note strong{color:var(--ink);font-weight:600;}
 
 /* every agent its own colour — same Hatchy, different feathers */
-.hue-sales{filter:hue-rotate(175deg) saturate(1.15) drop-shadow(0 4px 8px rgba(22,21,15,.10));}    /* blue → orange */
-.hue-invoice{filter:hue-rotate(-75deg) saturate(.95) drop-shadow(0 4px 8px rgba(22,21,15,.10));}   /* blue → mint   */
-.hue-docs{filter:hue-rotate(75deg) saturate(.9) drop-shadow(0 4px 8px rgba(22,21,15,.10));}        /* blue → grape  */
-.hue-web{filter:hue-rotate(110deg) saturate(.95) drop-shadow(0 4px 8px rgba(22,21,15,.10));}       /* blue → pink   */
-.hue-email{filter:hue-rotate(-40deg) saturate(1.1) drop-shadow(0 4px 8px rgba(22,21,15,.10));}     /* blue → cyan   */
-.hue-meme{filter:hue-rotate(205deg) saturate(1.25) drop-shadow(0 4px 8px rgba(22,21,15,.10));}     /* blue → magenta*/
-.hue-hype{filter:hue-rotate(25deg) saturate(1.35) drop-shadow(0 4px 8px rgba(22,21,15,.10));}      /* blue → gold   */
-.hue-news{filter:hue-rotate(-120deg) saturate(.85) drop-shadow(0 4px 8px rgba(22,21,15,.10));}     /* blue → red    */
-.hue-test{filter:grayscale(.85) drop-shadow(0 4px 8px rgba(22,21,15,.10));}                        /* sandbox grey  */
+/* Hatchy stays its own regular blue everywhere — just a soft shadow, no hue shift */
+.hue-sales,.hue-invoice,.hue-docs,.hue-web,.hue-email,.hue-meme,.hue-hype,.hue-news,.hue-test{
+  filter:drop-shadow(0 4px 8px rgba(22,21,15,.10));
+}
 
 /* the mock splits into a channel sidebar + the conversation, like Slack */
 .ws-shell{display:flex;flex:1;min-height:0;align-items:stretch;}
@@ -901,6 +896,12 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   border:1px solid var(--ink);border-radius:999px;padding:4px 11px;
   background:var(--accent);color:#fff;
 }
+/* a colour per category (each darkened enough for white text) */
+.lib-sales   .lib-cat{background:#1F8A5B;} /* Growth     */
+.lib-docs    .lib-cat{background:#216BAC;} /* Operations */
+.lib-support .lib-cat{background:#216BAC;} /* Operations */
+.lib-invoice .lib-cat{background:#A66C0F;} /* Finance    */
+.lib-web     .lib-cat{background:#6B4FB8;} /* Creative   */
 .lib-card h3{
   font-size:clamp(21px,1.8vw,27px);font-weight:600;letter-spacing:-.02em;
   line-height:1;text-transform:uppercase;
@@ -908,6 +909,56 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 .lib-desc{color:var(--ink-70);font-size:14px;line-height:1.55;}
 .lib-tools{
   display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:10px;
+}
+.lib-flip-cue{
+  font-family:var(--font-m);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--accent);margin-top:12px;
+}
+/* ── FLIP CARDS — tap to reveal the agent's skills ── */
+.lib-flip{
+  background:none;border:none;overflow:visible;padding:0;border-radius:20px;
+  display:grid;perspective:1400px;cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.lib-flip:focus-visible{outline:3px solid var(--accent);outline-offset:3px;}
+.lib-flip .lib-inner{
+  position:relative;width:100%;height:100%;min-height:100%;
+  transition:transform .6s cubic-bezier(.4,.15,.2,1);
+  transform-style:preserve-3d;
+}
+.lib-flip.flipped .lib-inner{transform:rotateY(180deg);}
+.lib-flip .lib-front,.lib-flip .lib-back{
+  -webkit-backface-visibility:hidden;backface-visibility:hidden;
+  border:1.5px solid var(--ink);border-radius:20px;overflow:hidden;background:#fff;
+}
+.lib-flip .lib-front{display:flex;flex-direction:column;height:100%;}
+.lib-flip .lib-back{
+  position:absolute;inset:0;transform:rotateY(180deg);
+  display:flex;flex-direction:column;
+  padding:clamp(22px,2.4vw,32px);
+  background:linear-gradient(160deg,#FFFFFF 0%,#EAF2F8 100%);
+}
+.lib-flip .lib-back h3{
+  font-size:clamp(20px,1.7vw,26px);font-weight:600;letter-spacing:-.02em;text-transform:uppercase;
+  line-height:1;margin:8px 0 14px;
+}
+.lib-skills{list-style:none;display:flex;flex-direction:column;gap:11px;flex:1;}
+.lib-skills li{
+  position:relative;padding-left:30px;
+  font-size:clamp(14px,1.15vw,15.5px);line-height:1.35;color:var(--ink);
+}
+.lib-skills li::before{
+  content:'';position:absolute;left:0;top:1px;
+  width:20px;height:20px;border-radius:50%;
+  background:var(--accent);border:1.5px solid var(--ink);
+}
+.lib-skills li::after{
+  content:'';position:absolute;left:6.5px;top:7px;
+  width:7px;height:4px;border-left:2px solid #fff;border-bottom:2px solid #fff;
+  transform:rotate(-45deg);
+}
+.lib-flip .lib-back .lib-flip-cue{margin-top:14px;align-self:flex-start;}
+@media (prefers-reduced-motion: reduce){
+  .lib-flip .lib-inner{transition:none;}
 }
 /* CTA card — dark, action-forward */
 .lib-cta{background:var(--ink);border-color:var(--ink);}
@@ -1621,58 +1672,143 @@ html.lenis,html.lenis body{height:auto;}
       <p class="sec-intro">Ready-hatched agents for the jobs every business has — or ask us to hatch yours.</p>
     </div>
     <div class="lib">
-      <div class="lib-card lib-sales reveal">
-        <div class="lib-banner"><span class="lib-cat">Growth</span><img class="lib-illo hue-sales" src="hatchy-sales.webp" alt="Sales agent Hatchy holding a sealed letter" width="300" height="417" loading="lazy" /></div>
-        <div class="lib-body">
-          <h3>Sales</h3>
-          <p class="lib-desc">Qualifies new leads, drafts outreach in your voice, follows up so nothing goes cold.</p>
-          <div class="lib-tools">
-            <span class="tchip"><svg class="lg"><use href="#lg-hubspot"/></svg>HubSpot</span>
-            <span class="tchip"><svg class="lg"><use href="#lg-gmail"/></svg>Gmail</span>
+      <div class="lib-card lib-flip lib-sales reveal" role="button" tabindex="0" aria-pressed="false" aria-label="Sales agent — tap to see its skills">
+        <div class="lib-inner">
+          <div class="lib-front">
+            <div class="lib-banner"><span class="lib-cat">Growth</span><img class="lib-illo hue-sales" src="hatchy-sales.webp" alt="Sales agent Hatchy holding a sealed letter" width="300" height="417" loading="lazy" /></div>
+            <div class="lib-body">
+              <h3>Sales</h3>
+              <p class="lib-desc">Qualifies new leads, drafts outreach in your voice, follows up so nothing goes cold.</p>
+              <div class="lib-tools">
+                <span class="tchip"><svg class="lg"><use href="#lg-hubspot"/></svg>HubSpot</span>
+                <span class="tchip"><svg class="lg"><use href="#lg-gmail"/></svg>Gmail</span>
+              </div>
+              <span class="lib-flip-cue">Tap for skills <span aria-hidden="true">&#8635;</span></span>
+            </div>
+          </div>
+          <div class="lib-back">
+            <span class="lib-cat">Growth</span>
+            <h3>Sales can</h3>
+            <ul class="lib-skills">
+              <li>Qualify and score new leads</li>
+              <li>Write outreach in your voice</li>
+              <li>Follow up until they reply</li>
+              <li>Enrich contacts from the web</li>
+              <li>Log every touch to your CRM</li>
+            </ul>
+            <span class="lib-flip-cue">Back <span aria-hidden="true">&#8617;</span></span>
           </div>
         </div>
       </div>
-      <div class="lib-card lib-docs reveal">
-        <div class="lib-banner"><span class="lib-cat">Operations</span><img class="lib-illo hue-docs" src="hatchy-document.webp" alt="Document agent Hatchy carrying folders" width="300" height="450" loading="lazy" /></div>
-        <div class="lib-body">
-          <h3>Documents</h3>
-          <p class="lib-desc">Reports, proposals and client documents in your template and your tone, in minutes.</p>
-          <div class="lib-tools">
-            <span class="tchip"><svg class="lg"><use href="#lg-notion"/></svg>Notion</span>
-            <span class="tchip"><svg class="lg"><use href="#lg-sharepoint"/></svg>SharePoint</span>
+      <div class="lib-card lib-flip lib-docs reveal" role="button" tabindex="0" aria-pressed="false" aria-label="Document agent — tap to see its skills">
+        <div class="lib-inner">
+          <div class="lib-front">
+            <div class="lib-banner"><span class="lib-cat">Operations</span><img class="lib-illo hue-docs" src="hatchy-document.webp" alt="Document agent Hatchy carrying folders" width="300" height="450" loading="lazy" /></div>
+            <div class="lib-body">
+              <h3>Documents</h3>
+              <p class="lib-desc">Reports, proposals and client documents in your template and your tone, in minutes.</p>
+              <div class="lib-tools">
+                <span class="tchip"><svg class="lg"><use href="#lg-notion"/></svg>Notion</span>
+                <span class="tchip"><svg class="lg"><use href="#lg-sharepoint"/></svg>SharePoint</span>
+              </div>
+              <span class="lib-flip-cue">Tap for skills <span aria-hidden="true">&#8635;</span></span>
+            </div>
+          </div>
+          <div class="lib-back">
+            <span class="lib-cat">Operations</span>
+            <h3>Documents can</h3>
+            <ul class="lib-skills">
+              <li>Build reports in your template</li>
+              <li>Draft proposals and client docs</li>
+              <li>Turn live data into charts</li>
+              <li>Match last quarter's tone</li>
+              <li>File and share the final PDF</li>
+            </ul>
+            <span class="lib-flip-cue">Back <span aria-hidden="true">&#8617;</span></span>
           </div>
         </div>
       </div>
-      <div class="lib-card lib-invoice reveal">
-        <div class="lib-banner"><span class="lib-cat">Finance</span><img class="lib-illo hue-invoice" src="hatchy-invoice.webp" alt="Invoice agent Hatchy with a calculator and a long receipt" width="300" height="414" loading="lazy" /></div>
-        <div class="lib-body">
-          <h3>Invoices</h3>
-          <p class="lib-desc">Reads invoices, matches them, logs them in your accounting system, flags the odd ones out.</p>
-          <div class="lib-tools">
-            <span class="tchip"><svg class="lg"><use href="#lg-xero"/></svg>Xero</span>
-            <span class="tchip"><svg class="lg"><use href="#lg-quickbooks"/></svg>QuickBooks</span>
-            <span class="tchip"><svg class="lg"><use href="#lg-stripe"/></svg>Stripe</span>
+      <div class="lib-card lib-flip lib-invoice reveal" role="button" tabindex="0" aria-pressed="false" aria-label="Invoice agent — tap to see its skills">
+        <div class="lib-inner">
+          <div class="lib-front">
+            <div class="lib-banner"><span class="lib-cat">Finance</span><img class="lib-illo hue-invoice" src="hatchy-invoice.webp" alt="Invoice agent Hatchy with a calculator and a long receipt" width="300" height="414" loading="lazy" /></div>
+            <div class="lib-body">
+              <h3>Invoices</h3>
+              <p class="lib-desc">Reads invoices, matches them, logs them in your accounting system, flags the odd ones out.</p>
+              <div class="lib-tools">
+                <span class="tchip"><svg class="lg"><use href="#lg-xero"/></svg>Xero</span>
+                <span class="tchip"><svg class="lg"><use href="#lg-quickbooks"/></svg>QuickBooks</span>
+                <span class="tchip"><svg class="lg"><use href="#lg-stripe"/></svg>Stripe</span>
+              </div>
+              <span class="lib-flip-cue">Tap for skills <span aria-hidden="true">&#8635;</span></span>
+            </div>
+          </div>
+          <div class="lib-back">
+            <span class="lib-cat">Finance</span>
+            <h3>Invoices can</h3>
+            <ul class="lib-skills">
+              <li>Read and code every invoice</li>
+              <li>Match them to payments</li>
+              <li>Log them to your accounts</li>
+              <li>Flag duplicates and oddities</li>
+              <li>Chase what's overdue</li>
+            </ul>
+            <span class="lib-flip-cue">Back <span aria-hidden="true">&#8617;</span></span>
           </div>
         </div>
       </div>
-      <div class="lib-card lib-support reveal">
-        <div class="lib-banner"><span class="lib-cat">Operations</span><img class="lib-illo" src="hatchy-support.webp" alt="Support agent Hatchy wearing a headset" width="300" height="462" loading="lazy" /></div>
-        <div class="lib-body">
-          <h3>Support</h3>
-          <p class="lib-desc">Triages enquiries, drafts replies that sound like your team, escalates what matters.</p>
-          <div class="lib-tools">
-            <span class="tchip"><svg class="lg"><use href="#lg-zendesk"/></svg>Zendesk</span>
-            <span class="tchip"><svg class="lg"><use href="#lg-outlook"/></svg>Outlook</span>
+      <div class="lib-card lib-flip lib-support reveal" role="button" tabindex="0" aria-pressed="false" aria-label="Support agent — tap to see its skills">
+        <div class="lib-inner">
+          <div class="lib-front">
+            <div class="lib-banner"><span class="lib-cat">Operations</span><img class="lib-illo" src="hatchy-support.webp" alt="Support agent Hatchy wearing a headset" width="300" height="462" loading="lazy" /></div>
+            <div class="lib-body">
+              <h3>Support</h3>
+              <p class="lib-desc">Triages enquiries, drafts replies that sound like your team, escalates what matters.</p>
+              <div class="lib-tools">
+                <span class="tchip"><svg class="lg"><use href="#lg-zendesk"/></svg>Zendesk</span>
+                <span class="tchip"><svg class="lg"><use href="#lg-outlook"/></svg>Outlook</span>
+              </div>
+              <span class="lib-flip-cue">Tap for skills <span aria-hidden="true">&#8635;</span></span>
+            </div>
+          </div>
+          <div class="lib-back">
+            <span class="lib-cat">Operations</span>
+            <h3>Support can</h3>
+            <ul class="lib-skills">
+              <li>Triage every incoming ticket</li>
+              <li>Reply in your team's voice</li>
+              <li>Answer from your help docs</li>
+              <li>Escalate what actually matters</li>
+              <li>Tag and route each request</li>
+            </ul>
+            <span class="lib-flip-cue">Back <span aria-hidden="true">&#8617;</span></span>
           </div>
         </div>
       </div>
-      <div class="lib-card lib-web reveal">
-        <div class="lib-banner"><span class="lib-cat">Creative</span><img class="lib-illo hue-web" src="hatchy-website.webp" alt="Website agent Hatchy holding a spanner and a tablet" width="300" height="447" loading="lazy" /></div>
-        <div class="lib-body">
-          <h3>Website</h3>
-          <p class="lib-desc">Updates your site when you ask it to — new hours, new pages, new copy. Preview, approve, live.</p>
-          <div class="lib-tools">
-            <span class="tchip">🌐 Your website</span>
+      <div class="lib-card lib-flip lib-web reveal" role="button" tabindex="0" aria-pressed="false" aria-label="Website agent — tap to see its skills">
+        <div class="lib-inner">
+          <div class="lib-front">
+            <div class="lib-banner"><span class="lib-cat">Creative</span><img class="lib-illo hue-web" src="hatchy-website.webp" alt="Website agent Hatchy holding a spanner and a tablet" width="300" height="447" loading="lazy" /></div>
+            <div class="lib-body">
+              <h3>Website</h3>
+              <p class="lib-desc">Updates your site when you ask it to — new hours, new pages, new copy. Preview, approve, live.</p>
+              <div class="lib-tools">
+                <span class="tchip">🌐 Your website</span>
+              </div>
+              <span class="lib-flip-cue">Tap for skills <span aria-hidden="true">&#8635;</span></span>
+            </div>
+          </div>
+          <div class="lib-back">
+            <span class="lib-cat">Creative</span>
+            <h3>Website can</h3>
+            <ul class="lib-skills">
+              <li>Update copy, hours and pages</li>
+              <li>Publish new blog posts</li>
+              <li>Swap images and banners</li>
+              <li>Build a staging preview first</li>
+              <li>Go live on your approval</li>
+            </ul>
+            <span class="lib-flip-cue">Back <span aria-hidden="true">&#8617;</span></span>
           </div>
         </div>
       </div>
@@ -2035,6 +2171,20 @@ async function postLead(kind, payload){
       if (e.isIntersecting){ table.classList.add('is-visible'); io.disconnect(); }
     });
   }, { threshold: 0.25 }).observe(table);
+})();
+
+/* ── AGENT LIBRARY — tap a card to flip it and show the agent's skills ── */
+(function libFlip(){
+  document.querySelectorAll('.lib-flip').forEach(function(card){
+    function toggle(){
+      var on = card.classList.toggle('flipped');
+      card.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    card.addEventListener('click', toggle);
+    card.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggle(); }
+    });
+  });
 })();
 
 /* ── HATCHY IN SLACK / TEAMS ──────────────────────────────────────────────
