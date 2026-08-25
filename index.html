@@ -570,7 +570,6 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   transition:background .15s,color .15s;
 }
 .ws-chan .hash{color:var(--ws-dim);font-weight:400;margin-right:-4px;}
-.ws-chan .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .ws-chan:hover{background:rgba(22,21,15,.05);color:var(--ws-text);}
 .ws-chan.is-active{background:var(--ws-hot-bg);color:var(--ws-text);font-weight:700;}
 .ws-chan.is-active .hash{color:var(--ws-text);}
@@ -1575,11 +1574,11 @@ html.lenis,html.lenis body{height:auto;}
             <div class="ws-side-head"><span id="wsBrandIcon" aria-hidden="true"></span><span>Agent Hatchers</span><span class="caret" aria-hidden="true">▾</span></div>
             <div class="ws-side-label">Channels</div>
             <div id="wsChanList" role="tablist" aria-label="Choose a channel">
-              <button class="ws-chan is-active" type="button" role="tab" aria-selected="true" data-agent="invoice"><span class="dot" style="background:#2E9E6B"></span><span class="hash">#</span> invoice-generator</button>
-              <button class="ws-chan" type="button" role="tab" aria-selected="false" data-agent="sales"><span class="dot" style="background:#E86A4C"></span><span class="hash">#</span> sales-agent</button>
-              <button class="ws-chan" type="button" role="tab" aria-selected="false" data-agent="docs"><span class="dot" style="background:#7B5FC7"></span><span class="hash">#</span> document-generator</button>
-              <button class="ws-chan" type="button" role="tab" aria-selected="false" data-agent="web"><span class="dot" style="background:#E86AA8"></span><span class="hash">#</span> website-agent</button>
-              <button class="ws-chan" type="button" role="tab" aria-selected="false" data-agent="email"><span class="dot" style="background:#2FA8C8"></span><span class="hash">#</span> email-assistant</button>
+              <button class="ws-chan is-active" type="button" role="tab" aria-selected="true" data-agent="invoice"><span class="hash">#</span> invoice-generator</button>
+              <button class="ws-chan" type="button" role="tab" aria-selected="false" data-agent="sales"><span class="hash">#</span> sales-agent</button>
+              <button class="ws-chan" type="button" role="tab" aria-selected="false" data-agent="docs"><span class="hash">#</span> document-generator</button>
+              <button class="ws-chan" type="button" role="tab" aria-selected="false" data-agent="web"><span class="hash">#</span> website-agent</button>
+              <button class="ws-chan" type="button" role="tab" aria-selected="false" data-agent="email"><span class="hash">#</span> email-assistant</button>
             </div>
           </aside>
 
@@ -2161,7 +2160,7 @@ const AGENTS = {
     team: 'Agent Hatchers', teamChannel: 'invoice-generator',
     blurb: 'Invoice Generator — in this channel',
     script: [
-      { t:'msg', who:'you', name:'You', av:'YO', time:'9:02', cmd:'@invoice-generator chase everything unpaid over 30 days' },
+      { t:'msg', who:'you', name:'You', av:'YO', time:'9:02', cmd:'@Hatchy chase everything unpaid over 30 days' },
       { t:'work', steps:[
         'Opened Xero — 62 open invoices',
         'Filtered to 30+ days overdue — 11 invoices, <b>A$84,320</b>',
@@ -2194,7 +2193,7 @@ const AGENTS = {
     team: 'Agent Hatchers', teamChannel: 'sales-agent',
     blurb: 'Sales Agent — in this channel',
     script: [
-      { t:'msg', who:'you', name:'You', av:'YO', time:'7:41', cmd:'@sales-agent anything worth my time from overnight?' },
+      { t:'msg', who:'you', name:'You', av:'YO', time:'7:41', cmd:'@Hatchy anything worth my time from overnight?' },
       { t:'work', steps:[
         'Read 14 new form fills from the website',
         'Enriched each against HubSpot and their own site',
@@ -2216,7 +2215,7 @@ const AGENTS = {
         reacts:[{e:'🔥',n:4,hot:true},{e:'👀',n:2}] },
       { t:'sep', text:'Thursday, 11:20am' },
       { t:'msg', who:'mate', name:'Dan Whitfield', av:'DW', time:'11:20',
-        text:'<p><span class="mention">@sales-agent</span> Sarah just called me instead. Can you get me her numbers before 12?</p>' },
+        text:'<p><span class="mention">@Hatchy</span> Sarah just called me instead. Can you get me her numbers before 12?</p>' },
       { t:'msg', who:'bot', time:'11:20', text:
         '<p>On it — 40 staff, ~A$14m turnover, two offices, current tool is a spreadsheet. Full brief in your DM, plus the three objections her industry always raises and how we answer them.</p>' +
         '<p>You’ve got 38 minutes. Good luck.</p>',
@@ -2230,7 +2229,7 @@ const AGENTS = {
     blurb: 'Document Generator — in this channel',
     script: [
       { t:'msg', who:'mate', name:'Priya Nair', av:'PN', time:'2:15',
-        text:'<p><span class="mention">@document-generator</span> Harrison want their Q3 report by close of play. Can you?</p>' },
+        text:'<p><span class="mention">@Hatchy</span> Harrison want their Q3 report by close of play. Can you?</p>' },
       { t:'work', steps:[
         'Pulled Q3 actuals from Xero',
         'Pulled campaign numbers from HubSpot',
@@ -2260,7 +2259,7 @@ const AGENTS = {
     team: 'Agent Hatchers', teamChannel: 'website-agent',
     blurb: 'Website Agent — in this channel',
     script: [
-      { t:'msg', who:'you', name:'You', av:'YO', time:'4:48', cmd:'@website-agent we’re open Saturdays now, 9–2' },
+      { t:'msg', who:'you', name:'You', av:'YO', time:'4:48', cmd:'@Hatchy we’re open Saturdays now, 9–2' },
       { t:'work', steps:[
         'Searched the site for opening hours — found 4 places, not 1',
         'Homepage, contact page, footer, and the booking widget',
@@ -2289,7 +2288,7 @@ const AGENTS = {
     team: 'Agent Hatchers', teamChannel: 'email-assistant',
     blurb: 'Email Assistant — in this channel',
     script: [
-      { t:'msg', who:'you', name:'You', av:'YO', time:'8:12', cmd:'@email-assistant what came in overnight that actually needs me?' },
+      { t:'msg', who:'you', name:'You', av:'YO', time:'8:12', cmd:'@Hatchy what came in overnight that actually needs me?' },
       { t:'work', steps:[
         'Read 38 new emails since 6pm',
         'Grouped them by sender and thread',
