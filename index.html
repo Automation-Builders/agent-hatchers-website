@@ -1041,7 +1041,8 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   background:var(--accent);color:#fff;
   border-left:1.5px solid var(--ink);border-right:1.5px solid var(--ink);
 }
-.compare .mark{
+.compare .cwrap{display:flex;align-items:flex-start;}
+.compare .mark{margin-top:0;
   display:inline-grid;place-items:center;flex-shrink:0;
   width:24px;height:24px;border-radius:50%;margin-right:9px;vertical-align:-6px;
   font-size:13px;font-weight:800;
@@ -1867,43 +1868,43 @@ html.lenis,html.lenis body{height:auto;}
         <tbody>
           <tr>
             <th scope="row">What you get back</th>
-            <td class="co-us"><span class="mark mark-yes" style="--d:0">✓</span>Finished work — sent, filed, live</td>
-            <td><span class="mark mark-no" style="--d:0">–</span>An answer you act on</td>
+            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:0">✓</span>Finished work — sent, filed, live</span></td>
+            <td><span class="cwrap"><span class="mark mark-no" style="--d:0">–</span>An answer you act on</span></td>
           </tr>
           <tr>
             <th scope="row">Where it lives</th>
-            <td class="co-us"><span class="mark mark-yes" style="--d:1">✓</span>Inside your Slack &amp; Teams</td>
-            <td><span class="mark mark-no" style="--d:1">–</span>Its own separate app</td>
+            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:1">✓</span>Inside your Slack &amp; Teams</span></td>
+            <td><span class="cwrap"><span class="mark mark-no" style="--d:1">–</span>Its own separate app</span></td>
           </tr>
           <tr>
             <th scope="row">Knows your business</th>
-            <td class="co-us"><span class="mark mark-yes" style="--d:2">✓</span>Your tone, templates &amp; tools</td>
-            <td><span class="mark mark-no" style="--d:2">–</span>Starts generic every time</td>
+            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:2">✓</span>Your tone, templates &amp; tools</span></td>
+            <td><span class="cwrap"><span class="mark mark-no" style="--d:2">–</span>Starts generic every time</span></td>
           </tr>
           <tr>
             <th scope="row">The harness around it</th>
-            <td class="co-us"><span class="mark mark-yes" style="--d:3">✓</span>Skills, memory &amp; approvals wrapped around the model</td>
-            <td><span class="mark mark-no" style="--d:3">–</span>Just the raw model in a chat box</td>
+            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:3">✓</span>Skills, memory &amp; approvals wrapped around the model</span></td>
+            <td><span class="cwrap"><span class="mark mark-no" style="--d:3">–</span>Just the raw model in a chat box</span></td>
           </tr>
           <tr>
             <th scope="row">What you pay</th>
-            <td class="co-us"><span class="mark mark-yes" style="--d:4">✓</span>Per token, at cost — only what you use</td>
-            <td><span class="mark mark-no" style="--d:4">–</span>A flat per-seat fee, every month</td>
+            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:4">✓</span>Per token, at cost — only what you use</span></td>
+            <td><span class="cwrap"><span class="mark mark-no" style="--d:4">–</span>A flat per-seat fee, every month</span></td>
           </tr>
           <tr>
             <th scope="row">The AI inside</th>
-            <td class="co-us"><span class="mark mark-yes" style="--d:5">✓</span>Any model — swap in one click</td>
-            <td><span class="mark mark-no" style="--d:5">–</span>Locked to one vendor's models</td>
+            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:5">✓</span>Any model — swap in one click</span></td>
+            <td><span class="cwrap"><span class="mark mark-no" style="--d:5">–</span>Locked to one vendor's models</span></td>
           </tr>
           <tr>
             <th scope="row">Data &amp; security</th>
-            <td class="co-us"><span class="mark mark-yes" style="--d:6">✓</span>Your own install — scoped access, human approval, never trains AI</td>
-            <td><span class="mark mark-no" style="--d:6">–</span>A shared chat app you paste data into</td>
+            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:6">✓</span>Your own install — scoped access, human approval, never trains AI</span></td>
+            <td><span class="cwrap"><span class="mark mark-no" style="--d:6">–</span>A shared chat app you paste data into</span></td>
           </tr>
           <tr>
             <th scope="row">Set-up &amp; upkeep</th>
-            <td class="co-us"><span class="mark mark-yes" style="--d:7">✓</span>We install &amp; maintain it for you</td>
-            <td><span class="mark mark-no" style="--d:7">–</span>You're on your own</td>
+            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:7">✓</span>We install &amp; maintain it for you</span></td>
+            <td><span class="cwrap"><span class="mark mark-no" style="--d:7">–</span>You're on your own</span></td>
           </tr>
         </tbody>
       </table>
