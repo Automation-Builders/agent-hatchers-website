@@ -544,6 +544,10 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 .hue-docs{filter:hue-rotate(75deg) saturate(.9) drop-shadow(0 4px 8px rgba(22,21,15,.10));}        /* blue → grape  */
 .hue-web{filter:hue-rotate(110deg) saturate(.95) drop-shadow(0 4px 8px rgba(22,21,15,.10));}       /* blue → pink   */
 .hue-email{filter:hue-rotate(-40deg) saturate(1.1) drop-shadow(0 4px 8px rgba(22,21,15,.10));}     /* blue → cyan   */
+.hue-meme{filter:hue-rotate(205deg) saturate(1.25) drop-shadow(0 4px 8px rgba(22,21,15,.10));}     /* blue → magenta*/
+.hue-hype{filter:hue-rotate(25deg) saturate(1.35) drop-shadow(0 4px 8px rgba(22,21,15,.10));}      /* blue → gold   */
+.hue-news{filter:hue-rotate(-120deg) saturate(.85) drop-shadow(0 4px 8px rgba(22,21,15,.10));}     /* blue → red    */
+.hue-test{filter:grayscale(.85) drop-shadow(0 4px 8px rgba(22,21,15,.10));}                        /* sandbox grey  */
 
 /* the mock splits into a channel sidebar + the conversation, like Slack */
 .ws-shell{display:flex;flex:1;min-height:0;align-items:stretch;}
@@ -1579,6 +1583,10 @@ html.lenis,html.lenis body{height:auto;}
               <button class="ws-chan" type="button" role="tab" aria-selected="false" data-agent="docs"><span class="hash">#</span> document-generator</button>
               <button class="ws-chan" type="button" role="tab" aria-selected="false" data-agent="web"><span class="hash">#</span> website-agent</button>
               <button class="ws-chan" type="button" role="tab" aria-selected="false" data-agent="email"><span class="hash">#</span> email-assistant</button>
+              <button class="ws-chan" type="button" role="tab" aria-selected="false" data-agent="meme"><span class="hash">#</span> meme-lord</button>
+              <button class="ws-chan" type="button" role="tab" aria-selected="false" data-agent="hype"><span class="hash">#</span> hype-agent</button>
+              <button class="ws-chan" type="button" role="tab" aria-selected="false" data-agent="news"><span class="hash">#</span> news-agent</button>
+              <button class="ws-chan" type="button" role="tab" aria-selected="false" data-agent="test"><span class="hash">#</span> test-channel</button>
             </div>
           </aside>
 
@@ -2184,7 +2192,7 @@ const AGENTS = {
       { t:'msg', who:'bot', time:'8:00', text:
         '<p>Morning. <strong>4 of the 9 paid</strong> — A$38,110 in. Logged and reconciled.</p>' +
         '<p>Meridian replied asking for a payment plan. That’s above my pay grade, so it’s sitting in your inbox with a suggested split.</p>',
-        thread:{ n:3, text:'Priya, Dan and 1 other replied' } }
+        thread:{ n:3, text:'3 clients replied' } }
     ]
   },
 
@@ -2214,12 +2222,12 @@ const AGENTS = {
         '<p>If she hasn’t replied by Thursday I’ll follow up once. If she opens it three times without replying, I’ll tell you — that usually means she’s forwarding it to someone.</p>',
         reacts:[{e:'🔥',n:4,hot:true},{e:'👀',n:2}] },
       { t:'sep', text:'Thursday, 11:20am' },
-      { t:'msg', who:'mate', name:'Dan Whitfield', av:'DW', time:'11:20',
+      { t:'msg', who:'you', name:'You', av:'YO', time:'11:20',
         text:'<p><span class="mention">@Hatchy</span> Sarah just called me instead. Can you get me her numbers before 12?</p>' },
       { t:'msg', who:'bot', time:'11:20', text:
         '<p>On it — 40 staff, ~A$14m turnover, two offices, current tool is a spreadsheet. Full brief in your DM, plus the three objections her industry always raises and how we answer them.</p>' +
         '<p>You’ve got 38 minutes. Good luck.</p>',
-        thread:{ n:1, text:'Dan replied' } }
+        thread:{ n:1, text:'You replied' } }
     ]
   },
 
@@ -2228,7 +2236,7 @@ const AGENTS = {
     team: 'Agent Hatchers', teamChannel: 'document-generator',
     blurb: 'Document Generator — in this channel',
     script: [
-      { t:'msg', who:'mate', name:'Priya Nair', av:'PN', time:'2:15',
+      { t:'msg', who:'you', name:'You', av:'YO', time:'2:15',
         text:'<p><span class="mention">@Hatchy</span> Harrison want their Q3 report by close of play. Can you?</p>' },
       { t:'work', steps:[
         'Pulled Q3 actuals from Xero',
@@ -2241,7 +2249,7 @@ const AGENTS = {
         '<p><strong>Four minutes.</strong> 14 pages, your template, your tone, charts in.</p>' +
         '<p>One thing before it goes: their October ad spend jumped 60% and nobody logged why. I’ve written it as a neutral observation rather than guessing — if you know the reason, tell me and I’ll rewrite page 9.</p>',
         file:{ name:'harrison-q3-review.pdf', meta:'PDF · 14 pages · also saved as .docx' } },
-      { t:'msg', who:'mate', name:'Priya Nair', av:'PN', time:'2:21',
+      { t:'msg', who:'you', name:'You', av:'YO', time:'2:21',
         text:'<p>New warehouse launch. Say it was planned.</p>' },
       { t:'msg', who:'bot', time:'2:21', text:
         '<p>Page 9 rewritten <span class="tick">✓</span> Now reads as a planned launch spend with the return so far.</p>' },
@@ -2312,6 +2320,94 @@ const AGENTS = {
       { t:'msg', who:'bot', time:'11:40', text:
         '<p>Heads up — a client just replied <strong>“not happy”</strong> to an invoice. That’s a tone I don’t auto-answer, so I’ve left it unread at the top of your inbox with the thread summarised.</p>',
         thread:{ n:1, text:'You opened the thread' } }
+    ]
+  },
+
+  meme: {
+    bot: 'Meme Lord', hue: 'hue-meme', channel: 'meme-lord',
+    team: 'Agent Hatchers', teamChannel: 'meme-lord',
+    blurb: 'Meme Lord — in this channel',
+    script: [
+      { t:'msg', who:'you', name:'You', av:'YO', time:'4:31', cmd:'@Hatchy we just hit 1,000 signups 🎉 make something the team will actually share' },
+      { t:'work', steps:[
+        'Grabbed the milestone from Stripe',
+        'Checked what the team actually reacted to last time',
+        'Drafted three, kept the one that landed'
+      ]},
+      { t:'msg', who:'bot', time:'4:31', text:
+        '<p>1,000. Let’s go. 🚀</p>' +
+        '<p>Made you three — this one won by a mile.</p>',
+        file:{ name:'1k-signups.png', meta:'PNG · 1200×1200 · sized for the group chat' } },
+      { t:'approve', label:'Waiting on you', body:'Post it to #general and pin it for the day?',
+        btns:['Post & pin','Just DM it to me'], pick:0 },
+      { t:'msg', who:'you', name:'You', av:'YO', time:'4:32', text:'Post it.' },
+      { t:'msg', who:'bot', time:'4:32', text:
+        '<p>Posted <span class="tick">✓</span> Pinned to #general.</p>' +
+        '<p>Four people reacted before I finished typing this. Want a story-sized cut for socials?</p>',
+        reacts:[{e:'😂',n:11,hot:true},{e:'🔥',n:5}] }
+    ]
+  },
+
+  hype: {
+    bot: 'Hype Agent', hue: 'hue-hype', channel: 'hype-agent',
+    team: 'Agent Hatchers', teamChannel: 'hype-agent',
+    blurb: 'Hype Agent — in this channel',
+    script: [
+      { t:'msg', who:'you', name:'You', av:'YO', time:'3:04', cmd:'@Hatchy Meridian just signed — biggest deal this year' },
+      { t:'work', steps:[
+        'Pulled the deal value from HubSpot',
+        'Checked who worked it end to end',
+        'Wrote the shout-out in your team’s voice'
+      ]},
+      { t:'msg', who:'bot', time:'3:04', text:
+        '<p><strong>HUGE.</strong> 🎉 A$180k ARR — the biggest close of the year, and it was run start to finish in-house.</p>' +
+        '<p>Announcement’s ready for #wins, credit where it’s due.</p>' },
+      { t:'approve', label:'Waiting on you', body:'Post to #wins and give the team a heads-up?',
+        btns:['Post it','Tone it down'], pick:0 },
+      { t:'msg', who:'you', name:'You', av:'YO', time:'3:05', text:'Post it.' },
+      { t:'msg', who:'bot', time:'3:05', text:
+        '<p>Posted to #wins <span class="tick">✓</span> The whole team’s piling in already.</p>' +
+        '<p>I’ll keep watching the pipeline — next time something big closes I’ll draft the shout-out and wait for your nod.</p>',
+        reacts:[{e:'🎉',n:14,hot:true},{e:'🙌',n:7}] }
+    ]
+  },
+
+  news: {
+    bot: 'News Agent', hue: 'hue-news', channel: 'news-agent',
+    team: 'Agent Hatchers', teamChannel: 'news-agent',
+    blurb: 'News Agent — in this channel',
+    script: [
+      { t:'msg', who:'you', name:'You', av:'YO', time:'7:02', cmd:'@Hatchy anything happen in our space overnight I should know about?' },
+      { t:'work', steps:[
+        'Scanned 40 sources since 6pm',
+        'Filtered to your industry and your competitors',
+        'Kept the 3 that actually change your day'
+      ]},
+      { t:'msg', who:'bot', time:'7:03', text:
+        '<p><strong>3 worth your time.</strong></p>' +
+        '<ul><li><strong>Your biggest competitor</strong> raised A$20m and is pushing into your market — worth a strategy chat.</li>' +
+        '<li><strong>New AI rules for finance</strong> land in March. I’ve flagged the two clauses that touch you.</li>' +
+        '<li><strong>A tool you already use</strong> shipped the API you’ve wanted for months.</li></ul>' +
+        '<p>Want this in here every morning at 8? Say the word and it’s a standing job.</p>',
+        file:{ name:'overnight-brief.pdf', meta:'PDF · 1 page · every claim linked to its source' },
+        reacts:[{e:'📰',n:3},{e:'👀',n:2,hot:true}] }
+    ]
+  },
+
+  test: {
+    bot: 'Test Bot', hue: 'hue-test', channel: 'test-channel',
+    team: 'Agent Hatchers', teamChannel: 'test-channel',
+    blurb: 'Test Bot — your sandbox',
+    script: [
+      { t:'msg', who:'you', name:'You', av:'YO', time:'10:15', cmd:'@Hatchy is this thing on?' },
+      { t:'msg', who:'bot', time:'10:15', text:
+        '<p>Loud and clear 👋 This is your <strong>sandbox</strong> — try anything in here. Nothing’s wired to your real tools, so you can’t break a thing.</p>' +
+        '<p>Ask me to draft an email, summarise a doc, crunch a number — see how I sound before you point me at the real stuff.</p>' },
+      { t:'msg', who:'you', name:'You', av:'YO', time:'10:16', text:'ok — put our refund policy in one line' },
+      { t:'msg', who:'bot', time:'10:16', text:
+        '<p>“Refunds within 30 days, no questions asked — email support and we sort it same day.”</p>' +
+        '<p>Happy with that tone? Tweak me here, and I’ll carry it into the live channels.</p>',
+        reacts:[{e:'✅',n:2,hot:true}] }
     ]
   }
 };
