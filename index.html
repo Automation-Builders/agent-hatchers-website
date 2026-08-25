@@ -36,7 +36,7 @@
       "url": "https://agenthatchers.com/",
       "logo": "https://agenthatchers.com/agent-hatchers-logo.png",
       "image": "https://agenthatchers.com/agent-hatchers-logo.png",
-      "description": "Australian AI studio. We hatch AI agents for your business on Hermes — your own AI platform, where each agent owns one business job from request to finished deliverable. Choose A$10,000, A$25,000 including 10 agents, or bespoke from A$50,000. Platform-only rental is A$949/month without agents included. AI usage billed at cost.",
+      "description": "Australian AI studio. We hatch AI agents for your business on Hermes — your own AI platform, where each agent owns one business job from request to finished deliverable. Choose A$10,000, A$25,000 with the agent marketplace, or bespoke from A$50,000. Platform-only rental is A$949/month without agents included. AI usage billed at cost.",
       "foundingLocation": { "@type": "Place", "name": "Australia" },
       "areaServed": { "@type": "Country", "name": "Australia" },
       "founder": [
@@ -115,7 +115,7 @@
           "name": "How much does it cost?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Three tiers: Basic is A$10,000 and then A$499/month. Standard is A$25,000 with 10 hatched agents included, then A$499/month. Premium starts from A$50,000 for bespoke enterprise agents. Prefer not to own it? Rent the platform for A$949/month with no install fee — agents not included. AI usage is billed at cost: you pay only for what your agents actually use, not a per-seat licence."
+            "text": "Three tiers: Basic is A$10,000 and then A$499/month. Standard is A$25,000 with our agent marketplace to pick and hatch from, then A$499/month. Premium starts from A$50,000 for bespoke enterprise agents. Prefer not to own it? Rent the platform for A$949/month with no install fee — agents not included. AI usage is billed at cost: you pay only for what your agents actually use, not a per-seat licence."
           }
         },
         {
@@ -178,14 +178,10 @@
   --ink-30:   rgba(22,21,15,.30);
   --line:     rgba(22,21,15,.18);
   --line-soft:rgba(22,21,15,.10);
-  --accent:   #216BAC;
+  /* Hatchy brand */
+  --accent:   #216BAC;   /* main blue  */
+  --accent-2: #C1DCE8;   /* light blue */
 
-  /* the crayon box */
-  --sky:    #3A9FD8;
-  --yolk:   #F5B72F;
-  --coral:  #E86A4C;
-  --mint:   #2E9E6B;
-  --grape:  #7B5FC7;
   --egg:    #F6EBD4;
   --egg-spot:#2E7FC0;
 
@@ -249,10 +245,6 @@ em.s, .serif-i{
 }
 .sticker::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;
   background:var(--accent);margin-right:8px;vertical-align:1px;}
-.sticker.st-sky::before{background:var(--sky);}
-.sticker.st-mint::before{background:var(--mint);}
-.sticker.st-coral::before{background:var(--coral);}
-.sticker.st-grape::before{background:var(--grape);}
 .sticker.st-paper::before{background:var(--ink-30);}
 
 /* inline tool chip — a real logo next to every tool we name */
@@ -903,12 +895,8 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   padding:clamp(28px,3vw,44px);
   border-bottom:1.5px solid var(--ink);
   min-height:clamp(230px,21vw,320px);
+  background:linear-gradient(160deg,#E8F1F6 0%,var(--accent-2) 100%);
 }
-.lib-sales    .lib-banner{background:linear-gradient(150deg,#FCE8DC 0%,#F9DCC8 100%);}
-.lib-docs     .lib-banner{background:linear-gradient(150deg,#ECE6F8 0%,#E2D9F4 100%);}
-.lib-invoice  .lib-banner{background:linear-gradient(150deg,#E0F2E8 0%,#D3ECDD 100%);}
-.lib-support  .lib-banner{background:linear-gradient(150deg,#E0EDF8 0%,#D4E5F5 100%);}
-.lib-web      .lib-banner{background:linear-gradient(150deg,#FBE4EE 0%,#F7D7E6 100%);}
 .lib-illo{
   width:clamp(160px,15vw,220px);height:auto;object-fit:contain;
   transition:transform .32s cubic-bezier(.34,1.56,.64,1);
@@ -922,13 +910,8 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   position:absolute;top:14px;right:14px;
   font-family:var(--font-m);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
   border:1px solid var(--ink);border-radius:999px;padding:4px 11px;
-  background:#fff;
+  background:var(--accent);color:#fff;
 }
-.lib-sales .lib-cat{background:var(--coral);color:#fff;}
-.lib-docs .lib-cat{background:var(--grape);color:#fff;}
-.lib-invoice .lib-cat{background:var(--mint);color:#fff;}
-.lib-support .lib-cat{background:var(--grape);color:#fff;} /* Operations — same as Documents */
-.lib-web .lib-cat{background:var(--yolk);}
 .lib-card h3{
   font-size:clamp(21px,1.8vw,27px);font-weight:600;letter-spacing:-.02em;
   line-height:1;text-transform:uppercase;
@@ -940,7 +923,7 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 /* CTA card — dark, action-forward */
 .lib-cta{background:var(--ink);border-color:var(--ink);}
 .lib-cta .lib-body{gap:10px;justify-content:center;padding:clamp(24px,2.4vw,36px);}
-.lib-cta .lib-kicker{font-family:var(--font-m);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--yolk);}
+.lib-cta .lib-kicker{font-family:var(--font-m);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-2);}
 .lib-cta h3{
   color:var(--paper);text-transform:none;font-weight:400;
   font-family:var(--font-s);font-style:italic;font-size:clamp(24px,2vw,30px);letter-spacing:-.01em;line-height:1.1;
@@ -1000,7 +983,7 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   width:24px;height:24px;border-radius:50%;margin-right:9px;vertical-align:-6px;
   font-size:13px;font-weight:800;
 }
-.compare .mark-yes{background:var(--mint);color:#fff;border:1.5px solid var(--ink);}
+.compare .mark-yes{background:var(--accent);color:#fff;border:1.5px solid var(--ink);}
 .compare .mark-no{background:var(--paper-2);color:var(--ink-50);border:1.5px solid var(--line);}
 /* ticks stamp themselves in as the table scrolls into view */
 .js .compare .mark{transform:scale(0);}
@@ -1044,7 +1027,7 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   padding:11px 0;border-top:1px solid var(--line-soft);
   display:flex;gap:11px;align-items:baseline;
 }
-.tier ul li::before{content:'✓';font-weight:800;color:var(--mint);flex-shrink:0;}
+.tier ul li::before{content:'✓';font-weight:800;color:var(--accent);flex-shrink:0;}
 .tier ul li strong{color:var(--ink);font-weight:600;}
 .tier .btn{margin-top:auto;}
 /* the standard tier sits forward, quietly */
@@ -1058,14 +1041,14 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 .tier-hot .tier-for{color:rgba(244,241,234,.72);}
 .tier-hot .tier-amount span{color:rgba(244,241,234,.6);}
 .tier-hot ul li{color:rgba(244,241,234,.78);border-top-color:rgba(244,241,234,.16);}
-.tier-hot ul li::before{color:var(--yolk);}
+.tier-hot ul li::before{color:var(--accent-2);}
 .tier-hot ul li strong{color:var(--paper);}
-.tier-hot .btn{background:var(--yolk);border-color:var(--yolk);color:var(--ink);box-shadow:none;}
+.tier-hot .btn{background:var(--accent-2);border-color:var(--accent-2);color:var(--ink);box-shadow:none;}
 .tier-hot .btn:hover{background:var(--paper);border-color:var(--paper);transform:none;box-shadow:none;}
 .tier-flag{
   position:absolute;top:-14px;left:50%;transform:translateX(-50%);
   font-family:var(--font-m);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
-  background:var(--yolk);border:1px solid var(--ink);border-radius:999px;
+  background:var(--accent);color:#fff;border:1px solid var(--ink);border-radius:999px;
   padding:6px 16px;white-space:nowrap;
 }
 @media(max-width:900px){
@@ -1118,10 +1101,10 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   width:44px;height:44px;border-radius:12px;border:1px solid var(--ink);
   display:grid;place-items:center;font-size:20px;
 }
-.safe:nth-child(1) .safe-ic{background:var(--sky);}
-.safe:nth-child(2) .safe-ic{background:var(--yolk);}
-.safe:nth-child(3) .safe-ic{background:var(--mint);}
-.safe:nth-child(4) .safe-ic{background:var(--coral);}
+.safe:nth-child(1) .safe-ic{background:var(--accent);}
+.safe:nth-child(2) .safe-ic{background:var(--accent-2);}
+.safe:nth-child(3) .safe-ic{background:var(--accent);}
+.safe:nth-child(4) .safe-ic{background:var(--accent-2);}
 .safe h3{
   font-size:clamp(17px,1.4vw,21px);font-weight:600;letter-spacing:-.02em;line-height:1.15;
 }
@@ -1787,11 +1770,11 @@ html.lenis,html.lenis body{height:auto;}
       <div class="tier tier-hot reveal">
         <span class="tier-flag">Most popular</span>
         <h3>Standard</h3>
-        <p class="tier-for">Everything in Basic, plus we hatch your first ten.</p>
+        <p class="tier-for">Everything in Basic, plus our agent marketplace.</p>
         <div class="tier-amount">A$25,000 <span>one-off · then A$499/month</span></div>
         <ul>
           <li>Everything in <strong>Basic</strong></li>
-          <li><strong>10 agents hatched for you</strong>, ready on day one</li>
+          <li><strong>Pick and hatch your agents</strong> from our marketplace</li>
           <li>Best for teams automating several jobs at once</li>
           <li>Hosting, updates and support covered</li>
         </ul>
@@ -1913,7 +1896,7 @@ html.lenis,html.lenis body{height:auto;}
       </details>
       <details class="faq-item reveal" id="faq-cost">
         <summary>How much does it cost?<span class="faq-icon">+</span></summary>
-        <div class="faq-body">Three tiers: Basic is A$10,000 and then A$499/month. Standard is A$25,000 with 10 hatched agents included, then A$499/month. Premium starts from A$50,000 for bespoke enterprise agents. Prefer not to own it? Rent the platform for A$949/month with no install fee — agents not included. AI usage is billed at cost through OpenRouter: you pay for what your agents actually use, not a per-seat licence.</div>
+        <div class="faq-body">Three tiers: Basic is A$10,000 and then A$499/month. Standard is A$25,000 with our agent marketplace to pick and hatch from, then A$499/month. Premium starts from A$50,000 for bespoke enterprise agents. Prefer not to own it? Rent the platform for A$949/month with no install fee — agents not included. AI usage is billed at cost through OpenRouter: you pay for what your agents actually use, not a per-seat licence.</div>
       </details>
       <details class="faq-item reveal" id="faq-chatgpt">
         <summary>Why not just use ChatGPT or Claude?<span class="faq-icon">+</span></summary>
