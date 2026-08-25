@@ -3,24 +3,17 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="Meet the team behind Agent Hatchers — an Australian, founder-led AI studio. Two founders on every installation." />
-<title>Team — Agent Hatchers</title>
-<link rel="canonical" href="https://agenthatchers.com/team.html" />
+<meta name="description" content="Agent Hatchers pricing — Basic, Standard and Premium, plus a rent option. Every tier covers hosting, updates and support. AI billed at cost." />
+<title>Pricing — Agent Hatchers</title>
+<link rel="canonical" href="https://agenthatchers.com/pricing.html" />
 <link rel="icon" type="image/png" href="agent-hatchers-mark.png" />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://agenthatchers.com/team.html" />
-<meta property="og:title" content="Team — Agent Hatchers" />
-<meta property="og:description" content="Meet the founders behind Agent Hatchers — Australian-built, founder-led." />
+<meta property="og:url" content="https://agenthatchers.com/pricing.html" />
+<meta property="og:title" content="Pricing — Agent Hatchers" />
+<meta property="og:description" content="Simple pricing — Basic, Standard, Premium, or rent the platform. AI billed at cost." />
 <meta property="og:image" content="https://agenthatchers.com/agent-hatchers-logo.png" />
 <script type="application/ld+json">
-{
-  "@context":"https://schema.org","@type":"AboutPage","url":"https://agenthatchers.com/team.html","name":"Team — Agent Hatchers",
-  "about":{"@type":"Organization","name":"Agent Hatchers","url":"https://agenthatchers.com/"},
-  "mainEntity":[
-    {"@type":"Person","name":"Noah Webb","jobTitle":"CEO & Co-founder","image":"https://agenthatchers.com/noah.jpg","worksFor":{"@type":"Organization","name":"Agent Hatchers"},"sameAs":["https://au.linkedin.com/in/noah-webb-5795151a6"]},
-    {"@type":"Person","name":"Hyein Yu","jobTitle":"Founder & Head of Engineering","image":"https://agenthatchers.com/hyein.jpg","worksFor":{"@type":"Organization","name":"Agent Hatchers"},"sameAs":["https://www.linkedin.com/in/hye-in-yu/"]}
-  ]
-}
+{"@context":"https://schema.org","@type":"WebPage","url":"https://agenthatchers.com/pricing.html","name":"Pricing — Agent Hatchers","about":{"@type":"Organization","name":"Agent Hatchers","url":"https://agenthatchers.com/"}}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -99,16 +92,6 @@ em.s, .serif-i{
   letter-spacing:0;text-transform:none;
 }
 /* sticker labels — section numbers with a crayon behind them */
-/* section eyebrow — a quiet mono tag with a subtle colour cue, not a scrapbook sticker */
-.sticker{
-  display:inline-block;font-family:var(--font-m);font-size:11px;font-weight:700;
-  letter-spacing:.14em;text-transform:uppercase;
-  padding:5px 13px;border:1px solid var(--line);border-radius:999px;
-  background:var(--paper);color:var(--ink-70);
-}
-.sticker::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;
-  background:var(--accent);margin-right:8px;vertical-align:1px;}
-.sticker.st-paper::before{background:var(--ink-30);}
 
 /* inline tool chip — a real logo next to every tool we name */
 .tchip{
@@ -380,7 +363,6 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   font-size:clamp(16px,1.3vw,19px);color:var(--ink-70);line-height:1.6;
   max-width:42ch;
 }
-.sec-intro .sticker{margin-bottom:14px;}
 @media(max-width:860px){
   .sec-head{flex-direction:column;gap:18px;}
 }
@@ -948,32 +930,37 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 }
 .price-foot strong{color:var(--ink);font-weight:600;}
 
-/* ── SECURITY — short, human, four cards ── */
+/* ── SECURITY — two roomy rows, icon beside the words ── */
 .safe-grid{
-  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:clamp(12px,1.4vw,20px);
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:clamp(16px,1.8vw,26px);
 }
 .safe{
   background:#fff;border:1.5px solid var(--ink);border-radius:18px;
-  padding:clamp(18px,1.8vw,28px);
-  display:flex;flex-direction:column;gap:10px;
+  padding:clamp(24px,2.4vw,38px);
+  display:grid;grid-template-columns:auto minmax(0,1fr);
+  column-gap:clamp(16px,1.6vw,22px);row-gap:10px;align-items:start;
   transition:transform .28s cubic-bezier(.22,1,.36,1),box-shadow .28s;
 }
-.safe:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(22,21,15,.10);}
+.safe:hover{transform:translateY(-4px);box-shadow:0 16px 34px rgba(22,21,15,.10);}
 .safe-ic{
-  width:48px;height:48px;border-radius:13px;border:1.5px solid var(--ink);
+  grid-row:1 / span 2;
+  width:52px;height:52px;border-radius:14px;border:1.5px solid var(--ink);
   display:grid;place-items:center;background:var(--accent);
   box-shadow:inset 0 0 0 2px rgba(255,255,255,.16);
 }
-.safe-ic svg{width:26px;height:26px;color:#fff;display:block;}
+.safe-ic svg{width:28px;height:28px;color:#fff;display:block;}
 .safe h3{
-  font-size:clamp(17px,1.4vw,21px);font-weight:600;letter-spacing:-.02em;line-height:1.15;
+  align-self:center;
+  font-size:clamp(19px,1.7vw,24px);font-weight:700;letter-spacing:-.02em;line-height:1.15;
 }
-.safe p{font-size:14px;line-height:1.6;color:var(--ink-70);}
+.safe p{grid-column:2;font-size:clamp(15px,1.15vw,16.5px);line-height:1.65;color:var(--ink-70);}
 .safe p strong{color:var(--ink);font-weight:600;}
-.safe-note{margin-top:26px;font-size:15px;color:var(--ink-70);max-width:70ch;}
-@media(max-width:960px){.safe-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
-@media(max-width:520px){.safe-grid{grid-template-columns:1fr;}}
+.safe-note{margin-top:clamp(24px,3vw,40px);font-size:15.5px;line-height:1.6;color:var(--ink-70);max-width:74ch;}
+@media(max-width:760px){
+  .safe-grid{grid-template-columns:1fr;}
+  .safe{padding:clamp(20px,5vw,28px);}
+}
 
 /* ── FOUNDERS — one compact row ── */
 .founders{
@@ -1207,55 +1194,75 @@ html.lenis,html.lenis body{height:auto;}
       <li><a href="index.html#demo">Demo</a></li>
       <li><a href="index.html#agents">Agents</a></li>
       <li><a href="index.html#compare">Compare</a></li>
-      <li><a href="pricing.html">Pricing</a></li>
-      <li><a href="team.html" aria-current="page" style="color:var(--accent)">Team</a></li>
+      <li><a href="pricing.html" aria-current="page" style="color:var(--accent)">Pricing</a></li>
+      <li><a href="team.html">Team</a></li>
       <li><a href="index.html#faq">FAQ</a></li>
     </ul>
     <div class="nav-cta">
       <a href="https://agenthatchers.ai" class="btn btn-secondary login-link">Login</a>
-      <a href="index.html#book" class="btn btn-primary book-call">Book a call <span class="arrow">&rarr;</span></a>
+      <a href="#book" class="btn btn-primary book-call" data-open-book>Book a call <span class="arrow">&rarr;</span></a>
     </div>
   </div>
 </nav>
 <main id="top">
-  <section class="section" id="team" style="border-top:none;">
-    <div class="wrap">
-      <div class="sec-head reveal">
-        <h1 class="sec-title">Meet <em>the team.</em></h1>
-        <p class="sec-intro">Australian-built and founder-led. Two founders on every installation — when something needs attention, you talk to us, not a portal.</p>
-      </div>
-
-      <div class="founders">
-        <article class="founder reveal">
-          <div class="founder-photo">
-            <img src="noah.jpg" alt="Noah Webb, CEO and Co-founder at Agent Hatchers" width="84" height="84" loading="lazy" />
-          </div>
-          <div>
-            <h3>Noah Webb</h3>
-            <span class="mono">Co-founder &middot; CEO</span>
-            <p>Noah runs the client side of Agent Hatchers: business development, partnerships, and the relationship on every engagement. He follows new AI releases closely, so when a better model comes out, your agents get it &mdash; often the same week. He's the one you'll actually talk to.</p>
-            <p style="margin-top:.7em">Before this, years in property finance and data, then family-office investing. Monash-educated, Melbourne-based, and a Flying Fox volunteer since 2019, now on its Community Committee.</p>
-            <a class="founder-link" href="https://www.linkedin.com/in/noah-webb-5795151a6/" target="_blank" rel="noopener">LinkedIn &#8599;</a>
-          </div>
-        </article>
-
-        <article class="founder reveal">
-          <div class="founder-photo">
-            <img src="hyein.jpg" alt="Hyein Yu, Founder and Head of Engineering at Agent Hatchers" width="84" height="84" loading="lazy" />
-          </div>
-          <div>
-            <h3>Hyein Yu</h3>
-            <span class="mono">Founder &middot; Head of Engineering</span>
-            <p>Hyein is the founder of Agent Hatchers and leads the company's engineering. She architects every Hermes installation, builds the agents that need real engineering behind them, and oversees the team that keeps every platform healthy long after handover.</p>
-            <p style="margin-top:.7em">Her background spans several years across AI startups, where she specialised in building production systems that perform reliably across many industries.</p>
-            <a class="founder-link" href="https://www.linkedin.com/in/hye-in-yu/" target="_blank" rel="noopener">LinkedIn &#8599;</a>
-          </div>
-        </article>
-      </div>
-
-      <p class="lib-note reveal" style="margin-top:clamp(32px,4vw,56px)">Want to talk to us directly? <a href="index.html#book" class="tlink">Book a 30-minute call</a> &mdash; or head <a href="index.html#top" class="tlink">back to the homepage</a>.</p>
+<section class="section" id="pricing" style="border-top:none;">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h1 class="sec-title"><em>Pricing.</em></h1>
+      <p class="sec-intro">Every tier covers hosting, updates and support. AI billed at cost.</p>
     </div>
-  </section>
+    <div class="tiers">
+      <div class="tier reveal">
+        <h3>Basic</h3>
+        <p class="tier-for">Own the platform, hatch your own agents.</p>
+        <div class="tier-amount">A$10,000 <span>one-off install · then A$499/month</span></div>
+        <ul>
+          <li><strong>Hermes installed</strong> and wired into your tools</li>
+          <li>Build <strong>unlimited agents</strong> yourself — plain English, no code</li>
+          <li>Slack &amp; Microsoft Teams included</li>
+          <li>Hosting, updates and support covered</li>
+        </ul>
+        <a href="#book" class="btn btn-secondary" data-open-book data-source="pricing-basic">Start here <span class="arrow">→</span></a>
+      </div>
+      <div class="tier tier-hot reveal">
+        <span class="tier-flag">Most popular</span>
+        <h3>Standard</h3>
+        <p class="tier-for">Everything in Basic, plus our agent marketplace.</p>
+        <div class="tier-amount">A$25,000 <span>one-off · then A$499/month</span></div>
+        <ul>
+          <li>Everything in <strong>Basic</strong></li>
+          <li><strong>Pick and hatch your agents</strong> from our marketplace</li>
+          <li>Best for teams automating several jobs at once</li>
+          <li>Hosting, updates and support covered</li>
+        </ul>
+        <a href="#book" class="btn" data-open-book data-source="pricing-standard">Book a call <span class="arrow">→</span></a>
+      </div>
+      <div class="tier reveal">
+        <h3>Premium</h3>
+        <p class="tier-for">Bespoke agents for complex, high-value workflows.</p>
+        <div class="tier-amount">A$50,000+ <span>quoted up front</span></div>
+        <ul>
+          <li>Everything in <strong>Standard</strong></li>
+          <li><strong>Bespoke agents</strong> designed around your business</li>
+          <li>Deeper integrations, permissions and rollout support</li>
+          <li>Both founders on the engagement</li>
+        </ul>
+        <a href="#book" class="btn btn-secondary" data-open-book data-source="pricing-premium">Talk to us <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <div class="rent reveal">
+      <div class="rent-copy">
+        <h3>Not ready to own? <em>Rent the nest.</em></h3>
+        <p>All of Hermes, no install fee — build your own agents from day one, and walk away any time.</p>
+      </div>
+      <div class="rent-price">A$949 <span>per month · no install fee</span></div>
+      <a href="#book" class="btn btn-secondary" data-open-book data-source="pricing-rent">Rent it <span class="arrow">→</span></a>
+    </div>
+
+    <p class="price-foot reveal"><strong>No per-seat licence.</strong> Your whole team shares the agents, and AI is pay-per-token at cost — a quiet week costs almost nothing.</p>
+  </div>
+</section>
 </main>
 <footer>
   <div class="footer-mark" aria-hidden="true">Agent Hatchers</div>
@@ -1269,23 +1276,95 @@ html.lenis,html.lenis body{height:auto;}
     </div>
   </div>
 </footer>
+<div class="toast" id="toast" role="status" aria-live="polite">Done &#10003;</div>
+<!-- BOOKING MODAL -->
+<div class="modal-overlay" id="bookingModal" role="dialog" aria-modal="true" aria-labelledby="bookingTitle">
+  <div class="modal modal--wide" id="bookingModalInner">
+    <div class="modal-header">
+      <div>
+        <h3 id="bookingTitle">30 minutes. Same week.</h3>
+        <p class="modal-sub" id="bookingSub">A quick name + email so we can prep before we meet.</p>
+      </div>
+      <button class="modal-close" id="bookingClose" type="button" aria-label="Close">✕</button>
+    </div>
+
+    <!-- Step 1: collect name + email + urgency (short form) -->
+    <form id="bookingForm" class="booking-step">
+      <div class="modal-field">
+        <label for="bName">Your name</label>
+        <input type="text" id="bName" name="name" required autocomplete="name" placeholder="e.g. Sarah Chen" />
+      </div>
+      <div class="modal-field">
+        <label for="bEmail">Work email</label>
+        <input type="email" id="bEmail" name="email" required autocomplete="email" placeholder="you@company.com.au" />
+      </div>
+      <div class="modal-field">
+        <label for="bUrgency">How keen are you?</label>
+        <select id="bUrgency" name="urgency" class="modal-select">
+          <option value="">Select one…</option>
+          <option value="ASAP">Very — I want this installed ASAP</option>
+          <option value="Within 3 months">Interested — within 3 months</option>
+          <option value="Just exploring">Just exploring</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-primary">Continue <span class="arrow">→</span></button>
+      </div>
+      <p class="modal-note">By continuing you agree to our <a href="privacy-policy.html">Privacy Policy</a>. We use this to prep for the call. Nothing else.</p>
+    </form>
+
+    <!-- Step 2: Calendly iframe (revealed after submit) -->
+    <div id="bookingCalendly" class="booking-step" hidden>
+      <div class="calendly-frame-wrap">
+        <div class="calendly-loader" id="calendlyLoader" aria-hidden="true">
+          <div class="calendly-spinner"></div>
+          <span>Loading your calendar…</span>
+        </div>
+        <iframe class="calendly-iframe" id="calendlyFrame" title="Pick a time" loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://unpkg.com/lenis@1.1.20/dist/lenis.min.js"></script>
 <script>
-/* mobile nav: opaque on scroll, hide when scrolling down on phones */
-(function(){
-  var nav=document.querySelector('nav'); if(!nav) return;
-  var mq=matchMedia('(max-width:760px)'), lastY=window.scrollY||0, ticking=false;
-  function update(){var y=window.scrollY||0,d=y-lastY;nav.classList.toggle('is-scrolled',y>8);
-    if(!mq.matches||y<24||d<-6)nav.classList.remove('mobile-nav-hidden');else if(d>6)nav.classList.add('mobile-nav-hidden');
-    lastY=y;ticking=false;}
-  addEventListener('scroll',function(){if(!ticking){requestAnimationFrame(update);ticking=true;}},{passive:true});
-})();
-/* reveal on scroll */
-(function(){
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches||!('IntersectionObserver'in window)){document.documentElement.classList.remove('js');return;}
-  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('is-visible');io.unobserve(e.target);}});},{rootMargin:'0px 0px -8% 0px',threshold:0.01});
-  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
-  document.querySelectorAll('.founders').forEach(function(p){Array.from(p.children).forEach(function(c,i){c.style.transitionDelay=(i*0.08).toFixed(2)+'s';});});
-})();
+var CALENDLY_URL='https://calendly.com/noah-automationbuilders/30min';
+var LEAD_WEBHOOK='https://n8n.automationbuilders.ai/webhook/5e644b5e-d54e-4a7e-83ea-ea1666b199f6';
+function $(id){return document.getElementById(id);}
+/* mobile nav */
+(function(){var nav=document.querySelector('nav');if(!nav)return;var mq=matchMedia('(max-width:760px)'),lastY=scrollY||0,t=false;
+ function u(){var y=scrollY||0,d=y-lastY;nav.classList.toggle('is-scrolled',y>8);if(!mq.matches||y<24||d<-6)nav.classList.remove('mobile-nav-hidden');else if(d>6)nav.classList.add('mobile-nav-hidden');lastY=y;t=false;}
+ addEventListener('scroll',function(){if(!t){requestAnimationFrame(u);t=true;}},{passive:true});})();
+async function postLead(kind,payload){var body=Object.assign({kind:kind,ts:new Date().toISOString()},payload);if(!LEAD_WEBHOOK)return false;
+ try{var r=await fetch(LEAD_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:true});return r.ok;}catch(e){return false;}}
+/* modal + booking flow */
+function openModal(el){el.classList.add('open');}function closeModal(el){el.classList.remove('open');}
+function closeAllModals(){document.querySelectorAll('.modal-overlay.open').forEach(function(m){m.classList.remove('open');});}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeAllModals();});
+document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)closeModal(m);});});
+var bookingModal=$('bookingModal'),bookingForm=$('bookingForm'),bookingCalendly=$('bookingCalendly'),calendlyFrame=$('calendlyFrame'),bookingSource='nav';
+function resetBookingModal(){bookingForm.reset();bookingForm.hidden=false;bookingCalendly.hidden=true;calendlyFrame.src='';var l=$('calendlyLoader');if(l)l.classList.remove('is-hidden');$('bookingTitle').textContent='30 minutes. Same week.';$('bookingSub').textContent='A quick name + email so we can prep before we meet.';}
+function startBookingFlow(s){bookingSource=s||'nav';resetBookingModal();openModal(bookingModal);setTimeout(function(){$('bName').focus();},120);}
+document.querySelectorAll('[data-open-book]').forEach(function(el){el.addEventListener('click',function(e){e.preventDefault();closeAllModals();startBookingFlow(el.dataset.source||'nav');});});
+$('bookingClose').addEventListener('click',function(){closeModal(bookingModal);});
+bookingForm.addEventListener('submit',async function(e){e.preventDefault();
+ var data={name:$('bName').value.trim(),email:$('bEmail').value.trim(),urgency:$('bUrgency').value,source:bookingSource};
+ postLead('booking',data);
+ var p=new URLSearchParams();if(data.name)p.set('name',data.name);if(data.email)p.set('email',data.email);
+ p.set('hide_event_type_details','1');p.set('hide_gdpr_banner','1');p.set('background_color','f4f1ea');p.set('text_color','16150f');p.set('primary_color','216bac');
+ var url=CALENDLY_URL+'?'+p.toString();
+ bookingForm.classList.add('is-leaving');await new Promise(function(r){setTimeout(r,220);});bookingForm.hidden=true;bookingForm.classList.remove('is-leaving');
+ $('bookingTitle').textContent='Pick a time.';$('bookingSub').textContent='Pre-filled with what you sent. Change anything you like.';
+ var l=$('calendlyLoader');if(l)l.classList.remove('is-hidden');calendlyFrame.src=url;bookingCalendly.hidden=false;
+ calendlyFrame.addEventListener('load',function(){if(l)l.classList.add('is-hidden');},{once:true});});
+/* smooth scroll (optional) */
+(function(){if(typeof Lenis==='undefined')return;if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ var lenis=new Lenis({duration:0.95,easing:function(t){return Math.min(1,1.001-Math.pow(2,-10*t));},smoothWheel:true});
+ function raf(x){lenis.raf(x);requestAnimationFrame(raf);}requestAnimationFrame(raf);})();
+/* reveal */
+(function(){if(matchMedia('(prefers-reduced-motion: reduce)').matches||!('IntersectionObserver'in window)){document.documentElement.classList.remove('js');return;}
+ var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('is-visible');io.unobserve(e.target);}});},{rootMargin:'0px 0px -8% 0px',threshold:0.01});
+ document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+ document.querySelectorAll('.tiers').forEach(function(pp){Array.from(pp.children).forEach(function(c,i){c.style.transitionDelay=(i*0.08).toFixed(2)+'s';});});})();
 </script>
 </body>
 </html>

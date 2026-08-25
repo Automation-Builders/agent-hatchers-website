@@ -236,16 +236,6 @@ em.s, .serif-i{
   letter-spacing:0;text-transform:none;
 }
 /* sticker labels — section numbers with a crayon behind them */
-/* section eyebrow — a quiet mono tag with a subtle colour cue, not a scrapbook sticker */
-.sticker{
-  display:inline-block;font-family:var(--font-m);font-size:11px;font-weight:700;
-  letter-spacing:.14em;text-transform:uppercase;
-  padding:5px 13px;border:1px solid var(--line);border-radius:999px;
-  background:var(--paper);color:var(--ink-70);
-}
-.sticker::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;
-  background:var(--accent);margin-right:8px;vertical-align:1px;}
-.sticker.st-paper::before{background:var(--ink-30);}
 
 /* inline tool chip — a real logo next to every tool we name */
 .tchip{
@@ -517,7 +507,6 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   font-size:clamp(16px,1.3vw,19px);color:var(--ink-70);line-height:1.6;
   max-width:42ch;
 }
-.sec-intro .sticker{margin-bottom:14px;}
 @media(max-width:860px){
   .sec-head{flex-direction:column;gap:18px;}
 }
@@ -1085,32 +1074,37 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 }
 .price-foot strong{color:var(--ink);font-weight:600;}
 
-/* ── SECURITY — short, human, four cards ── */
+/* ── SECURITY — two roomy rows, icon beside the words ── */
 .safe-grid{
-  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:clamp(12px,1.4vw,20px);
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:clamp(16px,1.8vw,26px);
 }
 .safe{
   background:#fff;border:1.5px solid var(--ink);border-radius:18px;
-  padding:clamp(18px,1.8vw,28px);
-  display:flex;flex-direction:column;gap:10px;
+  padding:clamp(24px,2.4vw,38px);
+  display:grid;grid-template-columns:auto minmax(0,1fr);
+  column-gap:clamp(16px,1.6vw,22px);row-gap:10px;align-items:start;
   transition:transform .28s cubic-bezier(.22,1,.36,1),box-shadow .28s;
 }
-.safe:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(22,21,15,.10);}
+.safe:hover{transform:translateY(-4px);box-shadow:0 16px 34px rgba(22,21,15,.10);}
 .safe-ic{
-  width:48px;height:48px;border-radius:13px;border:1.5px solid var(--ink);
+  grid-row:1 / span 2;
+  width:52px;height:52px;border-radius:14px;border:1.5px solid var(--ink);
   display:grid;place-items:center;background:var(--accent);
   box-shadow:inset 0 0 0 2px rgba(255,255,255,.16);
 }
-.safe-ic svg{width:26px;height:26px;color:#fff;display:block;}
+.safe-ic svg{width:28px;height:28px;color:#fff;display:block;}
 .safe h3{
-  font-size:clamp(17px,1.4vw,21px);font-weight:600;letter-spacing:-.02em;line-height:1.15;
+  align-self:center;
+  font-size:clamp(19px,1.7vw,24px);font-weight:700;letter-spacing:-.02em;line-height:1.15;
 }
-.safe p{font-size:14px;line-height:1.6;color:var(--ink-70);}
+.safe p{grid-column:2;font-size:clamp(15px,1.15vw,16.5px);line-height:1.65;color:var(--ink-70);}
 .safe p strong{color:var(--ink);font-weight:600;}
-.safe-note{margin-top:26px;font-size:15px;color:var(--ink-70);max-width:70ch;}
-@media(max-width:960px){.safe-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
-@media(max-width:520px){.safe-grid{grid-template-columns:1fr;}}
+.safe-note{margin-top:clamp(24px,3vw,40px);font-size:15.5px;line-height:1.6;color:var(--ink-70);max-width:74ch;}
+@media(max-width:760px){
+  .safe-grid{grid-template-columns:1fr;}
+  .safe{padding:clamp(20px,5vw,28px);}
+}
 
 /* ── FOUNDERS — one compact row ── */
 .founders{
@@ -1446,7 +1440,7 @@ html.lenis,html.lenis body{height:auto;}
       <li><a href="#demo">Demo</a></li>
       <li><a href="#agents">Agents</a></li>
       <li><a href="#compare">Compare</a></li>
-      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="pricing.html">Pricing</a></li>
       <li><a href="team.html">Team</a></li>
       <li><a href="#faq">FAQ</a></li>
     </ul>
@@ -1464,10 +1458,6 @@ html.lenis,html.lenis body{height:auto;}
   <div class="wrap">
     <div class="hero-grid">
       <div>
-        <div class="hero-meta">
-          <span class="sticker st-paper">Australian AI studio</span>
-          <span class="sticker st-sky">Powered by Hermes</span>
-        </div>
         <h1 class="hero-title">
           <span class="t-line"><span class="t-inner">We hatch</span></span>
           <span class="t-line"><span class="t-inner">AI agents</span></span>
@@ -1554,7 +1544,7 @@ html.lenis,html.lenis body{height:auto;}
   <div class="wrap">
     <div class="sec-head reveal">
       <h2 class="sec-title">Watch one <em>actually work.</em></h2>
-      <p class="sec-intro"><span class="sticker st-coral">01 — Live demo</span><br /><br />One message in, finished work out — in the app your team already has open.</p>
+      <p class="sec-intro">One message in, finished work out — in the app your team already has open.</p>
     </div>
 
     <div class="demo reveal">
@@ -1627,8 +1617,8 @@ html.lenis,html.lenis body{height:auto;}
 <section class="section" id="agents">
   <div class="wrap">
     <div class="sec-head reveal">
-      <h2 class="sec-title">Fresh from <em>the nest.</em></h2>
-      <p class="sec-intro"><span class="sticker st-mint">02 — The agent library</span><br /><br />Ready-hatched agents for the jobs every business has — or ask us to hatch yours.</p>
+      <h2 class="sec-title">The Agent <em>Library.</em></h2>
+      <p class="sec-intro">Ready-hatched agents for the jobs every business has — or ask us to hatch yours.</p>
     </div>
     <div class="lib">
       <div class="lib-card lib-sales reveal">
@@ -1702,8 +1692,8 @@ html.lenis,html.lenis body{height:auto;}
 <section class="section" id="compare">
   <div class="wrap">
     <div class="sec-head reveal">
-      <h2 class="sec-title">Chatbots answer. <em>Agents finish.</em></h2>
-      <p class="sec-intro"><span class="sticker st-grape">03 — The difference</span><br /><br />Chatbots are brilliant at answering. Then the work is still sitting there.</p>
+      <h2 class="sec-title">The <em>Difference.</em></h2>
+      <p class="sec-intro">Chatbots are brilliant at answering. Then the work is still sitting there.</p>
     </div>
 
     <div class="compare-wrap reveal">
@@ -1763,72 +1753,13 @@ html.lenis,html.lenis body{height:auto;}
   </div>
 </section>
 
-<!-- PRICING -->
-<section class="section" id="pricing">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <h2 class="sec-title">Simple <em>pricing.</em></h2>
-      <p class="sec-intro"><span class="sticker">04 — Pick your nest</span><br /><br />Every tier covers hosting, updates and support. AI billed at cost.</p>
-    </div>
-    <div class="tiers">
-      <div class="tier reveal">
-        <h3>Basic</h3>
-        <p class="tier-for">Own the platform, hatch your own agents.</p>
-        <div class="tier-amount">A$10,000 <span>one-off install · then A$499/month</span></div>
-        <ul>
-          <li><strong>Hermes installed</strong> and wired into your tools</li>
-          <li>Build <strong>unlimited agents</strong> yourself — plain English, no code</li>
-          <li>Slack &amp; Microsoft Teams included</li>
-          <li>Hosting, updates and support covered</li>
-        </ul>
-        <a href="#book" class="btn btn-secondary" data-open-book data-source="pricing-basic">Start here <span class="arrow">→</span></a>
-      </div>
-      <div class="tier tier-hot reveal">
-        <span class="tier-flag">Most popular</span>
-        <h3>Standard</h3>
-        <p class="tier-for">Everything in Basic, plus our agent marketplace.</p>
-        <div class="tier-amount">A$25,000 <span>one-off · then A$499/month</span></div>
-        <ul>
-          <li>Everything in <strong>Basic</strong></li>
-          <li><strong>Pick and hatch your agents</strong> from our marketplace</li>
-          <li>Best for teams automating several jobs at once</li>
-          <li>Hosting, updates and support covered</li>
-        </ul>
-        <a href="#book" class="btn" data-open-book data-source="pricing-standard">Book a call <span class="arrow">→</span></a>
-      </div>
-      <div class="tier reveal">
-        <h3>Premium</h3>
-        <p class="tier-for">Bespoke agents for complex, high-value workflows.</p>
-        <div class="tier-amount">A$50,000+ <span>quoted up front</span></div>
-        <ul>
-          <li>Everything in <strong>Standard</strong></li>
-          <li><strong>Bespoke agents</strong> designed around your business</li>
-          <li>Deeper integrations, permissions and rollout support</li>
-          <li>Both founders on the engagement</li>
-        </ul>
-        <a href="#book" class="btn btn-secondary" data-open-book data-source="pricing-premium">Talk to us <span class="arrow">→</span></a>
-      </div>
-    </div>
-
-    <div class="rent reveal">
-      <div class="rent-copy">
-        <h3>Not ready to own? <em>Rent the nest.</em></h3>
-        <p>All of Hermes, no install fee — build your own agents from day one, and walk away any time.</p>
-      </div>
-      <div class="rent-price">A$949 <span>per month · no install fee</span></div>
-      <a href="#book" class="btn btn-secondary" data-open-book data-source="pricing-rent">Rent it <span class="arrow">→</span></a>
-    </div>
-
-    <p class="price-foot reveal"><strong>No per-seat licence.</strong> Your whole team shares the agents, and AI is pay-per-token at cost — a quiet week costs almost nothing.</p>
-  </div>
-</section>
 
 <!-- SECURITY — short, human -->
 <section class="section" id="security">
   <div class="wrap">
     <div class="sec-head reveal">
-      <h2 class="sec-title">Is it <em>safe?</em></h2>
-      <p class="sec-intro"><span class="sticker st-sky">05 — Security, no acronyms</span><br /><br />It reads invoices and sends email as your company. Here's how we keep that safe.</p>
+      <h2 class="sec-title"><em>Security.</em></h2>
+      <p class="sec-intro">It reads invoices and sends email as your company. Here's how we keep that safe — no acronyms.</p>
     </div>
 
     <div class="safe-grid">
@@ -1863,7 +1794,6 @@ html.lenis,html.lenis body{height:auto;}
   <div class="wrap">
     <div class="sec-head reveal">
       <h2 class="sec-title">Questions <em>people ask.</em></h2>
-      <p class="sec-intro"><span class="sticker st-grape">06 — FAQ</span></p>
     </div>
     <div class="faq-list">
       <details class="faq-item reveal" id="faq-hermes">
