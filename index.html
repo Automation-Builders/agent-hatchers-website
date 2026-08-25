@@ -194,7 +194,7 @@
   --font-m:  'Space Mono',ui-monospace,monospace;        /* labels, meta */
 
   --gutter: clamp(20px, 4vw, 64px);
-  --sec-pad: clamp(72px, 9vw, 132px);
+  --sec-pad: clamp(52px, 6vw, 92px);
 }
 
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -476,23 +476,7 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   .egg-bubble{right:4%;}
 }
 
-/* ticker strip under hero */
-.ticker{
-  border-bottom:1px solid var(--line);
-  overflow:hidden;padding:14px 0;
-  background:var(--ink);color:var(--paper);
-}
-.ticker-track{
-  display:flex;gap:0;width:max-content;
-  animation:marquee 30s linear infinite;
-}
-.ticker-item{
-  font-family:var(--font-m);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
-  white-space:nowrap;padding:0 18px;display:flex;align-items:center;gap:36px;
-}
-.ticker-item::after{content:'✦';font-size:10px;color:var(--sky);}
 @keyframes marquee{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
-@media (prefers-reduced-motion: reduce){.ticker-track{animation:none;}}
 
 /* ── LOGO MARQUEE — the real logos, not just names ── */
 .logos-strip{
@@ -561,12 +545,12 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 .stage-art{
   display:grid;place-items:center;
   padding:clamp(24px,2.6vw,40px) clamp(20px,2vw,32px) clamp(10px,1.2vw,18px);
-  min-height:clamp(180px,17vw,260px);
+  min-height:clamp(220px,21vw,320px);
 }
 .stage:nth-child(1) .stage-art{background:linear-gradient(160deg,#FDF3DC 0%,#F8E9C8 100%);}
 .stage:nth-child(2) .stage-art{background:linear-gradient(160deg,#E4F0FA 0%,#D8E9F6 100%);}
 .stage:nth-child(3) .stage-art{background:linear-gradient(160deg,#E5F4EC 0%,#D9EFE2 100%);}
-.stage-art svg,.stage-art img{width:clamp(120px,12vw,180px);height:auto;overflow:visible;}
+.stage-art svg,.stage-art img{width:clamp(160px,16vw,240px);height:auto;overflow:visible;}
 .stage-body{padding:clamp(18px,1.8vw,28px);border-top:1.5px solid var(--ink);display:flex;flex-direction:column;gap:8px;flex:1;}
 .stage-n{
   position:absolute;top:14px;left:14px;
@@ -603,8 +587,8 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 }
 @media(max-width:900px){
   .hatchery{grid-template-columns:1fr;}
-  .stage-art{min-height:clamp(160px,40vw,220px);}
-  .stage-art svg,.stage-art img{width:clamp(110px,26vw,160px);}
+  .stage-art{min-height:clamp(200px,46vw,280px);}
+  .stage-art svg,.stage-art img{width:clamp(150px,34vw,220px);}
 }
 
 /* ── CHAT DEMO ── */
@@ -966,9 +950,9 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 }
 .lib-banner{
   display:grid;place-items:center;position:relative;
-  padding:clamp(26px,2.8vw,40px);
+  padding:clamp(28px,3vw,44px);
   border-bottom:1.5px solid var(--ink);
-  min-height:clamp(170px,15vw,230px);
+  min-height:clamp(230px,21vw,320px);
 }
 .lib-sales    .lib-banner{background:linear-gradient(150deg,#FCE8DC 0%,#F9DCC8 100%);}
 .lib-docs     .lib-banner{background:linear-gradient(150deg,#ECE6F8 0%,#E2D9F4 100%);}
@@ -976,7 +960,7 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 .lib-support  .lib-banner{background:linear-gradient(150deg,#E0EDF8 0%,#D4E5F5 100%);}
 .lib-web      .lib-banner{background:linear-gradient(150deg,#FBE4EE 0%,#F7D7E6 100%);}
 .lib-illo{
-  width:clamp(110px,10vw,150px);height:auto;object-fit:contain;
+  width:clamp(160px,15vw,220px);height:auto;object-fit:contain;
   transition:transform .32s cubic-bezier(.34,1.56,.64,1);
 }
 .lib-card:hover .lib-illo{transform:translateY(-5px) scale(1.04);}
@@ -1019,8 +1003,8 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 @media(max-width:900px){.lib{grid-template-columns:repeat(2,minmax(0,1fr));}}
 @media(max-width:560px){
   .lib{grid-template-columns:1fr;}
-  .lib-banner{min-height:clamp(150px,38vw,200px);}
-  .lib-illo{width:clamp(100px,26vw,140px);}
+  .lib-banner{min-height:clamp(200px,52vw,280px);}
+  .lib-illo{width:clamp(150px,40vw,210px);}
 }
 
 /* ── COMPARE — us vs the chatbots, one honest table ── */
@@ -1255,8 +1239,8 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   text-align:center;position:relative;overflow:hidden;
 }
 .cta-hatchy{
-  width:clamp(110px,11vw,170px);height:auto;margin:0 auto clamp(10px,1.4vw,20px);display:block;
-  filter:drop-shadow(0 10px 18px rgba(22,21,15,.14));
+  width:clamp(190px,20vw,300px);height:auto;margin:0 auto clamp(14px,1.8vw,26px);display:block;
+  filter:drop-shadow(0 14px 26px rgba(22,21,15,.16));
 }
 .cta-title{
   font-size:clamp(42px,7vw,110px);font-weight:600;letter-spacing:-.04em;line-height:.96;
@@ -1509,7 +1493,6 @@ html.lenis,html.lenis body{height:auto;}
       <span>Agent&nbsp;Hatchers</span>
     </a>
     <ul class="nav-links">
-      <li><a href="#hatchery">How it works</a></li>
       <li><a href="#demo">Demo</a></li>
       <li><a href="#agents">Agents</a></li>
       <li><a href="#compare">Compare</a></li>
@@ -1539,7 +1522,7 @@ html.lenis,html.lenis body{height:auto;}
           <span class="t-line"><span class="t-inner">AI agents</span></span>
           <span class="t-line"><span class="t-inner serif-line">for your business.</span></span>
         </h1>
-        <p class="hero-sub">Pick a job — chasing invoices, qualifying leads, writing reports. <strong>We hatch an agent that owns it</strong>, and it joins your team in <span class="tchip"><svg class="lg"><use href="#lg-slack"/></svg>Slack</span> or <span class="tchip"><svg class="lg"><use href="#lg-teams"/></svg>Teams</span> like any other colleague. <strong>One agent, job done.</strong></p>
+        <p class="hero-sub">Pick a job you're sick of. <strong>We hatch an agent that owns it</strong> — and it works in <span class="tchip"><svg class="lg"><use href="#lg-slack"/></svg>Slack</span> or <span class="tchip"><svg class="lg"><use href="#lg-teams"/></svg>Teams</span> like a colleague. <strong>One agent, job done.</strong></p>
         <div class="hero-ctas">
           <a href="#book" class="btn btn-primary" data-open-book data-source="hero">Book a call <span class="arrow">→</span></a>
           <a href="#demo" class="tlink">Watch one work ↓</a>
@@ -1578,28 +1561,6 @@ html.lenis,html.lenis body{height:auto;}
       </div>
     </div>
   </div>
-  <div class="ticker" aria-hidden="true">
-    <div class="ticker-track">
-      <span class="ticker-item">Hatched in days, not months</span>
-      <span class="ticker-item">Pay only for the AI you use</span>
-      <span class="ticker-item">Swap models with one click</span>
-      <span class="ticker-item">Sounds like you, not a chatbot</span>
-      <span class="ticker-item">One agent, job done</span>
-      <span class="ticker-item">Lives in Slack or Microsoft Teams</span>
-      <span class="ticker-item">Real deliverables, not suggestions</span>
-      <span class="ticker-item">Nothing sent without your approval</span>
-      <span class="ticker-item">Never asks for your passwords</span>
-      <span class="ticker-item">Hatched in days, not months</span>
-      <span class="ticker-item">Pay only for the AI you use</span>
-      <span class="ticker-item">Swap models with one click</span>
-      <span class="ticker-item">Sounds like you, not a chatbot</span>
-      <span class="ticker-item">One agent, job done</span>
-      <span class="ticker-item">Lives in Slack or Microsoft Teams</span>
-      <span class="ticker-item">Real deliverables, not suggestions</span>
-      <span class="ticker-item">Nothing sent without your approval</span>
-      <span class="ticker-item">Never asks for your passwords</span>
-    </div>
-  </div>
 </header>
 
 <!-- LOGO MARQUEE — your tools, their actual logos -->
@@ -1636,104 +1597,13 @@ html.lenis,html.lenis body{height:auto;}
   </div>
 </section>
 
-<!-- THE HATCHERY — how it works, egg to teammate -->
-<section class="section" id="hatchery">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <h2 class="sec-title">From egg <em>to teammate.</em></h2>
-      <p class="sec-intro"><span class="sticker">01 — How it works</span><br /><br />You don't build anything and you don't learn anything. You tell us the job; we do the hatching.</p>
-    </div>
-    <div class="hatchery">
-      <div class="stage reveal">
-        <span class="stage-n">1</span>
-        <div class="stage-art">
-          <svg viewBox="0 0 200 160" aria-hidden="true">
-            <ellipse cx="100" cy="146" rx="52" ry="7" fill="rgba(22,21,15,.08)"/>
-            <path d="M100 26 C136 26 158 72 158 104 C158 132 134 148 100 148 C66 148 42 132 42 104 C42 72 64 26 100 26 Z" fill="var(--egg)" stroke="var(--ink)" stroke-width="2.5"/>
-            <ellipse cx="82" cy="70" rx="8" ry="6.5" fill="var(--egg-spot)" opacity=".85"/>
-            <ellipse cx="122" cy="98" rx="9" ry="7" fill="var(--egg-spot)" opacity=".85"/>
-            <ellipse cx="88" cy="120" rx="6" ry="5" fill="var(--egg-spot)" opacity=".85"/>
-            <text x="100" y="100" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="42" fill="var(--ink)">?</text>
-            <g font-family="'Space Mono',monospace" font-size="9" letter-spacing="1">
-              <rect x="4" y="30" width="66" height="18" rx="9" fill="#fff" stroke="var(--ink)" stroke-width="1.4" transform="rotate(-6 37 39)"/>
-              <text x="37" y="42" text-anchor="middle" fill="var(--ink)" transform="rotate(-6 37 39)">INVOICES</text>
-              <rect x="132" y="22" width="50" height="18" rx="9" fill="#fff" stroke="var(--ink)" stroke-width="1.4" transform="rotate(5 157 31)"/>
-              <text x="157" y="34" text-anchor="middle" fill="var(--ink)" transform="rotate(5 157 31)">LEADS</text>
-              <rect x="138" y="120" width="58" height="18" rx="9" fill="#fff" stroke="var(--ink)" stroke-width="1.4" transform="rotate(-4 167 129)"/>
-              <text x="167" y="132" text-anchor="middle" fill="var(--ink)" transform="rotate(-4 167 129)">REPORTS</text>
-            </g>
-          </svg>
-        </div>
-        <div class="stage-body">
-          <h3>You pick <em>the job.</em></h3>
-          <p>Any job you're sick of doing — <strong>chasing invoices, qualifying leads, writing the monthly report.</strong> One job per agent. That's the rule, and it's why the work stays sharp.</p>
-        </div>
-      </div>
-
-      <div class="stage reveal">
-        <span class="stage-n">2</span>
-        <div class="stage-art">
-          <svg viewBox="0 0 200 160" aria-hidden="true">
-            <ellipse cx="100" cy="146" rx="52" ry="7" fill="rgba(22,21,15,.08)"/>
-            <path d="M100 20 C136 20 158 68 158 102 C158 130 134 148 100 148 C66 148 42 130 42 102 C42 68 64 20 100 20 Z" fill="var(--egg)" stroke="var(--ink)" stroke-width="2.5"/>
-            <ellipse cx="80" cy="60" rx="8" ry="6.5" fill="var(--egg-spot)" opacity=".85"/>
-            <ellipse cx="126" cy="116" rx="8" ry="6.5" fill="var(--egg-spot)" opacity=".85"/>
-            <ellipse cx="70" cy="112" rx="6" ry="5" fill="var(--egg-spot)" opacity=".85"/>
-            <path class="crack-line" pathLength="1" d="M96 22 L88 44 L104 60 L90 80 L108 96 L96 114" fill="none" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-            <g class="hatchling-peek">
-              <ellipse cx="99" cy="86" rx="17" ry="13" fill="#16150F"/>
-              <circle cx="93" cy="85" r="4.6" fill="#3A9FD8"/>
-              <circle cx="105" cy="85" r="4.6" fill="#3A9FD8"/>
-              <circle cx="94.4" cy="83.6" r="1.7" fill="#fff"/>
-              <circle cx="106.4" cy="83.6" r="1.7" fill="#fff"/>
-            </g>
-            <g class="crack-flash" opacity=".4">
-              <path d="M35 46 L47 52 M28 78 L42 78 M164 60 L152 66 M172 96 L158 96" stroke="var(--yolk)" stroke-width="3" stroke-linecap="round"/>
-            </g>
-          </svg>
-        </div>
-        <div class="stage-body">
-          <h3>We hatch <em>your agent.</em></h3>
-          <p>On <strong>Hermes</strong>, your own AI platform — hatched with hundreds of skills, wired into your tools, and taught to sound like your business. <strong>Days, not months.</strong> You don't touch a thing.</p>
-        </div>
-      </div>
-
-      <div class="stage reveal">
-        <span class="stage-n">3</span>
-        <div class="stage-art">
-          <svg viewBox="0 0 200 160" aria-hidden="true">
-            <rect x="14" y="30" width="172" height="66" rx="10" fill="#fff" stroke="var(--ink)" stroke-width="2"/>
-            <image href="hatchy-avatar.webp" x="24" y="40" width="34" height="34" clip-path="inset(0 round 8px)"/>
-            <text x="66" y="53" font-family="-apple-system,'Segoe UI',sans-serif" font-weight="700" font-size="11" fill="#1d1c1d">Hatchy</text>
-            <rect x="106" y="44" width="24" height="11" rx="2.5" fill="#e2e2e2"/>
-            <text x="118" y="52.5" text-anchor="middle" font-family="-apple-system,'Segoe UI',sans-serif" font-weight="700" font-size="7.5" fill="#5a5a5a">APP</text>
-            <rect x="66" y="60" width="102" height="6" rx="3" fill="#e5e2da"/>
-            <rect x="66" y="72" width="76" height="6" rx="3" fill="#e5e2da"/>
-            <g class="hatchling-peek">
-              <circle cx="170" cy="96" r="15" fill="var(--mint)" stroke="var(--ink)" stroke-width="2"/>
-              <path d="M163 96 L168 101.5 L177.5 91" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-            </g>
-            <rect x="14" y="112" width="172" height="30" rx="8" fill="#fff" stroke="rgba(22,21,15,.25)" stroke-width="1.6"/>
-            <text x="26" y="131" font-family="-apple-system,'Segoe UI',sans-serif" font-size="10" fill="#9a9a9a">Message #finance-ops</text>
-            <rect x="156" y="118" width="22" height="18" rx="4" fill="var(--mint)"/>
-            <path d="M162 127 L173 127 M169 123 L173 127 L169 131" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="stage-body">
-          <h3>It joins <em>your team.</em></h3>
-          <p>Your agent shows up in <strong>Slack or Microsoft Teams</strong> — @-mention it like a colleague, get finished work back. We keep it healthy, updated and improving in the background.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- HATCHY IN SLACK / TEAMS — the whole product, watchable -->
 <section class="section" id="demo">
   <div class="wrap">
     <div class="sec-head reveal">
       <h2 class="sec-title">Watch one <em>actually work.</em></h2>
-      <p class="sec-intro"><span class="sticker st-coral">02 — Live demo</span><br /><br />A real Hatchy conversation, replayed. One message in, finished work out — in the app your team already has open.</p>
+      <p class="sec-intro"><span class="sticker st-coral">01 — Live demo</span><br /><br />One message in, finished work out — in the app your team already has open.</p>
     </div>
 
     <div class="chat-region">
@@ -1744,8 +1614,7 @@ html.lenis,html.lenis body{height:auto;}
           <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="docs"><img class="agent-tab-icon hue-docs" src="hatchy-document.webp" alt="" aria-hidden="true" /><span>Document Agent</span><span class="idx">A·03</span></button>
           <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="web"><img class="agent-tab-icon hue-web" src="hatchy-website.webp" alt="" aria-hidden="true" /><span>Website Agent</span><span class="idx">A·04</span></button>
         </div>
-        <p class="tabs-note reveal">Every conversation here is one human message and finished work coming back. <strong>No dashboards, no logins, no training day.</strong></p>
-        <p class="tabs-note reveal">And that model dropdown is real. <strong>A better model comes out? Swap it in with one click</strong> — your agent keeps its memory, skills and voice.</p>
+        <p class="tabs-note reveal">One message in, finished work back — no dashboards, no logins. And that model dropdown is real: <strong>swap models with one click</strong>, and your agent keeps its memory, skills and voice.</p>
       </div>
 
       <div class="reveal">
@@ -1802,7 +1671,7 @@ html.lenis,html.lenis body{height:auto;}
   <div class="wrap">
     <div class="sec-head reveal">
       <h2 class="sec-title">Fresh from <em>the nest.</em></h2>
-      <p class="sec-intro"><span class="sticker st-mint">03 — The agent library</span><br /><br />Ready-hatched agents for the jobs every business has. Install one in a click, or ask us to hatch the one you're missing.</p>
+      <p class="sec-intro"><span class="sticker st-mint">02 — The agent library</span><br /><br />Ready-hatched agents for the jobs every business has — or ask us to hatch yours.</p>
     </div>
     <div class="lib">
       <div class="lib-card lib-sales reveal">
@@ -1877,7 +1746,7 @@ html.lenis,html.lenis body{height:auto;}
   <div class="wrap">
     <div class="sec-head reveal">
       <h2 class="sec-title">Chatbots answer. <em>Agents finish.</em></h2>
-      <p class="sec-intro"><span class="sticker st-grape">04 — The difference</span><br /><br />ChatGPT and Claude are brilliant at answering questions. Then the work is still sitting there. Here's the whole argument in one table.</p>
+      <p class="sec-intro"><span class="sticker st-grape">03 — The difference</span><br /><br />Chatbots are brilliant at answering. Then the work is still sitting there.</p>
     </div>
 
     <div class="compare-wrap reveal">
@@ -1930,7 +1799,7 @@ html.lenis,html.lenis body{height:auto;}
         </tbody>
       </table>
     </div>
-    <p class="compare-foot reveal">We're not anti-chatbot — your agents can run on the same models that power ChatGPT and Claude. <strong>The difference is everything wrapped around the model:</strong> your tools, your voice, your approvals, and a human team keeping it healthy.</p>
+    <p class="compare-foot reveal">Your agents run on the same models that power ChatGPT and Claude. <strong>The difference is everything wrapped around them</strong> — your tools, your voice, your approvals.</p>
   </div>
 </section>
 
@@ -1939,7 +1808,7 @@ html.lenis,html.lenis body{height:auto;}
   <div class="wrap">
     <div class="sec-head reveal">
       <h2 class="sec-title">Simple <em>pricing.</em></h2>
-      <p class="sec-intro"><span class="sticker">05 — Pick your nest</span><br /><br />Every tier covers hosting, updates and support. AI usage is billed at cost — you pay for what your agents actually use, by the token.</p>
+      <p class="sec-intro"><span class="sticker">04 — Pick your nest</span><br /><br />Every tier covers hosting, updates and support. AI billed at cost.</p>
     </div>
     <div class="tiers">
       <div class="tier reveal">
@@ -1984,13 +1853,13 @@ html.lenis,html.lenis body{height:auto;}
     <div class="rent reveal">
       <div class="rent-copy">
         <h3>Not ready to own? <em>Rent the nest.</em></h3>
-        <p>All of Hermes with no install fee — build your own agents from day one, add ready-hatched ones as you need them, and walk away any time. Same hosting, updates and support.</p>
+        <p>All of Hermes, no install fee — build your own agents from day one, and walk away any time.</p>
       </div>
       <div class="rent-price">A$949 <span>per month · no install fee</span></div>
       <a href="#book" class="btn btn-secondary" data-open-book data-source="pricing-rent">Rent it <span class="arrow">→</span></a>
     </div>
 
-    <p class="price-foot reveal"><strong>Why no per-seat licence?</strong> Because your whole team shares the agents. AI usage is pay-per-token through OpenRouter, at cost — a quiet week costs almost nothing.</p>
+    <p class="price-foot reveal"><strong>No per-seat licence.</strong> Your whole team shares the agents, and AI is pay-per-token at cost — a quiet week costs almost nothing.</p>
   </div>
 </section>
 
@@ -1999,7 +1868,7 @@ html.lenis,html.lenis body{height:auto;}
   <div class="wrap">
     <div class="sec-head reveal">
       <h2 class="sec-title">Is it <em>safe?</em></h2>
-      <p class="sec-intro"><span class="sticker st-sky">06 — Security, no acronyms</span><br /><br />You're letting something read invoices and send email as your company. Straight answers, the way we'd tell a friend.</p>
+      <p class="sec-intro"><span class="sticker st-sky">05 — Security, no acronyms</span><br /><br />It reads invoices and sends email as your company. Here's how we keep that safe.</p>
     </div>
 
     <div class="safe-grid">
@@ -2025,7 +1894,7 @@ html.lenis,html.lenis body{height:auto;}
       </div>
     </div>
 
-    <p class="safe-note reveal">The binding detail lives in our <a href="privacy-policy.html" class="tlink">Privacy Policy</a> and <a href="terms-of-service.html" class="tlink">Terms of Service</a>. Got an IT person with harder questions? <a href="#book" class="tlink" data-open-book data-source="security">Ask us directly</a> — we'd rather have that conversation before you buy than after.</p>
+    <p class="safe-note reveal">Full detail in our <a href="privacy-policy.html" class="tlink">Privacy Policy</a> and <a href="terms-of-service.html" class="tlink">Terms</a>. Harder questions? <a href="#book" class="tlink" data-open-book data-source="security">Ask us directly.</a></p>
   </div>
 </section>
 
@@ -2034,7 +1903,7 @@ html.lenis,html.lenis body{height:auto;}
   <div class="wrap">
     <div class="sec-head reveal">
       <h2 class="sec-title">Two humans <em>behind the hatchery.</em></h2>
-      <p class="sec-intro"><span class="sticker st-coral">07 — Who you're dealing with</span><br /><br />Australian-built, founder-led. One on the engineering, one on the relationship. When something needs attention, you talk to us — not a portal.</p>
+      <p class="sec-intro"><span class="sticker st-coral">06 — Who you're dealing with</span><br /><br />Australian-built, founder-led. You talk to us — not a portal.</p>
     </div>
 
     <div class="founders">
@@ -2045,7 +1914,7 @@ html.lenis,html.lenis body{height:auto;}
         <div>
           <h3>Noah Webb</h3>
           <span class="mono">Co-founder · CEO</span>
-          <p>Runs the client side: business development, partnerships, and the relationship on every engagement. Follows new AI releases closely — when a better model drops, your agents get it, often the same week. He's the one you'll actually talk to.</p>
+          <p>Runs the client side — business development, partnerships, and the relationship on every engagement. He's the one you'll actually talk to.</p>
           <a class="founder-link" href="https://www.linkedin.com/in/noah-webb-5795151a6/" target="_blank" rel="noopener">LinkedIn ↗</a>
         </div>
       </article>
@@ -2057,7 +1926,7 @@ html.lenis,html.lenis body{height:auto;}
         <div>
           <h3>Hyein Yu</h3>
           <span class="mono">Founder · Head of Engineering</span>
-          <p>Founder and head of engineering. Architects every Hermes installation, builds the agents that need real engineering behind them, and oversees the team that keeps every platform healthy long after handover. Years of production AI systems across industries.</p>
+          <p>Architects every Hermes installation and the agents that need real engineering behind them, then keeps every platform healthy long after handover.</p>
           <a class="founder-link" href="https://www.linkedin.com/in/hye-in-yu/" target="_blank" rel="noopener">LinkedIn ↗</a>
         </div>
       </article>
@@ -2070,7 +1939,7 @@ html.lenis,html.lenis body{height:auto;}
   <div class="wrap">
     <div class="sec-head reveal">
       <h2 class="sec-title">Questions <em>people ask.</em></h2>
-      <p class="sec-intro"><span class="sticker st-grape">08 — FAQ</span></p>
+      <p class="sec-intro"><span class="sticker st-grape">07 — FAQ</span></p>
     </div>
     <div class="faq-list">
       <details class="faq-item reveal" id="faq-hermes">
@@ -2921,7 +2790,7 @@ bookingForm.addEventListener('submit', async e => {
   document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
 
   // Stagger siblings inside card groups
-  ['.hatchery', '.lib', '.tiers', '.safe-grid', '.founders'].forEach(sel => {
+  ['.lib', '.tiers', '.safe-grid', '.founders'].forEach(sel => {
     document.querySelectorAll(sel).forEach(parent => {
       Array.from(parent.children).forEach((child, i) => {
         child.style.transitionDelay = (i * 0.08).toFixed(2) + 's';
