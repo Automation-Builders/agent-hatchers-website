@@ -1703,7 +1703,7 @@ html.lenis,html.lenis body{height:auto;}
         <div class="stage-art">
           <svg viewBox="0 0 200 160" aria-hidden="true">
             <rect x="14" y="30" width="172" height="66" rx="10" fill="#fff" stroke="var(--ink)" stroke-width="2"/>
-            <image href="hatchy-face.webp" x="24" y="40" width="34" height="34" clip-path="inset(0 round 8px)"/>
+            <image href="hatchy-avatar.webp" x="24" y="40" width="34" height="34" clip-path="inset(0 round 8px)"/>
             <text x="66" y="53" font-family="-apple-system,'Segoe UI',sans-serif" font-weight="700" font-size="11" fill="#1d1c1d">Hatchy</text>
             <rect x="106" y="44" width="24" height="11" rx="2.5" fill="#e2e2e2"/>
             <text x="118" y="52.5" text-anchor="middle" font-family="-apple-system,'Segoe UI',sans-serif" font-weight="700" font-size="7.5" fill="#5a5a5a">APP</text>
@@ -1885,7 +1885,7 @@ html.lenis,html.lenis body{height:auto;}
         <thead>
           <tr>
             <th scope="col"><span class="sr-only">What we're comparing</span></th>
-            <th scope="col" class="co-us-h"><span class="co-head"><img src="hatchy-face.webp" alt="" width="30" height="30" />Your hatched agent</span></th>
+            <th scope="col" class="co-us-h"><span class="co-head"><img src="hatchy-avatar.webp" alt="" width="30" height="30" />Your hatched agent</span></th>
             <th scope="col"><span class="co-head"><svg class="lg"><use href="#lg-openai"/></svg>ChatGPT</span></th>
             <th scope="col"><span class="co-head"><svg class="lg"><use href="#lg-claude"/></svg>Claude</span></th>
           </tr>
@@ -2526,7 +2526,7 @@ const AGENTS = {
   /* ── message parts ── */
   function avatar(who, initials){
     // Hatchy's avatar is Hatchy — the hatched agent, not the egg
-    if (who === 'hatchy') return '<div class="ws-av ws-av-hatchy" aria-hidden="true"><img src="hatchy-face.webp" alt="" /></div>';
+    if (who === 'hatchy') return '<div class="ws-av ws-av-hatchy" aria-hidden="true"><img src="hatchy-avatar.webp" alt="" /></div>';
     return '<div class="ws-av" aria-hidden="true">' + initials + '</div>';
   }
 
