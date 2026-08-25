@@ -240,18 +240,20 @@ em.s, .serif-i{
   letter-spacing:0;text-transform:none;
 }
 /* sticker labels — section numbers with a crayon behind them */
+/* section eyebrow — a quiet mono tag with a subtle colour cue, not a scrapbook sticker */
 .sticker{
   display:inline-block;font-family:var(--font-m);font-size:11px;font-weight:700;
   letter-spacing:.14em;text-transform:uppercase;
-  padding:6px 14px;border:1.5px solid var(--ink);border-radius:999px;
-  background:var(--yolk);color:var(--ink);
-  box-shadow:3px 3px 0 var(--ink);transform:rotate(-2deg);
+  padding:5px 13px;border:1px solid var(--line);border-radius:999px;
+  background:var(--paper);color:var(--ink-70);
 }
-.sticker.st-sky{background:var(--sky);color:#fff;}
-.sticker.st-mint{background:var(--mint);color:#fff;}
-.sticker.st-coral{background:var(--coral);color:#fff;}
-.sticker.st-grape{background:var(--grape);color:#fff;}
-.sticker.st-paper{background:var(--paper);}
+.sticker::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;
+  background:var(--accent);margin-right:8px;vertical-align:1px;}
+.sticker.st-sky::before{background:var(--sky);}
+.sticker.st-mint::before{background:var(--mint);}
+.sticker.st-coral::before{background:var(--coral);}
+.sticker.st-grape::before{background:var(--grape);}
+.sticker.st-paper::before{background:var(--ink-30);}
 
 /* inline tool chip — a real logo next to every tool we name */
 .tchip{
@@ -272,8 +274,8 @@ em.s, .serif-i{
   transition:background .22s cubic-bezier(.22,1,.36,1),color .22s,border-color .22s,transform .15s,box-shadow .15s;
   white-space:nowrap;letter-spacing:-.01em;
 }
-.btn-primary{background:var(--ink);color:var(--paper);box-shadow:4px 4px 0 var(--accent);}
-.btn-primary:hover{background:var(--accent);border-color:var(--ink);color:#fff;transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink);}
+.btn-primary{background:var(--ink);color:var(--paper);}
+.btn-primary:hover{background:var(--accent);border-color:var(--accent);color:#fff;}
 .btn-secondary{background:transparent;color:var(--ink);}
 .btn-secondary:hover{background:var(--ink);color:var(--paper);}
 .btn .arrow{transition:transform .22s;font-weight:400;}
@@ -402,18 +404,13 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 }
 .egg-stage:focus-visible{outline:3px dashed var(--accent);outline-offset:12px;border-radius:50%;}
 .egg-svg{width:100%;height:auto;display:block;overflow:visible;}
-/* idle: the egg rocks, waiting to be tapped */
-.egg-whole{transform-origin:50% 92%;animation:eggRock 2.6s ease-in-out infinite;}
-@keyframes eggRock{
-  0%,100%{transform:rotate(0deg);}
-  12%{transform:rotate(-3.4deg);} 24%{transform:rotate(2.8deg);}
-  36%{transform:rotate(-1.6deg);} 46%{transform:rotate(0deg);}
+/* idle: the egg breathes gently, waiting to be tapped */
+.egg-whole{transform-origin:50% 92%;animation:eggBreathe 4.5s ease-in-out infinite;}
+@keyframes eggBreathe{
+  0%,100%{transform:translateY(0) rotate(0deg);}
+  50%{transform:translateY(-5px) rotate(-1deg);}
 }
-.egg-stage:hover .egg-whole{animation:eggShake .5s ease-in-out infinite;}
-@keyframes eggShake{
-  0%,100%{transform:rotate(0deg);}
-  25%{transform:rotate(-4.5deg);} 75%{transform:rotate(4.5deg);}
-}
+.egg-stage:hover .egg-whole{animation-duration:2.4s;}
 /* hatch! shells fly, Hatchy springs up */
 .egg-scene.hatched .egg-whole{animation:none;}
 .egg-top,.egg-bot{transform-box:fill-box;transform-origin:center;}
@@ -445,49 +442,32 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   70%{transform:translateX(-50%) scale(1.06);}
   100%{transform:translateX(-50%) scale(1);}
 }
-/* tap hint */
+/* tap hint — a quiet caption, no bounce */
 .egg-hint{
-  position:absolute;left:50%;top:-14px;transform:translateX(-50%) rotate(2deg);
-  font-family:var(--font-m);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
-  background:var(--ink);color:var(--paper);padding:7px 14px;border-radius:999px;
-  white-space:nowrap;pointer-events:none;
-  animation:hintBob 1.6s ease-in-out infinite;
+  position:absolute;left:50%;top:-8px;transform:translateX(-50%);
+  font-family:var(--font-m);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-50);white-space:nowrap;pointer-events:none;
+  transition:opacity .3s ease;
 }
-.egg-hint::after{
-  content:'';position:absolute;left:50%;bottom:-5px;transform:translateX(-50%) rotate(45deg);
-  width:10px;height:10px;background:var(--ink);
-}
-@keyframes hintBob{0%,100%{translate:0 0;}50%{translate:0 6px;}}
-.egg-scene.hatched .egg-hint{display:none;}
-/* speech bubble after hatch */
+.egg-scene.hatched .egg-hint{opacity:0;}
+/* speech bubble after hatch — clean, soft */
 .egg-bubble{
-  position:absolute;right:max(-30px,-4vw);top:2%;
-  background:#fff;border:1.5px solid var(--ink);border-radius:16px 16px 16px 4px;
-  box-shadow:4px 4px 0 var(--ink);
-  padding:12px 18px;font-weight:600;font-size:clamp(14px,1.3vw,18px);letter-spacing:-.01em;
-  opacity:0;transform:scale(0);transform-origin:0% 100%;
+  position:absolute;right:max(-24px,-3vw);top:4%;
+  background:#fff;border:1px solid var(--line);border-radius:14px 14px 14px 3px;
+  box-shadow:0 8px 20px rgba(22,21,15,.12);
+  padding:11px 16px;font-weight:600;font-size:clamp(13px,1.2vw,17px);letter-spacing:-.01em;
+  opacity:0;transform:translateY(6px);
   white-space:nowrap;
 }
 .egg-scene.hatched .egg-bubble{
-  animation:bubblePop .5s cubic-bezier(.34,1.56,.64,1) .75s forwards;
+  animation:bubbleIn .45s cubic-bezier(.22,1,.36,1) .7s forwards;
 }
-@keyframes bubblePop{to{opacity:1;transform:scale(1);}}
-/* confetti */
-.confetti{
-  position:absolute;left:50%;top:55%;width:10px;height:14px;
-  pointer-events:none;opacity:0;will-change:transform,opacity;
-  animation:confettiFly .95s cubic-bezier(.16,.84,.44,1) forwards;
-}
-@keyframes confettiFly{
-  0%{opacity:1;transform:translate(0,0) rotate(0) scale(1);}
-  100%{opacity:0;transform:translate(var(--tx),var(--ty)) rotate(var(--rot)) scale(.7);}
-}
+@keyframes bubbleIn{to{opacity:1;transform:translateY(0);}}
 @media (prefers-reduced-motion: reduce){
-  .egg-whole,.egg-stage:hover .egg-whole,.egg-hint{animation:none;}
+  .egg-whole,.egg-stage:hover .egg-whole{animation:none;}
   .egg-scene.hatched .egg-top,.egg-scene.hatched .egg-bot{animation:none;opacity:0;}
   .egg-scene.hatched .egg-hatchy{animation:none;transform:translateX(-50%) scale(1);}
-  .egg-scene.hatched .egg-bubble{animation:none;opacity:1;transform:scale(1);}
-  .confetti{display:none;}
+  .egg-scene.hatched .egg-bubble{animation:none;opacity:1;transform:none;}
 }
 @media(max-width:860px){
   .hero-grid{grid-template-columns:1fr;}
@@ -510,12 +490,7 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   font-family:var(--font-m);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
   white-space:nowrap;padding:0 18px;display:flex;align-items:center;gap:36px;
 }
-.ticker-item::after{content:'✦';font-size:10px;}
-.ticker-item:nth-child(5n+1)::after{color:var(--sky);}
-.ticker-item:nth-child(5n+2)::after{color:var(--yolk);}
-.ticker-item:nth-child(5n+3)::after{color:var(--coral);}
-.ticker-item:nth-child(5n+4)::after{color:var(--mint);}
-.ticker-item:nth-child(5n+5)::after{color:var(--grape);}
+.ticker-item::after{content:'✦';font-size:10px;color:var(--sky);}
 @keyframes marquee{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
 @media (prefers-reduced-motion: reduce){.ticker-track{animation:none;}}
 
@@ -543,7 +518,7 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s,border-color .25s;
 }
 .logo-pill .lg{width:22px;height:22px;}
-.logo-pill:hover{transform:translateY(-4px) rotate(-1deg);box-shadow:0 10px 22px rgba(22,21,15,.14);border-color:var(--ink);}
+.logo-pill:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(22,21,15,.10);border-color:var(--ink);}
 
 /* ── SECTION SCAFFOLD ── */
 .section{padding:var(--sec-pad) 0;position:relative;}
@@ -582,7 +557,7 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   display:flex;flex-direction:column;
   transition:transform .3s cubic-bezier(.22,1,.36,1),box-shadow .3s;
 }
-.stage:hover{transform:translateY(-6px) rotate(-.4deg);box-shadow:8px 10px 0 rgba(22,21,15,.14);}
+.stage:hover{transform:translateY(-4px);box-shadow:0 16px 34px rgba(22,21,15,.10);}
 .stage-art{
   display:grid;place-items:center;
   padding:clamp(24px,2.6vw,40px) clamp(20px,2vw,32px) clamp(10px,1.2vw,18px);
@@ -598,7 +573,6 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   width:38px;height:38px;border-radius:50%;border:1.5px solid var(--ink);
   display:grid;place-items:center;background:var(--yolk);
   font-family:var(--font-m);font-weight:700;font-size:14px;
-  box-shadow:2px 2px 0 var(--ink);transform:rotate(-4deg);
 }
 .stage:nth-child(2) .stage-n{background:var(--sky);color:#fff;}
 .stage:nth-child(3) .stage-n{background:var(--mint);color:#fff;}
@@ -660,7 +634,7 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   filter:drop-shadow(0 4px 8px rgba(22,21,15,.10));
   transition:transform .25s cubic-bezier(.34,1.56,.64,1);
 }
-.agent-tab.is-active .agent-tab-icon{transform:scale(1.12) rotate(-4deg);}
+.agent-tab.is-active .agent-tab-icon{transform:scale(1.08);}
 /* every agent its own colour — same Hatchy, different feathers */
 .hue-sales{filter:hue-rotate(175deg) saturate(1.15) drop-shadow(0 4px 8px rgba(22,21,15,.10));}    /* blue → orange */
 .hue-invoice{filter:hue-rotate(-75deg) saturate(.95) drop-shadow(0 4px 8px rgba(22,21,15,.10));}   /* blue → mint   */
@@ -987,8 +961,8 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   transition:transform .32s cubic-bezier(.22,1,.36,1),box-shadow .32s;
 }
 .lib-card:hover{
-  transform:translateY(-7px) rotate(-.5deg);
-  box-shadow:8px 10px 0 rgba(22,21,15,.15);
+  transform:translateY(-5px);
+  box-shadow:0 18px 36px rgba(22,21,15,.11);
 }
 .lib-banner{
   display:grid;place-items:center;position:relative;
@@ -1005,7 +979,7 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   width:clamp(110px,10vw,150px);height:auto;object-fit:contain;
   transition:transform .32s cubic-bezier(.34,1.56,.64,1);
 }
-.lib-card:hover .lib-illo{transform:translateY(-6px) rotate(-4deg) scale(1.05);}
+.lib-card:hover .lib-illo{transform:translateY(-5px) scale(1.04);}
 .lib-body{
   display:flex;flex-direction:column;gap:8px;flex:1;
   padding:clamp(16px,1.6vw,24px);
@@ -1013,8 +987,8 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 .lib-cat{
   position:absolute;top:14px;right:14px;
   font-family:var(--font-m);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
-  border:1.5px solid var(--ink);border-radius:999px;padding:4px 11px;
-  background:#fff;box-shadow:2px 2px 0 var(--ink);transform:rotate(2deg);
+  border:1px solid var(--ink);border-radius:999px;padding:4px 11px;
+  background:#fff;
 }
 .lib-sales .lib-cat{background:var(--coral);color:#fff;}
 .lib-docs .lib-cat{background:var(--grape);color:#fff;}
@@ -1096,7 +1070,7 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 .js .compare .mark{transform:scale(0);}
 .compare.is-visible .mark{
   transform:scale(1);
-  transition:transform .45s cubic-bezier(.34,1.56,.64,1) calc(var(--d,0)*.12s + .15s);
+  transition:transform .4s cubic-bezier(.22,1,.36,1) calc(var(--d,0)*.1s + .12s);
 }
 @media (prefers-reduced-motion: reduce){
   .js .compare .mark{transform:scale(1);transition:none;}
@@ -1116,7 +1090,6 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   transition:transform .3s cubic-bezier(.22,1,.36,1),box-shadow .3s;
 }
 .tier:hover{transform:translateY(-6px);box-shadow:8px 10px 0 rgba(22,21,15,.14);}
-.tier-eggs{font-size:clamp(26px,2.2vw,34px);line-height:1;letter-spacing:2px;}
 .tier h3{
   font-size:clamp(22px,2vw,30px);font-weight:700;letter-spacing:-.02em;text-transform:uppercase;line-height:1;
 }
@@ -1138,13 +1111,13 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 .tier ul li::before{content:'✓';font-weight:800;color:var(--mint);flex-shrink:0;}
 .tier ul li strong{color:var(--ink);font-weight:600;}
 .tier .btn{margin-top:auto;}
-/* the standard tier struts */
+/* the standard tier sits forward, quietly */
 .tier-hot{
   background:var(--ink);color:var(--paper);
-  box-shadow:8px 10px 0 var(--accent);
-  transform:translateY(-10px);
+  box-shadow:0 22px 44px rgba(22,21,15,.20);
+  transform:translateY(-8px);
 }
-.tier-hot:hover{transform:translateY(-16px);box-shadow:8px 14px 0 var(--accent);}
+.tier-hot:hover{transform:translateY(-12px);box-shadow:0 26px 50px rgba(22,21,15,.24);}
 .tier-hot h3,.tier-hot .tier-amount{color:var(--paper);}
 .tier-hot .tier-for{color:rgba(244,241,234,.72);}
 .tier-hot .tier-amount span{color:rgba(244,241,234,.6);}
@@ -1154,10 +1127,10 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 .tier-hot .btn{background:var(--yolk);border-color:var(--yolk);color:var(--ink);box-shadow:none;}
 .tier-hot .btn:hover{background:var(--paper);border-color:var(--paper);transform:none;box-shadow:none;}
 .tier-flag{
-  position:absolute;top:-16px;left:50%;transform:translateX(-50%) rotate(-2deg);
+  position:absolute;top:-14px;left:50%;transform:translateX(-50%);
   font-family:var(--font-m);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
-  background:var(--yolk);border:1.5px solid var(--ink);border-radius:999px;
-  padding:6px 16px;box-shadow:3px 3px 0 var(--ink);white-space:nowrap;
+  background:var(--yolk);border:1px solid var(--ink);border-radius:999px;
+  padding:6px 16px;white-space:nowrap;
 }
 @media(max-width:900px){
   .tiers{grid-template-columns:1fr;gap:22px;}
@@ -1173,7 +1146,6 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   background:var(--paper-2);
   padding:clamp(20px,2.2vw,32px) clamp(20px,2.4vw,40px);
 }
-.rent-egg{font-size:clamp(34px,3vw,48px);line-height:1;transform:rotate(-6deg);}
 .rent-copy{flex:1;min-width:240px;}
 .rent-copy h3{
   font-size:clamp(20px,1.8vw,26px);font-weight:600;letter-spacing:-.02em;line-height:1.15;
@@ -1205,11 +1177,10 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   display:flex;flex-direction:column;gap:10px;
   transition:transform .28s cubic-bezier(.22,1,.36,1),box-shadow .28s;
 }
-.safe:hover{transform:translateY(-5px) rotate(-.6deg);box-shadow:6px 8px 0 rgba(22,21,15,.13);}
+.safe:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(22,21,15,.10);}
 .safe-ic{
-  width:44px;height:44px;border-radius:12px;border:1.5px solid var(--ink);
+  width:44px;height:44px;border-radius:12px;border:1px solid var(--ink);
   display:grid;place-items:center;font-size:20px;
-  box-shadow:2px 2px 0 var(--ink);transform:rotate(-3deg);
 }
 .safe:nth-child(1) .safe-ic{background:var(--sky);}
 .safe:nth-child(2) .safe-ic{background:var(--yolk);}
@@ -1236,7 +1207,7 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 }
 .founder-photo{
   width:84px;height:84px;border-radius:50%;overflow:hidden;flex-shrink:0;
-  border:1.5px solid var(--ink);box-shadow:3px 3px 0 var(--accent);
+  border:1px solid var(--ink);
 }
 .founder-photo img{width:100%;height:100%;object-fit:cover;}
 .founder h3{
@@ -1577,7 +1548,7 @@ html.lenis,html.lenis body{height:auto;}
 
       <div class="egg-scene" id="eggScene">
         <button class="egg-stage" id="eggStage" type="button" aria-label="Tap the egg to hatch your first agent">
-          <span class="egg-hint" id="eggHint">Tap the egg</span>
+          <span class="egg-hint" id="eggHint">Tap to hatch →</span>
           <img class="egg-hatchy" src="hatchy-hero.webp" alt="Hatchy, your first hatched agent, bursting out of its egg" width="420" height="486" decoding="async" />
           <svg class="egg-svg" viewBox="0 0 420 480" aria-hidden="true">
             <ellipse cx="210" cy="452" rx="150" ry="18" fill="rgba(22,21,15,.10)"/>
@@ -1602,7 +1573,7 @@ html.lenis,html.lenis body{height:auto;}
               </g>
             </g>
           </svg>
-          <span class="egg-bubble" id="eggBubble">G'day — I'm Hatchy! 👋</span>
+          <span class="egg-bubble" id="eggBubble">Hi — I'm Hatchy.</span>
         </button>
       </div>
     </div>
@@ -1972,7 +1943,6 @@ html.lenis,html.lenis body{height:auto;}
     </div>
     <div class="tiers">
       <div class="tier reveal">
-        <span class="tier-eggs" aria-hidden="true">🥚</span>
         <h3>Basic</h3>
         <p class="tier-for">Own the platform, hatch your own agents.</p>
         <div class="tier-amount">A$10,000 <span>one-off install · then A$499/month</span></div>
@@ -1986,7 +1956,6 @@ html.lenis,html.lenis body{height:auto;}
       </div>
       <div class="tier tier-hot reveal">
         <span class="tier-flag">Most popular</span>
-        <span class="tier-eggs" aria-hidden="true">🥚🥚🥚</span>
         <h3>Standard</h3>
         <p class="tier-for">Everything in Basic, plus we hatch your first ten.</p>
         <div class="tier-amount">A$25,000 <span>one-off · then A$499/month</span></div>
@@ -1999,7 +1968,6 @@ html.lenis,html.lenis body{height:auto;}
         <a href="#book" class="btn" data-open-book data-source="pricing-standard">Book a call <span class="arrow">→</span></a>
       </div>
       <div class="tier reveal">
-        <span class="tier-eggs" aria-hidden="true">🥚✨</span>
         <h3>Premium</h3>
         <p class="tier-for">Bespoke agents for complex, high-value workflows.</p>
         <div class="tier-amount">A$50,000+ <span>quoted up front</span></div>
@@ -2014,7 +1982,6 @@ html.lenis,html.lenis body{height:auto;}
     </div>
 
     <div class="rent reveal">
-      <span class="rent-egg" aria-hidden="true">🪺</span>
       <div class="rent-copy">
         <h3>Not ready to own? <em>Rent the nest.</em></h3>
         <p>All of Hermes with no install fee — build your own agents from day one, add ready-hatched ones as you need them, and walk away any time. Same hosting, updates and support.</p>
@@ -2307,34 +2274,13 @@ async function postLead(kind, payload){
   const scene = $('eggScene');
   const stage = $('eggStage');
   if (!scene || !stage) return;
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const COLORS = ['#3A9FD8','#F5B72F','#E86A4C','#2E9E6B','#7B5FC7','#216BAC'];
   let hatched = false;
-
-  function confetti(){
-    if (reduced) return;
-    for (let i = 0; i < 34; i++){
-      const c = document.createElement('span');
-      c.className = 'confetti';
-      const ang = Math.random() * Math.PI * 2;
-      const dist = 90 + Math.random() * 190;
-      c.style.setProperty('--tx', (Math.cos(ang) * dist).toFixed(0) + 'px');
-      c.style.setProperty('--ty', (Math.sin(ang) * dist - 110).toFixed(0) + 'px');
-      c.style.setProperty('--rot', ((Math.random() * 640 - 320) | 0) + 'deg');
-      c.style.background = COLORS[(Math.random() * COLORS.length) | 0];
-      c.style.animationDelay = (Math.random() * 0.12).toFixed(2) + 's';
-      if (Math.random() < 0.4) c.style.borderRadius = '50%';
-      scene.appendChild(c);
-      setTimeout(() => c.remove(), 1400);
-    }
-  }
 
   function hatch(){
     if (hatched) return;
     hatched = true;
     scene.classList.add('hatched');
-    confetti();
-    stage.setAttribute('aria-label', "Hatchy has hatched. G'day!");
+    stage.setAttribute('aria-label', "Hatchy has hatched.");
   }
 
   stage.addEventListener('click', hatch);
