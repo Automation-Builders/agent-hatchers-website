@@ -977,13 +977,15 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   white-space:nowrap;
 }
 .compare thead .co-head{display:flex;align-items:center;gap:10px;}
+.compare thead .co-head-vs{gap:8px;}
+.compare thead .co-head-vs .lg + .lg{margin-left:-2px;}
 .compare thead .co-head .lg{width:24px;height:24px;}
 .compare thead .co-head img{width:30px;height:30px;border-radius:8px;}
 .compare tbody th{
-  font-weight:600;color:var(--ink);width:26%;
+  font-weight:600;color:var(--ink);width:30%;
   font-family:var(--font-d);letter-spacing:-.01em;
 }
-.compare td{color:var(--ink-70);width:24.6%;}
+.compare td{color:var(--ink-70);width:35%;}
 .compare td.co-us{
   background:linear-gradient(150deg,#E7F1FA 0%,#DDEBF7 100%);
   color:var(--ink);font-weight:600;
@@ -1711,8 +1713,7 @@ html.lenis,html.lenis body{height:auto;}
           <tr>
             <th scope="col"><span class="sr-only">What we're comparing</span></th>
             <th scope="col" class="co-us-h"><span class="co-head"><img src="hatchy-avatar.webp" alt="" width="30" height="30" />Your hatched agent</span></th>
-            <th scope="col"><span class="co-head"><svg class="lg"><use href="#lg-openai"/></svg>ChatGPT</span></th>
-            <th scope="col"><span class="co-head"><svg class="lg"><use href="#lg-claude"/></svg>Claude</span></th>
+            <th scope="col"><span class="co-head co-head-vs"><svg class="lg"><use href="#lg-openai"/></svg><svg class="lg"><use href="#lg-claude"/></svg>ChatGPT / Claude</span></th>
           </tr>
         </thead>
         <tbody>
@@ -1720,37 +1721,41 @@ html.lenis,html.lenis body{height:auto;}
             <th scope="row">What you get back</th>
             <td class="co-us"><span class="mark mark-yes" style="--d:0">✓</span>Finished work — sent, filed, live</td>
             <td><span class="mark mark-no" style="--d:0">–</span>An answer you act on</td>
-            <td><span class="mark mark-no" style="--d:0">–</span>An answer you act on</td>
           </tr>
           <tr>
             <th scope="row">Where it lives</th>
             <td class="co-us"><span class="mark mark-yes" style="--d:1">✓</span>Inside your Slack &amp; Teams</td>
-            <td><span class="mark mark-no" style="--d:1">–</span>Its own app</td>
-            <td><span class="mark mark-no" style="--d:1">–</span>Its own app</td>
+            <td><span class="mark mark-no" style="--d:1">–</span>Its own separate app</td>
           </tr>
           <tr>
             <th scope="row">Knows your business</th>
             <td class="co-us"><span class="mark mark-yes" style="--d:2">✓</span>Your tone, templates &amp; tools</td>
-            <td><span class="mark mark-no" style="--d:2">–</span>Starts generic</td>
-            <td><span class="mark mark-no" style="--d:2">–</span>Starts generic</td>
+            <td><span class="mark mark-no" style="--d:2">–</span>Starts generic every time</td>
           </tr>
           <tr>
-            <th scope="row">The bill</th>
-            <td class="co-us"><span class="mark mark-yes" style="--d:3">✓</span>Pay per use, at cost</td>
-            <td><span class="mark mark-no" style="--d:3">–</span>Per seat, every month</td>
-            <td><span class="mark mark-no" style="--d:3">–</span>Per seat, every month</td>
+            <th scope="row">The harness around it</th>
+            <td class="co-us"><span class="mark mark-yes" style="--d:3">✓</span>Skills, memory &amp; approvals wrapped around the model</td>
+            <td><span class="mark mark-no" style="--d:3">–</span>Just the raw model in a chat box</td>
+          </tr>
+          <tr>
+            <th scope="row">What you pay</th>
+            <td class="co-us"><span class="mark mark-yes" style="--d:4">✓</span>Per token, at cost — only what you use</td>
+            <td><span class="mark mark-no" style="--d:4">–</span>A flat per-seat fee, every month</td>
           </tr>
           <tr>
             <th scope="row">The AI inside</th>
-            <td class="co-us"><span class="mark mark-yes" style="--d:4">✓</span>Any model — swap in one click</td>
-            <td><span class="mark mark-no" style="--d:4">–</span>OpenAI only</td>
-            <td><span class="mark mark-no" style="--d:4">–</span>Anthropic only</td>
+            <td class="co-us"><span class="mark mark-yes" style="--d:5">✓</span>Any model — swap in one click</td>
+            <td><span class="mark mark-no" style="--d:5">–</span>Locked to one vendor's models</td>
+          </tr>
+          <tr>
+            <th scope="row">Data &amp; security</th>
+            <td class="co-us"><span class="mark mark-yes" style="--d:6">✓</span>Your own install — scoped access, human approval, never trains AI</td>
+            <td><span class="mark mark-no" style="--d:6">–</span>A shared chat app you paste data into</td>
           </tr>
           <tr>
             <th scope="row">Set-up &amp; upkeep</th>
-            <td class="co-us"><span class="mark mark-yes" style="--d:5">✓</span>We install &amp; maintain it for you</td>
-            <td><span class="mark mark-no" style="--d:5">–</span>You're on your own</td>
-            <td><span class="mark mark-no" style="--d:5">–</span>You're on your own</td>
+            <td class="co-us"><span class="mark mark-yes" style="--d:7">✓</span>We install &amp; maintain it for you</td>
+            <td><span class="mark mark-no" style="--d:7">–</span>You're on your own</td>
           </tr>
         </tbody>
       </table>
