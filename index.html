@@ -935,30 +935,53 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   position:absolute;inset:0;transform:rotateY(180deg);
   display:flex;flex-direction:column;
   padding:clamp(22px,2.4vw,32px);
-  background:linear-gradient(160deg,#FFFFFF 0%,#EAF2F8 100%);
+  background:var(--accent);color:#fff;              /* per-category colour set below */
 }
+/* back face matches the card's category colour */
+.lib-sales   .lib-back{background:linear-gradient(160deg,#25A16B 0%,#1F8A5B 100%);}
+.lib-docs    .lib-back{background:linear-gradient(160deg,#2A7EC4 0%,#216BAC 100%);}
+.lib-support .lib-back{background:linear-gradient(160deg,#2A7EC4 0%,#216BAC 100%);}
+.lib-invoice .lib-back{background:linear-gradient(160deg,#C07E14 0%,#A66C0F 100%);}
+.lib-web     .lib-back{background:linear-gradient(160deg,#7E60CE 0%,#6B4FB8 100%);}
 .lib-flip .lib-back h3{
+  color:#fff;
   font-size:clamp(20px,1.7vw,26px);font-weight:600;letter-spacing:-.02em;text-transform:uppercase;
-  line-height:1;margin:8px 0 14px;
+  line-height:1;margin:8px 0 16px;
 }
-.lib-skills{list-style:none;display:flex;flex-direction:column;gap:11px;flex:1;}
+.lib-flip .lib-back .lib-cat{
+  background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.55);
+}
+.lib-skills{list-style:none;display:flex;flex-direction:column;gap:12px;flex:1;}
 .lib-skills li{
-  position:relative;padding-left:30px;
-  font-size:clamp(14px,1.15vw,15.5px);line-height:1.35;color:var(--ink);
+  position:relative;padding-left:32px;
+  font-size:clamp(14px,1.15vw,15.5px);line-height:1.35;color:#fff;
+  opacity:0;transform:translateY(9px);
 }
 .lib-skills li::before{
-  content:'';position:absolute;left:0;top:1px;
-  width:20px;height:20px;border-radius:50%;
-  background:var(--accent);border:1.5px solid var(--ink);
+  content:'';position:absolute;left:0;top:0;
+  width:21px;height:21px;border-radius:50%;
+  background:rgba(255,255,255,.22);border:1.5px solid #fff;
 }
 .lib-skills li::after{
-  content:'';position:absolute;left:6.5px;top:7px;
+  content:'';position:absolute;left:7px;top:6.5px;
   width:7px;height:4px;border-left:2px solid #fff;border-bottom:2px solid #fff;
   transform:rotate(-45deg);
 }
-.lib-flip .lib-back .lib-flip-cue{margin-top:14px;align-self:flex-start;}
+/* skills fade in line-by-line once the card has flipped to its back */
+.lib-flip.flipped .lib-skills li{
+  opacity:1;transform:translateY(0);
+  transition:opacity .4s ease,transform .45s cubic-bezier(.22,1,.36,1);
+}
+.lib-flip.flipped .lib-skills li:nth-child(1){transition-delay:.34s;}
+.lib-flip.flipped .lib-skills li:nth-child(2){transition-delay:.44s;}
+.lib-flip.flipped .lib-skills li:nth-child(3){transition-delay:.54s;}
+.lib-flip.flipped .lib-skills li:nth-child(4){transition-delay:.64s;}
+.lib-flip.flipped .lib-skills li:nth-child(5){transition-delay:.74s;}
+.lib-flip .lib-back .lib-flip-cue{color:rgba(255,255,255,.85);margin-top:14px;align-self:flex-start;}
 @media (prefers-reduced-motion: reduce){
   .lib-flip .lib-inner{transition:none;}
+  .lib-skills li{opacity:1;transform:none;}
+  .lib-flip.flipped .lib-skills li{transition:none;}
 }
 /* CTA card — dark, action-forward */
 .lib-cta{background:var(--ink);border-color:var(--ink);}
