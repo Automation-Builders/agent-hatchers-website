@@ -12,7 +12,7 @@
 - [Pricing](https://agenthatchers.com/#pricing): Three tiers — Basic $10,000 then $499/month (own the platform, build unlimited agents); Standard $25,000 then $499/month (everything in Basic plus the agent marketplace to pick and hatch from — most popular); Premium from $50,000 (bespoke agents, deeper integrations). Or rent the platform for $949/month with no install fee, agents not included. AI usage billed at cost.
 
 ## Company
-- [About Agent Hatchers](https://agenthatchers.com/#trust): Founder-led — Hyein Yu (Founder, Head of Engineering) architects every installation; Noah Webb (Co-founder, CEO) runs every client relationship. Australian team, same-timezone delivery.
+- [Team](https://agenthatchers.com/team.html): Founder-led — Hyein Yu (Founder, Head of Engineering) architects every installation; Noah Webb (Co-founder, CEO) runs every client relationship. Australian team, same-timezone delivery.
 - [FAQ](https://agenthatchers.com/#faq): Authoritative answers on what Hermes is, what an agent is, pricing, why not just use ChatGPT or Claude, whether clients need to be technical (they do not), data safety and passwords (never asked for), and switching off or support.
 - [Book a call](https://calendly.com/noah-automationbuilders/30min): 30-minute call — a live Hermes demo, a fit assessment, and a price on the spot.
 
