@@ -530,54 +530,67 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   .sec-head{flex-direction:column;gap:18px;}
 }
 
-/* ── CHAT DEMO ── */
-.chat-region{
-  display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.35fr);
-  gap:clamp(28px,4vw,72px);align-items:start;
+/* ── CHAT DEMO — Slack/Teams workspace with a channel sidebar ── */
+.demo{max-width:1060px;margin:0 auto;}
+.tabs-note{
+  margin:22px auto 0;font-size:15px;line-height:1.7;color:var(--ink-70);
+  max-width:66ch;text-align:center;
 }
-@media(max-width:960px){.chat-region{grid-template-columns:1fr;}}
-.agent-tabs{display:flex;flex-direction:column;border-top:1px solid var(--line);}
-.agent-tab{
-  display:flex;align-items:center;justify-content:space-between;gap:16px;
-  background:none;border:none;border-bottom:1px solid var(--line);
-  font-family:var(--font-d);font-size:clamp(19px,1.9vw,26px);font-weight:500;
-  letter-spacing:-.02em;color:var(--ink-50);
-  padding:16px 4px;cursor:pointer;text-align:left;
-  transition:color .2s,padding-left .25s cubic-bezier(.22,1,.36,1);
-}
-.agent-tab .idx{
-  font-family:var(--font-m);font-size:11px;letter-spacing:.12em;color:var(--ink-30);
-  transition:color .2s;
-}
-.agent-tab:hover{color:var(--ink);}
-.agent-tab.is-active{color:var(--ink);padding-left:16px;}
-.agent-tab.is-active .idx{color:var(--accent);}
-.agent-tab-icon{
-  width:44px;height:44px;object-fit:contain;flex:0 0 44px;margin-right:2px;
-  filter:drop-shadow(0 4px 8px rgba(22,21,15,.10));
-  transition:transform .25s cubic-bezier(.34,1.56,.64,1);
-}
-.agent-tab.is-active .agent-tab-icon{transform:scale(1.08);}
+.tabs-note strong{color:var(--ink);font-weight:600;}
+
 /* every agent its own colour — same Hatchy, different feathers */
 .hue-sales{filter:hue-rotate(175deg) saturate(1.15) drop-shadow(0 4px 8px rgba(22,21,15,.10));}    /* blue → orange */
 .hue-invoice{filter:hue-rotate(-75deg) saturate(.95) drop-shadow(0 4px 8px rgba(22,21,15,.10));}   /* blue → mint   */
 .hue-docs{filter:hue-rotate(75deg) saturate(.9) drop-shadow(0 4px 8px rgba(22,21,15,.10));}        /* blue → grape  */
 .hue-web{filter:hue-rotate(110deg) saturate(.95) drop-shadow(0 4px 8px rgba(22,21,15,.10));}       /* blue → pink   */
-.tabs-note{
-  margin-top:24px;font-size:15px;line-height:1.7;color:var(--ink-70);max-width:40ch;
+.hue-email{filter:hue-rotate(-40deg) saturate(1.1) drop-shadow(0 4px 8px rgba(22,21,15,.10));}     /* blue → cyan   */
+
+/* the mock splits into a channel sidebar + the conversation, like Slack */
+.ws-shell{display:flex;flex:1;min-height:0;align-items:stretch;}
+.ws-sidebar{
+  width:212px;flex-shrink:0;display:flex;flex-direction:column;gap:1px;
+  background:var(--ws-body-bg);border-right:1px solid var(--ws-line);
+  padding:12px 10px;font-family:var(--ws-font);
 }
-.tabs-note strong{color:var(--ink);font-weight:600;}
-@media(max-width:960px){
-  .agent-tabs{flex-direction:row;flex-wrap:wrap;border-top:none;gap:8px;}
-  .agent-tab{
-    border:1px solid var(--line);border-radius:999px;
-    font-size:14px;padding:8px 16px;flex:0 0 auto;
-    justify-content:flex-start;gap:10px;
+.ws-side-head{
+  display:flex;align-items:center;gap:9px;
+  padding:4px 8px 12px;margin-bottom:8px;border-bottom:1px solid var(--ws-line);
+  font-weight:800;font-size:15px;letter-spacing:-.01em;color:var(--ws-text);
+}
+.ws-side-head svg{width:18px;height:18px;flex-shrink:0;}
+.ws-side-head .caret{margin-left:auto;color:var(--ws-dim);font-size:10px;}
+.ws-side-label{
+  font-size:12px;font-weight:600;color:var(--ws-dim);padding:6px 8px 5px;
+}
+.ws-chan{
+  display:flex;align-items:center;gap:8px;width:100%;
+  border:none;background:none;cursor:pointer;text-align:left;
+  font-family:var(--ws-font);font-size:14.5px;color:var(--ws-dim);
+  padding:7px 10px;border-radius:7px;letter-spacing:-.005em;
+  transition:background .15s,color .15s;
+}
+.ws-chan .hash{color:var(--ws-dim);font-weight:400;margin-right:-4px;}
+.ws-chan .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.ws-chan:hover{background:rgba(22,21,15,.05);color:var(--ws-text);}
+.ws-chan.is-active{background:var(--ws-hot-bg);color:var(--ws-text);font-weight:700;}
+.ws-chan.is-active .hash{color:var(--ws-text);}
+.ws-main{display:flex;flex-direction:column;flex:1;min-width:0;}
+.ws-main .ws-channel{border-left:none;padding-left:0;}
+
+@media(max-width:720px){
+  .ws-shell{flex-direction:column;}
+  .ws-sidebar{
+    width:auto;flex-direction:row;gap:6px;overflow-x:auto;
+    border-right:none;border-bottom:1px solid var(--ws-line);padding:10px;
+    scrollbar-width:none;
   }
-  .agent-tab.is-active{padding-left:16px;border-color:var(--ink);background:var(--ink);color:var(--paper);}
-  .agent-tab.is-active .idx{color:var(--sky);}
-  .agent-tab .idx{font-size:10px;}
-  .agent-tab-icon{width:26px;height:26px;flex-basis:26px;margin-right:0;}
+  .ws-sidebar::-webkit-scrollbar{display:none;}
+  .ws-side-head,.ws-side-label{display:none;}
+  .ws-chan{
+    flex:0 0 auto;white-space:nowrap;
+    border:1px solid var(--ws-line);border-radius:999px;padding:7px 13px;font-size:13px;
+  }
+  .ws-chan.is-active{border-color:transparent;}
 }
 
 /* shared with the workspace mock below */
@@ -667,11 +680,6 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   display:flex;align-items:center;gap:14px;flex-wrap:wrap;
   padding:12px 16px;border-bottom:1px solid var(--ws-line);background:var(--ws-surface);
 }
-.ws-brandbar{
-  display:flex;align-items:center;gap:9px;flex-shrink:0;
-  font-family:var(--ws-font);font-weight:700;font-size:15px;letter-spacing:-.015em;color:var(--ws-text);
-}
-.ws-brandbar svg{width:20px;height:20px;display:block;}
 .ws-channel{
   flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;
   border-left:1px solid var(--ws-line);padding-left:14px;
@@ -1545,63 +1553,65 @@ html.lenis,html.lenis body{height:auto;}
       <p class="sec-intro"><span class="sticker st-coral">01 — Live demo</span><br /><br />One message in, finished work out — in the app your team already has open.</p>
     </div>
 
-    <div class="chat-region">
-      <div>
-        <div class="agent-tabs reveal" role="tablist" aria-label="Choose an agent">
-          <button class="agent-tab is-active" type="button" role="tab" aria-selected="true" data-agent="invoice"><img class="agent-tab-icon hue-invoice" src="hatchy-invoice.webp" alt="" aria-hidden="true" /><span>Invoice Agent</span><span class="idx">A·01</span></button>
-          <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="sales"><img class="agent-tab-icon hue-sales" src="hatchy-sales.webp" alt="" aria-hidden="true" /><span>Sales Agent</span><span class="idx">A·02</span></button>
-          <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="docs"><img class="agent-tab-icon hue-docs" src="hatchy-document.webp" alt="" aria-hidden="true" /><span>Document Agent</span><span class="idx">A·03</span></button>
-          <button class="agent-tab" type="button" role="tab" aria-selected="false" data-agent="web"><img class="agent-tab-icon hue-web" src="hatchy-website.webp" alt="" aria-hidden="true" /><span>Website Agent</span><span class="idx">A·04</span></button>
+    <div class="demo reveal">
+      <!-- the switch: same agents, two front doors -->
+      <div class="ws-switch">
+        <div class="ws-seg" role="group" aria-label="Choose Slack or Microsoft Teams">
+          <button type="button" data-platform="slack" aria-pressed="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lg-slack"/></svg>
+            Slack
+          </button>
+          <button type="button" data-platform="teams" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lg-teams"/></svg>
+            Teams
+          </button>
         </div>
-        <p class="tabs-note reveal">One message in, finished work back — no dashboards, no logins. And that model dropdown is real: <strong>swap models with one click</strong>, and your agent keeps its memory, skills and voice.</p>
+        <span class="ws-switch-note">Same agents · same memory · <b>switch any time</b></span>
       </div>
 
-      <div class="reveal">
-        <!-- the switch: same agent, two front doors -->
-        <div class="ws-switch">
-          <div class="ws-seg" role="group" aria-label="Choose Slack or Microsoft Teams">
-            <button type="button" data-platform="slack" aria-pressed="true">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lg-slack"/></svg>
-              Slack
-            </button>
-            <button type="button" data-platform="teams" aria-pressed="false">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lg-teams"/></svg>
-              Teams
-            </button>
-          </div>
-          <span class="ws-switch-note">Same agent · same memory · <b>switch any time</b></span>
-        </div>
-
-        <div class="ws" id="ws" data-platform="slack">
-          <div class="ws-bar">
-            <div class="ws-brandbar">
-              <span id="wsBrandIcon" aria-hidden="true"></span>
-              <span id="wsBrandName">Slack</span>
+      <div class="ws" id="ws" data-platform="slack">
+        <div class="ws-shell">
+          <aside class="ws-sidebar" aria-label="Channels">
+            <div class="ws-side-head"><span id="wsBrandIcon" aria-hidden="true"></span><span>Agent Hatchers</span><span class="caret" aria-hidden="true">▾</span></div>
+            <div class="ws-side-label">Channels</div>
+            <div id="wsChanList" role="tablist" aria-label="Choose a channel">
+              <button class="ws-chan is-active" type="button" role="tab" aria-selected="true" data-agent="invoice"><span class="dot" style="background:#2E9E6B"></span><span class="hash">#</span> invoice-generator</button>
+              <button class="ws-chan" type="button" role="tab" aria-selected="false" data-agent="sales"><span class="dot" style="background:#E86A4C"></span><span class="hash">#</span> sales-agent</button>
+              <button class="ws-chan" type="button" role="tab" aria-selected="false" data-agent="docs"><span class="dot" style="background:#7B5FC7"></span><span class="hash">#</span> document-generator</button>
+              <button class="ws-chan" type="button" role="tab" aria-selected="false" data-agent="web"><span class="dot" style="background:#E86AA8"></span><span class="hash">#</span> website-agent</button>
+              <button class="ws-chan" type="button" role="tab" aria-selected="false" data-agent="email"><span class="dot" style="background:#2FA8C8"></span><span class="hash">#</span> email-assistant</button>
             </div>
-            <div class="ws-channel">
-              <div class="ws-channel-name" id="wsChannel"># finance-ops</div>
-              <div class="ws-channel-meta" id="wsChannelMeta">Hatchy · Invoice Agent — in this channel</div>
-            </div>
-            <div class="model-pill">
-              <label for="modelSelect">Model</label>
-              <select id="modelSelect" aria-label="Swap the AI model powering this agent">
-                <option value="Opus 4.8">Opus 4.8</option>
-                <option value="GPT-5.5">GPT-5.5</option>
-                <option value="Gemini 3.5 Pro">Gemini 3.5 Pro</option>
-                <option value="a cheaper model">Something cheaper</option>
-              </select>
-            </div>
-          </div>
+          </aside>
 
-          <div class="ws-body" id="wsBody" aria-live="polite" data-lenis-prevent tabindex="0"></div>
+          <div class="ws-main">
+            <div class="ws-bar">
+              <div class="ws-channel">
+                <div class="ws-channel-name" id="wsChannel"># invoice-generator</div>
+                <div class="ws-channel-meta" id="wsChannelMeta">Invoice Generator — in this channel</div>
+              </div>
+              <div class="model-pill">
+                <label for="modelSelect">Model</label>
+                <select id="modelSelect" aria-label="Swap the AI model powering this agent">
+                  <option value="Opus 4.8">Opus 4.8</option>
+                  <option value="GPT-5.5">GPT-5.5</option>
+                  <option value="Gemini 3.5 Pro">Gemini 3.5 Pro</option>
+                  <option value="a cheaper model">Something cheaper</option>
+                </select>
+              </div>
+            </div>
 
-          <div class="ws-composer">
-            <div class="ws-composer-box" id="wsComposer">Message #finance-ops</div>
-            <div class="ws-composer-send" aria-hidden="true">➤</div>
-            <button class="ws-replay" type="button" id="wsReplay">↻ Replay</button>
+            <div class="ws-body" id="wsBody" aria-live="polite" data-lenis-prevent tabindex="0"></div>
+
+            <div class="ws-composer">
+              <div class="ws-composer-box" id="wsComposer">Message #invoice-generator</div>
+              <div class="ws-composer-send" aria-hidden="true">➤</div>
+              <button class="ws-replay" type="button" id="wsReplay">↻ Replay</button>
+            </div>
           </div>
         </div>
       </div>
+
+      <p class="tabs-note">Each channel is its own agent — <strong>@mention it like a teammate</strong> and finished work comes back. Swap the model with one click; the agent keeps its memory, skills and voice.</p>
     </div>
   </div>
 </section>
@@ -2147,19 +2157,19 @@ const PLATFORMS = {
 
 const AGENTS = {
   invoice: {
-    name: 'Invoice Agent', idx: '01', channel: 'finance-ops',
-    team: 'Finance', teamChannel: 'Accounts Payable',
-    blurb: 'Hatchy · Invoice Agent — in this channel',
+    bot: 'Invoice Generator', hue: 'hue-invoice', channel: 'invoice-generator',
+    team: 'Agent Hatchers', teamChannel: 'invoice-generator',
+    blurb: 'Invoice Generator — in this channel',
     script: [
-      { t:'msg', who:'you', name:'You', av:'YO', time:'9:02', cmd:'@Hatchy chase everything unpaid over 30 days' },
-      { t:'work', title:'Hatchy is working', steps:[
+      { t:'msg', who:'you', name:'You', av:'YO', time:'9:02', cmd:'@invoice-generator chase everything unpaid over 30 days' },
+      { t:'work', steps:[
         'Opened Xero — 62 open invoices',
         'Filtered to 30+ days overdue — 11 invoices, <b>A$84,320</b>',
         'Cross-checked Stripe for part-payments — 2 already settled',
         'Read the last email thread with each client',
         'Drafted 9 reminders in your tone, not a template'
       ]},
-      { t:'msg', who:'hatchy', time:'9:03', text:
+      { t:'msg', who:'bot', time:'9:03', text:
         '<p>Done. <strong>9 chasers ready</strong>, A$71,940 between them.</p>' +
         '<p>Two I’d handle differently: <strong>Meridian</strong> is 74 days out and has ignored three emails — I’ve written that one firmer. <strong>Delacourt</strong> paid last week and Xero never matched it, so I fixed the record instead of chasing them for money they already sent.</p>',
         file:{ name:'aged-receivables-august.pdf', meta:'PDF · 4 pages · built just now' }
@@ -2167,12 +2177,12 @@ const AGENTS = {
       { t:'approve', label:'Waiting on you', body:'Send all 9 reminders? Nothing goes out until you say so.',
         btns:['Send all 9','Let me read them first'], pick:0 },
       { t:'msg', who:'you', name:'You', av:'YO', time:'9:05', text:'Send them.' },
-      { t:'msg', who:'hatchy', time:'9:05', text:
+      { t:'msg', who:'bot', time:'9:05', text:
         '<p>All 9 sent <span class="tick">✓</span></p>' +
         '<p>I’ll watch the inbox. If someone replies with a payment date I’ll log it in Xero and tell you here. If nobody answers by Friday, I’ll chase again — politely, then less politely.</p>',
         reacts:[{e:'🙌',n:3,hot:true},{e:'💰',n:2}] },
       { t:'sep', text:'Friday, 8:00am — no one asked for this' },
-      { t:'msg', who:'hatchy', time:'8:00', text:
+      { t:'msg', who:'bot', time:'8:00', text:
         '<p>Morning. <strong>4 of the 9 paid</strong> — A$38,110 in. Logged and reconciled.</p>' +
         '<p>Meridian replied asking for a payment plan. That’s above my pay grade, so it’s sitting in your inbox with a suggested split.</p>',
         thread:{ n:3, text:'Priya, Dan and 1 other replied' } }
@@ -2180,18 +2190,18 @@ const AGENTS = {
   },
 
   sales: {
-    name: 'Sales Agent', idx: '02', channel: 'sales-pipeline',
-    team: 'Sales', teamChannel: 'Pipeline',
-    blurb: 'Hatchy · Sales Agent — in this channel',
+    bot: 'Sales Agent', hue: 'hue-sales', channel: 'sales-agent',
+    team: 'Agent Hatchers', teamChannel: 'sales-agent',
+    blurb: 'Sales Agent — in this channel',
     script: [
-      { t:'msg', who:'you', name:'You', av:'YO', time:'7:41', cmd:'@Hatchy anything worth my time from overnight?' },
-      { t:'work', title:'Hatchy is working', steps:[
+      { t:'msg', who:'you', name:'You', av:'YO', time:'7:41', cmd:'@sales-agent anything worth my time from overnight?' },
+      { t:'work', steps:[
         'Read 14 new form fills from the website',
         'Enriched each against HubSpot and their own site',
         'Checked who’s been back to the pricing page',
         'Scored against the 5 deals you actually closed'
       ]},
-      { t:'msg', who:'hatchy', time:'7:42', text:
+      { t:'msg', who:'bot', time:'7:42', text:
         '<p><strong>3 of the 14.</strong> The rest are students and one competitor.</p>' +
         '<ul><li><strong>Meridian Group</strong> — 40 staff, hit your pricing page 6 times this week. This is the one.</li>' +
         '<li><strong>Kellow Partners</strong> — right size, right industry, went quiet in March. Worth a second run.</li>' +
@@ -2200,14 +2210,14 @@ const AGENTS = {
       { t:'approve', label:'Waiting on you', body:'Intro email to Sarah at Meridian, written in your voice — I read your last 40 sent emails to get it right.',
         btns:['Approve & send','Edit first'], pick:0 },
       { t:'msg', who:'you', name:'You', av:'YO', time:'7:44', text:'Send it.' },
-      { t:'msg', who:'hatchy', time:'7:44', text:
+      { t:'msg', who:'bot', time:'7:44', text:
         '<p>Sent <span class="tick">✓</span> Logged against her HubSpot record.</p>' +
         '<p>If she hasn’t replied by Thursday I’ll follow up once. If she opens it three times without replying, I’ll tell you — that usually means she’s forwarding it to someone.</p>',
         reacts:[{e:'🔥',n:4,hot:true},{e:'👀',n:2}] },
       { t:'sep', text:'Thursday, 11:20am' },
       { t:'msg', who:'mate', name:'Dan Whitfield', av:'DW', time:'11:20',
-        text:'<p><span class="mention">@Hatchy</span> Sarah just called me instead. Can you get me her numbers before 12?</p>' },
-      { t:'msg', who:'hatchy', time:'11:20', text:
+        text:'<p><span class="mention">@sales-agent</span> Sarah just called me instead. Can you get me her numbers before 12?</p>' },
+      { t:'msg', who:'bot', time:'11:20', text:
         '<p>On it — 40 staff, ~A$14m turnover, two offices, current tool is a spreadsheet. Full brief in your DM, plus the three objections her industry always raises and how we answer them.</p>' +
         '<p>You’ve got 38 minutes. Good luck.</p>',
         thread:{ n:1, text:'Dan replied' } }
@@ -2215,30 +2225,30 @@ const AGENTS = {
   },
 
   docs: {
-    name: 'Document Agent', idx: '03', channel: 'client-harrison',
-    team: 'Clients', teamChannel: 'Harrison & Co',
-    blurb: 'Hatchy · Document Agent — in this channel',
+    bot: 'Document Generator', hue: 'hue-docs', channel: 'document-generator',
+    team: 'Agent Hatchers', teamChannel: 'document-generator',
+    blurb: 'Document Generator — in this channel',
     script: [
       { t:'msg', who:'mate', name:'Priya Nair', av:'PN', time:'2:15',
-        text:'<p><span class="mention">@Hatchy</span> Harrison want their Q3 report by close of play. Can you?</p>' },
-      { t:'work', title:'Hatchy is working', steps:[
+        text:'<p><span class="mention">@document-generator</span> Harrison want their Q3 report by close of play. Can you?</p>' },
+      { t:'work', steps:[
         'Pulled Q3 actuals from Xero',
         'Pulled campaign numbers from HubSpot',
         'Read last quarter’s report to match structure and tone',
         'Built 6 charts — your brand colours, not the software’s',
         'Wrote the commentary. Flagged one thing I’m not sure about'
       ]},
-      { t:'msg', who:'hatchy', time:'2:19', text:
+      { t:'msg', who:'bot', time:'2:19', text:
         '<p><strong>Four minutes.</strong> 14 pages, your template, your tone, charts in.</p>' +
         '<p>One thing before it goes: their October ad spend jumped 60% and nobody logged why. I’ve written it as a neutral observation rather than guessing — if you know the reason, tell me and I’ll rewrite page 9.</p>',
         file:{ name:'harrison-q3-review.pdf', meta:'PDF · 14 pages · also saved as .docx' } },
       { t:'msg', who:'mate', name:'Priya Nair', av:'PN', time:'2:21',
         text:'<p>New warehouse launch. Say it was planned.</p>' },
-      { t:'msg', who:'hatchy', time:'2:21', text:
+      { t:'msg', who:'bot', time:'2:21', text:
         '<p>Page 9 rewritten <span class="tick">✓</span> Now reads as a planned launch spend with the return so far.</p>' },
       { t:'approve', label:'Waiting on you', body:'Email to the Harrison team with the PDF attached, cc’ing Priya. Draft’s written.',
         btns:['Send it','Hold'], pick:0 },
-      { t:'msg', who:'hatchy', time:'2:23', text:
+      { t:'msg', who:'bot', time:'2:23', text:
         '<p>Sent <span class="tick">✓</span> Filed in the Harrison folder on SharePoint and logged against their record.</p>' +
         '<p>Want me to just do this on the 3rd of every quarter? I’ll draft it and wait for you here.</p>',
         reacts:[{e:'✅',n:2,hot:true},{e:'😮',n:5}] }
@@ -2246,31 +2256,63 @@ const AGENTS = {
   },
 
   web: {
-    name: 'Website Agent', idx: '04', channel: 'marketing',
-    team: 'Marketing', teamChannel: 'General',
-    blurb: 'Hatchy · Website Agent — in this channel',
+    bot: 'Website Agent', hue: 'hue-web', channel: 'website-agent',
+    team: 'Agent Hatchers', teamChannel: 'website-agent',
+    blurb: 'Website Agent — in this channel',
     script: [
-      { t:'msg', who:'you', name:'You', av:'YO', time:'4:48', cmd:'@Hatchy we’re open Saturdays now, 9–2' },
-      { t:'work', title:'Hatchy is working', steps:[
+      { t:'msg', who:'you', name:'You', av:'YO', time:'4:48', cmd:'@website-agent we’re open Saturdays now, 9–2' },
+      { t:'work', steps:[
         'Searched the site for opening hours — found 4 places, not 1',
         'Homepage, contact page, footer, and the booking widget',
         'Updated your Google Business listing too',
         'Rebuilt a staging preview'
       ]},
-      { t:'msg', who:'hatchy', time:'4:48', text:
+      { t:'msg', who:'bot', time:'4:48', text:
         '<p>Four places, not one — the footer and the booking widget are the ones people always miss.</p>' +
         '<p>Preview’s up. Nothing is live yet.</p>',
         file:{ name:'preview.yoursite.com.au', meta:'Staging link · expires in 7 days' } },
       { t:'approve', label:'Waiting on you', body:'Push all four changes live?',
         btns:['Push it live','Not yet'], pick:0 },
       { t:'msg', who:'you', name:'You', av:'YO', time:'4:50', text:'Go.' },
-      { t:'msg', who:'hatchy', time:'4:50', text:
+      { t:'msg', who:'bot', time:'4:50', text:
         '<p>Live <span class="tick">✓</span> Took 11 seconds.</p>' +
         '<p>While I was in there — your events page still says 2025, and there’s a contact form on the careers page that’s been emailing an address that bounced since June. Want me to fix both?</p>',
         reacts:[{e:'😳',n:3,hot:true},{e:'🙏',n:1}] },
       { t:'msg', who:'you', name:'You', av:'YO', time:'4:51', text:'…yes please.' },
-      { t:'msg', who:'hatchy', time:'4:52', text:
+      { t:'msg', who:'bot', time:'4:52', text:
         '<p>Both done <span class="tick">✓</span> The careers form now goes to <code>careers@</code>. Six applications were sitting in the bounce log — I’ve forwarded them to Priya.</p>' }
+    ]
+  },
+
+  email: {
+    bot: 'Email Assistant', hue: 'hue-email', channel: 'email-assistant',
+    team: 'Agent Hatchers', teamChannel: 'email-assistant',
+    blurb: 'Email Assistant — in this channel',
+    script: [
+      { t:'msg', who:'you', name:'You', av:'YO', time:'8:12', cmd:'@email-assistant what came in overnight that actually needs me?' },
+      { t:'work', steps:[
+        'Read 38 new emails since 6pm',
+        'Grouped them by sender and thread',
+        'Matched each against your calendar and open deals',
+        'Sorted the noise from the 3 that only you can answer'
+      ]},
+      { t:'msg', who:'bot', time:'8:13', text:
+        '<p><strong>3 need you.</strong> The other 35 I’ve handled.</p>' +
+        '<ul><li><strong>Meridian</strong> — chasing the contract you promised Friday. Reply drafted, contract attached.</li>' +
+        '<li><strong>Priya</strong> — needs the Harrison deck before her 10am. I’ve pulled it ready.</li>' +
+        '<li><strong>ATO</strong> — BAS due the 28th. Forwarded to your bookkeeper with a note.</li></ul>' +
+        '<p>The rest were newsletters, receipts and two recruiters — filed and marked read.</p>' },
+      { t:'approve', label:'Waiting on you', body:'Send the Meridian reply — written in your voice, contract from Drive attached.',
+        btns:['Send it','Edit first'], pick:0 },
+      { t:'msg', who:'you', name:'You', av:'YO', time:'8:14', text:'Send it.' },
+      { t:'msg', who:'bot', time:'8:14', text:
+        '<p>Sent <span class="tick">✓</span> Logged against the Meridian deal in HubSpot.</p>' +
+        '<p>I’ll keep the inbox tidy through the day and only ping you when something genuinely needs a human. Anything you’d always want to see yourself, tell me and I’ll never filter it.</p>',
+        reacts:[{e:'🙏',n:3,hot:true},{e:'📥',n:2}] },
+      { t:'sep', text:'11:40am' },
+      { t:'msg', who:'bot', time:'11:40', text:
+        '<p>Heads up — a client just replied <strong>“not happy”</strong> to an invoice. That’s a tone I don’t auto-answer, so I’ve left it unread at the top of your inbox with the thread summarised.</p>',
+        thread:{ n:1, text:'You opened the thread' } }
     ]
   }
 };
@@ -2278,13 +2320,12 @@ const AGENTS = {
 (function hatchyDemo(){
   const ws       = $('ws');
   const body     = $('wsBody');
-  const tabs     = document.querySelectorAll('.agent-tab');
+  const chans    = document.querySelectorAll('.ws-chan');
   const segBtns  = document.querySelectorAll('.ws-seg button');
   const channel  = $('wsChannel');
   const chanMeta = $('wsChannelMeta');
   const composer = $('wsComposer');
   const brandIc  = $('wsBrandIcon');
-  const brandNm  = $('wsBrandName');
   const replay   = $('wsReplay');
   const modelSelect = $('modelSelect');
   if (!ws || !body) return;
@@ -2319,7 +2360,6 @@ const AGENTS = {
     const p = PLATFORMS[platform], a = AGENTS[agentKey];
     ws.dataset.platform = platform;
     brandIc.innerHTML = p.icon;
-    brandNm.textContent = p.name;
     // Slack names a channel; Teams names a team and a channel inside it
     const ch = platform === 'teams' ? a.teamChannel : a.channel;
     channel.textContent = p.channel(ch, a.team);
@@ -2333,16 +2373,16 @@ const AGENTS = {
 
   /* ── message parts ── */
   function avatar(who, initials){
-    // Hatchy's avatar is Hatchy — the hatched agent, not the egg
-    if (who === 'hatchy') return '<div class="ws-av ws-av-hatchy" aria-hidden="true"><img src="hatchy-avatar.webp" alt="" /></div>';
+    // the bot's avatar is the hatched Hatchy, tinted to this channel's agent
+    if (who === 'bot') return '<div class="ws-av ws-av-hatchy" aria-hidden="true"><img class="' + AGENTS[agentKey].hue + '" src="hatchy-avatar.webp" alt="" /></div>';
     return '<div class="ws-av" aria-hidden="true">' + initials + '</div>';
   }
 
   function row(m){
     const p = PLATFORMS[platform];
-    const isHatchy = m.who === 'hatchy';
-    const name = isHatchy ? 'Hatchy' : m.name;
-    const badge = isHatchy ? '<span class="ws-badge">' + p.badge + '</span>' : '';
+    const isBot = m.who === 'bot';
+    const name = isBot ? AGENTS[agentKey].bot : m.name;
+    const badge = isBot ? '<span class="ws-badge">' + p.badge + '</span>' : '';
 
     let inner = '';
     if (m.cmd){
@@ -2410,14 +2450,15 @@ const AGENTS = {
 
   function playWork(node){
     // a transient "working" indicator — just the shimmering status, no step list
+    const bot = AGENTS[agentKey].bot;
     const box = el('div');
     box.className = 'ws-work';
     box.innerHTML = '<div class="ws-work-title"><span class="spin"></span>' +
-      '<span class="ws-work-word">Hatchy is thinking…</span></div>';
+      '<span class="ws-work-word">' + bot + ' is thinking…</span></div>';
     const wordEl = box.querySelector('.ws-work-word');
 
-    const r = el('div', avatar('hatchy') +
-      '<div><div class="ws-head"><span class="ws-name">Hatchy</span>' +
+    const r = el('div', avatar('bot') +
+      '<div><div class="ws-head"><span class="ws-name">' + bot + '</span>' +
       '<span class="ws-badge">' + PLATFORMS[platform].badge + '</span></div></div>');
     r.className = 'ws-row';
     r.lastElementChild.appendChild(box);
@@ -2432,7 +2473,7 @@ const AGENTS = {
       if (!working) return;
       wi = (wi + 1) % WORK_WORDS.length;
       wordEl.style.opacity = '0';
-      at(() => { if (!working) return; wordEl.textContent = 'Hatchy is ' + WORK_WORDS[wi] + '…'; wordEl.style.opacity = '1'; }, 180);
+      at(() => { if (!working) return; wordEl.textContent = bot + ' is ' + WORK_WORDS[wi] + '…'; wordEl.style.opacity = '1'; }, 180);
       at(cycle, 1100);
     };
     at(cycle, 1100);
@@ -2456,8 +2497,8 @@ const AGENTS = {
     });
     box.appendChild(btns);
 
-    const r = el('div', avatar('hatchy') +
-      '<div><div class="ws-head"><span class="ws-name">Hatchy</span>' +
+    const r = el('div', avatar('bot') +
+      '<div><div class="ws-head"><span class="ws-name">' + AGENTS[agentKey].bot + '</span>' +
       '<span class="ws-badge">' + PLATFORMS[platform].badge + '</span></div></div>');
     r.className = 'ws-row';
     r.lastElementChild.appendChild(box);
@@ -2469,8 +2510,8 @@ const AGENTS = {
   }
 
   function typing(){
-    const t = el('div', avatar('hatchy') +
-      '<div class="ws-typing-b">Hatchy is typing<i></i><i></i><i></i></div>');
+    const t = el('div', avatar('bot') +
+      '<div class="ws-typing-b">' + AGENTS[agentKey].bot + ' is typing<i></i><i></i><i></i></div>');
     t.className = 'ws-typing';
     body.appendChild(t);
     stick();
@@ -2523,7 +2564,7 @@ const AGENTS = {
         }, clock);
         clock += 900;
 
-      } else if (node.who === 'hatchy'){
+      } else if (node.who === 'bot'){
         const showAt = clock;
         at(() => {
           const tip = typing();
@@ -2557,12 +2598,12 @@ const AGENTS = {
   }
 
   /* ── controls ── */
-  tabs.forEach(tab => tab.addEventListener('click', () => {
-    tabs.forEach(t => {
-      t.classList.toggle('is-active', t === tab);
-      t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+  chans.forEach(chan => chan.addEventListener('click', () => {
+    chans.forEach(c => {
+      c.classList.toggle('is-active', c === chan);
+      c.setAttribute('aria-selected', c === chan ? 'true' : 'false');
     });
-    agentKey = tab.dataset.agent;
+    agentKey = chan.dataset.agent;
     play();
   }));
 
