@@ -530,67 +530,6 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   .sec-head{flex-direction:column;gap:18px;}
 }
 
-/* ── THE HATCHERY — three big stages, egg to teammate ── */
-.hatchery{
-  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:clamp(14px,1.6vw,24px);
-}
-.stage{
-  position:relative;border:1.5px solid var(--ink);border-radius:20px;
-  background:#fff;overflow:hidden;
-  display:flex;flex-direction:column;
-  transition:transform .3s cubic-bezier(.22,1,.36,1),box-shadow .3s;
-}
-.stage:hover{transform:translateY(-4px);box-shadow:0 16px 34px rgba(22,21,15,.10);}
-.stage-art{
-  display:grid;place-items:center;
-  padding:clamp(24px,2.6vw,40px) clamp(20px,2vw,32px) clamp(10px,1.2vw,18px);
-  min-height:clamp(220px,21vw,320px);
-}
-.stage:nth-child(1) .stage-art{background:linear-gradient(160deg,#FDF3DC 0%,#F8E9C8 100%);}
-.stage:nth-child(2) .stage-art{background:linear-gradient(160deg,#E4F0FA 0%,#D8E9F6 100%);}
-.stage:nth-child(3) .stage-art{background:linear-gradient(160deg,#E5F4EC 0%,#D9EFE2 100%);}
-.stage-art svg,.stage-art img{width:clamp(160px,16vw,240px);height:auto;overflow:visible;}
-.stage-body{padding:clamp(18px,1.8vw,28px);border-top:1.5px solid var(--ink);display:flex;flex-direction:column;gap:8px;flex:1;}
-.stage-n{
-  position:absolute;top:14px;left:14px;
-  width:38px;height:38px;border-radius:50%;border:1.5px solid var(--ink);
-  display:grid;place-items:center;background:var(--yolk);
-  font-family:var(--font-m);font-weight:700;font-size:14px;
-}
-.stage:nth-child(2) .stage-n{background:var(--sky);color:#fff;}
-.stage:nth-child(3) .stage-n{background:var(--mint);color:#fff;}
-.stage h3{
-  font-size:clamp(21px,2vw,28px);font-weight:600;letter-spacing:-.025em;
-  line-height:1.05;text-transform:uppercase;
-}
-.stage h3 em{font-family:var(--font-s);font-style:italic;font-weight:400;text-transform:none;}
-.stage p{color:var(--ink-70);font-size:15px;line-height:1.6;}
-.stage p strong{color:var(--ink);font-weight:600;}
-/* stage 2's egg cracks when scrolled into view */
-.crack-line{stroke-dasharray:1;stroke-dashoffset:1;}
-.stage.is-visible .crack-line{
-  stroke-dashoffset:0;
-  transition:stroke-dashoffset 1s cubic-bezier(.22,1,.36,1) .5s;
-}
-.stage.is-visible .crack-flash{animation:crackFlash 2.2s ease-in-out 1.4s infinite;}
-@keyframes crackFlash{0%,100%{opacity:.4;}50%{opacity:1;}}
-.hatchling-peek{transform:translateY(14px);opacity:0;transform-box:fill-box;}
-.stage.is-visible .hatchling-peek{
-  transform:translateY(0);opacity:1;
-  transition:transform .7s cubic-bezier(.34,1.56,.64,1) 1.2s,opacity .4s ease 1.2s;
-}
-@media (prefers-reduced-motion: reduce){
-  .crack-line{stroke-dasharray:none;stroke-dashoffset:0;}
-  .stage.is-visible .crack-flash{animation:none;}
-  .hatchling-peek{transform:none;opacity:1;transition:none;}
-}
-@media(max-width:900px){
-  .hatchery{grid-template-columns:1fr;}
-  .stage-art{min-height:clamp(200px,46vw,280px);}
-  .stage-art svg,.stage-art img{width:clamp(150px,34vw,220px);}
-}
-
 /* ── CHAT DEMO ── */
 .chat-region{
   display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.35fr);
@@ -1556,7 +1495,7 @@ html.lenis,html.lenis body{height:auto;}
               </g>
             </g>
           </svg>
-          <span class="egg-bubble" id="eggBubble">Hi — I'm Hatchy.</span>
+          <span class="egg-bubble" id="eggBubble">Hi, I'm Hatchy!</span>
         </button>
       </div>
     </div>
