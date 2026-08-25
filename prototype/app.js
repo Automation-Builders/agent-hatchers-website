@@ -17,7 +17,7 @@
   const button = (label, action, secondary=false) => `<button class="btn ${secondary?'btn-secondary':'btn-primary'}" data-action="${action}">${label}</button>`;
   const bot = (extra='') => `<div class="bot ${extra}" role="img" aria-label="Friendly agent design"></div>`;
   const layout = content => `<main class="shell"><header class="topbar"><div class="brand"><img src="/agent-hatchers-logo.png" alt=""><span>Agent Hatchers</span></div><span class="private-pill">Private prototype for ${escapeHtml(company)}</span></header><section class="panel"><div class="progress" aria-label="Prototype progress"><span style="--progress:${Math.min(100,(state.step+1)/6*100)}%"></span></div><div class="step-label">Step ${state.step+1} of 6</div>${content}</section></main>`;
-  function escapeHtml(value){return String(value).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt',"'":'&#39;','"':'&quot;'}[c]));}
+  function escapeHtml(value){return String(value).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
   function render(){
     const screens = [welcome,nameScreen,designScreen,hatchScreen,revealScreen,marketScreen];
     root.innerHTML = layout(screens[state.step]());
