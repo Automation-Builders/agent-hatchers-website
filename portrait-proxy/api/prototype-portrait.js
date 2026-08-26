@@ -65,10 +65,12 @@ export default async function handler(req, res) {
   if (brief.length < 8) { res.status(400).json({ error: 'brief too short' }); return; }
 
   const prompt =
-    `${brief}. A friendly 3D cartoon robot mascot avatar named "${name}"` +
-    `${role ? `, an agent that ${role}` : ''}. Single centered character, ` +
-    `soft plain studio background, ${PALETTES[variant]}, clean product mascot ` +
-    `illustration, high detail, no text.`;
+    `${brief}. A friendly 3D cartoon robot mascot character named "${name}"` +
+    `${role ? `, whose job is to ${role}` : ''}. ` +
+    `Dress the character for the occasion with one or two fitting accessories ` +
+    `(such as a hat, scarf, headset, hard hat, or a tool of its trade), and place ` +
+    `it in a characterful setting that clearly reflects what it does. ${PALETTES[variant]}. ` +
+    `One hero character, friendly, polished cartoon mascot illustration, high detail, no text.`;
 
   try {
     const upstream = await fetch('https://openrouter.ai/api/v1/images', {

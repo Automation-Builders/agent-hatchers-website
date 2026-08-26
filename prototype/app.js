@@ -8,7 +8,7 @@
     {id:'website',icon:'◇',name:'Website Agent',industries:['all'],keywords:['website','content','seo','publish','webflow','wordpress','page','marketing','blog','copy'],summary:'Keeps website content accurate, on-brand and ready for approval before publishing.',portrait:'/hatchy-website.webp',team:'Marketing',mcps:['GitHub','Webflow','WordPress','Google Drive','Slack'],outcomes:['Draft new website pages','Update approved copy and details','Check pages for stale information','Prepare search-friendly metadata','Publish only after human approval']},
     {id:'operations',icon:'✓',name:'Operations Agent',industries:['professional-services','construction','healthcare','all'],keywords:['operations','workflow','project','task','deadline','schedule','coordination','process','compliance','ops'],summary:'Coordinates repeatable workflows and keeps teams informed when work changes state.',portrait:'/hatchy-routing.webp',team:'Operations',mcps:['Monday.com','Asana','Notion','Slack','Microsoft Teams'],outcomes:['Turn requests into structured work','Monitor deadlines and blockers','Prepare daily operating summaries','Chase missing information','Escalate exceptions to the right person']}
   ];
-  const state = {step:0,name:'',role:'',look:'',slots:[],variant:null,selectedImage:'',done:false};
+  const state = {step:0,name:'',role:'',look:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false};
   const root = document.getElementById('prototype-app');
   const company = config.company || 'Your Company';
   const industry = config.industry || 'professional-services';
@@ -37,6 +37,7 @@
 
   const button = (label, action, secondary=false) => `<button class="btn ${secondary?'btn-secondary':'btn-primary'}" data-action="${action}">${label}</button>`;
   const bot = (extra='') => `<div class="bot ${extra}" role="img" aria-label="Agent design"></div>`;
+  const micSvg = '<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3M8 21h8"/></svg>';
   const slotVisual = (slot,i) => slot && slot.image ? `<img src="${escapeHtml(slot.image)}" alt="Agent design ${i+1}">` : bot('v'+i);
   function escapeHtml(value){return String(value).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
   function chip(){if(state.variant===null)return `<span class="private-pill">Private preview for ${escapeHtml(company)}</span>`;const inner=state.selectedImage?`<img class="chip-img" src="${escapeHtml(state.selectedImage)}" alt="">`:bot('v'+state.variant+' chip');return `<span class="agent-chip">${inner}<span>${escapeHtml(state.name)}</span></span>`;}
@@ -61,12 +62,12 @@
     chev:'<svg viewBox="0 0 24 24"><path d="M8 10l4 4 4-4" fill="none" stroke-width="2"/></svg>'
   };
   function welcome(){return `<div class="stage welcome-grid"><div><h1 class="welcome-title">Hatch your agent</h1><div class="actions">${button('Start →','next')}</div></div><div class="welcome-art" aria-hidden="true"><div class="preview-egg"></div></div></div>`;}
-  function nameScreen(){return `<div class="stage"><span class="eyebrow">Step 1 · Create a profile</span><h2>What should your agent be called?</h2><p>Choose a name your team will enjoy seeing in Slack, Teams or email — then tell us what it should help with.</p><input class="name-field" id="agent-name" maxlength="28" autocomplete="off" placeholder="e.g. Pip, Scout or Atlas" value="${escapeHtml(state.name)}" aria-label="Agent name"><label class="field-label" for="agent-role">What should ${escapeHtml(state.name||'it')} help with?</label><textarea class="look-field" id="agent-role" placeholder="e.g. Draft proposals from our templates and chase approvals" aria-label="What the agent does">${escapeHtml(state.role)}</textarea>${roleSeeds.length?`<div class="chips">${roleSeeds.map((s,i)=>`<button class="chip" data-role-index="${i}">${escapeHtml(s.label)}</button>`).join('')}</div>`:''}<div class="actions">${button('Back','back',true)}${button('Design its look →','save-name')}</div></div>`;}
-  function designScreen(){return `<div class="stage"><span class="eyebrow">Step 2 · Design the look</span><h2>Describe how ${escapeHtml(state.name)} should look</h2><p>Write a short, practical description and we’ll hatch three designs for you to choose from.</p><textarea class="look-field" id="agent-look" maxlength="600" placeholder="e.g. a friendly rounded robot medic in blue and white, holding a checklist" aria-label="Describe the avatar">${escapeHtml(state.look)}</textarea><div class="chips">${lookSeeds.map((s,i)=>`<button class="chip" data-look-index="${i}">${escapeHtml(s.label)}</button>`).join('')}</div><div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
+  function nameScreen(){return `<div class="stage"><span class="eyebrow">Step 1 · Create a profile</span><h2>What should your agent be called?</h2><p>Choose a name your team will enjoy seeing in Slack, Teams or email — then tell us what it should help with.</p><input class="name-field" id="agent-name" maxlength="28" autocomplete="off" placeholder="e.g. Pip, Scout or Atlas" value="${escapeHtml(state.name)}" aria-label="Agent name"><label class="field-label" for="agent-role">What should ${escapeHtml(state.name||'it')} help with?</label><textarea class="look-field" id="agent-role" placeholder="e.g. Draft proposals from our templates and chase approvals" aria-label="What the agent does">${escapeHtml(state.role)}</textarea>${roleSeeds.length?`<div class="chips">${roleSeeds.map((s,i)=>`<button class="chip" data-role-index="${i}">${escapeHtml(s.label)}</button>`).join('')}</div>`:''}<label class="field-label" for="agent-look">Image description</label><div class="mic-field"><textarea class="look-field" id="agent-look" placeholder="e.g. a friendly rounded robot in blue and white, holding a suitcase" aria-label="Image description">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div><div class="actions">${button('Back','back',true)}${button('Design its look →','save-name')}</div></div>`;}
+  function designScreen(){return `<div class="stage"><span class="eyebrow">Step 2 · Design the look</span><h2>Describe how ${escapeHtml(state.name)} should look</h2><p>Write a short, practical description and we’ll hatch three designs for you to choose from.</p><div class="mic-field"><textarea class="look-field" id="agent-look" maxlength="600" placeholder="e.g. a friendly rounded robot medic in blue and white, holding a checklist" aria-label="Describe the avatar">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div><div class="chips">${lookSeeds.map((s,i)=>`<button class="chip" data-look-index="${i}">${escapeHtml(s.label)}</button>`).join('')}</div><div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
   function hatchScreen(){const slots=state.slots.length?state.slots:[null,null,null];const settled=slots.every(Boolean);return `<div class="stage hatch-zone"><span class="eyebrow">Hatching</span><h2>Your clutch is hatching…</h2><p>${usePortraits?'Drawing three genuinely different designs from your description.':'Bringing three designs to life from your description.'} Each egg opens as it’s ready.</p><div class="hatch-row" aria-live="polite">${slots.map((slot,i)=>`<div class="hatch-card ${slot?'opened':''}" data-i="${i}"><div class="egg-mini v${i}"><svg class="crack crack1" viewBox="0 0 100 130" preserveAspectRatio="none"><path d="M53 20 L47 33 L57 41 L49 55 L58 66"/></svg><svg class="crack crack2" viewBox="0 0 100 130" preserveAspectRatio="none"><path d="M34 72 L45 77 L37 88 L48 95 L40 104"/></svg></div>${slot?`<div class="hatchling">${slotVisual(slot,i)}</div>`:''}<span class="hatch-number">Design ${i+1}</span></div>`).join('')}</div><div class="hatch-actions">${settled?button('Choose your agent →','choose'):`<p class="hatch-status">Hatching your designs…</p>`}</div></div>`;}
   function revealScreen(){const slots=state.slots;return `<div class="stage"><span class="eyebrow">Meet the clutch</span><h2>${escapeHtml(state.name)} hatched — pick your favourite</h2><p>Three takes on your description. Choose the one to use as ${escapeHtml(state.name)}’s avatar.</p><div class="choice-grid">${slots.map((slot,i)=>`<button class="generated-choice ${state.variant===i?'selected':''}" data-option="${i}" aria-pressed="${state.variant===i}">${slotVisual(slot,i)}<span class="pick-name">${escapeHtml(state.name)}</span><span class="pick-tag">${slot&&slot.image?'Generated design':variantLabels[i]}</span></button>`).join('')}</div><div class="actions">${button('Redesign','redesign',true)}${button('Use this avatar →','market')}</div></div>`;}
   function initials(str){return String(str||'AH').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();}
-  function agentCard(agent){return `<article class="p-card" data-agent="${agent.id}" data-search="${escapeHtml((agent.name+' '+agent.team).toLowerCase())}" tabindex="0"><div class="p-thumb thumb-${agent.id}"><img src="${agent.portrait}" alt="${escapeHtml(agent.name)}" loading="lazy"></div><div class="p-meta"><div class="p-name">${agent.name} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(company)}</span><span class="p-tag">${agent.team}</span></div></div></article>`;}
+  function agentCard(agent){const gen=state.marketImages[agent.id];const pending=!gen&&!state.marketStarted&&state.variant!==null&&usePortraits&&config.marketPortraits!==false;return `<article class="p-card" data-agent="${agent.id}" data-search="${escapeHtml((agent.name+' '+agent.team).toLowerCase())}" tabindex="0"><div class="p-thumb thumb-${agent.id} ${gen?'is-generated':''} ${pending?'is-pending':''}"><img data-portrait="${agent.id}" src="${gen||agent.portrait}" alt="${escapeHtml(agent.name)}" loading="lazy"></div><div class="p-meta"><div class="p-name">${agent.name} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(company)}</span><span class="p-tag">${agent.team}</span></div></div></article>`;}
   function hatchedCard(){const vis=state.selectedImage?`<img src="${escapeHtml(state.selectedImage)}" alt="${escapeHtml(state.name)}">`:`<div class="thumb-bot">${bot('v'+(state.variant||0))}</div>`;return `<article class="p-card is-yours"><div class="p-thumb thumb-new">${vis}</div><div class="p-meta"><div class="p-name">${escapeHtml(state.name||'Your agent')} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(company)}</span><span class="p-tag tag-new">Just hatched</span></div></div></article>`;}
   function marketScreen(){
     const ranked=rankAgents().map(r=>r.agent);
@@ -118,19 +119,50 @@
   function showAgent(id){const agent=catalog.find(a=>a.id===id);if(!agent)return;const backdrop=document.createElement('div');backdrop.className='modal-backdrop';backdrop.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-labelledby="agent-title"><div class="modal-top"><div><span class="eyebrow">Agent profile</span><h2 id="agent-title">${agent.name}</h2></div><button class="close" aria-label="Close agent profile">×</button></div><p>${agent.summary}</p><h3>What this agent can do for ${escapeHtml(company)}</h3><div class="checks">${agent.outcomes.map(o=>`<div class="check"><i>✓</i><span>${o}</span></div>`).join('')}</div><h3>Available MCP connections</h3><p>These secure connectors let the agent work with your existing systems while respecting approvals and permissions.</p><div class="mcp-list">${agent.mcps.map(m=>`<span class="mcp">${m}</span>`).join('')}</div></section>`;document.body.appendChild(backdrop);const close=()=>backdrop.remove();backdrop.querySelector('.close').onclick=close;backdrop.onclick=e=>{if(e.target===backdrop)close()};document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc)}},{once:true});}
   function celebrate(){const c=document.createElement('div');c.className='confetti';for(let i=0;i<38;i++){const s=document.createElement('span');s.style.left=`${Math.random()*100}%`;s.style.background=['#216bac','#c1dce8','#ffb36b','#59c6ad'][i%4];s.style.animationDelay=`${Math.random()*.5}s`;c.appendChild(s)}document.body.appendChild(c);setTimeout(()=>c.remove(),2400)}
 
+  let activeRec=null;
+  function startDictation(btn){
+    const target=document.getElementById(btn.dataset.mic);
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR||!target){btn.title='Voice input is not supported in this browser';btn.classList.add('mic-off');return;}
+    if(activeRec){try{activeRec.stop();}catch(e){} return;}
+    try{
+      const rec=new SR();activeRec=rec;rec.lang='en-US';rec.interimResults=false;rec.maxAlternatives=1;
+      btn.classList.add('mic-live');
+      rec.onresult=e=>{const t=e.results[0][0].transcript;target.value=(target.value.trim()?target.value.trim()+' ':'')+t;target.focus();};
+      rec.onerror=()=>{btn.title='Microphone unavailable';};
+      rec.onend=()=>{btn.classList.remove('mic-live');activeRec=null;};
+      rec.start();
+    }catch(e){btn.classList.remove('mic-live');activeRec=null;}
+  }
   const sleep = ms => new Promise(r=>setTimeout(r,ms));
+  async function fetchImage(params){
+    if(!usePortraits) return null;
+    try{
+      const res = await fetch(portraitEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(params)});
+      const body = await res.json().catch(()=>({}));
+      if(res.ok && body && body.image) return String(body.image);
+    }catch(e){/* fall through to simulated design */}
+    return null;
+  }
   async function fetchPortrait(variant){
     // Pinned avatars (config.bakedImages) win — lets a page show fixed designs or work
     // offline (e.g. a published artifact where external calls are blocked).
     const baked = Array.isArray(config.bakedImages) ? config.bakedImages[variant] : null;
     if(baked) return String(baked);
-    if(!usePortraits) return null;
-    try{
-      const res = await fetch(portraitEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brief:state.look,name:state.name,role:state.role,company,industry:industryLabel,variant})});
-      const body = await res.json().catch(()=>({}));
-      if(res.ok && body && body.image) return String(body.image);
-    }catch(e){/* fall through to simulated design */}
-    return null;
+    return fetchImage({brief:state.look,name:state.name,role:state.role,company,industry:industryLabel,variant});
+  }
+  // Re-skin every marketplace agent in the chosen look, each dressed for its own job.
+  async function generateMarket(){
+    if(state.marketStarted || !usePortraits || config.marketPortraits===false || state.variant===null) return;
+    state.marketStarted = true;
+    const agents = rankAgents().map(r=>r.agent);
+    await Promise.all(agents.map(async agent=>{
+      const img = await fetchImage({brief:state.look,name:agent.name,role:agent.summary,company,industry:industryLabel,variant:state.variant||0});
+      if(!img) return;
+      state.marketImages[agent.id] = img;
+      const el = root.querySelector(`img[data-portrait="${agent.id}"]`);
+      if(el){el.src=img;el.closest('.p-thumb')?.classList.add('is-generated');}
+    }));
   }
   function openEgg(i){const card=root.querySelector(`.hatch-card[data-i="${i}"]`);if(!card||card.classList.contains('opened'))return;card.classList.add('opened');const wrap=document.createElement('div');wrap.className='hatchling';wrap.innerHTML=slotVisual(state.slots[i],i);card.appendChild(wrap);}
   async function generateAgents(){
@@ -152,17 +184,18 @@
       const a=el.dataset.action;
       if(a==='back'){state.step=Math.max(0,state.step-1);render()}
       if(a==='next'){state.step++;render()}
-      if(a==='save-name'){const input=document.getElementById('agent-name');state.name=input.value.trim();const roleTa=document.getElementById('agent-role');state.role=roleTa?roleTa.value.trim():'';if(!state.name){input.focus();input.setAttribute('aria-invalid','true');return}state.step++;render()}
+      if(a==='save-name'){const input=document.getElementById('agent-name');state.name=input.value.trim();const roleTa=document.getElementById('agent-role');state.role=roleTa?roleTa.value.trim():'';const lookTa=document.getElementById('agent-look');if(lookTa)state.look=lookTa.value.trim();if(!state.name){input.focus();input.setAttribute('aria-invalid','true');return}state.step++;render()}
       if(a==='generate'){const lookTa=document.getElementById('agent-look');const look=lookTa?lookTa.value.trim():'';if(look.length<8){lookTa.focus();lookTa.setAttribute('aria-invalid','true');return}state.look=look;generateAgents()}
       if(a==='choose'){if(state.variant===null)state.variant=0;state.step=4;render()}
       if(a==='redesign'){state.step=2;render()}
       if(a==='save-test'||a==='finish'){state.done=true;render();celebrate()}
-      if(a==='market'){if(state.variant===null){state.variant=0;const s=state.slots[0];state.selectedImage=s&&s.image?s.image:''}document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=5;render()}
-      if(a==='reset'){state.step=0;state.name='';state.role='';state.look='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='market'){if(state.variant===null){state.variant=0;const s=state.slots[0];state.selectedImage=s&&s.image?s.image:''}document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=5;render();generateMarket()}
+      if(a==='reset'){state.step=0;state.name='';state.role='';state.look='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-option]').forEach(el=>el.onclick=()=>{const i=+el.dataset.option;state.variant=i;const s=state.slots[i];state.selectedImage=s&&s.image?s.image:'';root.querySelectorAll('.generated-choice').forEach(c=>{const on=+c.dataset.option===i;c.classList.toggle('selected',on);c.setAttribute('aria-pressed',on)});});
     root.querySelectorAll('[data-role-index]').forEach(el=>el.onclick=()=>{const ta=document.getElementById('agent-role');if(ta){ta.value=roleSeeds[+el.dataset.roleIndex].text;ta.focus()}});
     root.querySelectorAll('[data-look-index]').forEach(el=>el.onclick=()=>{const ta=document.getElementById('agent-look');if(ta){ta.value=lookSeeds[+el.dataset.lookIndex].text;ta.focus()}});
+    root.querySelectorAll('[data-mic]').forEach(btn=>btn.onclick=()=>startDictation(btn));
     root.querySelectorAll('[data-agent]').forEach(el=>{el.onclick=()=>showAgent(el.dataset.agent);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();showAgent(el.dataset.agent)}};});
     const search=document.getElementById('market-search');if(search)search.oninput=()=>{const q=search.value.trim().toLowerCase();let visible=0;root.querySelectorAll('.p-card[data-search]').forEach(c=>{const show=!q||c.dataset.search.includes(q);c.hidden=!show;if(show)visible++;});const yours=root.querySelector('.p-card.is-yours');if(yours)yours.hidden=!!q;root.querySelectorAll('.board-group').forEach(g=>{g.hidden=![...g.querySelectorAll('.p-card')].some(c=>!c.hidden);});const empty=document.getElementById('board-empty');if(empty)empty.hidden=visible>0;};
     const input=document.getElementById('agent-name');if(input)input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();root.querySelector('[data-action="save-name"]').click()}};
