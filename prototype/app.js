@@ -91,6 +91,10 @@
 
   const sleep = ms => new Promise(r=>setTimeout(r,ms));
   async function fetchPortrait(variant){
+    // Pinned avatars (config.bakedImages) win — lets a page show fixed designs or work
+    // offline (e.g. a published artifact where external calls are blocked).
+    const baked = Array.isArray(config.bakedImages) ? config.bakedImages[variant] : null;
+    if(baked) return String(baked);
     if(!usePortraits) return null;
     try{
       const res = await fetch(portraitEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brief:state.look,name:state.name,role:state.role,company,industry:industryLabel,variant})});
