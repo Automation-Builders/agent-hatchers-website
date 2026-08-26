@@ -1158,17 +1158,21 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   background:#fff;border:1.5px solid var(--ink);border-radius:18px;
   padding:clamp(24px,2.4vw,38px);
   display:grid;grid-template-columns:auto minmax(0,1fr);
-  column-gap:clamp(16px,1.6vw,22px);row-gap:10px;align-items:start;
+  column-gap:clamp(18px,1.8vw,26px);row-gap:10px;align-items:start;
   transition:transform .28s cubic-bezier(.22,1,.36,1),box-shadow .28s;
 }
 .safe:hover{transform:translateY(-4px);box-shadow:0 16px 34px rgba(22,21,15,.10);}
-.safe-ic{
-  grid-row:1 / span 2;
-  width:52px;height:52px;border-radius:14px;border:1.5px solid var(--ink);
-  display:grid;place-items:center;background:var(--accent);
-  box-shadow:inset 0 0 0 2px rgba(255,255,255,.16);
+.safe-illo{
+  grid-row:1 / span 2;align-self:center;
+  display:grid;place-items:center;
+  width:clamp(96px,9vw,132px);
 }
-.safe-ic svg{width:28px;height:28px;color:#fff;display:block;}
+.safe-illo img{
+  width:100%;height:auto;display:block;
+  filter:drop-shadow(0 5px 10px rgba(22,21,15,.12));
+  transition:transform .28s cubic-bezier(.22,1,.36,1);
+}
+.safe:hover .safe-illo img{transform:translateY(-3px) scale(1.03);}
 .safe h3{
   align-self:center;
   font-size:clamp(19px,1.7vw,24px);font-weight:700;letter-spacing:-.02em;line-height:1.15;
@@ -1919,22 +1923,22 @@ html.lenis,html.lenis body{height:auto;}
 
     <div class="safe-grid">
       <div class="safe reveal">
-        <span class="safe-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#ic-key"/></svg></span>
+        <span class="safe-illo" aria-hidden="true"><img src="hatchy-brass-key-transparent.webp" alt="" width="1178" height="1335" loading="lazy" decoding="async" /></span>
         <h3>One job, one set of keys</h3>
         <p>The invoice agent can reach your accounting software — <strong>and nothing else.</strong> Like a bookkeeper who has the Xero login but not the payroll one.</p>
       </div>
       <div class="safe reveal">
-        <span class="safe-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#ic-approve"/></svg></span>
+        <span class="safe-illo" aria-hidden="true"><img src="hatchy-envelope-bright.webp" alt="" width="1172" height="1342" loading="lazy" decoding="async" /></span>
         <h3>Nothing sent without you</h3>
         <p>Agents draft and prepare on their own, but <strong>anything that reaches a customer or moves money waits for a human to click approve.</strong> You saw it in the demo.</p>
       </div>
       <div class="safe reveal">
-        <span class="safe-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#ic-lock"/></svg></span>
+        <span class="safe-illo" aria-hidden="true"><img src="hatchy-locked-folder.webp" alt="" width="1254" height="1254" loading="lazy" decoding="async" /></span>
         <h3>Your data trains no one</h3>
         <p>Your emails and documents do <em>your</em> job and nothing else. <strong>Never fed back to train anyone's AI models</strong> — ours or the providers'. And we never ask for passwords: only official "Sign in with…" approvals.</p>
       </div>
       <div class="safe reveal">
-        <span class="safe-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#ic-power"/></svg></span>
+        <span class="safe-illo" aria-hidden="true"><img src="hatchy-power-plug.webp" alt="" width="1254" height="1254" loading="lazy" decoding="async" /></span>
         <h3>You hold the plug</h3>
         <p>Pause an agent, revoke a connection, remove the app — <strong>from your side, in seconds, no exit fee.</strong> Like deactivating a staff pass.</p>
       </div>
