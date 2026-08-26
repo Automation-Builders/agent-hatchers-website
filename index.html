@@ -382,57 +382,126 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   -webkit-tap-highlight-color:transparent;
 }
 .egg-stage{
-  position:relative;width:clamp(240px,26vw,400px);cursor:pointer;border:none;background:none;padding:0;
+  position:relative;width:min(100%,clamp(300px,36vw,540px));aspect-ratio:1/1;
+  cursor:pointer;border:none;background:none;padding:0;
 }
 .egg-stage:focus-visible{outline:3px dashed var(--accent);outline-offset:12px;border-radius:50%;}
-.egg-svg{width:100%;height:auto;display:block;overflow:visible;}
-/* idle: the egg breathes gently, waiting to be tapped */
-.egg-whole{transform-origin:50% 92%;animation:eggBreathe 4.5s ease-in-out infinite;}
-@keyframes eggBreathe{
-  0%,100%{transform:translateY(0) rotate(0deg);}
-  50%{transform:translateY(-5px) rotate(-1deg);}
+/* ── THE HATCH — one 5s choreography that plays as the page opens ──
+   Four registered layers over a 620×620 frame, back to front: the whole egg
+   with its crack, the lid that blasts off, Hatchy in the open shell (the
+   final frame — it simply holds), and the burst that covers the switch.
+   Every layer runs the same 5s clock (1% = 50ms), so it reads as one motion. */
+.hatch-layer{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;}
+.hatch-layer img{width:100%;height:100%;display:block;}
+/* 1 · closed egg: settles in, wobbles three times, trembles, bursts */
+.hatch-egg{transform-origin:50% 90%;animation:hEgg 5s ease both;}
+@keyframes hEgg{
+  0%   {opacity:0; transform:translateY(-2%) scale(.96)}
+  6%   {opacity:1; transform:none}
+  12%  {transform:rotate(0deg)}
+  14%  {transform:rotate(-3deg)}
+  16%  {transform:rotate(2.5deg)}
+  18%  {transform:rotate(-1.5deg)}
+  20%  {transform:rotate(0deg)}
+  28%  {transform:rotate(0deg)}
+  30%  {transform:rotate(-5deg) translateY(-1.2%)}
+  32%  {transform:rotate(4.5deg)}
+  34%  {transform:rotate(-3deg) translateY(-.6%)}
+  36%  {transform:rotate(0deg) translateY(0)}
+  44%  {transform:rotate(0deg)}
+  45.5%{transform:rotate(-7deg) translateY(-2%)}
+  47%  {transform:rotate(6.5deg)}
+  48.5%{transform:rotate(-5deg) translateY(-1.2%)}
+  50%  {transform:rotate(4deg)}
+  51.5%{transform:rotate(-2deg)}
+  52%  {transform:rotate(0deg)}
+  53%  {transform:rotate(1.5deg)}
+  54%  {transform:rotate(-1.5deg)}
+  55%  {transform:rotate(1.5deg)}
+  56%  {transform:rotate(-1deg)}
+  57%  {transform:rotate(0deg)}
+  58.5%{opacity:1; transform:scale(1.07,.86)}
+  59.5%{opacity:1; transform:scale(.99,1.04)}
+  61%,100%{opacity:0; transform:translateY(-2%) scale(.92,1.1)}
 }
-.egg-stage:hover .egg-whole{animation-duration:2.4s;}
-/* hatch! shells fly, Hatchy springs up */
-.egg-scene.hatched .egg-whole{animation:none;}
-.egg-top,.egg-bot{transform-box:fill-box;transform-origin:center;}
-.egg-scene.hatched .egg-top{
-  animation:shellTop .9s cubic-bezier(.22,1,.36,1) forwards;
+/* the crack: one continuous fracture that starts inside the left edge of the
+   outline and walks across to inside the right edge, one leg per wobble */
+.hatch-cracks{position:absolute;inset:0;width:100%;height:100%;}
+.hatch-cracks path{
+  fill:none;stroke:#1b1a40;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:1;stroke-dashoffset:1;
+  animation-duration:5s;animation-timing-function:linear;animation-fill-mode:both;
 }
-@keyframes shellTop{
-  0%{transform:translate(0,0) rotate(0);}
-  100%{transform:translate(-96px,-210px) rotate(-38deg);opacity:0;}
+.hatch-c1{animation-name:hCrack1}
+.hatch-c2{animation-name:hCrack2}
+.hatch-c3{animation-name:hCrack3}
+.hatch-b1{animation-name:hCrackB1;stroke-width:3.5}
+.hatch-b2{animation-name:hCrackB2;stroke-width:3.5}
+@keyframes hCrack1{0%,16%{stroke-dashoffset:1}21%,100%{stroke-dashoffset:0}}
+@keyframes hCrack2{0%,33%{stroke-dashoffset:1}38%,100%{stroke-dashoffset:0}}
+@keyframes hCrack3{0%,48%{stroke-dashoffset:1}53%,100%{stroke-dashoffset:0}}
+@keyframes hCrackB1{0%,53%{stroke-dashoffset:1}56%,100%{stroke-dashoffset:0}}
+@keyframes hCrackB2{0%,54%{stroke-dashoffset:1}57%,100%{stroke-dashoffset:0}}
+/* 2 · the lid: sits over the egg's crown, launches in a tumbling arc */
+.hatch-cap{transform-origin:50% 45%;animation:hCap 5s linear both;}
+@keyframes hCap{
+  0%,57.9%{opacity:0; transform:translate(0,-9%) scale(.82) rotate(0deg)}
+  58%  {opacity:1; transform:translate(0,-9%)    scale(.82) rotate(0deg)}
+  61%  {opacity:1; transform:translate(9%,-43%)  scale(.82) rotate(14deg)}
+  64%  {opacity:1; transform:translate(19%,-65%) scale(.82) rotate(26deg)}
+  67%  {opacity:1; transform:translate(28%,-73%) scale(.82) rotate(38deg)}
+  70%  {opacity:1; transform:translate(37%,-65%) scale(.82) rotate(50deg)}
+  73%  {opacity:1; transform:translate(45%,-39%) scale(.82) rotate(60deg)}
+  76%  {opacity:1; transform:translate(53%,3%)   scale(.82) rotate(70deg)}
+  79%  {opacity:.55;transform:translate(60%,59%) scale(.82) rotate(78deg)}
+  82%,100%{opacity:0; transform:translate(66%,121%) scale(.82) rotate(84deg)}
 }
-.egg-scene.hatched .egg-bot{
-  animation:shellBot .9s cubic-bezier(.22,1,.36,1) forwards;
+/* 3 · Hatchy in the open shell: springs up with overshoot, settles, holds */
+.hatch-pop{transform-origin:50% 88%;animation:hPop 5s ease both;}
+@keyframes hPop{
+  0%,57.5%{opacity:0; transform:translateY(3%) scale(1.06,.7)}
+  60%  {opacity:1; transform:translateY(2.5%) scale(1.05,.74)}
+  67%  {opacity:1; transform:translateY(-2.5%) scale(.955,1.1)}
+  74%  {transform:translateY(.6%) scale(1.03,.96)}
+  80%  {transform:translateY(-.4%) scale(.99,1.02)}
+  88%,100%{transform:none}
 }
-@keyframes shellBot{
-  0%{transform:translate(0,0) rotate(0);}
-  100%{transform:translate(110px,-150px) rotate(42deg);opacity:0;}
+/* 4 · the burst: flash + ring + shell shards that mask the layer switch */
+.hatch-flash{
+  position:absolute;left:50%;top:48%;width:88%;aspect-ratio:1/1;margin:-44% 0 0 -44%;
+  border-radius:50%;
+  background:radial-gradient(circle,#fff 0%,#fff 48%,rgba(255,255,255,0) 74%);
+  animation:hFlash 5s ease both;
 }
-.egg-hatchy{
-  position:absolute;left:50%;bottom:0;width:104%;
-  transform:translateX(-50%) scale(0);transform-origin:50% 90%;
-  filter:drop-shadow(0 14px 24px rgba(22,21,15,.18));
-  pointer-events:none;
+@keyframes hFlash{
+  0%,57.2%{opacity:0; transform:scale(.2)}
+  58.6% {opacity:1; transform:scale(1)}
+  60.5% {opacity:.9; transform:scale(1.25)}
+  66%,100%{opacity:0; transform:scale(2)}
 }
-.egg-scene.hatched .egg-hatchy{
-  animation:hatchPop .8s cubic-bezier(.34,1.56,.64,1) .12s forwards;
+.hatch-ring{
+  position:absolute;left:50%;top:54%;width:34%;aspect-ratio:1/1;margin:-17% 0 0 -17%;
+  border-radius:50%;border:4px solid var(--egg-spot);
+  animation:hRing 5s ease both;
 }
-@keyframes hatchPop{
-  0%{transform:translateX(-50%) scale(0);}
-  70%{transform:translateX(-50%) scale(1.06);}
-  100%{transform:translateX(-50%) scale(1);}
+@keyframes hRing{
+  0%,57.5%{opacity:0; transform:scale(.25)}
+  59%   {opacity:.5; transform:scale(.6)}
+  66%,100%{opacity:0; transform:scale(2.1)}
 }
-/* tap hint — a quiet caption, no bounce */
-.egg-hint{
-  position:absolute;left:50%;top:-8px;transform:translateX(-50%);
-  font-family:var(--font-m);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--ink-50);white-space:nowrap;pointer-events:none;
-  transition:opacity .3s ease;
+.hatch-shard{
+  position:absolute;left:50%;top:54%;width:2.8%;aspect-ratio:1/1;margin:-1.4% 0 0 -1.4%;
+  background:var(--egg);border:2px solid #1b1a40;border-radius:22% 60% 40% 60%;
+  animation:hShard 5s cubic-bezier(.17,.67,.4,1) both;
 }
-.egg-scene.hatched .egg-hint{opacity:0;}
-/* speech bubble after hatch — clean, soft */
+.hatch-shard:nth-child(even){background:var(--egg-spot);border-radius:50%;}
+@keyframes hShard{
+  0%,57.5%{opacity:0; transform:translate(0,0) rotate(0) scale(.4)}
+  59%  {opacity:1; transform:translate(calc(var(--fx)*.45),calc(var(--fy)*.45)) rotate(calc(var(--r)*.45)) scale(1.1)}
+  68%  {opacity:1; transform:translate(calc(var(--fx)*.92),calc(var(--fy)*.92 + 60%)) rotate(calc(var(--r)*.92)) scale(.9)}
+  75%,100%{opacity:0; transform:translate(var(--fx),calc(var(--fy) + 240%)) rotate(var(--r)) scale(.55)}
+}
+/* speech bubble once Hatchy has settled — clean, soft */
 .egg-bubble{
   position:absolute;right:max(-24px,-3vw);top:4%;
   background:#fff;border:1px solid var(--line);border-radius:14px 14px 14px 3px;
@@ -440,21 +509,19 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   padding:11px 16px;font-weight:600;font-size:clamp(13px,1.2vw,17px);letter-spacing:-.01em;
   opacity:0;transform:translateY(6px);
   white-space:nowrap;
-}
-.egg-scene.hatched .egg-bubble{
-  animation:bubbleIn .45s cubic-bezier(.22,1,.36,1) .7s forwards;
+  animation:bubbleIn .45s cubic-bezier(.22,1,.36,1) 4.55s forwards;
 }
 @keyframes bubbleIn{to{opacity:1;transform:translateY(0);}}
 @media (prefers-reduced-motion: reduce){
-  .egg-whole,.egg-stage:hover .egg-whole{animation:none;}
-  .egg-scene.hatched .egg-top,.egg-scene.hatched .egg-bot{animation:none;opacity:0;}
-  .egg-scene.hatched .egg-hatchy{animation:none;transform:translateX(-50%) scale(1);}
-  .egg-scene.hatched .egg-bubble{animation:none;opacity:1;transform:none;}
+  .hatch-egg,.hatch-cap,.hatch-pop,.hatch-flash,.hatch-ring,.hatch-shard,.hatch-cracks path{animation:none;}
+  .hatch-egg,.hatch-cap,.hatch-flash,.hatch-ring,.hatch-shard{opacity:0;}
+  .hatch-pop{opacity:1;transform:none;}
+  .egg-bubble{animation:none;opacity:1;transform:none;}
 }
 @media(max-width:860px){
   .hero-grid{grid-template-columns:1fr;}
   .egg-scene{min-height:clamp(300px,72vw,420px);order:-1;}
-  .egg-stage{width:clamp(220px,52vw,300px);}
+  .egg-stage{width:clamp(250px,62vw,340px);}
   .egg-bubble{right:4%;}
 }
 
@@ -1550,32 +1617,34 @@ html.lenis,html.lenis body{height:auto;}
       </div>
 
       <div class="egg-scene" id="eggScene">
-        <button class="egg-stage" id="eggStage" type="button" aria-label="Tap the egg to hatch your first agent">
-          <span class="egg-hint" id="eggHint">Tap to hatch →</span>
-          <img class="egg-hatchy" src="hatchy-hero.webp" alt="Hatchy, your first hatched agent, bursting out of its egg" width="420" height="486" decoding="async" />
-          <svg class="egg-svg" viewBox="0 0 420 480" aria-hidden="true">
-            <ellipse cx="210" cy="452" rx="150" ry="18" fill="rgba(22,21,15,.10)"/>
-            <g class="egg-whole">
-              <g class="egg-top">
-                <path d="M66 258 L105 232 L145 262 L185 228 L225 264 L265 230 L305 262 L354 252 C354 140 300 30 210 30 C120 30 66 140 66 258 Z"
-                      fill="var(--egg)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/>
-                <ellipse cx="150" cy="120" rx="17" ry="14" fill="var(--egg-spot)" opacity=".85"/>
-                <ellipse cx="262" cy="92" rx="13" ry="11" fill="var(--egg-spot)" opacity=".85"/>
-                <ellipse cx="300" cy="185" rx="20" ry="16" fill="var(--egg-spot)" opacity=".85"/>
-                <ellipse cx="108" cy="185" rx="12" ry="10" fill="var(--egg-spot)" opacity=".85"/>
-                <ellipse cx="208" cy="196" rx="10" ry="8" fill="var(--egg-spot)" opacity=".85"/>
-              </g>
-              <g class="egg-bot">
-                <path d="M66 258 L105 232 L145 262 L185 228 L225 264 L265 230 L305 262 L354 252 C354 362 292 440 210 440 C128 440 66 362 66 258 Z"
-                      fill="var(--egg)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/>
-                <ellipse cx="142" cy="332" rx="18" ry="15" fill="var(--egg-spot)" opacity=".85"/>
-                <ellipse cx="252" cy="302" rx="14" ry="12" fill="var(--egg-spot)" opacity=".85"/>
-                <ellipse cx="298" cy="352" rx="12" ry="10" fill="var(--egg-spot)" opacity=".85"/>
-                <ellipse cx="190" cy="388" rx="15" ry="12" fill="var(--egg-spot)" opacity=".85"/>
-                <ellipse cx="97" cy="295" rx="10" ry="8" fill="var(--egg-spot)" opacity=".85"/>
-              </g>
-            </g>
-          </svg>
+        <button class="egg-stage" id="eggStage" type="button" aria-label="Hatchy hatches from its egg as the page opens. Tap to replay the hatch.">
+          <!-- back to front: the whole egg + crack, the lid, Hatchy, the burst -->
+          <span class="hatch-layer hatch-egg" aria-hidden="true">
+            <img src="egg-closed.webp" alt="" width="620" height="620" fetchpriority="high" decoding="async" />
+            <svg class="hatch-cracks" viewBox="0 0 620 620" aria-hidden="true">
+              <path class="hatch-c1" pathLength="1" d="M114,318 L146,302 L172,330 L200,296 L226,331 L245,301"/>
+              <path class="hatch-c2" pathLength="1" d="M245,301 L272,336 L308,290 L338,332 L375,302"/>
+              <path class="hatch-c3" pathLength="1" d="M375,302 L396,333 L420,298 L448,332 L474,300 L506,320"/>
+              <path class="hatch-b1" pathLength="1" d="M272,336 L262,368 L272,392"/>
+              <path class="hatch-b2" pathLength="1" d="M308,290 L318,262 L308,240"/>
+            </svg>
+          </span>
+          <img class="hatch-layer hatch-cap" src="egg-shell-clean.webp" alt="" width="620" height="620" decoding="async" aria-hidden="true" />
+          <img class="hatch-layer hatch-pop" src="hatchy-pop.webp" alt="Hatchy, your first hatched agent, waving from its egg" width="620" height="620" fetchpriority="high" decoding="async" />
+          <span class="hatch-layer hatch-burst" aria-hidden="true">
+            <i class="hatch-flash"></i>
+            <i class="hatch-ring"></i>
+            <i class="hatch-shard" style="--fx:-160%;--fy:-560%;--r:340deg"></i>
+            <i class="hatch-shard" style="--fx:300%;--fy:-480%;--r:-290deg;animation-delay:.03s"></i>
+            <i class="hatch-shard" style="--fx:-460%;--fy:-260%;--r:260deg"></i>
+            <i class="hatch-shard" style="--fx:520%;--fy:-180%;--r:-320deg;animation-delay:.05s"></i>
+            <i class="hatch-shard" style="--fx:-540%;--fy:90%;--r:300deg"></i>
+            <i class="hatch-shard" style="--fx:480%;--fy:160%;--r:-260deg;animation-delay:.02s"></i>
+            <i class="hatch-shard" style="--fx:-240%;--fy:420%;--r:280deg;animation-delay:.04s"></i>
+            <i class="hatch-shard" style="--fx:180%;--fy:480%;--r:-300deg"></i>
+            <i class="hatch-shard" style="--fx:40%;--fy:-620%;--r:250deg;animation-delay:.06s"></i>
+            <i class="hatch-shard" style="--fx:-360%;--fy:-430%;--r:-270deg;animation-delay:.01s"></i>
+          </span>
           <span class="egg-bubble" id="eggBubble">Hi, I'm Hatchy!</span>
         </button>
       </div>
@@ -2152,33 +2221,17 @@ async function postLead(kind, payload){
   });
 })();
 
-/* ── THE EGG — tap it (or wait) and Hatchy hatches, once ── */
+/* ── THE EGG — hatches by itself as the page opens; tap Hatchy to replay ── */
 (function eggHatch(){
   const scene = $('eggScene');
-  const stage = $('eggStage');
-  if (!scene || !stage) return;
-  let hatched = false;
-
-  function hatch(){
-    if (hatched) return;
-    hatched = true;
-    scene.classList.add('hatched');
-    stage.setAttribute('aria-label', "Hatchy has hatched.");
-  }
-
-  stage.addEventListener('click', hatch);
-
-  // If nobody taps, the egg hatches itself shortly after the page settles —
-  // the hero should never stay an un-hatched egg for someone who just watches.
-  if ('IntersectionObserver' in window){
-    new IntersectionObserver((entries, io) => {
-      entries.forEach(e => {
-        if (e.isIntersecting){ setTimeout(hatch, 3200); io.disconnect(); }
-      });
-    }, { threshold: 0.4 }).observe(scene);
-  } else {
-    setTimeout(hatch, 3200);
-  }
+  if (!scene) return;
+  // The 5s hatch is pure CSS and starts with the page. A click swaps the
+  // stage for a fresh clone, which restarts every animation in the stack.
+  scene.addEventListener('click', () => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const stage = scene.querySelector('.egg-stage');
+    if (stage) stage.replaceWith(stage.cloneNode(true));
+  });
 })();
 
 /* ── COMPARE TABLE — the ticks stamp themselves in ── */
