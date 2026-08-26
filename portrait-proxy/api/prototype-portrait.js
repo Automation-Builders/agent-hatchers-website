@@ -8,10 +8,10 @@
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
   'https://agenthatchers.com,https://www.agenthatchers.com,http://localhost:8799')
   .split(',').map(s => s.trim()).filter(Boolean);
-// Default: Nano Banana 2 Lite — cheapest/fastest image-OUTPUT model. Override with
-// OPENROUTER_MODEL (e.g. google/gemini-3.1-flash-image for higher quality). Note: text
+// Default: Nano Banana 2 (higher quality). Override with OPENROUTER_MODEL — e.g.
+// google/gemini-3.1-flash-lite-image for cheaper/faster but rougher output. Note: text
 // models like google/gemini-3.7-flash do NOT generate images and will not work here.
-const MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-3.1-flash-lite-image';
+const MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-3.1-flash-image';
 const PALETTES = [
   'a cool blue and white colour scheme',
   'a teal and slate colour scheme',
@@ -65,12 +65,13 @@ export default async function handler(req, res) {
   if (brief.length < 8) { res.status(400).json({ error: 'brief too short' }); return; }
 
   const prompt =
-    `${brief}. A friendly 3D cartoon robot mascot character named "${name}"` +
-    `${role ? `. Its role: ${role}` : ''}. ` +
-    `Dress the character for the occasion with one or two fitting accessories ` +
-    `(such as a hat, scarf, headset, hard hat, or a tool of its trade), and place ` +
-    `it in a characterful setting that clearly reflects what it does. ${PALETTES[variant]}. ` +
-    `One hero character, friendly, polished cartoon mascot illustration, high detail, no text.`;
+    `${brief}. A friendly 3D cartoon robot mascot character named "${name}". ` +
+    `${role ? `${role} ` : ''}` +
+    `Give it one or two fitting accessories (a hat, scarf, headset, or hard hat) and one ` +
+    `or two clear props held or beside it that show exactly what it does. ` +
+    `Plain solid white background, soft even studio lighting, the character centred and ` +
+    `full-body. ${PALETTES[variant]}. Polished, high-quality, sharp 3D cartoon mascot ` +
+    `render, consistent character design, crisp clean edges, no text, no watermark, no clutter.`;
 
   try {
     const upstream = await fetch('https://openrouter.ai/api/v1/images', {
@@ -86,6 +87,7 @@ export default async function handler(req, res) {
         prompt,
         n: 1,
         aspect_ratio: '1:1',
+        quality: 'high',
         output_format: 'png'
       })
     });

@@ -235,3 +235,5 @@ h1{font-weight:800}h2{font-weight:700}
 @keyframes shimmer{to{background-position:-200% 0}}
 .p-thumb img{transition:opacity .3s}
 .p-thumb.is-generated img{filter:drop-shadow(0 6px 12px rgba(20,40,70,.18))}
+/* Generated portraits come back on a white background — sit them on white tiles */
+.p-thumb.is-generated{background:#fff}
