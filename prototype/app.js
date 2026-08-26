@@ -17,7 +17,7 @@
   // Real portrait generation. Point portraitEndpoint at a callable endpoint and it upgrades
   // automatically; until then each egg falls back to an on-brand simulated mascot so the
   // prospect experience is never broken. Set generatePortraits:false to skip the call entirely.
-  const portraitEndpoint = config.portraitEndpoint || 'https://agenthatchers.ai/api/hermes/prototype-portrait';
+  const portraitEndpoint = config.portraitEndpoint || 'https://agent-hatchers-portrait-proxy.vercel.app/api/prototype-portrait';
   const usePortraits = config.generatePortraits !== false && !!portraitEndpoint;
   const recommended = new Set(config.recommendedAgents||[]);
   function rankAgents(){const text=`${state.name} ${state.role} ${state.look}`.toLowerCase();return catalog.map((agent,index)=>{let score=0;agent.keywords.forEach(k=>{if(text.includes(k))score+=4});if(agent.industries.includes(industry))score+=2;if(recommended.has(agent.id))score+=1;return{agent,score,index};}).sort((a,b)=>b.score-a.score||a.index-b.index);}
