@@ -8,7 +8,10 @@
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
   'https://agenthatchers.com,https://www.agenthatchers.com,http://localhost:8799')
   .split(',').map(s => s.trim()).filter(Boolean);
-const MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash-image-preview';
+// Default: Nano Banana 2 Lite — cheapest/fastest image-OUTPUT model. Override with
+// OPENROUTER_MODEL (e.g. google/gemini-3.1-flash-image for higher quality). Note: text
+// models like google/gemini-3.7-flash do NOT generate images and will not work here.
+const MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-3.1-flash-lite-image';
 const PALETTES = [
   'a cool blue and white colour scheme',
   'a teal and slate colour scheme',

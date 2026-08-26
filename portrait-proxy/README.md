@@ -29,7 +29,7 @@ Or import the repo in the Vercel dashboard and set **Root Directory** to `portra
 | Name | Required | Value |
 |---|---|---|
 | `OPENROUTER_API_KEY` | **yes** | your OpenRouter key — paste it here, never in code |
-| `OPENROUTER_MODEL` | no | image model slug (default `google/gemini-2.5-flash-image-preview`) |
+| `OPENROUTER_MODEL` | no | image model slug (default `google/gemini-3.1-flash-lite-image`, "Nano Banana 2 Lite" — cheapest/fastest). Use `google/gemini-3.1-flash-image` for higher quality. Must be an **image-output** model — text models like `google/gemini-3.7-flash` will not work. |
 | `ALLOWED_ORIGINS` | no | comma-separated origins allowed to call it (default includes `agenthatchers.com` + localhost) |
 
 After adding/changing env vars, redeploy (`npx vercel --prod`) so they take effect.
