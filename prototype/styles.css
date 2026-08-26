@@ -421,3 +421,69 @@ h1{font-weight:800}h2{font-weight:700}
 @keyframes flash{0%,57.2%{opacity:0;transform:scale(.2)}58.6%{opacity:1;transform:scale(1)}60.5%{opacity:.9;transform:scale(1.25)}66%,100%{opacity:0;transform:scale(2)}}
 @keyframes ring{0%,57.5%{opacity:0;transform:scale(.25)}59%{opacity:.5;transform:scale(.6)}66%,100%{opacity:0;transform:scale(2.1)}}
 @keyframes shard{0%,57.5%{opacity:0;transform:translate(0,0) rotate(0) scale(.4)}59%{opacity:1;transform:translate(calc(var(--fx)*.45),calc(var(--fy)*.45)) rotate(calc(var(--r)*.45)) scale(1.1)}68%{opacity:1;transform:translate(calc(var(--fx)*.92),calc(var(--fy)*.92 + 60%)) rotate(calc(var(--r)*.92)) scale(.9)}75%,100%{opacity:0;transform:translate(var(--fx),calc(var(--fy) + 240%)) rotate(var(--r)) scale(.55)}}
+/* ===== Conveyor hatch line (exact port of hatchery.html) ===== */
+.hscene{position:relative;width:100%;max-width:1000px;height:330px;margin:8px auto 0;overflow:hidden}
+.hscene::before,.hscene::after{content:"";position:absolute;top:0;bottom:0;width:9%;z-index:5;pointer-events:none}
+.hscene::before{left:0;background:linear-gradient(90deg,#fff,rgba(255,255,255,0))}
+.hscene::after{right:0;background:linear-gradient(-90deg,#fff,rgba(255,255,255,0))}
+.hbelt{position:absolute;left:2%;right:2%;bottom:56px;height:44px;border-radius:999px;background:#16150F;border:3px solid #1b1a40;box-shadow:0 10px 18px rgba(22,21,15,.18);overflow:hidden;z-index:2}
+.hbelt::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(255,255,255,0) 0 26px,rgba(255,255,255,.13) 26px 32px,rgba(255,255,255,0) 32px 60px);animation:tread .35s linear infinite;animation-play-state:paused}
+.hbelt::after{content:"";position:absolute;left:0;right:0;top:0;height:9px;background:linear-gradient(rgba(255,255,255,.22),rgba(255,255,255,0))}
+.hscene.moving .hbelt::before{animation-play-state:running}
+@keyframes tread{to{background-position-x:60px}}
+.hrollers{position:absolute;left:4%;right:4%;bottom:32px;height:32px;display:flex;justify-content:space-between;z-index:1}
+.hroller{width:30px;height:30px;border-radius:50%;background:#fff;border:3px solid #1b1a40;position:relative;animation:spin .5s linear infinite;animation-play-state:paused}
+.hroller::before{content:"";position:absolute;left:50%;top:3px;bottom:3px;width:3px;margin-left:-1.5px;border-radius:2px;background:#1b1a40}
+.hscene.moving .hroller{animation-play-state:running}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hfloor{position:absolute;left:0;right:0;bottom:16px;height:3px;border-radius:2px;background:rgba(22,21,15,.12)}
+.car{position:absolute;left:0;bottom:66px;width:180px;height:180px;z-index:3;transition:transform 1.45s cubic-bezier(.45,.05,.35,1);will-change:transform}
+.car.teleport{transition:none}
+.car .rig{position:absolute;inset:0}
+.hscene.moving .car .rig{animation:rock .72s ease-in-out infinite}
+@keyframes rock{0%,100%{transform:rotate(0)}25%{transform:rotate(1.4deg)}75%{transform:rotate(-1.4deg)}}
+.car .layer{position:absolute;inset:0;width:100%;height:100%}
+.car .egg-wrap{transform-origin:50% 90%;will-change:transform,opacity}
+.car .egg-wrap img.egg,.car .cap{width:100%;height:100%;object-fit:contain;filter:hue-rotate(var(--hue,0deg))}
+.car .burst{filter:hue-rotate(var(--hue,0deg));pointer-events:none}
+.car .cracks{position:absolute;inset:0;width:100%;height:100%}
+.car .cracks path{fill:none;stroke:#1b1a40;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}
+.car .crack-b1,.car .crack-b2{stroke-width:3.5}
+.car .cap{transform-origin:50% 45%;will-change:transform,opacity}
+.car .pop{transform-origin:50% 88%;will-change:transform,opacity}
+.car .pop .bot{position:absolute;left:50%;bottom:9.5%;transform:translateX(-50%);max-width:88%;max-height:84%;object-fit:contain}
+.car .pop .ground{position:absolute;left:50%;bottom:15%;width:44%;height:4.5%;transform:translateX(-50%);border-radius:50%;background:rgba(22,21,15,.13)}
+.car .cap,.car .pop{opacity:0}
+.car.hatched .egg-wrap{opacity:0}
+.car.hatched .pop{opacity:1}
+.car .flash{position:absolute;left:50%;top:48%;width:88%;aspect-ratio:1/1;margin:-44% 0 0 -44%;border-radius:50%;background:radial-gradient(circle,#fff 0%,#fff 48%,rgba(255,255,255,0) 74%);opacity:0}
+.car .ring{position:absolute;left:50%;top:54%;width:34%;aspect-ratio:1/1;margin:-17% 0 0 -17%;border-radius:50%;border:4px solid #2E7FC0;opacity:0}
+.car .shard{position:absolute;left:50%;top:54%;width:2.8%;aspect-ratio:1/1;margin:-1.4% 0 0 -1.4%;background:#F6EBD4;border:2px solid #1b1a40;border-radius:22% 60% 40% 60%;opacity:0}
+.car .shard:nth-child(even){background:#2E7FC0;border-radius:50%}
+.car .shard.s1{--fx:-160%;--fy:-560%;--r:340deg}
+.car .shard.s2{--fx:300%;--fy:-480%;--r:-290deg;animation-delay:.03s}
+.car .shard.s3{--fx:-460%;--fy:-260%;--r:260deg}
+.car .shard.s4{--fx:520%;--fy:-180%;--r:-320deg;animation-delay:.05s}
+.car .shard.s5{--fx:-540%;--fy:90%;--r:300deg}
+.car .shard.s6{--fx:480%;--fy:160%;--r:-260deg;animation-delay:.02s}
+.car .shard.s7{--fx:-240%;--fy:420%;--r:280deg;animation-delay:.04s}
+.car .shard.s8{--fx:180%;--fy:480%;--r:-300deg}
+.car .shard.s9{--fx:40%;--fy:-620%;--r:250deg;animation-delay:.06s}
+.car .shard.s10{--fx:-360%;--fy:-430%;--r:-270deg;animation-delay:.01s}
+.car .tag{position:absolute;left:50%;top:-4%;transform:translateX(-50%) scale(0);font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.09em;text-transform:uppercase;background:#16150F;color:#F4F1EA;border-radius:999px;padding:4px 12px;white-space:nowrap;z-index:4}
+.car.hatched .tag{animation:tag-pop .45s cubic-bezier(.2,1.6,.4,1) .05s both}
+@keyframes tag-pop{from{transform:translateX(-50%) scale(0)}to{transform:translateX(-50%) scale(1)}}
+.car.hatching .anim{animation-duration:3.4s;animation-timing-function:ease;animation-fill-mode:both;animation-iteration-count:1}
+.car.hatching .egg-wrap{animation-name:egg-wobble}
+.car.hatching .cracks path{animation-duration:3.4s;animation-timing-function:linear;animation-fill-mode:both}
+.car.hatching .crack-1{animation-name:crack-1}
+.car.hatching .crack-2{animation-name:crack-2}
+.car.hatching .crack-3{animation-name:crack-3}
+.car.hatching .crack-b1{animation-name:crack-b1}
+.car.hatching .crack-b2{animation-name:crack-b2}
+.car.hatching .cap{animation-name:cap-fly;animation-timing-function:linear}
+.car.hatching .pop{animation-name:pop-spring}
+.car.hatching .flash{animation-name:flash}
+.car.hatching .ring{animation-name:ring}
+.car.hatching .shard{animation-name:shard;animation-timing-function:cubic-bezier(.17,.67,.4,1)}
+@media(max-width:640px){.car{width:130px;height:130px;bottom:70px}.hscene{height:270px}}

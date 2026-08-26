@@ -67,13 +67,7 @@
   function welcome(){return `<div class="stage welcome-grid"><div><h1 class="welcome-title">Hatch your agent</h1><div class="actions">${button('Start →','next')}</div></div><div class="welcome-art" aria-hidden="true"><div class="preview-egg"></div></div></div>`;}
   function nameScreen(){return `<div class="stage"><span class="eyebrow">Step 1 · Create a profile</span><h2>Create your agent</h2><p>Give it a name, tell us your type of company, and describe how it should look. You’ll pick specialist agents (sales, invoices, support…) from the marketplace next.</p><input class="name-field" id="agent-name" maxlength="28" autocomplete="off" placeholder="Agent name — e.g. Pip, Scout or Atlas" value="${escapeHtml(state.name)}" aria-label="Agent name"><label class="field-label" for="agent-biz">Type of company</label><input class="name-field" id="agent-biz" maxlength="60" autocomplete="off" placeholder="e.g. e-commerce, agency, clinic, SaaS" value="${escapeHtml(state.biz)}" aria-label="Type of company"><label class="field-label" for="agent-look">Image description</label><div class="mic-field"><textarea class="look-field" id="agent-look" placeholder="e.g. a friendly rounded robot in blue and white, holding a suitcase" aria-label="Image description">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div><div class="chips">${lookSeeds.map((s,i)=>`<button class="chip" data-look-index="${i}">${escapeHtml(s.label)}</button>`).join('')}</div><div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
   function designScreen(){return `<div class="stage"><span class="eyebrow">Step 2 · Design the look</span><h2>Describe how ${escapeHtml(state.name)} should look</h2><p>Write a short, practical description and we’ll hatch three designs for you to choose from.</p><div class="mic-field"><textarea class="look-field" id="agent-look" maxlength="600" placeholder="e.g. a friendly rounded robot medic in blue and white, holding a checklist" aria-label="Describe the avatar">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div><div class="chips">${lookSeeds.map((s,i)=>`<button class="chip" data-look-index="${i}">${escapeHtml(s.label)}</button>`).join('')}</div><div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
-  function hatchCar(i){return `<div class="hatch-cell"><div class="hatch-car" data-i="${i}"><div class="rig">
-    <div class="layer anim egg-wrap"><img class="layer egg" src="/egg-closed.webp" alt=""><svg class="cracks" viewBox="0 0 620 620" aria-hidden="true"><path class="crack-1" pathLength="1" d="M114,318 L146,302 L172,330 L200,296 L226,331 L245,301"/><path class="crack-2" pathLength="1" d="M506,320 L474,300 L448,332 L420,298 L396,333 L375,302"/><path class="crack-3" pathLength="1" d="M245,301 L272,336 L308,290 L338,332 L375,302"/><path class="crack-b1" pathLength="1" d="M272,336 L262,368 L272,392"/><path class="crack-b2" pathLength="1" d="M308,290 L318,262 L308,240"/></svg></div>
-    <img class="layer anim cap" src="/egg-shell-clean.webp" alt="">
-    <div class="layer anim pop"><div class="ground"></div><img class="bot" alt=""></div>
-    <div class="layer burst" aria-hidden="true"><div class="anim flash"></div><div class="anim ring"></div>${[1,2,3,4,5,6,7,8,9,10].map(n=>`<div class="anim shard s${n}"></div>`).join('')}</div>
-  </div></div><span class="hatch-number">Design ${i+1}</span></div>`;}
-  function hatchScreen(){const settled=state.slots.length&&state.slots.every(Boolean);return `<div class="stage hatch-zone"><span class="eyebrow">Hatching</span><h2>Your clutch is hatching…</h2><p>${usePortraits?'Drawing three genuinely different designs from your description.':'Bringing three designs to life from your description.'} Each egg opens as it’s ready.</p><div class="hatch-row" aria-live="polite">${[0,1,2].map(hatchCar).join('')}</div><div class="hatch-actions">${settled?button('Choose your agent →','choose'):`<p class="hatch-status">Hatching your designs…</p>`}</div></div>`;}
+  function hatchScreen(){const settled=state.slots.length&&state.slots.every(Boolean);return `<div class="stage hatch-zone"><span class="eyebrow">Hatching</span><h2>Your clutch is hatching…</h2><p>${usePortraits?'Drawing three genuinely different designs from your description.':'Bringing three designs to life from your description.'} Each egg hatches on the line.</p><div class="hscene" id="hscene" aria-label="Conveyor belt of eggs hatching"><div class="hfloor"></div><div class="hrollers" aria-hidden="true"></div><div class="hbelt" aria-hidden="true"></div></div><div class="hatch-actions">${settled?button('Choose your agent →','choose'):`<p class="hatch-status">Hatching your designs…</p>`}</div></div>`;}
   function revealScreen(){const slots=state.slots;return `<div class="stage"><span class="eyebrow">Meet the clutch</span><h2>${escapeHtml(state.name)} hatched — pick your favourite</h2><p>Three takes on your description. Choose the one to use as ${escapeHtml(state.name)}’s avatar.</p><div class="choice-grid">${slots.map((slot,i)=>`<button class="generated-choice ${state.variant===i?'selected':''}" data-option="${i}" aria-pressed="${state.variant===i}">${slotVisual(slot,i)}<span class="pick-name">${escapeHtml(state.name)}</span><span class="pick-tag">${slot&&slot.image?'Generated design':variantLabels[i]}</span></button>`).join('')}</div><div class="actions">${button('Redesign','redesign',true)}${button('Use this avatar →','market')}</div></div>`;}
   function initials(str){return String(str||'AH').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();}
   function agentCard(agent){const gen=state.marketImages[agent.id];const pending=!gen&&!state.marketStarted&&state.variant!==null&&usePortraits&&config.marketPortraits!==false;return `<article class="p-card" data-agent="${agent.id}" data-search="${escapeHtml((agent.name+' '+agent.team).toLowerCase())}" tabindex="0"><div class="p-thumb thumb-${agent.id} ${gen?'is-generated':''} ${pending?'is-pending':''}"><img data-portrait="${agent.id}" src="${gen||agent.portrait}" alt="${escapeHtml(agent.name)}" loading="lazy"></div><div class="p-meta"><div class="p-name">${agent.name} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(company)}</span><span class="p-tag">${agent.team}</span></div></div></article>`;}
@@ -239,17 +233,37 @@
       if(el){el.src=img;el.closest('.p-thumb')?.classList.add('is-generated');}
     }));
   }
-  // Plays the exact site hatch choreography on one egg: the design springs out as the robot.
-  function hatchCarPlay(i,botSrc){const car=root.querySelector(`.hatch-car[data-i="${i}"]`);if(!car||car.classList.contains('hatched'))return;const bot=car.querySelector('.pop .bot');if(bot)bot.src=botSrc;car.classList.add('hatching');setTimeout(()=>{car.classList.remove('hatching');car.classList.add('hatched');},3400);}
+  const CAR_HTML = `<div class="rig">
+    <div class="layer anim egg-wrap"><img class="layer egg" src="/egg-closed.webp" alt=""><svg class="cracks" viewBox="0 0 620 620" aria-hidden="true"><path class="crack-1" pathLength="1" d="M114,318 L146,302 L172,330 L200,296 L226,331 L245,301"/><path class="crack-2" pathLength="1" d="M506,320 L474,300 L448,332 L420,298 L396,333 L375,302"/><path class="crack-3" pathLength="1" d="M245,301 L272,336 L308,290 L338,332 L375,302"/><path class="crack-b1" pathLength="1" d="M272,336 L262,368 L272,392"/><path class="crack-b2" pathLength="1" d="M308,290 L318,262 L308,240"/></svg></div>
+    <img class="layer anim cap" src="/egg-shell-clean.webp" alt="">
+    <div class="layer anim pop"><div class="ground"></div><img class="bot" alt=""></div>
+    <div class="layer burst" aria-hidden="true"><div class="anim flash"></div><div class="anim ring"></div>${[1,2,3,4,5,6,7,8,9,10].map(n=>`<div class="anim shard s${n}"></div>`).join('')}</div>
+    <span class="tag"></span></div>`;
+  // Conveyor hatch — the exact hatchery.html line: eggs ride in, hatch at centre, roll off tagged.
+  async function runHatchery(){
+    const scene=root.querySelector('#hscene');if(!scene)return;
+    const HUES=[0,300,150];const carW=180;
+    const slotW=Math.max(150,Math.min(250,scene.clientWidth/4));
+    const place=(car,instant)=>{const x=scene.clientWidth/2+car.slot*slotW-carW/2;if(instant)car.el.classList.add('teleport');car.el.style.transform=`translateX(${x}px)`;if(instant){car.el.offsetHeight;car.el.classList.remove('teleport');}};
+    const rollers=scene.querySelector('.hrollers');for(let i=0;i<14;i++){const r=document.createElement('div');r.className='hroller';rollers.appendChild(r);}
+    const cars=[];
+    for(let i=0;i<3;i++){const el=document.createElement('div');el.className='car';el.innerHTML=CAR_HTML;el.style.setProperty('--hue',HUES[i]+'deg');el.querySelector('.tag').textContent=(state.name?escapeHtml(state.name)+' ':'')+'· '+(i+1);const car={el,slot:-i};scene.appendChild(el);place(car,true);cars.push(car);}
+    const step=async()=>{scene.classList.add('moving');cars.forEach(c=>{c.slot++;place(c);});await sleep(1450);scene.classList.remove('moving');};
+    await sleep(500);
+    for(let i=0;i<3;i++){
+      while(!state.slots[i])await sleep(120);          // wait for this design's image
+      const car=cars[i];const bot=car.el.querySelector('.pop .bot');if(bot)bot.src=state.slots[i].image||'/hatchy-pop.webp';
+      car.el.classList.add('hatching');await sleep(3400);
+      car.el.classList.remove('hatching');car.el.classList.add('hatched');
+      await sleep(400);if(i<2)await step();await sleep(150);
+    }
+    await sleep(400);
+  }
   async function generateAgents(){
     const lookTa=document.getElementById('agent-look');if(lookTa&&lookTa.value.trim())state.look=lookTa.value.trim();
     state.slots=[null,null,null];state.variant=null;state.selectedImage='';state.step=2;render();
-    await Promise.all([0,1,2].map(async i=>{
-      const image=await fetchPortrait(i);
-      state.slots[i]={status:'ready',image};
-      hatchCarPlay(i,image||'/hatchy-pop.webp');   // egg wobbles, cracks, bursts open; robot pops out
-      await sleep(3400);
-    }));
+    [0,1,2].forEach(i=>fetchPortrait(i).then(img=>{state.slots[i]={status:'ready',image:img};}));
+    await runHatchery();
     celebrate();
     const bar=root.querySelector('.hatch-actions');if(bar){bar.innerHTML=button('Choose your agent →','choose');bind();}
   }
