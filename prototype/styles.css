@@ -173,3 +173,22 @@ h1{font-weight:800}h2{font-weight:700}
 .egg-mini .spot{display:none}
 .hatch-card .egg-mini{box-shadow:none}
 .welcome-title{font-weight:800}
+/* Gradual hatch: crack → another crack → agent slowly emerges */
+.egg-mini{position:relative}
+.crack{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:#16253f;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;opacity:0;pointer-events:none;filter:drop-shadow(0 1px 0 rgba(255,255,255,.5))}
+.crack path{stroke-dasharray:140;stroke-dashoffset:140}
+.crack1{animation:crackShow .01s linear forwards 1.3s}
+.crack1 path{animation:crackDraw .5s ease-out forwards 1.3s}
+.crack2{animation:crackShow .01s linear forwards 2.8s}
+.crack2 path{animation:crackDraw .55s ease-out forwards 2.8s}
+@keyframes crackShow{to{opacity:.92}}
+@keyframes crackDraw{to{stroke-dashoffset:0}}
+/* little shudder as each crack forms */
+.hatch-card .egg-mini{animation:wobble .7s ease-in-out infinite alternate,eggShudder 4s ease-in-out both}
+@keyframes eggShudder{0%,32%{transform:rotate(0)}36%{transform:rotate(-4deg)}40%{transform:rotate(3deg)}44%{transform:rotate(0)}68%{transform:rotate(0)}72%{transform:rotate(-6deg)}76%{transform:rotate(5deg)}80%{transform:rotate(0)}100%{transform:rotate(0)}}
+/* egg breaks open */
+.hatch-card.opened .egg-mini{animation:eggBreak .7s cubic-bezier(.3,1,.5,1) forwards}
+@keyframes eggBreak{0%{transform:rotate(0) scale(1);opacity:1}22%{transform:rotate(-8deg) scale(1.06)}44%{transform:rotate(9deg) scale(1.05)}100%{transform:translateY(26px) scale(.16) rotate(-6deg);opacity:0}}
+/* agent rises out slowly, staying centred */
+.hatchling{animation:hatchRise 1s cubic-bezier(.2,1.3,.35,1) both}
+@keyframes hatchRise{0%{opacity:0;transform:translateX(-50%) translateY(34px) scale(.42)}55%{opacity:1}100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
