@@ -487,3 +487,34 @@ h1{font-weight:800}h2{font-weight:700}
 .car.hatching .ring{animation-name:ring}
 .car.hatching .shard{animation-name:shard;animation-timing-function:cubic-bezier(.17,.67,.4,1)}
 @media(max-width:640px){.car{width:130px;height:130px;bottom:70px}.hscene{height:270px}}
+/* ===== Exact homepage hero hatch (index.html), 3 eggs ===== */
+.hatch-row{display:flex;justify-content:center;align-items:flex-end;gap:clamp(8px,3vw,34px);margin:20px auto 4px;min-height:230px}
+.egg-cell{display:flex;flex-direction:column;align-items:center;gap:8px}
+.egg-scene{position:relative;width:clamp(120px,17vw,200px)}
+.egg-stage{position:relative;width:100%}
+.egg-layer{width:100%;height:auto;display:block}
+.egg-closed{position:relative;transform-origin:50% 84%;animation:eggRock 2.8s ease-in-out infinite}
+.egg-pop{position:absolute;left:0;top:0;opacity:0}
+.egg-lid{position:absolute;inset:0}
+@keyframes eggRock{0%,100%{transform:rotate(0)}25%{transform:rotate(-5deg)}75%{transform:rotate(5deg)}}
+.lid-piece{position:absolute;left:0;top:0;width:100%;height:auto;display:block;opacity:0;transform-origin:50% 46%}
+.lp1{clip-path:polygon(50% 62%,4% 50%,10% 18%)}
+.lp2{clip-path:polygon(50% 62%,10% 18%,34% 4%)}
+.lp3{clip-path:polygon(50% 62%,34% 4%,66% 4%)}
+.lp4{clip-path:polygon(50% 62%,66% 4%,90% 18%)}
+.lp5{clip-path:polygon(50% 62%,90% 18%,96% 50%)}
+.egg-crack{position:absolute;inset:0;width:100%;height:auto;display:block;pointer-events:none;overflow:visible}
+.egg-crack .crackline{stroke-dasharray:1;stroke-dashoffset:1;opacity:0}
+.egg-scene.hatched .egg-closed{transform-origin:50% 84%;animation:closedHatch 3.05s cubic-bezier(.4,0,.3,1) forwards}
+@keyframes closedHatch{0%{transform:rotate(0);opacity:1}5%{transform:rotate(-4deg)}10%{transform:rotate(4deg)}15%{transform:rotate(-2deg)}20%{transform:rotate(0);opacity:1}90%{transform:rotate(0);opacity:1}100%{transform:rotate(0);opacity:0}}
+.egg-scene.hatched .egg-crack .crackline{animation:crackStaged 2.1s cubic-bezier(.5,0,.5,1) .55s forwards}
+@keyframes crackStaged{0%{opacity:1;stroke-dashoffset:1}16%{stroke-dashoffset:.74}30%{stroke-dashoffset:.74}44%{stroke-dashoffset:.5}58%{stroke-dashoffset:.5}72%{stroke-dashoffset:.26}84%{stroke-dashoffset:.26}95%{opacity:1;stroke-dashoffset:0}100%{opacity:0;stroke-dashoffset:0}}
+.egg-scene.hatched .lid-piece{animation:lidBreak 1.4s cubic-bezier(.42,0,.72,.62) 2.7s forwards}
+.egg-scene.hatched .lp2{animation-delay:2.74s}
+.egg-scene.hatched .lp3{animation-delay:2.72s}
+.egg-scene.hatched .lp4{animation-delay:2.77s}
+.egg-scene.hatched .lp5{animation-delay:2.8s}
+@keyframes lidBreak{0%{opacity:0;transform:translate(0,0) rotate(0)}8%{opacity:1}20%{transform:translate(0,0) rotate(0)}82%{opacity:1}100%{opacity:0;transform:translate(var(--fx),var(--fy)) rotate(var(--fr))}}
+.egg-scene.hatched .egg-pop{transform-origin:50% 82%;animation:popRise 1.15s cubic-bezier(.34,1.4,.5,1) 2.68s forwards}
+@keyframes popRise{0%{opacity:0;transform:translateY(6%) scale(.86)}26%{opacity:1}62%{transform:translateY(-2%) scale(1.07)}100%{transform:translateY(0) scale(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.egg-closed{animation:none}.egg-scene.hatched .egg-closed,.egg-scene.hatched .lid-piece,.egg-scene.hatched .egg-crack .crackline{animation:none;opacity:0}.egg-scene.hatched .egg-pop{animation:none;opacity:1;transform:none}}
