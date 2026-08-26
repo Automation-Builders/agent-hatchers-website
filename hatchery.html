@@ -203,9 +203,11 @@ img{-webkit-user-drag:none;user-select:none;pointer-events:none}
   to{transform:translateX(-50%) scale(1)}
 }
 
-/* ---------- hatch choreography (3.4s master timeline per car) ---------- */
+/* ---------- hatch choreography — the same 5s timeline as the homepage
+   hero (1% = 50ms), minus the hero's page-load fade-in since the egg is
+   already riding the belt ---------- */
 .car.hatching .anim{
-  animation-duration:3.4s;
+  animation-duration:5s;
   animation-timing-function:ease;
   animation-fill-mode:both;
   animation-iteration-count:1;
@@ -226,7 +228,7 @@ img{-webkit-user-drag:none;user-select:none;pointer-events:none}
   stroke-dashoffset:1;
 }
 .car.hatching .cracks path{
-  animation-duration:3.4s;
+  animation-duration:5s;
   animation-timing-function:linear;
   animation-fill-mode:both;
 }
@@ -404,8 +406,8 @@ img{-webkit-user-drag:none;user-select:none;pointer-events:none}
         <img class="layer egg" src="egg-closed.webp" alt="" />
         <svg class="cracks" viewBox="0 0 620 620" aria-hidden="true">
           <path class="crack-1" pathLength="1" d="M114,318 L146,302 L172,330 L200,296 L226,331 L245,301"/>
-          <path class="crack-2" pathLength="1" d="M506,320 L474,300 L448,332 L420,298 L396,333 L375,302"/>
-          <path class="crack-3" pathLength="1" d="M245,301 L272,336 L308,290 L338,332 L375,302"/>
+          <path class="crack-2" pathLength="1" d="M245,301 L272,336 L308,290 L338,332 L375,302"/>
+          <path class="crack-3" pathLength="1" d="M375,302 L396,333 L420,298 L448,332 L474,300 L506,320"/>
           <path class="crack-b1" pathLength="1" d="M272,336 L262,368 L272,392"/>
           <path class="crack-b2" pathLength="1" d="M308,290 L318,262 L308,240"/>
         </svg>
@@ -471,7 +473,7 @@ async function loadRobots(){
 }
 
 const STEP_MS   = 1500;  // one belt step (matches the .car transition)
-const HATCH_MS  = 3400;  // matches the hatch animation-duration
+const HATCH_MS  = 5000;  // matches the hatch animation-duration (same 5s clock as the hero)
 const HOLD_MS   = 450;   // beat after the pop before the belt moves again
 const CAR_COUNT = 7;     // slots -3 … 3, centre slot = 0
 
