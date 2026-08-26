@@ -21,8 +21,13 @@
   const usePortraits = config.generatePortraits !== false && !!portraitEndpoint;
   const recommended = new Set(config.recommendedAgents||[]);
   function rankAgents(){const text=`${state.name} ${state.role} ${state.look}`.toLowerCase();return catalog.map((agent,index)=>{let score=0;agent.keywords.forEach(k=>{if(text.includes(k))score+=4});if(agent.industries.includes(industry))score+=2;if(recommended.has(agent.id))score+=1;return{agent,score,index};}).sort((a,b)=>b.score-a.score||a.index-b.index);}
-  const seedAgents = catalog.filter(a=>a.industries.includes(industry)||recommended.has(a.id));
-  const roleSeeds = seedAgents.slice(0,3).map(a=>({label:a.name.replace(' Agent',''),text:a.summary}));
+  const roleSeeds = [
+    {label:'Sales',text:'Qualify inbound leads, research prospects and keep follow-ups moving.'},
+    {label:'Invoices',text:'Read invoices, check them against our records and prepare approvals.'},
+    {label:'Research',text:'Research companies, people and topics and summarise the findings.'},
+    {label:'Email assistant',text:'Triage the inbox, draft replies in our voice and flag what needs a human.'},
+    {label:'Support',text:'Answer customer questions and draft helpful, on-brand replies.'}
+  ];
   const lookSeeds = [
     {label:'Friendly & rounded',text:'a friendly, rounded robot with big eyes in blue and white'},
     {label:'Sleek & techy',text:'a sleek metallic assistant with glowing blue accents'},
