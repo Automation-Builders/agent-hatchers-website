@@ -66,7 +66,7 @@ export default async function handler(req, res) {
 
   const prompt =
     `${brief}. A friendly 3D cartoon robot mascot character named "${name}"` +
-    `${role ? `, whose job is to ${role}` : ''}. ` +
+    `${role ? `. Its role: ${role}` : ''}. ` +
     `Dress the character for the occasion with one or two fitting accessories ` +
     `(such as a hat, scarf, headset, hard hat, or a tool of its trade), and place ` +
     `it in a characterful setting that clearly reflects what it does. ${PALETTES[variant]}. ` +
