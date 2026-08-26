@@ -440,40 +440,13 @@ img{-webkit-user-drag:none;user-select:none;pointer-events:none}
 
 <script>
 // ---------------------------------------------------------------------------
-// The line-up comes from assets/robot-pack/manifest.json — every robot in the
-// pack hatches in turn, and each egg is tinted to match its robot's palette.
-// The egg art is blue-spotted, so each palette maps to the hue-rotation that
-// lands the spots near that palette's colour.
+// The line-up comes from assets/agents/manifest.json — twelve bespoke chibi
+// robots generated through the portrait proxy in the Hatchy house style, one
+// per job, each named for work a real hire would do. Each entry carries the
+// hue-rotation that tints its egg (the egg art is blue-spotted, so hue 0 =
+// the original blue). To add or replace an agent, drop the webp in
+// assets/agents/ and add a {file, name, hue} row to the manifest.
 // ---------------------------------------------------------------------------
-const PALETTE_HUES = {
-  storm: 0,   sky: 345, aqua: 330, mint: 295, leaf: 265,
-  sun: 190,   ember:165, rose: 125, berry: 85, violet: 55,
-};
-// Each robot is named for a job a real hire would do, keyed off the tool it
-// carries. Every tool appears five times in the pack, so five variations per
-// tool keep all 100 names distinct.
-const ROLES = {
-  wrench:        ['Ops Agent','Fix-It Agent','Maintenance Agent','IT Helpdesk Agent','Facilities Agent'],
-  hammer:        ['Build Agent','DevOps Agent','Deploy Agent','Website Build Agent','Automation Agent'],
-  paintbrush:    ['Design Agent','Brand Agent','Creative Agent','Graphics Agent','Slide Deck Agent'],
-  laptop:        ['Coding Agent','IT Agent','Data Entry Agent','Reporting Agent','Spreadsheet Agent'],
-  spanner:       ['Support Agent','Troubleshooting Agent','Bug Triage Agent','Customer Support Agent','Help Desk Agent'],
-  screwdriver:   ['Onboarding Agent','Setup Agent','Integration Agent','Config Agent','Migration Agent'],
-  magnifier:     ['Research Agent','QA Agent','Audit Agent','Due Diligence Agent','Market Research Agent'],
-  pencil:        ['Copywriting Agent','Content Agent','Blog Agent','Proposal Agent','Meeting Notes Agent'],
-  tablet:        ['Sales Agent','CRM Agent','Quoting Agent','Order Entry Agent','Field Sales Agent'],
-  camera:        ['Social Media Agent','Marketing Agent','Product Photo Agent','Video Agent','Ad Creative Agent'],
-  microphone:    ['Reception Agent','Call Answering Agent','Voice Agent','Podcast Agent','Interview Agent'],
-  rocket:        ['Growth Agent','Launch Agent','Campaign Agent','Outreach Agent','A/B Testing Agent'],
-  net:           ['Lead Gen Agent','Recruiting Agent','Talent Scout Agent','Prospecting Agent','Data Capture Agent'],
-  lantern:       ['Insights Agent','Analytics Agent','Forecasting Agent','Trend Spotting Agent','Discovery Agent'],
-  key:           ['Security Agent','Access Agent','Password Reset Agent','Contracts Agent','Account Access Agent'],
-  shield:        ['Compliance Agent','Risk Agent','Fraud Watch Agent','Privacy Agent','Moderation Agent'],
-  'watering-can':['Customer Success Agent','Lead Nurture Agent','Retention Agent','Community Agent','Follow-Up Agent'],
-  needle:        ['Integrations Agent','Data Stitching Agent','Workflow Agent','Systems Sync Agent','Patch Agent'],
-  map:           ['Planning Agent','Logistics Agent','Roadmap Agent','Scheduling Agent','Travel Booking Agent'],
-  gem:           ['Invoice Agent','Billing Agent','Payroll Agent','Pricing Agent','Bookkeeping Agent'],
-};
 // Fallback if the manifest can't be fetched (e.g. opened as a file://):
 // hue-shifted Hatchys, same as the original placeholder line-up.
 let ROBOTS = [
@@ -485,20 +458,15 @@ let ROBOTS = [
 ];
 async function loadRobots(){
   try{
-    const res = await fetch('assets/robot-pack/manifest.json');
+    const res = await fetch('assets/agents/manifest.json');
     if (!res.ok) return;
     const pack = await res.json();
     if (!Array.isArray(pack) || !pack.length) return;
-    const seen = {};
-    ROBOTS = pack.map(m => {
-      const variants = ROLES[m.tool] || [m.tool + ' Agent'];
-      const nth = seen[m.tool] = (seen[m.tool] ?? 0) + 1;
-      return {
-        name: variants[(nth - 1) % variants.length],
-        img: 'assets/robot-pack/' + m.file,
-        hue: PALETTE_HUES[m.palette] ?? 0,
-      };
-    });
+    ROBOTS = pack.map(m => ({
+      name: m.name,
+      img: 'assets/agents/' + m.file,
+      hue: m.hue ?? 0,
+    }));
   }catch(e){ /* keep the fallback line-up */ }
 }
 
