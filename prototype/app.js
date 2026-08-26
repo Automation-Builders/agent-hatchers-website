@@ -8,7 +8,7 @@
     {id:'website',icon:'◇',name:'Website Agent',industries:['all'],keywords:['website','content','seo','publish','webflow','wordpress','page','marketing','blog','copy'],summary:'Keeps website content accurate, on-brand and ready for approval before publishing.',portrait:'/hatchy-website.webp',team:'Marketing',mcps:['GitHub','Webflow','WordPress','Google Drive','Slack'],outcomes:['Draft new website pages','Update approved copy and details','Check pages for stale information','Prepare search-friendly metadata','Publish only after human approval']},
     {id:'operations',icon:'✓',name:'Operations Agent',industries:['professional-services','construction','healthcare','all'],keywords:['operations','workflow','project','task','deadline','schedule','coordination','process','compliance','ops'],summary:'Coordinates repeatable workflows and keeps teams informed when work changes state.',portrait:'/hatchy-routing.webp',team:'Operations',mcps:['Monday.com','Asana','Notion','Slack','Microsoft Teams'],outcomes:['Turn requests into structured work','Monitor deadlines and blockers','Prepare daily operating summaries','Chase missing information','Escalate exceptions to the right person']}
   ];
-  const state = {step:0,name:'',role:'',look:'',slots:[],variant:null,selectedImage:''};
+  const state = {step:0,name:'',role:'',look:'',slots:[],variant:null,selectedImage:'',done:false};
   const root = document.getElementById('prototype-app');
   const company = config.company || 'Your Company';
   const industry = config.industry || 'professional-services';
@@ -35,12 +35,12 @@
   const slotVisual = (slot,i) => slot && slot.image ? `<img src="${escapeHtml(slot.image)}" alt="Agent design ${i+1}">` : bot('v'+i);
   function escapeHtml(value){return String(value).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
   function chip(){if(state.variant===null)return `<span class="private-pill">Private preview for ${escapeHtml(company)}</span>`;const inner=state.selectedImage?`<img class="chip-img" src="${escapeHtml(state.selectedImage)}" alt="">`:bot('v'+state.variant+' chip');return `<span class="agent-chip">${inner}<span>${escapeHtml(state.name)}</span></span>`;}
-  const layout = content => `<main class="shell"><header class="topbar"><div class="brand"><img src="/agent-hatchers-logo.png" alt=""><span>Agent Hatchers</span></div>${chip()}</header><section class="panel"><div class="progress" aria-label="Prototype progress"><span style="--progress:${Math.min(100,(state.step+1)/6*100)}%"></span></div><div class="step-label">Step ${state.step+1} of 6</div>${content}</section></main>`;
+  const layout = content => `<main class="shell"><header class="topbar"><div class="brand"><img src="/agent-hatchers-logo.png" alt=""><span>Agent Hatchers</span></div>${chip()}</header><section class="panel"><div class="progress" aria-label="Prototype progress"><span style="--progress:${Math.min(100,(state.step+1)/7*100)}%"></span></div><div class="step-label">Step ${state.step+1} of 7</div>${content}</section></main>`;
 
   function render(){
-    const screens = [welcome,nameScreen,designScreen,hatchScreen,revealScreen,marketScreen];
+    const screens = [welcome,nameScreen,designScreen,hatchScreen,revealScreen,marketScreen,connectScreen];
     const inner = screens[state.step]();
-    root.innerHTML = state.step===5 ? inner : layout(inner);
+    root.innerHTML = state.step>=5 ? inner : layout(inner);
     bind();
   }
   const ic = {
@@ -83,8 +83,32 @@
         <section class="board-group g-rec"><div class="group-head"><h3>Recommended for ${escapeHtml(company)}</h3><span class="count">${ranked.length}</span></div><div class="p-grid">${ranked.map(agentCard).join('')}</div></section>
         <div class="board-empty" id="board-empty" hidden>No profiles match your search.</div>
       </div>
-      <div class="board-foot"><span>Private preview for ${escapeHtml(company)}</span>${button('Start over','reset',true)}</div>
+      <div class="board-foot"><div class="foot-nav">${button('← Back','back',true)}${button('Start over','reset',true)}</div>${button('Connect your agent →','next')}</div>
     </div>`;
+  }
+  function connectScreen(){
+    const cic={
+      link:'<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.5.5l2-2a5 5 0 00-7-7L11 6"/><path d="M14 11a5 5 0 00-7.5-.5l-2 2a5 5 0 007 7L13 18"/></svg>',
+      key:'<svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l8-8 2 2M17 6l2 2"/></svg>',
+      server:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg>',
+      ticket:'<svg viewBox="0 0 24 24"><path d="M4 8a2 2 0 012-2h12a2 2 0 012 2 2 2 0 000 4 2 2 0 010 4 2 2 0 01-2 2H6a2 2 0 01-2-2 2 2 0 000-4 2 2 0 010-4z"/><path d="M13 6v12"/></svg>',
+      cal:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>'
+    };
+    if(state.done){return `<main class="connect-shell"><section class="connect-card connect-success"><div class="success-emoji">🎉</div><h3>You’re all set</h3><p>Thanks, ${escapeHtml(company)}. We’ll be in touch to bring ${escapeHtml(state.name||'your agent')} to life.</p><div class="connect-nav center"><button class="btn cta-book" data-noop="1">Book a call</button>${button('Start over','reset',true)}</div></section></main>`;}
+    const field=(ic,name,ph)=>`<label class="field-row"><span class="field-ic">${ic}</span>${name}</label><input class="connect-input" placeholder="${ph}" autocomplete="off" spellcheck="false">`;
+    return `<main class="connect-shell">
+      <header class="connect-head"><img class="connect-mascot" src="/agent-hatchers-mark.png" alt=""><h2>It’s time to hatch your agent</h2></header>
+      <section class="connect-card">
+        <h3>Connect Your Agent</h3>
+        ${field(cic.link,'Base URL','https://your-host.ts.net:8642')}
+        ${field(cic.key,'API Key','hc_…')}
+        ${field(cic.server,'Dashboard URL','https://your-host.ts.net:9119')}
+        ${field(cic.ticket,'Session Token','dashboard session token')}
+        <button class="btn connect-save" data-action="save-test">Save and test connection</button>
+      </section>
+      <div class="connect-cta"><span class="cta-left">${cic.cal} No agent yet? Let Agent Hatchers hatch one for you.</span><button class="btn cta-book" data-noop="1">Book Call</button></div>
+      <nav class="connect-nav">${button('← Back','back',true)}${button('Next →','finish')}</nav>
+    </main>`;
   }
   function showAgent(id){const agent=catalog.find(a=>a.id===id);if(!agent)return;const backdrop=document.createElement('div');backdrop.className='modal-backdrop';backdrop.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-labelledby="agent-title"><div class="modal-top"><div><span class="eyebrow">Agent profile</span><h2 id="agent-title">${agent.name}</h2></div><button class="close" aria-label="Close agent profile">×</button></div><p>${agent.summary}</p><h3>What this agent can do for ${escapeHtml(company)}</h3><div class="checks">${agent.outcomes.map(o=>`<div class="check"><i>✓</i><span>${o}</span></div>`).join('')}</div><h3>Available MCP connections</h3><p>These secure connectors let the agent work with your existing systems while respecting approvals and permissions.</p><div class="mcp-list">${agent.mcps.map(m=>`<span class="mcp">${m}</span>`).join('')}</div></section>`;document.body.appendChild(backdrop);const close=()=>backdrop.remove();backdrop.querySelector('.close').onclick=close;backdrop.onclick=e=>{if(e.target===backdrop)close()};document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc)}},{once:true});}
   function celebrate(){const c=document.createElement('div');c.className='confetti';for(let i=0;i<38;i++){const s=document.createElement('span');s.style.left=`${Math.random()*100}%`;s.style.background=['#216bac','#c1dce8','#ffb36b','#59c6ad'][i%4];s.style.animationDelay=`${Math.random()*.5}s`;c.appendChild(s)}document.body.appendChild(c);setTimeout(()=>c.remove(),2400)}
@@ -127,8 +151,9 @@
       if(a==='generate'){const lookTa=document.getElementById('agent-look');const look=lookTa?lookTa.value.trim():'';if(look.length<8){lookTa.focus();lookTa.setAttribute('aria-invalid','true');return}state.look=look;generateAgents()}
       if(a==='choose'){if(state.variant===null)state.variant=0;state.step=4;render()}
       if(a==='redesign'){state.step=2;render()}
+      if(a==='save-test'||a==='finish'){state.done=true;render();celebrate()}
       if(a==='market'){if(state.variant===null){state.variant=0;const s=state.slots[0];state.selectedImage=s&&s.image?s.image:''}document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=5;render()}
-      if(a==='reset'){state.step=0;state.name='';state.role='';state.look='';state.slots=[];state.variant=null;state.selectedImage='';render()}
+      if(a==='reset'){state.step=0;state.name='';state.role='';state.look='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-option]').forEach(el=>el.onclick=()=>{const i=+el.dataset.option;state.variant=i;const s=state.slots[i];state.selectedImage=s&&s.image?s.image:'';root.querySelectorAll('.generated-choice').forEach(c=>{const on=+c.dataset.option===i;c.classList.toggle('selected',on);c.setAttribute('aria-pressed',on)});});
     root.querySelectorAll('[data-role-index]').forEach(el=>el.onclick=()=>{const ta=document.getElementById('agent-role');if(ta){ta.value=roleSeeds[+el.dataset.roleIndex].text;ta.focus()}});
