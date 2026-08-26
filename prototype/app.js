@@ -8,7 +8,7 @@
     {id:'website',icon:'◇',name:'Website Agent',industries:['all'],keywords:['website','content','seo','publish','webflow','wordpress','page','marketing','blog','copy'],summary:'Keeps website content accurate, on-brand and ready for approval before publishing.',portrait:'/hatchy-website.webp',team:'Marketing',scene:'It is a website agent, holding a laptop that displays a colourful web page.',mcps:['GitHub','Webflow','WordPress','Google Drive','Slack'],outcomes:['Draft new website pages','Update approved copy and details','Check pages for stale information','Prepare search-friendly metadata','Publish only after human approval']},
     {id:'operations',icon:'✓',name:'Operations Agent',industries:['professional-services','construction','healthcare','all'],keywords:['operations','workflow','project','task','deadline','schedule','coordination','process','compliance','ops'],summary:'Coordinates repeatable workflows and keeps teams informed when work changes state.',portrait:'/hatchy-routing.webp',team:'Operations',scene:'It is an operations agent, holding a checklist with gears and a small kanban board beside it.',mcps:['Monday.com','Asana','Notion','Slack','Microsoft Teams'],outcomes:['Turn requests into structured work','Monitor deadlines and blockers','Prepare daily operating summaries','Chase missing information','Escalate exceptions to the right person']}
   ];
-  const state = {step:0,name:'',biz:'',look:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:Object.assign({},config.bakedMarket||{}),marketStarted:false};
+  const state = {step:0,name:'',biz:'',look:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:Object.assign({},config.bakedMarket||{}),marketStarted:false,tab:'profiles'};
   const root = document.getElementById('prototype-app');
   const company = config.company || 'Your Company';
   const industry = config.industry || 'professional-services';
@@ -67,31 +67,64 @@
   function welcome(){return `<div class="stage welcome-grid"><div><h1 class="welcome-title">Hatch your agent</h1><div class="actions">${button('Start →','next')}</div></div><div class="welcome-art" aria-hidden="true"><div class="preview-egg"></div></div></div>`;}
   function nameScreen(){return `<div class="stage"><span class="eyebrow">Step 1 · Create a profile</span><h2>Create your agent</h2><p>Give it a name, tell us your type of company, and describe how it should look. You’ll pick specialist agents (sales, invoices, support…) from the marketplace next.</p><input class="name-field" id="agent-name" maxlength="28" autocomplete="off" placeholder="Agent name — e.g. Pip, Scout or Atlas" value="${escapeHtml(state.name)}" aria-label="Agent name"><label class="field-label" for="agent-biz">Type of company</label><input class="name-field" id="agent-biz" maxlength="60" autocomplete="off" placeholder="e.g. e-commerce, agency, clinic, SaaS" value="${escapeHtml(state.biz)}" aria-label="Type of company"><label class="field-label" for="agent-look">Image description</label><div class="mic-field"><textarea class="look-field" id="agent-look" placeholder="e.g. a friendly rounded robot in blue and white, holding a suitcase" aria-label="Image description">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div><div class="chips">${lookSeeds.map((s,i)=>`<button class="chip" data-look-index="${i}">${escapeHtml(s.label)}</button>`).join('')}</div><div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
   function designScreen(){return `<div class="stage"><span class="eyebrow">Step 2 · Design the look</span><h2>Describe how ${escapeHtml(state.name)} should look</h2><p>Write a short, practical description and we’ll hatch three designs for you to choose from.</p><div class="mic-field"><textarea class="look-field" id="agent-look" maxlength="600" placeholder="e.g. a friendly rounded robot medic in blue and white, holding a checklist" aria-label="Describe the avatar">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div><div class="chips">${lookSeeds.map((s,i)=>`<button class="chip" data-look-index="${i}">${escapeHtml(s.label)}</button>`).join('')}</div><div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
-  function hatchScreen(){const slots=state.slots.length?state.slots:[null,null,null];const settled=slots.every(Boolean);return `<div class="stage hatch-zone"><span class="eyebrow">Hatching</span><h2>Your clutch is hatching…</h2><p>${usePortraits?'Drawing three genuinely different designs from your description.':'Bringing three designs to life from your description.'} Each egg opens as it’s ready.</p><div class="hatch-row" aria-live="polite">${slots.map((slot,i)=>`<div class="hatch-card ${slot?'opened':''}" data-i="${i}"><div class="egg-mini v${i}"><svg class="crack crack1" viewBox="0 0 100 130" preserveAspectRatio="none"><path d="M53 20 L47 33 L57 41 L49 55 L58 66"/></svg><svg class="crack crack2" viewBox="0 0 100 130" preserveAspectRatio="none"><path d="M34 72 L45 77 L37 88 L48 95 L40 104"/></svg></div>${slot?`<div class="hatchling">${slotVisual(slot,i)}</div>`:''}<span class="hatch-number">Design ${i+1}</span></div>`).join('')}</div><div class="hatch-actions">${settled?button('Choose your agent →','choose'):`<p class="hatch-status">Hatching your designs…</p>`}</div></div>`;}
+  function hatchScreen(){const slots=state.slots.length?state.slots:[null,null,null];const settled=slots.every(Boolean);return `<div class="stage hatch-zone"><span class="eyebrow">Hatching</span><h2>Your clutch is hatching…</h2><p>${usePortraits?'Drawing three genuinely different designs from your description.':'Bringing three designs to life from your description.'} Each egg opens as it’s ready.</p><div class="hatch-row" aria-live="polite">${slots.map((slot,i)=>`<div class="hatch-card ${slot?'opened':''}" data-i="${i}"><div class="egg-mini v${i}"><svg class="crackline" viewBox="0 0 100 130" preserveAspectRatio="none"><path pathLength="100" d="M17 58 L29 50 L38 66 L49 54 L60 69 L71 56 L83 64"/></svg></div>${slot?`<div class="hatchling">${slotVisual(slot,i)}</div>`:''}<span class="hatch-number">Design ${i+1}</span></div>`).join('')}</div><div class="hatch-actions">${settled?button('Choose your agent →','choose'):`<p class="hatch-status">Hatching your designs…</p>`}</div></div>`;}
   function revealScreen(){const slots=state.slots;return `<div class="stage"><span class="eyebrow">Meet the clutch</span><h2>${escapeHtml(state.name)} hatched — pick your favourite</h2><p>Three takes on your description. Choose the one to use as ${escapeHtml(state.name)}’s avatar.</p><div class="choice-grid">${slots.map((slot,i)=>`<button class="generated-choice ${state.variant===i?'selected':''}" data-option="${i}" aria-pressed="${state.variant===i}">${slotVisual(slot,i)}<span class="pick-name">${escapeHtml(state.name)}</span><span class="pick-tag">${slot&&slot.image?'Generated design':variantLabels[i]}</span></button>`).join('')}</div><div class="actions">${button('Redesign','redesign',true)}${button('Use this avatar →','market')}</div></div>`;}
   function initials(str){return String(str||'AH').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();}
   function agentCard(agent){const gen=state.marketImages[agent.id];const pending=!gen&&!state.marketStarted&&state.variant!==null&&usePortraits&&config.marketPortraits!==false;return `<article class="p-card" data-agent="${agent.id}" data-search="${escapeHtml((agent.name+' '+agent.team).toLowerCase())}" tabindex="0"><div class="p-thumb thumb-${agent.id} ${gen?'is-generated':''} ${pending?'is-pending':''}"><img data-portrait="${agent.id}" src="${gen||agent.portrait}" alt="${escapeHtml(agent.name)}" loading="lazy"></div><div class="p-meta"><div class="p-name">${agent.name} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(company)}</span><span class="p-tag">${agent.team}</span></div></div></article>`;}
   function hatchedCard(){const vis=state.selectedImage?`<img src="${escapeHtml(state.selectedImage)}" alt="${escapeHtml(state.name)}">`:`<div class="thumb-bot">${bot('v'+(state.variant||0))}</div>`;return `<article class="p-card is-yours"><div class="p-thumb thumb-new ${state.selectedImage?'is-generated':''}">${vis}</div><div class="p-meta"><div class="p-name">${escapeHtml(state.name||'Your agent')} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(company)}</span><span class="p-tag tag-new">Just hatched</span></div></div></article>`;}
-  function marketScreen(){
+  function profilesBoard(){
     const ranked=rankAgents().map(r=>r.agent);
-    const tab=(k,label,on=false)=>`<button class="nav-tab ${on?'active':''}" ${on?'':'data-noop="1"'}>${ic[k]}<span>${label}</span></button>`;
-    const pill=(label,sel=false)=>`<button class="filter-pill ${sel?'sel':''}" data-noop="1">${label} ${ic.chev}</button>`;
-    return `<div class="app">
-      <header class="app-nav">
-        <div class="ws"><img class="ws-logo" src="/agent-hatchers-logo.png" alt=""><span>${escapeHtml(company)}</span><i class="ws-chev">${ic.chev}</i></div>
-        <nav class="nav-tabs">${tab('profiles','Profiles',true)}${tab('chats','Chats')}${tab('analytics','Analytics')}${tab('config','Config')}${tab('market','Marketplace')}</nav>
-        <div class="nav-right"><button class="create-btn" data-noop="1">${ic.plus}<span>Create</span></button><span class="nav-avatar">${initials(company)}</span></div>
-      </header>
-      <div class="filter-bar">
+    return `<div class="filter-bar">
         <div class="seg"><button class="seg-on">${ic.gallery}<span>Gallery</span></button><button data-noop="1">${ic.kanban}<span>Kanban</span></button></div>
-        ${pill('Status: All')}${pill('Team: All')}${pill('Manager: All')}${pill('Group by: Status',true)}
+        <button class="filter-pill" data-noop="1">Status: All ${ic.chev}</button><button class="filter-pill" data-noop="1">Team: All ${ic.chev}</button><button class="filter-pill" data-noop="1">Manager: All ${ic.chev}</button><button class="filter-pill sel" data-noop="1">Group by: Status ${ic.chev}</button>
         <div class="search-box">${ic.search}<input id="market-search" placeholder="Search profiles..." autocomplete="off"></div>
       </div>
       <div class="board" id="board">
         <section class="board-group g-active"><div class="group-head"><h3>Active</h3><span class="count">1</span></div><div class="p-grid">${hatchedCard()}</div></section>
         <section class="board-group g-rec"><div class="group-head"><h3>Recommended for ${escapeHtml(company)}</h3><span class="count">${ranked.length}</span></div><div class="p-grid">${ranked.map(agentCard).join('')}</div></section>
         <div class="board-empty" id="board-empty" hidden>No profiles match your search.</div>
-      </div>
+      </div>`;
+  }
+  function agentAvatar(cls){return state.selectedImage?`<img class="${cls}" src="${escapeHtml(state.selectedImage)}" alt="">`:bot('v'+(state.variant||0)+' '+cls);}
+  function chatsView(){
+    const convos=[[state.name||'Agent','Draft the Q3 outreach sequence','2m'],['Invoice Agent','3 invoices ready for approval','1h'],['Support Agent','Replied to 12 tickets','3h'],['Website Agent','Homepage copy updated','Yesterday']];
+    const msgs=[['them',`Morning! I qualified 8 new leads overnight and drafted follow-ups for the 3 hottest. Want me to send them?`],['me',`Yes — send the top 3, hold the rest for review.`],['them',`Done ✅ Sent to the top 3 and scheduled a reminder for the others tomorrow at 9am. I also updated HubSpot.`]];
+    return `<div class="chat-wrap">
+      <aside class="chat-list"><div class="chat-list-head">${ic.search}<input placeholder="Search chats..."></div>${convos.map(([n,p,t],i)=>`<button class="chat-item ${i===0?'active':''}">${agentAvatar('chat-ava')}<div class="chat-item-main"><div class="chat-item-top"><b>${escapeHtml(n)}</b><span>${t}</span></div><div class="chat-item-sub">${escapeHtml(p)}</div></div></button>`).join('')}</aside>
+      <section class="chat-main"><div class="chat-head">${agentAvatar('chat-ava')}<div><b>${escapeHtml(state.name||'Agent')}</b><span class="chat-status"><i class="dot"></i> Active</span></div></div>
+        <div class="chat-thread">${msgs.map(([who,t])=>`<div class="msg ${who}">${who==='them'?agentAvatar('msg-ava'):''}<div class="bubble">${escapeHtml(t)}</div></div>`).join('')}</div>
+        <div class="chat-input"><input placeholder="Message ${escapeHtml(state.name||'your agent')}…"><button class="send-btn" data-noop="1">${ic.arrowUp||'↑'}</button></div></section>
+    </div>`;
+  }
+  function analyticsView(){
+    const stats=[['Tasks completed','1,284','+18%'],['Hours saved','96','+12%'],['Messages handled','5,120','+7%'],['Approvals pending','4','']];
+    const bars=[40,62,55,78,70,88,95];
+    return `<div class="page-pad"><h2 class="page-h2">Analytics</h2><p class="page-sub">How ${escapeHtml(state.name||'your agent')} and the team performed this month.</p>
+      <div class="stat-row">${stats.map(([l,v,d])=>`<div class="stat-tile"><div class="stat-label">${l}</div><div class="stat-val">${v}</div>${d?`<div class="stat-delta">${d}</div>`:''}</div>`).join('')}</div>
+      <div class="chart-card"><div class="chart-head"><b>Weekly activity</b><span>Last 7 days</span></div><div class="bars">${bars.map(h=>`<span style="height:${h}%"></span>`).join('')}</div></div>
+    </div>`;
+  }
+  function configView(){
+    const toggles=[['Human approval before sending','on'],['Auto-research new leads','on'],['Post daily summary to Slack','on'],['Learn from my edits','off']];
+    const conns=['HubSpot','Gmail','Slack','Google Drive','Xero'];
+    return `<div class="page-pad cfg"><h2 class="page-h2">Configuration</h2><p class="page-sub">Make ${escapeHtml(state.name||'your agent')} yours.</p>
+      <div class="cfg-grid">
+        <section class="cfg-card"><h3>Identity</h3><div class="cfg-identity">${agentAvatar('cfg-ava')}<div class="cfg-fields"><label class="field-label">Name</label><input class="cf-input" value="${escapeHtml(state.name||'Agent')}"><label class="field-label">Company</label><input class="cf-input" value="${escapeHtml(company)}"></div></div></section>
+        <section class="cfg-card"><h3>Behaviour</h3>${toggles.map(([l,s])=>`<div class="cfg-row"><span>${l}</span><span class="toggle ${s}"><i></i></span></div>`).join('')}</section>
+        <section class="cfg-card"><h3>Connected tools</h3><div class="cfg-conns">${conns.map(c=>`<span class="mcp">${c}</span>`).join('')}<button class="btn btn-outline" data-noop="1">+ Add</button></div></section>
+        <section class="cfg-card"><h3>Context &amp; knowledge</h3><p class="cfg-note">Files and notes ${escapeHtml(state.name||'your agent')} can draw on.</p><div class="ctx-list"><div class="ctx-item">${ci.server}Company handbook.pdf</div><div class="ctx-item">${ci.server}Brand voice.md</div><div class="ctx-item">${ci.server}Pricing.xlsx</div></div></section>
+      </div></div>`;
+  }
+  function marketScreen(){
+    const tab=(k,label)=>`<button class="nav-tab ${state.tab===k?'active':''}" data-tab="${k}">${ic[k==='market'?'market':k]}<span>${label}</span></button>`;
+    const body = state.tab==='chats'?chatsView():state.tab==='analytics'?analyticsView():state.tab==='config'?configView():profilesBoard();
+    return `<div class="app">
+      <header class="app-nav">
+        <div class="ws"><img class="ws-logo" src="/agent-hatchers-logo.png" alt=""><span>${escapeHtml(company)}</span><i class="ws-chev">${ic.chev}</i></div>
+        <nav class="nav-tabs">${tab('profiles','Profiles')}${tab('chats','Chats')}${tab('analytics','Analytics')}${tab('config','Config')}${tab('market','Marketplace')}</nav>
+        <div class="nav-right"><button class="create-btn" data-noop="1">${ic.plus}<span>Create</span></button><span class="nav-avatar">${initials(company)}</span></div>
+      </header>
+      ${body}
       <div class="board-foot"><div class="foot-nav">${button('← Back','back',true)}${button('Start over','reset',true)}</div>${button('Connect your agent →','next')}</div>
     </div>`;
   }
@@ -198,8 +231,8 @@
     const started=Date.now();
     await Promise.all([0,1,2].map(async i=>{
       const image=await fetchPortrait(i);
-      // Hold each egg long enough for both cracks to form, then open in sequence.
-      const minMs=3400+i*1500;const wait=Math.max(0,minMs-(Date.now()-started));if(wait)await sleep(wait);
+      // Hold each egg for the full 5s crack (and until its image is ready), then open.
+      const minMs=5000+i*300;const wait=Math.max(0,minMs-(Date.now()-started));if(wait)await sleep(wait);
       state.slots[i]={status:'ready',image};
       openEgg(i);
     }));
@@ -221,6 +254,7 @@
     root.querySelectorAll('[data-option]').forEach(el=>el.onclick=()=>{const i=+el.dataset.option;state.variant=i;const s=state.slots[i];state.selectedImage=s&&s.image?s.image:'';root.querySelectorAll('.generated-choice').forEach(c=>{const on=+c.dataset.option===i;c.classList.toggle('selected',on);c.setAttribute('aria-pressed',on)});});
     root.querySelectorAll('[data-look-index]').forEach(el=>el.onclick=()=>{const ta=document.getElementById('agent-look');if(ta){ta.value=lookSeeds[+el.dataset.lookIndex].text;ta.focus()}});
     root.querySelectorAll('[data-mic]').forEach(btn=>btn.onclick=()=>startDictation(btn));
+    root.querySelectorAll('[data-tab]').forEach(el=>el.onclick=()=>{state.tab=el.dataset.tab;render();});
     root.querySelectorAll('[data-agent]').forEach(el=>{el.onclick=()=>showAgent(el.dataset.agent);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();showAgent(el.dataset.agent)}};});
     const search=document.getElementById('market-search');if(search)search.oninput=()=>{const q=search.value.trim().toLowerCase();let visible=0;root.querySelectorAll('.p-card[data-search]').forEach(c=>{const show=!q||c.dataset.search.includes(q);c.hidden=!show;if(show)visible++;});const yours=root.querySelector('.p-card.is-yours');if(yours)yours.hidden=!!q;root.querySelectorAll('.board-group').forEach(g=>{g.hidden=![...g.querySelectorAll('.p-card')].some(c=>!c.hidden);});const empty=document.getElementById('board-empty');if(empty)empty.hidden=visible>0;};
     const input=document.getElementById('agent-name');if(input)input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('agent-biz')?.focus()}};
