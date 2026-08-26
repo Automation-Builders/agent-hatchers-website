@@ -1,0 +1,7 @@
+{
+  "name": "agent-hatchers-portrait-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Vercel serverless proxy that turns a prototype brief into an OpenRouter-generated avatar, keeping the API key server-side."
+}

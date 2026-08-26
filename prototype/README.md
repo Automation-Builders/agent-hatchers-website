@@ -30,24 +30,25 @@ Every page runs the same six-step hatching experience (shared code in `app.js` /
 
 ## Real avatar generation (backend required)
 
-Step 4 tries to POST to `portraitEndpoint`
-(default `https://agenthatchers.ai/api/hermes/prototype-portrait`) for each of the three
-designs and expects JSON `{ "image": "<url-or-data-uri>" }` back. **If the call fails, the egg
-falls back to an on-brand simulated mascot**, so a prospect never sees a broken page. Real
-images appear automatically once the endpoint is callable.
+Step 4 POSTs `{ brief, name, role, company, industry, variant }` (`variant` is `0|1|2`) to
+`portraitEndpoint` for each of the three designs and expects JSON `{ "image": "<url-or-data-uri>" }`
+back. **If the call fails, the egg falls back to an on-brand simulated mascot**, so a prospect
+never sees a broken page — real images appear automatically once the endpoint is live.
 
-For that call to succeed from a public prototype page, the backend must:
+A static host (GitHub Pages / GoDaddy) can't hold an API key, so generation runs through a small
+serverless proxy that keeps the key server-side. That proxy lives in **`../portrait-proxy/`**
+(a Vercel function calling OpenRouter — see its README to deploy and set `OPENROUTER_API_KEY`).
 
-- **Not require the logged-in `.ai` session** — today the endpoint returns `401 Unauthorized`.
-  Expose a public (rate-limited / abuse-protected) prototype route, or accept a scoped token.
-- If a token is used, **allow its header in CORS** — the preflight currently only permits
-  `content-type` (`access-control-allow-headers: content-type`), so an `Authorization` /
-  `x-api-key` header would be blocked. `access-control-allow-origin` is already `*`.
-- Return `{ image }` for a POST body of
-  `{ brief, name, role, company, industry, variant }` (`variant` is `0|1|2`).
+Once the proxy is deployed, point the prototype at it by adding to each prospect's
+`window.PROTOTYPE_CONFIG`:
 
-Until that lands, leave `generatePortraits` at its default — pages work now with simulated
-designs and upgrade themselves the moment the endpoint is live.
+```js
+portraitEndpoint: "https://<your-vercel-url>/api/prototype-portrait"
+```
+
+(or map `api.agenthatchers.com` to the Vercel project and use that). To make every page use it
+without per-page config, change the `portraitEndpoint` default near the top of `app.js`.
+Until the proxy is wired, pages work now with simulated designs.
 
 ## Shared files
 
