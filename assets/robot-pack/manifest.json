@@ -1,0 +1,1202 @@
+[
+  {
+    "file": "robot-001-happy-wrench-cape-antenna-ember-512x512.png",
+    "size": [
+      512,
+      512
+    ],
+    "tool": "wrench",
+    "emotion": "happy",
+    "clothes": "cape",
+    "accessory": "antenna",
+    "palette": "ember"
+  },
+  {
+    "file": "robot-002-happy-hammer-cape-antenna-aqua-640x640.png",
+    "size": [
+      640,
+      640
+    ],
+    "tool": "hammer",
+    "emotion": "happy",
+    "clothes": "cape",
+    "accessory": "antenna",
+    "palette": "aqua"
+  },
+  {
+    "file": "robot-003-excited-paintbrush-cape-antenna-leaf-768x768.png",
+    "size": [
+      768,
+      768
+    ],
+    "tool": "paintbrush",
+    "emotion": "excited",
+    "clothes": "cape",
+    "accessory": "antenna",
+    "palette": "leaf"
+  },
+  {
+    "file": "robot-004-excited-laptop-scarf-antenna-violet-512x640.png",
+    "size": [
+      512,
+      640
+    ],
+    "tool": "laptop",
+    "emotion": "excited",
+    "clothes": "scarf",
+    "accessory": "antenna",
+    "palette": "violet"
+  },
+  {
+    "file": "robot-005-sleepy-spanner-scarf-antenna-sun-640x512.png",
+    "size": [
+      640,
+      512
+    ],
+    "tool": "spanner",
+    "emotion": "sleepy",
+    "clothes": "scarf",
+    "accessory": "antenna",
+    "palette": "sun"
+  },
+  {
+    "file": "robot-006-sleepy-screwdriver-scarf-hat-rose-720x600.png",
+    "size": [
+      720,
+      600
+    ],
+    "tool": "screwdriver",
+    "emotion": "sleepy",
+    "clothes": "scarf",
+    "accessory": "hat",
+    "palette": "rose"
+  },
+  {
+    "file": "robot-007-curious-magnifier-hoodie-hat-mint-600x720.png",
+    "size": [
+      600,
+      720
+    ],
+    "tool": "magnifier",
+    "emotion": "curious",
+    "clothes": "hoodie",
+    "accessory": "hat",
+    "palette": "mint"
+  },
+  {
+    "file": "robot-008-curious-pencil-hoodie-hat-storm-900x720.png",
+    "size": [
+      900,
+      720
+    ],
+    "tool": "pencil",
+    "emotion": "curious",
+    "clothes": "hoodie",
+    "accessory": "hat",
+    "palette": "storm"
+  },
+  {
+    "file": "robot-009-angry-tablet-hoodie-hat-berry-720x900.png",
+    "size": [
+      720,
+      900
+    ],
+    "tool": "tablet",
+    "emotion": "angry",
+    "clothes": "hoodie",
+    "accessory": "hat",
+    "palette": "berry"
+  },
+  {
+    "file": "robot-010-angry-camera-lab-coat-hat-sky-800x800.png",
+    "size": [
+      800,
+      800
+    ],
+    "tool": "camera",
+    "emotion": "angry",
+    "clothes": "lab-coat",
+    "accessory": "hat",
+    "palette": "sky"
+  },
+  {
+    "file": "robot-011-sad-microphone-lab-coat-goggles-ember-512x512.png",
+    "size": [
+      512,
+      512
+    ],
+    "tool": "microphone",
+    "emotion": "sad",
+    "clothes": "lab-coat",
+    "accessory": "goggles",
+    "palette": "ember"
+  },
+  {
+    "file": "robot-012-sad-rocket-lab-coat-goggles-aqua-640x640.png",
+    "size": [
+      640,
+      640
+    ],
+    "tool": "rocket",
+    "emotion": "sad",
+    "clothes": "lab-coat",
+    "accessory": "goggles",
+    "palette": "aqua"
+  },
+  {
+    "file": "robot-013-surprised-net-jacket-goggles-leaf-768x768.png",
+    "size": [
+      768,
+      768
+    ],
+    "tool": "net",
+    "emotion": "surprised",
+    "clothes": "jacket",
+    "accessory": "goggles",
+    "palette": "leaf"
+  },
+  {
+    "file": "robot-014-surprised-lantern-jacket-goggles-violet-512x640.png",
+    "size": [
+      512,
+      640
+    ],
+    "tool": "lantern",
+    "emotion": "surprised",
+    "clothes": "jacket",
+    "accessory": "goggles",
+    "palette": "violet"
+  },
+  {
+    "file": "robot-015-focused-key-jacket-goggles-sun-640x512.png",
+    "size": [
+      640,
+      512
+    ],
+    "tool": "key",
+    "emotion": "focused",
+    "clothes": "jacket",
+    "accessory": "goggles",
+    "palette": "sun"
+  },
+  {
+    "file": "robot-016-focused-shield-vest-backpack-rose-720x600.png",
+    "size": [
+      720,
+      600
+    ],
+    "tool": "shield",
+    "emotion": "focused",
+    "clothes": "vest",
+    "accessory": "backpack",
+    "palette": "rose"
+  },
+  {
+    "file": "robot-017-proud-watering-can-vest-backpack-mint-600x720.png",
+    "size": [
+      600,
+      720
+    ],
+    "tool": "watering-can",
+    "emotion": "proud",
+    "clothes": "vest",
+    "accessory": "backpack",
+    "palette": "mint"
+  },
+  {
+    "file": "robot-018-proud-needle-vest-backpack-storm-900x720.png",
+    "size": [
+      900,
+      720
+    ],
+    "tool": "needle",
+    "emotion": "proud",
+    "clothes": "vest",
+    "accessory": "backpack",
+    "palette": "storm"
+  },
+  {
+    "file": "robot-019-confused-map-poncho-backpack-berry-720x900.png",
+    "size": [
+      720,
+      900
+    ],
+    "tool": "map",
+    "emotion": "confused",
+    "clothes": "poncho",
+    "accessory": "backpack",
+    "palette": "berry"
+  },
+  {
+    "file": "robot-020-confused-gem-poncho-backpack-sky-800x800.png",
+    "size": [
+      800,
+      800
+    ],
+    "tool": "gem",
+    "emotion": "confused",
+    "clothes": "poncho",
+    "accessory": "backpack",
+    "palette": "sky"
+  },
+  {
+    "file": "robot-021-happy-wrench-poncho-headphones-ember-512x512.png",
+    "size": [
+      512,
+      512
+    ],
+    "tool": "wrench",
+    "emotion": "happy",
+    "clothes": "poncho",
+    "accessory": "headphones",
+    "palette": "ember"
+  },
+  {
+    "file": "robot-022-happy-hammer-bowtie-headphones-aqua-640x640.png",
+    "size": [
+      640,
+      640
+    ],
+    "tool": "hammer",
+    "emotion": "happy",
+    "clothes": "bowtie",
+    "accessory": "headphones",
+    "palette": "aqua"
+  },
+  {
+    "file": "robot-023-excited-paintbrush-bowtie-headphones-leaf-768x768.png",
+    "size": [
+      768,
+      768
+    ],
+    "tool": "paintbrush",
+    "emotion": "excited",
+    "clothes": "bowtie",
+    "accessory": "headphones",
+    "palette": "leaf"
+  },
+  {
+    "file": "robot-024-excited-laptop-bowtie-headphones-violet-512x640.png",
+    "size": [
+      512,
+      640
+    ],
+    "tool": "laptop",
+    "emotion": "excited",
+    "clothes": "bowtie",
+    "accessory": "headphones",
+    "palette": "violet"
+  },
+  {
+    "file": "robot-025-sleepy-spanner-apron-headphones-sun-640x512.png",
+    "size": [
+      640,
+      512
+    ],
+    "tool": "spanner",
+    "emotion": "sleepy",
+    "clothes": "apron",
+    "accessory": "headphones",
+    "palette": "sun"
+  },
+  {
+    "file": "robot-026-sleepy-screwdriver-apron-crown-rose-720x600.png",
+    "size": [
+      720,
+      600
+    ],
+    "tool": "screwdriver",
+    "emotion": "sleepy",
+    "clothes": "apron",
+    "accessory": "crown",
+    "palette": "rose"
+  },
+  {
+    "file": "robot-027-curious-magnifier-apron-crown-mint-600x720.png",
+    "size": [
+      600,
+      720
+    ],
+    "tool": "magnifier",
+    "emotion": "curious",
+    "clothes": "apron",
+    "accessory": "crown",
+    "palette": "mint"
+  },
+  {
+    "file": "robot-028-curious-pencil-utility-belt-crown-storm-900x720.png",
+    "size": [
+      900,
+      720
+    ],
+    "tool": "pencil",
+    "emotion": "curious",
+    "clothes": "utility-belt",
+    "accessory": "crown",
+    "palette": "storm"
+  },
+  {
+    "file": "robot-029-angry-tablet-utility-belt-crown-berry-720x900.png",
+    "size": [
+      720,
+      900
+    ],
+    "tool": "tablet",
+    "emotion": "angry",
+    "clothes": "utility-belt",
+    "accessory": "crown",
+    "palette": "berry"
+  },
+  {
+    "file": "robot-030-angry-camera-utility-belt-crown-sky-800x800.png",
+    "size": [
+      800,
+      800
+    ],
+    "tool": "camera",
+    "emotion": "angry",
+    "clothes": "utility-belt",
+    "accessory": "crown",
+    "palette": "sky"
+  },
+  {
+    "file": "robot-031-sad-microphone-cape-flower-ember-512x512.png",
+    "size": [
+      512,
+      512
+    ],
+    "tool": "microphone",
+    "emotion": "sad",
+    "clothes": "cape",
+    "accessory": "flower",
+    "palette": "ember"
+  },
+  {
+    "file": "robot-032-sad-rocket-cape-flower-aqua-640x640.png",
+    "size": [
+      640,
+      640
+    ],
+    "tool": "rocket",
+    "emotion": "sad",
+    "clothes": "cape",
+    "accessory": "flower",
+    "palette": "aqua"
+  },
+  {
+    "file": "robot-033-surprised-net-cape-flower-leaf-768x768.png",
+    "size": [
+      768,
+      768
+    ],
+    "tool": "net",
+    "emotion": "surprised",
+    "clothes": "cape",
+    "accessory": "flower",
+    "palette": "leaf"
+  },
+  {
+    "file": "robot-034-surprised-lantern-scarf-flower-violet-512x640.png",
+    "size": [
+      512,
+      640
+    ],
+    "tool": "lantern",
+    "emotion": "surprised",
+    "clothes": "scarf",
+    "accessory": "flower",
+    "palette": "violet"
+  },
+  {
+    "file": "robot-035-focused-key-scarf-flower-sun-640x512.png",
+    "size": [
+      640,
+      512
+    ],
+    "tool": "key",
+    "emotion": "focused",
+    "clothes": "scarf",
+    "accessory": "flower",
+    "palette": "sun"
+  },
+  {
+    "file": "robot-036-focused-shield-scarf-glasses-rose-720x600.png",
+    "size": [
+      720,
+      600
+    ],
+    "tool": "shield",
+    "emotion": "focused",
+    "clothes": "scarf",
+    "accessory": "glasses",
+    "palette": "rose"
+  },
+  {
+    "file": "robot-037-proud-watering-can-hoodie-glasses-mint-600x720.png",
+    "size": [
+      600,
+      720
+    ],
+    "tool": "watering-can",
+    "emotion": "proud",
+    "clothes": "hoodie",
+    "accessory": "glasses",
+    "palette": "mint"
+  },
+  {
+    "file": "robot-038-proud-needle-hoodie-glasses-storm-900x720.png",
+    "size": [
+      900,
+      720
+    ],
+    "tool": "needle",
+    "emotion": "proud",
+    "clothes": "hoodie",
+    "accessory": "glasses",
+    "palette": "storm"
+  },
+  {
+    "file": "robot-039-confused-map-hoodie-glasses-berry-720x900.png",
+    "size": [
+      720,
+      900
+    ],
+    "tool": "map",
+    "emotion": "confused",
+    "clothes": "hoodie",
+    "accessory": "glasses",
+    "palette": "berry"
+  },
+  {
+    "file": "robot-040-confused-gem-lab-coat-glasses-sky-800x800.png",
+    "size": [
+      800,
+      800
+    ],
+    "tool": "gem",
+    "emotion": "confused",
+    "clothes": "lab-coat",
+    "accessory": "glasses",
+    "palette": "sky"
+  },
+  {
+    "file": "robot-041-happy-wrench-lab-coat-badge-ember-512x512.png",
+    "size": [
+      512,
+      512
+    ],
+    "tool": "wrench",
+    "emotion": "happy",
+    "clothes": "lab-coat",
+    "accessory": "badge",
+    "palette": "ember"
+  },
+  {
+    "file": "robot-042-happy-hammer-lab-coat-badge-aqua-640x640.png",
+    "size": [
+      640,
+      640
+    ],
+    "tool": "hammer",
+    "emotion": "happy",
+    "clothes": "lab-coat",
+    "accessory": "badge",
+    "palette": "aqua"
+  },
+  {
+    "file": "robot-043-excited-paintbrush-jacket-badge-leaf-768x768.png",
+    "size": [
+      768,
+      768
+    ],
+    "tool": "paintbrush",
+    "emotion": "excited",
+    "clothes": "jacket",
+    "accessory": "badge",
+    "palette": "leaf"
+  },
+  {
+    "file": "robot-044-excited-laptop-jacket-badge-violet-512x640.png",
+    "size": [
+      512,
+      640
+    ],
+    "tool": "laptop",
+    "emotion": "excited",
+    "clothes": "jacket",
+    "accessory": "badge",
+    "palette": "violet"
+  },
+  {
+    "file": "robot-045-sleepy-spanner-jacket-badge-sun-640x512.png",
+    "size": [
+      640,
+      512
+    ],
+    "tool": "spanner",
+    "emotion": "sleepy",
+    "clothes": "jacket",
+    "accessory": "badge",
+    "palette": "sun"
+  },
+  {
+    "file": "robot-046-sleepy-screwdriver-vest-bandana-rose-720x600.png",
+    "size": [
+      720,
+      600
+    ],
+    "tool": "screwdriver",
+    "emotion": "sleepy",
+    "clothes": "vest",
+    "accessory": "bandana",
+    "palette": "rose"
+  },
+  {
+    "file": "robot-047-curious-magnifier-vest-bandana-mint-600x720.png",
+    "size": [
+      600,
+      720
+    ],
+    "tool": "magnifier",
+    "emotion": "curious",
+    "clothes": "vest",
+    "accessory": "bandana",
+    "palette": "mint"
+  },
+  {
+    "file": "robot-048-curious-pencil-vest-bandana-storm-900x720.png",
+    "size": [
+      900,
+      720
+    ],
+    "tool": "pencil",
+    "emotion": "curious",
+    "clothes": "vest",
+    "accessory": "bandana",
+    "palette": "storm"
+  },
+  {
+    "file": "robot-049-angry-tablet-poncho-bandana-berry-720x900.png",
+    "size": [
+      720,
+      900
+    ],
+    "tool": "tablet",
+    "emotion": "angry",
+    "clothes": "poncho",
+    "accessory": "bandana",
+    "palette": "berry"
+  },
+  {
+    "file": "robot-050-angry-camera-poncho-bandana-sky-800x800.png",
+    "size": [
+      800,
+      800
+    ],
+    "tool": "camera",
+    "emotion": "angry",
+    "clothes": "poncho",
+    "accessory": "bandana",
+    "palette": "sky"
+  },
+  {
+    "file": "robot-051-sad-microphone-poncho-antenna-ember-512x512.png",
+    "size": [
+      512,
+      512
+    ],
+    "tool": "microphone",
+    "emotion": "sad",
+    "clothes": "poncho",
+    "accessory": "antenna",
+    "palette": "ember"
+  },
+  {
+    "file": "robot-052-sad-rocket-bowtie-antenna-aqua-640x640.png",
+    "size": [
+      640,
+      640
+    ],
+    "tool": "rocket",
+    "emotion": "sad",
+    "clothes": "bowtie",
+    "accessory": "antenna",
+    "palette": "aqua"
+  },
+  {
+    "file": "robot-053-surprised-net-bowtie-antenna-leaf-768x768.png",
+    "size": [
+      768,
+      768
+    ],
+    "tool": "net",
+    "emotion": "surprised",
+    "clothes": "bowtie",
+    "accessory": "antenna",
+    "palette": "leaf"
+  },
+  {
+    "file": "robot-054-surprised-lantern-bowtie-antenna-violet-512x640.png",
+    "size": [
+      512,
+      640
+    ],
+    "tool": "lantern",
+    "emotion": "surprised",
+    "clothes": "bowtie",
+    "accessory": "antenna",
+    "palette": "violet"
+  },
+  {
+    "file": "robot-055-focused-key-apron-antenna-sun-640x512.png",
+    "size": [
+      640,
+      512
+    ],
+    "tool": "key",
+    "emotion": "focused",
+    "clothes": "apron",
+    "accessory": "antenna",
+    "palette": "sun"
+  },
+  {
+    "file": "robot-056-focused-shield-apron-hat-rose-720x600.png",
+    "size": [
+      720,
+      600
+    ],
+    "tool": "shield",
+    "emotion": "focused",
+    "clothes": "apron",
+    "accessory": "hat",
+    "palette": "rose"
+  },
+  {
+    "file": "robot-057-proud-watering-can-apron-hat-mint-600x720.png",
+    "size": [
+      600,
+      720
+    ],
+    "tool": "watering-can",
+    "emotion": "proud",
+    "clothes": "apron",
+    "accessory": "hat",
+    "palette": "mint"
+  },
+  {
+    "file": "robot-058-proud-needle-utility-belt-hat-storm-900x720.png",
+    "size": [
+      900,
+      720
+    ],
+    "tool": "needle",
+    "emotion": "proud",
+    "clothes": "utility-belt",
+    "accessory": "hat",
+    "palette": "storm"
+  },
+  {
+    "file": "robot-059-confused-map-utility-belt-hat-berry-720x900.png",
+    "size": [
+      720,
+      900
+    ],
+    "tool": "map",
+    "emotion": "confused",
+    "clothes": "utility-belt",
+    "accessory": "hat",
+    "palette": "berry"
+  },
+  {
+    "file": "robot-060-confused-gem-utility-belt-hat-sky-800x800.png",
+    "size": [
+      800,
+      800
+    ],
+    "tool": "gem",
+    "emotion": "confused",
+    "clothes": "utility-belt",
+    "accessory": "hat",
+    "palette": "sky"
+  },
+  {
+    "file": "robot-061-happy-wrench-cape-goggles-ember-512x512.png",
+    "size": [
+      512,
+      512
+    ],
+    "tool": "wrench",
+    "emotion": "happy",
+    "clothes": "cape",
+    "accessory": "goggles",
+    "palette": "ember"
+  },
+  {
+    "file": "robot-062-happy-hammer-cape-goggles-aqua-640x640.png",
+    "size": [
+      640,
+      640
+    ],
+    "tool": "hammer",
+    "emotion": "happy",
+    "clothes": "cape",
+    "accessory": "goggles",
+    "palette": "aqua"
+  },
+  {
+    "file": "robot-063-excited-paintbrush-cape-goggles-leaf-768x768.png",
+    "size": [
+      768,
+      768
+    ],
+    "tool": "paintbrush",
+    "emotion": "excited",
+    "clothes": "cape",
+    "accessory": "goggles",
+    "palette": "leaf"
+  },
+  {
+    "file": "robot-064-excited-laptop-scarf-goggles-violet-512x640.png",
+    "size": [
+      512,
+      640
+    ],
+    "tool": "laptop",
+    "emotion": "excited",
+    "clothes": "scarf",
+    "accessory": "goggles",
+    "palette": "violet"
+  },
+  {
+    "file": "robot-065-sleepy-spanner-scarf-goggles-sun-640x512.png",
+    "size": [
+      640,
+      512
+    ],
+    "tool": "spanner",
+    "emotion": "sleepy",
+    "clothes": "scarf",
+    "accessory": "goggles",
+    "palette": "sun"
+  },
+  {
+    "file": "robot-066-sleepy-screwdriver-scarf-backpack-rose-720x600.png",
+    "size": [
+      720,
+      600
+    ],
+    "tool": "screwdriver",
+    "emotion": "sleepy",
+    "clothes": "scarf",
+    "accessory": "backpack",
+    "palette": "rose"
+  },
+  {
+    "file": "robot-067-curious-magnifier-hoodie-backpack-mint-600x720.png",
+    "size": [
+      600,
+      720
+    ],
+    "tool": "magnifier",
+    "emotion": "curious",
+    "clothes": "hoodie",
+    "accessory": "backpack",
+    "palette": "mint"
+  },
+  {
+    "file": "robot-068-curious-pencil-hoodie-backpack-storm-900x720.png",
+    "size": [
+      900,
+      720
+    ],
+    "tool": "pencil",
+    "emotion": "curious",
+    "clothes": "hoodie",
+    "accessory": "backpack",
+    "palette": "storm"
+  },
+  {
+    "file": "robot-069-angry-tablet-hoodie-backpack-berry-720x900.png",
+    "size": [
+      720,
+      900
+    ],
+    "tool": "tablet",
+    "emotion": "angry",
+    "clothes": "hoodie",
+    "accessory": "backpack",
+    "palette": "berry"
+  },
+  {
+    "file": "robot-070-angry-camera-lab-coat-backpack-sky-800x800.png",
+    "size": [
+      800,
+      800
+    ],
+    "tool": "camera",
+    "emotion": "angry",
+    "clothes": "lab-coat",
+    "accessory": "backpack",
+    "palette": "sky"
+  },
+  {
+    "file": "robot-071-sad-microphone-lab-coat-headphones-ember-512x512.png",
+    "size": [
+      512,
+      512
+    ],
+    "tool": "microphone",
+    "emotion": "sad",
+    "clothes": "lab-coat",
+    "accessory": "headphones",
+    "palette": "ember"
+  },
+  {
+    "file": "robot-072-sad-rocket-lab-coat-headphones-aqua-640x640.png",
+    "size": [
+      640,
+      640
+    ],
+    "tool": "rocket",
+    "emotion": "sad",
+    "clothes": "lab-coat",
+    "accessory": "headphones",
+    "palette": "aqua"
+  },
+  {
+    "file": "robot-073-surprised-net-jacket-headphones-leaf-768x768.png",
+    "size": [
+      768,
+      768
+    ],
+    "tool": "net",
+    "emotion": "surprised",
+    "clothes": "jacket",
+    "accessory": "headphones",
+    "palette": "leaf"
+  },
+  {
+    "file": "robot-074-surprised-lantern-jacket-headphones-violet-512x640.png",
+    "size": [
+      512,
+      640
+    ],
+    "tool": "lantern",
+    "emotion": "surprised",
+    "clothes": "jacket",
+    "accessory": "headphones",
+    "palette": "violet"
+  },
+  {
+    "file": "robot-075-focused-key-jacket-headphones-sun-640x512.png",
+    "size": [
+      640,
+      512
+    ],
+    "tool": "key",
+    "emotion": "focused",
+    "clothes": "jacket",
+    "accessory": "headphones",
+    "palette": "sun"
+  },
+  {
+    "file": "robot-076-focused-shield-vest-crown-rose-720x600.png",
+    "size": [
+      720,
+      600
+    ],
+    "tool": "shield",
+    "emotion": "focused",
+    "clothes": "vest",
+    "accessory": "crown",
+    "palette": "rose"
+  },
+  {
+    "file": "robot-077-proud-watering-can-vest-crown-mint-600x720.png",
+    "size": [
+      600,
+      720
+    ],
+    "tool": "watering-can",
+    "emotion": "proud",
+    "clothes": "vest",
+    "accessory": "crown",
+    "palette": "mint"
+  },
+  {
+    "file": "robot-078-proud-needle-vest-crown-storm-900x720.png",
+    "size": [
+      900,
+      720
+    ],
+    "tool": "needle",
+    "emotion": "proud",
+    "clothes": "vest",
+    "accessory": "crown",
+    "palette": "storm"
+  },
+  {
+    "file": "robot-079-confused-map-poncho-crown-berry-720x900.png",
+    "size": [
+      720,
+      900
+    ],
+    "tool": "map",
+    "emotion": "confused",
+    "clothes": "poncho",
+    "accessory": "crown",
+    "palette": "berry"
+  },
+  {
+    "file": "robot-080-confused-gem-poncho-crown-sky-800x800.png",
+    "size": [
+      800,
+      800
+    ],
+    "tool": "gem",
+    "emotion": "confused",
+    "clothes": "poncho",
+    "accessory": "crown",
+    "palette": "sky"
+  },
+  {
+    "file": "robot-081-happy-wrench-poncho-flower-ember-512x512.png",
+    "size": [
+      512,
+      512
+    ],
+    "tool": "wrench",
+    "emotion": "happy",
+    "clothes": "poncho",
+    "accessory": "flower",
+    "palette": "ember"
+  },
+  {
+    "file": "robot-082-happy-hammer-bowtie-flower-aqua-640x640.png",
+    "size": [
+      640,
+      640
+    ],
+    "tool": "hammer",
+    "emotion": "happy",
+    "clothes": "bowtie",
+    "accessory": "flower",
+    "palette": "aqua"
+  },
+  {
+    "file": "robot-083-excited-paintbrush-bowtie-flower-leaf-768x768.png",
+    "size": [
+      768,
+      768
+    ],
+    "tool": "paintbrush",
+    "emotion": "excited",
+    "clothes": "bowtie",
+    "accessory": "flower",
+    "palette": "leaf"
+  },
+  {
+    "file": "robot-084-excited-laptop-bowtie-flower-violet-512x640.png",
+    "size": [
+      512,
+      640
+    ],
+    "tool": "laptop",
+    "emotion": "excited",
+    "clothes": "bowtie",
+    "accessory": "flower",
+    "palette": "violet"
+  },
+  {
+    "file": "robot-085-sleepy-spanner-apron-flower-sun-640x512.png",
+    "size": [
+      640,
+      512
+    ],
+    "tool": "spanner",
+    "emotion": "sleepy",
+    "clothes": "apron",
+    "accessory": "flower",
+    "palette": "sun"
+  },
+  {
+    "file": "robot-086-sleepy-screwdriver-apron-glasses-rose-720x600.png",
+    "size": [
+      720,
+      600
+    ],
+    "tool": "screwdriver",
+    "emotion": "sleepy",
+    "clothes": "apron",
+    "accessory": "glasses",
+    "palette": "rose"
+  },
+  {
+    "file": "robot-087-curious-magnifier-apron-glasses-mint-600x720.png",
+    "size": [
+      600,
+      720
+    ],
+    "tool": "magnifier",
+    "emotion": "curious",
+    "clothes": "apron",
+    "accessory": "glasses",
+    "palette": "mint"
+  },
+  {
+    "file": "robot-088-curious-pencil-utility-belt-glasses-storm-900x720.png",
+    "size": [
+      900,
+      720
+    ],
+    "tool": "pencil",
+    "emotion": "curious",
+    "clothes": "utility-belt",
+    "accessory": "glasses",
+    "palette": "storm"
+  },
+  {
+    "file": "robot-089-angry-tablet-utility-belt-glasses-berry-720x900.png",
+    "size": [
+      720,
+      900
+    ],
+    "tool": "tablet",
+    "emotion": "angry",
+    "clothes": "utility-belt",
+    "accessory": "glasses",
+    "palette": "berry"
+  },
+  {
+    "file": "robot-090-angry-camera-utility-belt-glasses-sky-800x800.png",
+    "size": [
+      800,
+      800
+    ],
+    "tool": "camera",
+    "emotion": "angry",
+    "clothes": "utility-belt",
+    "accessory": "glasses",
+    "palette": "sky"
+  },
+  {
+    "file": "robot-091-sad-microphone-cape-badge-ember-512x512.png",
+    "size": [
+      512,
+      512
+    ],
+    "tool": "microphone",
+    "emotion": "sad",
+    "clothes": "cape",
+    "accessory": "badge",
+    "palette": "ember"
+  },
+  {
+    "file": "robot-092-sad-rocket-cape-badge-aqua-640x640.png",
+    "size": [
+      640,
+      640
+    ],
+    "tool": "rocket",
+    "emotion": "sad",
+    "clothes": "cape",
+    "accessory": "badge",
+    "palette": "aqua"
+  },
+  {
+    "file": "robot-093-surprised-net-cape-badge-leaf-768x768.png",
+    "size": [
+      768,
+      768
+    ],
+    "tool": "net",
+    "emotion": "surprised",
+    "clothes": "cape",
+    "accessory": "badge",
+    "palette": "leaf"
+  },
+  {
+    "file": "robot-094-surprised-lantern-scarf-badge-violet-512x640.png",
+    "size": [
+      512,
+      640
+    ],
+    "tool": "lantern",
+    "emotion": "surprised",
+    "clothes": "scarf",
+    "accessory": "badge",
+    "palette": "violet"
+  },
+  {
+    "file": "robot-095-focused-key-scarf-badge-sun-640x512.png",
+    "size": [
+      640,
+      512
+    ],
+    "tool": "key",
+    "emotion": "focused",
+    "clothes": "scarf",
+    "accessory": "badge",
+    "palette": "sun"
+  },
+  {
+    "file": "robot-096-focused-shield-scarf-bandana-rose-720x600.png",
+    "size": [
+      720,
+      600
+    ],
+    "tool": "shield",
+    "emotion": "focused",
+    "clothes": "scarf",
+    "accessory": "bandana",
+    "palette": "rose"
+  },
+  {
+    "file": "robot-097-proud-watering-can-hoodie-bandana-mint-600x720.png",
+    "size": [
+      600,
+      720
+    ],
+    "tool": "watering-can",
+    "emotion": "proud",
+    "clothes": "hoodie",
+    "accessory": "bandana",
+    "palette": "mint"
+  },
+  {
+    "file": "robot-098-proud-needle-hoodie-bandana-storm-900x720.png",
+    "size": [
+      900,
+      720
+    ],
+    "tool": "needle",
+    "emotion": "proud",
+    "clothes": "hoodie",
+    "accessory": "bandana",
+    "palette": "storm"
+  },
+  {
+    "file": "robot-099-confused-map-hoodie-bandana-berry-720x900.png",
+    "size": [
+      720,
+      900
+    ],
+    "tool": "map",
+    "emotion": "confused",
+    "clothes": "hoodie",
+    "accessory": "bandana",
+    "palette": "berry"
+  },
+  {
+    "file": "robot-100-confused-gem-lab-coat-bandana-sky-800x800.png",
+    "size": [
+      800,
+      800
+    ],
+    "tool": "gem",
+    "emotion": "confused",
+    "clothes": "lab-coat",
+    "accessory": "bandana",
+    "palette": "sky"
+  }
+]
