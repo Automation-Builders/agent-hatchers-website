@@ -92,7 +92,7 @@ img{-webkit-user-drag:none;user-select:none;pointer-events:none}
   background:linear-gradient(rgba(255,255,255,.22),rgba(255,255,255,0));
 }
 .scene.moving .belt::before{animation-play-state:running}
-@keyframes tread{to{background-position-x:-60px}}
+@keyframes tread{to{background-position-x:60px}}
 
 /* rollers peeking out under the belt */
 .rollers{
@@ -122,7 +122,7 @@ img{-webkit-user-drag:none;user-select:none;pointer-events:none}
   background:var(--outline);
 }
 .scene.moving .roller{animation-play-state:running}
-@keyframes spin{to{transform:rotate(-360deg)}}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 /* floor line */
 .floor{
@@ -512,13 +512,14 @@ const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function build(){
   measure();
-  // Cars left of centre start already hatched — the line has clearly been
-  // running for a while. Centre car hatches first.
-  for (let slot = -3; slot <= 3; slot++){
+  // Eggs queue in from the left and ride right; cars right of centre start
+  // already hatched — the line has clearly been running for a while.
+  // Centre car hatches first.
+  for (let slot = 3; slot >= -3; slot--){
     const el = tmpl.content.firstElementChild.cloneNode(true);
     scene.appendChild(el);
     const car = { el, slot };
-    dress(car, ROBOTS[nextRobot++ % ROBOTS.length], slot < 0);
+    dress(car, ROBOTS[nextRobot++ % ROBOTS.length], slot > 0);
     place(car, true);
     cars.push(car);
   }
@@ -527,12 +528,12 @@ function build(){
 
 async function step(){
   scene.classList.add('moving');
-  cars.forEach(c => { c.slot--; place(c); });
+  cars.forEach(c => { c.slot++; place(c); });
   await sleep(STEP_MS);
   scene.classList.remove('moving');
-  // recycle anything that fell off the left edge back onto the right
-  cars.filter(c => c.slot < -3).forEach(c => {
-    c.slot += CAR_COUNT;
+  // recycle anything that fell off the right edge back onto the left
+  cars.filter(c => c.slot > 3).forEach(c => {
+    c.slot -= CAR_COUNT;
     dress(c, ROBOTS[nextRobot++ % ROBOTS.length], false);
     place(c, true);
   });
