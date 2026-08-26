@@ -62,19 +62,36 @@ export default async function handler(req, res) {
   const name = String(body.name || 'Agent').slice(0, 60);
   const role = String(body.role || '').slice(0, 200).trim();
   const variant = Math.max(0, Math.min(2, parseInt(body.variant, 10) || 0));
-  if (brief.length < 8) { res.status(400).json({ error: 'brief too short' }); return; }
+  // A reference image turns this into an EDIT: keep the same character, re-dress + re-scene it.
+  const ref = typeof body.image === 'string' && /^data:image\//.test(body.image) ? body.image : '';
+  if (!ref && brief.length < 8) { res.status(400).json({ error: 'brief too short' }); return; }
 
-  const prompt =
-    `${brief}. A friendly 3D cartoon robot mascot character named "${name}". ` +
-    `${role ? `${role} ` : ''}` +
-    `Give it one or two fitting accessories (a hat, scarf, headset, or hard hat) and one ` +
-    `or two clear props held or beside it that show exactly what it does. ` +
-    `Plain solid white background, soft even studio lighting, the character centred and ` +
-    `full-body. ${PALETTES[variant]}. Polished, high-quality, sharp 3D cartoon mascot ` +
-    `render, consistent character design, crisp clean edges, no text, no watermark, no clutter.`;
+  const prompt = ref
+    ? `Keep this exact same robot character — identical body shape, proportions, colours, ` +
+      `face and style; it must clearly be the same character. ${role ? `${role} ` : ''}` +
+      `Re-dress it for that job with one or two fitting accessories and clear props/tools, and ` +
+      `place it in a real setting that fits the work (a proper background scene, not plain white). ` +
+      `${PALETTES[variant]}. Polished, high-quality, sharp 3D cartoon render, character kept ` +
+      `perfectly consistent, no text, no watermark.`
+    : `${brief}. A friendly 3D cartoon robot mascot character named "${name}". ` +
+      `${role ? `${role} ` : ''}` +
+      `Give it one or two fitting accessories and one or two clear props that show what it does. ` +
+      `Plain solid white background, soft even studio lighting, the character centred and full-body. ` +
+      `${PALETTES[variant]}. Polished, high-quality, sharp 3D cartoon mascot render, crisp clean ` +
+      `edges, no text, no watermark, no clutter.`;
+
+  const upstreamUrl = ref
+    ? 'https://openrouter.ai/api/v1/chat/completions'
+    : 'https://openrouter.ai/api/v1/images';
+  const payload = ref
+    ? { model: MODEL, modalities: ['image', 'text'], messages: [{ role: 'user', content: [
+        { type: 'image_url', image_url: { url: ref } },
+        { type: 'text', text: prompt }
+      ] }] }
+    : { model: MODEL, prompt, n: 1, aspect_ratio: '1:1', quality: 'high', output_format: 'png' };
 
   try {
-    const upstream = await fetch('https://openrouter.ai/api/v1/images', {
+    const upstream = await fetch(upstreamUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
@@ -82,14 +99,7 @@ export default async function handler(req, res) {
         'HTTP-Referer': 'https://agenthatchers.com',
         'X-Title': 'Agent Hatchers Prototype'
       },
-      body: JSON.stringify({
-        model: MODEL,
-        prompt,
-        n: 1,
-        aspect_ratio: '1:1',
-        quality: 'high',
-        output_format: 'png'
-      })
+      body: JSON.stringify(payload)
     });
 
     const data = await upstream.json().catch(() => ({}));

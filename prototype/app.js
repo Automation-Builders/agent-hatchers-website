@@ -151,7 +151,7 @@
     state.marketStarted = true;
     const agents = rankAgents().map(r=>r.agent);
     await Promise.all(agents.map(async agent=>{
-      const img = await fetchImage({brief:state.look,name:agent.name,role:agent.scene,company,industry:industryLabel,variant:state.variant||0});
+      const img = await fetchImage({brief:state.look,name:agent.name,role:agent.scene,image:state.selectedImage,company,industry:industryLabel,variant:state.variant||0});
       if(!img) return;
       state.marketImages[agent.id] = img;
       const el = root.querySelector(`img[data-portrait="${agent.id}"]`);
