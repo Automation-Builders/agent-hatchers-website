@@ -362,3 +362,62 @@ h1{font-weight:800}h2{font-weight:700}
 .bubble.paywall svg{width:16px;height:16px;fill:none;stroke:#c07f1f;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .pay-btn{background:#216bac;color:#fff;border:0;border-radius:10px;padding:7px 13px;font-weight:700;font-size:.82rem}
 .pay-btn:hover{background:#1d5f99}
+/* ===== Exact site hatch choreography (from hatchery.html), 3 eggs side by side ===== */
+.hatch-row{display:flex;justify-content:center;align-items:flex-end;gap:clamp(10px,3vw,40px);margin:22px auto 8px;min-height:220px}
+.hatch-cell{display:flex;flex-direction:column;align-items:center;gap:8px}
+.hatch-car{position:relative;width:clamp(120px,17vw,188px);height:clamp(120px,17vw,188px)}
+.hatch-car .rig{position:absolute;inset:0}
+.hatch-car .layer{position:absolute;inset:0;width:100%;height:100%}
+.hatch-car .egg-wrap{transform-origin:50% 90%;will-change:transform,opacity}
+.hatch-car .egg-wrap img.egg{width:100%;height:100%;object-fit:contain}
+.hatch-car:not(.hatching):not(.hatched) .egg-wrap{animation:idleWobble 1.7s ease-in-out infinite}
+@keyframes idleWobble{0%,100%{transform:rotate(-2.2deg)}50%{transform:rotate(2.2deg)}}
+.hatch-car .cracks{position:absolute;inset:0;width:100%;height:100%}
+.hatch-car .cracks path{fill:none;stroke:#1b1a40;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}
+.hatch-car .crack-b1,.hatch-car .crack-b2{stroke-width:3.5}
+.hatch-car .cap{transform-origin:50% 45%;object-fit:contain;will-change:transform,opacity}
+.hatch-car .pop{transform-origin:50% 88%;will-change:transform,opacity}
+.hatch-car .pop .bot{position:absolute;left:50%;bottom:9.5%;transform:translateX(-50%);max-width:88%;max-height:84%;object-fit:contain}
+.hatch-car .pop .ground{position:absolute;left:50%;bottom:14%;width:46%;height:4.5%;transform:translateX(-50%);border-radius:50%;background:rgba(22,21,15,.13)}
+.hatch-car .cap,.hatch-car .pop{opacity:0}
+.hatch-car.hatched .egg-wrap{opacity:0}
+.hatch-car.hatched .pop{opacity:1}
+.hatch-car .burst{pointer-events:none}
+.hatch-car .flash{position:absolute;left:50%;top:48%;width:88%;aspect-ratio:1/1;margin:-44% 0 0 -44%;border-radius:50%;background:radial-gradient(circle,#fff 0%,#fff 48%,rgba(255,255,255,0) 74%);opacity:0}
+.hatch-car .ring{position:absolute;left:50%;top:54%;width:34%;aspect-ratio:1/1;margin:-17% 0 0 -17%;border-radius:50%;border:4px solid #2E7FC0;opacity:0}
+.hatch-car .shard{position:absolute;left:50%;top:54%;width:2.8%;aspect-ratio:1/1;margin:-1.4% 0 0 -1.4%;background:#F6EBD4;border:2px solid #1b1a40;border-radius:22% 60% 40% 60%;opacity:0}
+.hatch-car .shard:nth-child(even){background:#2E7FC0;border-radius:50%}
+.hatch-car .shard.s1{--fx:-160%;--fy:-560%;--r:340deg}
+.hatch-car .shard.s2{--fx:300%;--fy:-480%;--r:-290deg;animation-delay:.03s}
+.hatch-car .shard.s3{--fx:-460%;--fy:-260%;--r:260deg}
+.hatch-car .shard.s4{--fx:520%;--fy:-180%;--r:-320deg;animation-delay:.05s}
+.hatch-car .shard.s5{--fx:-540%;--fy:90%;--r:300deg}
+.hatch-car .shard.s6{--fx:480%;--fy:160%;--r:-260deg;animation-delay:.02s}
+.hatch-car .shard.s7{--fx:-240%;--fy:420%;--r:280deg;animation-delay:.04s}
+.hatch-car .shard.s8{--fx:180%;--fy:480%;--r:-300deg}
+.hatch-car .shard.s9{--fx:40%;--fy:-620%;--r:250deg;animation-delay:.06s}
+.hatch-car .shard.s10{--fx:-360%;--fy:-430%;--r:-270deg;animation-delay:.01s}
+.hatch-car.hatching .anim{animation-duration:3.4s;animation-timing-function:ease;animation-fill-mode:both;animation-iteration-count:1}
+.hatch-car.hatching .egg-wrap{animation-name:egg-wobble}
+.hatch-car.hatching .cracks path{animation-duration:3.4s;animation-timing-function:linear;animation-fill-mode:both}
+.hatch-car.hatching .crack-1{animation-name:crack-1}
+.hatch-car.hatching .crack-2{animation-name:crack-2}
+.hatch-car.hatching .crack-3{animation-name:crack-3}
+.hatch-car.hatching .crack-b1{animation-name:crack-b1}
+.hatch-car.hatching .crack-b2{animation-name:crack-b2}
+.hatch-car.hatching .cap{animation-name:cap-fly;animation-timing-function:linear}
+.hatch-car.hatching .pop{animation-name:pop-spring}
+.hatch-car.hatching .flash{animation-name:flash}
+.hatch-car.hatching .ring{animation-name:ring}
+.hatch-car.hatching .shard{animation-name:shard;animation-timing-function:cubic-bezier(.17,.67,.4,1)}
+@keyframes egg-wobble{0%,8%{opacity:1;transform:none}12%{transform:rotate(0)}14%{transform:rotate(-3deg)}16%{transform:rotate(2.5deg)}18%{transform:rotate(-1.5deg)}20%{transform:rotate(0)}28%{transform:rotate(0)}30%{transform:rotate(-5deg) translateY(-1.2%)}32%{transform:rotate(4.5deg)}34%{transform:rotate(-3deg) translateY(-.6%)}36%{transform:rotate(0) translateY(0)}44%{transform:rotate(0)}45.5%{transform:rotate(-7deg) translateY(-2%)}47%{transform:rotate(6.5deg)}48.5%{transform:rotate(-5deg) translateY(-1.2%)}50%{transform:rotate(4deg)}51.5%{transform:rotate(-2deg)}52%{transform:rotate(0)}53%{transform:rotate(1.5deg)}54%{transform:rotate(-1.5deg)}55%{transform:rotate(1.5deg)}56%{transform:rotate(-1deg)}57%{transform:rotate(0)}58.5%{opacity:1;transform:scale(1.07,.86)}59.5%{opacity:1;transform:scale(.99,1.04)}61%{opacity:0;transform:translateY(-2%) scale(.92,1.1)}100%{opacity:0;transform:translateY(-2%) scale(.92,1.1)}}
+@keyframes crack-1{0%,16%{stroke-dashoffset:1}21%,100%{stroke-dashoffset:0}}
+@keyframes crack-2{0%,33%{stroke-dashoffset:1}38%,100%{stroke-dashoffset:0}}
+@keyframes crack-3{0%,48%{stroke-dashoffset:1}53%,100%{stroke-dashoffset:0}}
+@keyframes crack-b1{0%,53%{stroke-dashoffset:1}56%,100%{stroke-dashoffset:0}}
+@keyframes crack-b2{0%,54%{stroke-dashoffset:1}57%,100%{stroke-dashoffset:0}}
+@keyframes cap-fly{0%,57.9%{opacity:0;transform:translate(0,-9%) scale(.82) rotate(0)}58%{opacity:1;transform:translate(0,-9%) scale(.82) rotate(0)}61%{opacity:1;transform:translate(9%,-43%) scale(.82) rotate(14deg)}64%{opacity:1;transform:translate(19%,-65%) scale(.82) rotate(26deg)}67%{opacity:1;transform:translate(28%,-73%) scale(.82) rotate(38deg)}70%{opacity:1;transform:translate(37%,-65%) scale(.82) rotate(50deg)}73%{opacity:1;transform:translate(45%,-39%) scale(.82) rotate(60deg)}76%{opacity:1;transform:translate(53%,3%) scale(.82) rotate(70deg)}79%{opacity:.55;transform:translate(60%,59%) scale(.82) rotate(78deg)}82%,100%{opacity:0;transform:translate(66%,121%) scale(.82) rotate(84deg)}}
+@keyframes pop-spring{0%,57.5%{opacity:0;transform:translateY(3%) scale(1.06,.7)}60%{opacity:1;transform:translateY(2.5%) scale(1.05,.74)}67%{opacity:1;transform:translateY(-2.5%) scale(.955,1.1)}74%{transform:translateY(.6%) scale(1.03,.96)}80%{transform:translateY(-.4%) scale(.99,1.02)}88%,100%{opacity:1;transform:none}}
+@keyframes flash{0%,57.2%{opacity:0;transform:scale(.2)}58.6%{opacity:1;transform:scale(1)}60.5%{opacity:.9;transform:scale(1.25)}66%,100%{opacity:0;transform:scale(2)}}
+@keyframes ring{0%,57.5%{opacity:0;transform:scale(.25)}59%{opacity:.5;transform:scale(.6)}66%,100%{opacity:0;transform:scale(2.1)}}
+@keyframes shard{0%,57.5%{opacity:0;transform:translate(0,0) rotate(0) scale(.4)}59%{opacity:1;transform:translate(calc(var(--fx)*.45),calc(var(--fy)*.45)) rotate(calc(var(--r)*.45)) scale(1.1)}68%{opacity:1;transform:translate(calc(var(--fx)*.92),calc(var(--fy)*.92 + 60%)) rotate(calc(var(--r)*.92)) scale(.9)}75%,100%{opacity:0;transform:translate(var(--fx),calc(var(--fy) + 240%)) rotate(var(--r)) scale(.55)}}
