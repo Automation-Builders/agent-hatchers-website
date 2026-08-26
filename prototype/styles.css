@@ -356,3 +356,9 @@ h1{font-weight:800}h2{font-weight:700}
 .ctx-item{display:flex;align-items:center;gap:9px;font-size:.88rem;color:#28313c;background:#f6f8fb;border:1px solid #eef0f3;border-radius:10px;padding:9px 12px}
 .ctx-item svg{width:15px;height:15px;stroke:#9aa3ad;fill:none;stroke-width:2}
 @media(max-width:760px){.chat-list{width:0;display:none}}
+/* Chat paywall bubble */
+.bubble.paywall{background:#fff7ed;border:1px solid #f3d7a8;color:#8a5a1a;display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-weight:600}
+.bubble.paywall .pay-ic{display:inline-flex}
+.bubble.paywall svg{width:16px;height:16px;fill:none;stroke:#c07f1f;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pay-btn{background:#216bac;color:#fff;border:0;border-radius:10px;padding:7px 13px;font-weight:700;font-size:.82rem}
+.pay-btn:hover{background:#1d5f99}

@@ -67,12 +67,12 @@ export default async function handler(req, res) {
   if (!ref && brief.length < 8) { res.status(400).json({ error: 'brief too short' }); return; }
 
   const prompt = ref
-    ? `Keep this exact same robot character — identical body shape, proportions, colours, ` +
-      `face and style; it must clearly be the same character. ${role ? `${role} ` : ''}` +
-      `Re-dress it for that job with one or two fitting accessories and clear props/tools, and ` +
-      `place it in a real setting that fits the work (a proper background scene, not plain white). ` +
-      `${PALETTES[variant]}. Polished, high-quality, sharp 3D cartoon render, character kept ` +
-      `perfectly consistent, no text, no watermark.`
+    ? `This is one specific robot mascot character. Keep it EXACTLY the same character as the ` +
+      `reference image — identical body shape, proportions, colours, materials, markings and face. ` +
+      `Do not restyle, recolour or redesign it. ${role ? `${role} ` : ''}` +
+      `Re-dress the very same character for that job with one or two fitting accessories and clear ` +
+      `props/tools, and place it in a real setting that fits the work (a proper background scene). ` +
+      `Polished, high-quality, sharp 3D cartoon render, the same character throughout, no text, no watermark.`
     : `${brief}. A friendly 3D cartoon robot mascot character named "${name}". ` +
       `${role ? `${role} ` : ''}` +
       `Give it one or two fitting accessories and one or two clear props that show what it does. ` +

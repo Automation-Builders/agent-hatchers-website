@@ -8,7 +8,7 @@
     {id:'website',icon:'◇',name:'Website Agent',industries:['all'],keywords:['website','content','seo','publish','webflow','wordpress','page','marketing','blog','copy'],summary:'Keeps website content accurate, on-brand and ready for approval before publishing.',portrait:'/hatchy-website.webp',team:'Marketing',scene:'It is a website agent, holding a laptop that displays a colourful web page.',mcps:['GitHub','Webflow','WordPress','Google Drive','Slack'],outcomes:['Draft new website pages','Update approved copy and details','Check pages for stale information','Prepare search-friendly metadata','Publish only after human approval']},
     {id:'operations',icon:'✓',name:'Operations Agent',industries:['professional-services','construction','healthcare','all'],keywords:['operations','workflow','project','task','deadline','schedule','coordination','process','compliance','ops'],summary:'Coordinates repeatable workflows and keeps teams informed when work changes state.',portrait:'/hatchy-routing.webp',team:'Operations',scene:'It is an operations agent, holding a checklist with gears and a small kanban board beside it.',mcps:['Monday.com','Asana','Notion','Slack','Microsoft Teams'],outcomes:['Turn requests into structured work','Monitor deadlines and blockers','Prepare daily operating summaries','Chase missing information','Escalate exceptions to the right person']}
   ];
-  const state = {step:0,name:'',biz:'',look:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:Object.assign({},config.bakedMarket||{}),marketStarted:false,tab:'profiles'};
+  const state = {step:0,name:'',biz:'',look:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:Object.assign({},config.bakedMarket||{}),marketStarted:false,tab:'profiles',chatActive:0,chatExtra:{}};
   const root = document.getElementById('prototype-app');
   const company = config.company || 'Your Company';
   const industry = config.industry || 'professional-services';
@@ -86,14 +86,23 @@
       </div>`;
   }
   function agentAvatar(cls){return state.selectedImage?`<img class="${cls}" src="${escapeHtml(state.selectedImage)}" alt="">`:bot('v'+(state.variant||0)+' '+cls);}
+  function chatConvos(){const me=state.name||'Agent';return [
+    {n:me,t:'2m',p:'Draft the Q3 outreach sequence',thread:[['them','Morning! I qualified 8 new leads overnight and drafted follow-ups for the 3 hottest. Want me to send them?'],['me','Yes — send the top 3, hold the rest for review.'],['them','Done ✅ Sent to the top 3 and scheduled a reminder for the others tomorrow at 9am. I also updated HubSpot.']]},
+    {n:'Invoice Agent',t:'1h',p:'3 invoices ready for approval',thread:[['them','3 invoices are ready for your approval — total $4,120. Two matched cleanly; one looks like a possible duplicate.']]},
+    {n:'Support Agent',t:'3h',p:'Replied to 12 tickets',thread:[['them','I replied to 12 tickets this morning and flagged 2 that need a human. Want the summary?']]},
+    {n:'Website Agent',t:'Yesterday',p:'Homepage copy updated',thread:[['them','Homepage copy is updated and staged for your review before it goes live.']]}
+  ];}
   function chatsView(){
-    const convos=[[state.name||'Agent','Draft the Q3 outreach sequence','2m'],['Invoice Agent','3 invoices ready for approval','1h'],['Support Agent','Replied to 12 tickets','3h'],['Website Agent','Homepage copy updated','Yesterday']];
-    const msgs=[['them',`Morning! I qualified 8 new leads overnight and drafted follow-ups for the 3 hottest. Want me to send them?`],['me',`Yes — send the top 3, hold the rest for review.`],['them',`Done ✅ Sent to the top 3 and scheduled a reminder for the others tomorrow at 9am. I also updated HubSpot.`]];
+    const convos=chatConvos();const active=Math.min(state.chatActive||0,convos.length-1);const c=convos[active];
+    const thread=c.thread.concat(state.chatExtra[active]||[]);
+    const renderMsg=([who,t])=>who==='pay'
+      ? `<div class="msg them"><div class="bubble paywall"><span class="pay-ic">${ci.key}</span><span>${escapeHtml(t)}</span><button class="btn pay-btn" data-noop="1">Unlock ${escapeHtml(c.n)}</button></div></div>`
+      : `<div class="msg ${who}">${who==='them'?agentAvatar('msg-ava'):''}<div class="bubble">${escapeHtml(t)}</div></div>`;
     return `<div class="chat-wrap">
-      <aside class="chat-list"><div class="chat-list-head">${ic.search}<input placeholder="Search chats..."></div>${convos.map(([n,p,t],i)=>`<button class="chat-item ${i===0?'active':''}">${agentAvatar('chat-ava')}<div class="chat-item-main"><div class="chat-item-top"><b>${escapeHtml(n)}</b><span>${t}</span></div><div class="chat-item-sub">${escapeHtml(p)}</div></div></button>`).join('')}</aside>
-      <section class="chat-main"><div class="chat-head">${agentAvatar('chat-ava')}<div><b>${escapeHtml(state.name||'Agent')}</b><span class="chat-status"><i class="dot"></i> Active</span></div></div>
-        <div class="chat-thread">${msgs.map(([who,t])=>`<div class="msg ${who}">${who==='them'?agentAvatar('msg-ava'):''}<div class="bubble">${escapeHtml(t)}</div></div>`).join('')}</div>
-        <div class="chat-input"><input placeholder="Message ${escapeHtml(state.name||'your agent')}…"><button class="send-btn" data-noop="1">${ic.arrowUp||'↑'}</button></div></section>
+      <aside class="chat-list"><div class="chat-list-head">${ic.search}<input placeholder="Search chats..."></div>${convos.map((cv,i)=>`<button class="chat-item ${i===active?'active':''}" data-chat="${i}">${agentAvatar('chat-ava')}<div class="chat-item-main"><div class="chat-item-top"><b>${escapeHtml(cv.n)}</b><span>${cv.t}</span></div><div class="chat-item-sub">${escapeHtml(cv.p)}</div></div></button>`).join('')}</aside>
+      <section class="chat-main"><div class="chat-head">${agentAvatar('chat-ava')}<div><b>${escapeHtml(c.n)}</b><span class="chat-status"><i class="dot"></i> Active</span></div></div>
+        <div class="chat-thread" id="chat-thread">${thread.map(renderMsg).join('')}</div>
+        <div class="chat-input"><input id="chat-box" placeholder="Message ${escapeHtml(c.n)}…" autocomplete="off"><button class="send-btn" data-action="chat-send" aria-label="Send">↑</button></div></section>
     </div>`;
   }
   function analyticsView(){
@@ -248,13 +257,16 @@
       if(a==='choose'){if(state.variant===null)state.variant=0;state.step=3;render()}
       if(a==='redesign'){state.step=1;render()}
       if(a==='open-connect'){openConnectDialog()}
+      if(a==='chat-send'){const box=document.getElementById('chat-box');const t=box?box.value.trim():'';if(!t)return;const i=state.chatActive||0;state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['me',t],['pay','Please pay for your agent in order to continue talking.']]);render();const th=document.getElementById('chat-thread');if(th)th.scrollTop=th.scrollHeight;document.getElementById('chat-box')?.focus()}
       if(a==='market'){if(state.variant===null){state.variant=0;const s=state.slots[0];state.selectedImage=s&&s.image?s.image:''}document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=4;render();generateMarket()}
-      if(a==='reset'){state.step=0;state.name='';state.biz='';state.look='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages=Object.assign({},config.bakedMarket||{});state.marketStarted=false;document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='reset'){state.step=0;state.name='';state.biz='';state.look='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages=Object.assign({},config.bakedMarket||{});state.marketStarted=false;state.tab='profiles';state.chatActive=0;state.chatExtra={};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-option]').forEach(el=>el.onclick=()=>{const i=+el.dataset.option;state.variant=i;const s=state.slots[i];state.selectedImage=s&&s.image?s.image:'';root.querySelectorAll('.generated-choice').forEach(c=>{const on=+c.dataset.option===i;c.classList.toggle('selected',on);c.setAttribute('aria-pressed',on)});});
     root.querySelectorAll('[data-look-index]').forEach(el=>el.onclick=()=>{const ta=document.getElementById('agent-look');if(ta){ta.value=lookSeeds[+el.dataset.lookIndex].text;ta.focus()}});
     root.querySelectorAll('[data-mic]').forEach(btn=>btn.onclick=()=>startDictation(btn));
     root.querySelectorAll('[data-tab]').forEach(el=>el.onclick=()=>{state.tab=el.dataset.tab;render();});
+    root.querySelectorAll('[data-chat]').forEach(el=>el.onclick=()=>{state.chatActive=+el.dataset.chat;render();});
+    const cb=document.getElementById('chat-box');if(cb)cb.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();root.querySelector('[data-action="chat-send"]').click();}};
     root.querySelectorAll('[data-agent]').forEach(el=>{el.onclick=()=>showAgent(el.dataset.agent);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();showAgent(el.dataset.agent)}};});
     const search=document.getElementById('market-search');if(search)search.oninput=()=>{const q=search.value.trim().toLowerCase();let visible=0;root.querySelectorAll('.p-card[data-search]').forEach(c=>{const show=!q||c.dataset.search.includes(q);c.hidden=!show;if(show)visible++;});const yours=root.querySelector('.p-card.is-yours');if(yours)yours.hidden=!!q;root.querySelectorAll('.board-group').forEach(g=>{g.hidden=![...g.querySelectorAll('.p-card')].some(c=>!c.hidden);});const empty=document.getElementById('board-empty');if(empty)empty.hidden=visible>0;};
     const input=document.getElementById('agent-name');if(input)input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('agent-biz')?.focus()}};
