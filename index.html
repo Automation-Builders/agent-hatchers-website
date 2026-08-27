@@ -1997,6 +1997,340 @@ html.lenis,html.lenis body{height:auto;}
   </div>
 </section>
 
+<!-- HATCHERY LINE — a conveyor of eggs hatching the team, under the final CTA.
+     Namespaced hl-*; the hatch itself reuses the hero's 5s keyframes
+     (hCrack1-3, hCrackB1-2, hCap, hPop, hFlash, hRing, hShard) so both
+     animations stay one and the same. Roster: assets/agents/manifest.json. -->
+<section class="hl-section" aria-label="A conveyor belt of eggs hatching into a team of agents">
+<style>
+.hl-section{padding:clamp(8px,1.5vw,20px) 0 clamp(26px,3vw,48px);overflow:hidden}
+.hl-scene{
+  --hl-outline:#1b1a40;
+  --hl-car:210px;
+  --hl-belt-h:48px;
+  --hl-belt-bottom:56px;
+  position:relative;
+  width:min(96vw,1180px);
+  height:min(62vmin,420px);
+  margin:0 auto;
+  overflow:hidden;
+}
+.hl-scene img{-webkit-user-drag:none;user-select:none;pointer-events:none}
+.hl-scene::before,.hl-scene::after{
+  content:"";position:absolute;top:0;bottom:0;width:9%;z-index:5;pointer-events:none;
+}
+.hl-scene::before{left:0;background:linear-gradient(90deg,var(--paper),rgba(244,241,234,0))}
+.hl-scene::after{right:0;background:linear-gradient(-90deg,var(--paper),rgba(244,241,234,0))}
+.hl-belt{
+  position:absolute;left:2%;right:2%;bottom:var(--hl-belt-bottom);height:var(--hl-belt-h);
+  border-radius:999px;background:var(--ink);border:3px solid var(--hl-outline);
+  box-shadow:0 10px 18px rgba(22,21,15,.18);overflow:hidden;z-index:2;
+}
+.hl-belt::before{
+  content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,
+    rgba(255,255,255,0) 0 26px,rgba(255,255,255,.13) 26px 32px,rgba(255,255,255,0) 32px 60px);
+  animation:hlTread .35s linear infinite;animation-play-state:paused;
+}
+.hl-belt::after{
+  content:"";position:absolute;left:0;right:0;top:0;height:9px;
+  background:linear-gradient(rgba(255,255,255,.22),rgba(255,255,255,0));
+}
+.hl-scene.hl-moving .hl-belt::before{animation-play-state:running}
+@keyframes hlTread{to{background-position-x:60px}}
+.hl-rollers{
+  position:absolute;left:4%;right:4%;bottom:calc(var(--hl-belt-bottom) - 26px);
+  height:34px;display:flex;justify-content:space-between;z-index:1;
+}
+.hl-roller{
+  width:34px;height:34px;border-radius:50%;background:var(--paper);
+  border:3px solid var(--hl-outline);position:relative;
+  animation:hlSpin .5s linear infinite;animation-play-state:paused;
+}
+.hl-roller::before{
+  content:"";position:absolute;left:50%;top:3px;bottom:3px;width:3px;margin-left:-1.5px;
+  border-radius:2px;background:var(--hl-outline);
+}
+.hl-scene.hl-moving .hl-roller{animation-play-state:running}
+@keyframes hlSpin{to{transform:rotate(360deg)}}
+.hl-floor{
+  position:absolute;left:0;right:0;bottom:calc(var(--hl-belt-bottom) - 44px);
+  height:3px;border-radius:2px;background:rgba(22,21,15,.12);
+}
+.hl-car{
+  position:absolute;left:0;
+  bottom:calc(var(--hl-belt-bottom) + var(--hl-belt-h) - 36px);
+  width:var(--hl-car);height:var(--hl-car);z-index:3;
+  transition:transform 1.45s cubic-bezier(.45,.05,.35,1);will-change:transform;
+}
+.hl-car.hl-teleport{transition:none}
+.hl-rig{position:absolute;inset:0}
+.hl-scene.hl-moving .hl-rig{animation:hlRock .72s ease-in-out infinite}
+@keyframes hlRock{
+  0%,100%{transform:rotate(0deg)}25%{transform:rotate(1.4deg)}75%{transform:rotate(-1.4deg)}
+}
+.hl-layer{position:absolute;inset:0;width:100%;height:100%}
+/* the hue tints the egg, its cap and the burst debris — never the robot art */
+.hl-eggwrap img,.hl-cap{filter:hue-rotate(var(--hue,0deg))}
+.hl-burst{filter:hue-rotate(var(--hue,0deg))}
+.hl-pop .hl-bot{
+  position:absolute;left:50%;bottom:9.5%; /* agent art carries ~10% baked bottom padding */
+  transform:translateX(-50%);max-width:86%;max-height:80%;
+}
+.hl-pop .hl-ground{
+  position:absolute;left:50%;bottom:15%;width:44%;height:4.5%;
+  transform:translateX(-50%);border-radius:50%;background:rgba(22,21,15,.13);
+}
+.hl-cap,.hl-pop{opacity:0}
+.hl-car.hl-hatched .hl-eggwrap{opacity:0}
+.hl-car.hl-hatched .hl-pop{opacity:1}
+.hl-tag{
+  position:absolute;left:50%;top:-4%;transform:translateX(-50%) scale(0);
+  font-family:var(--font-m);font-size:11px;letter-spacing:.09em;text-transform:uppercase;
+  background:var(--ink);color:var(--paper);border-radius:999px;padding:4px 12px;
+  white-space:nowrap;z-index:4;
+}
+.hl-car.hl-hatched .hl-tag{animation:hlTagPop .45s cubic-bezier(.2,1.6,.4,1) .05s both}
+@keyframes hlTagPop{
+  from{transform:translateX(-50%) scale(0)}to{transform:translateX(-50%) scale(1)}
+}
+/* Hatch choreography: the hero's 5s clock (1% = 50ms). Only the wobble gets
+   its own keyframes — no fade-in, the egg is already riding the belt. */
+.hl-car.hl-hatching .hl-anim{
+  animation-duration:5s;animation-timing-function:ease;
+  animation-fill-mode:both;animation-iteration-count:1;
+}
+.hl-eggwrap{transform-origin:50% 90%;will-change:transform,opacity}
+.hl-car.hl-hatching .hl-eggwrap{animation-name:hlWobble}
+.hl-eggwrap img{width:100%;height:100%}
+.hl-cracks{position:absolute;inset:0;width:100%;height:100%}
+.hl-cracks path{
+  fill:none;stroke:var(--hl-outline);stroke-width:5;stroke-linecap:round;
+  stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;
+}
+.hl-car.hl-hatching .hl-cracks path{
+  animation-duration:5s;animation-timing-function:linear;animation-fill-mode:both;
+}
+.hl-car.hl-hatching .hl-c1{animation-name:hCrack1}
+.hl-car.hl-hatching .hl-c2{animation-name:hCrack2}
+.hl-car.hl-hatching .hl-c3{animation-name:hCrack3}
+.hl-car.hl-hatching .hl-b1{animation-name:hCrackB1}
+.hl-car.hl-hatching .hl-b2{animation-name:hCrackB2}
+.hl-b1,.hl-b2{stroke-width:3.5}
+@keyframes hlWobble{
+  0%,8%{opacity:1; transform:none}
+  12%  {transform:rotate(0deg)}
+  14%  {transform:rotate(-3deg)}
+  16%  {transform:rotate(2.5deg)}
+  18%  {transform:rotate(-1.5deg)}
+  20%  {transform:rotate(0deg)}
+  28%  {transform:rotate(0deg)}
+  30%  {transform:rotate(-5deg) translateY(-1.2%)}
+  32%  {transform:rotate(4.5deg)}
+  34%  {transform:rotate(-3deg) translateY(-.6%)}
+  36%  {transform:rotate(0deg) translateY(0)}
+  44%  {transform:rotate(0deg)}
+  45.5%{transform:rotate(-7deg) translateY(-2%)}
+  47%  {transform:rotate(6.5deg)}
+  48.5%{transform:rotate(-5deg) translateY(-1.2%)}
+  50%  {transform:rotate(4deg)}
+  51.5%{transform:rotate(-2deg)}
+  52%  {transform:rotate(0deg)}
+  53%  {transform:rotate(1.5deg)}
+  54%  {transform:rotate(-1.5deg)}
+  55%  {transform:rotate(1.5deg)}
+  56%  {transform:rotate(-1deg)}
+  57%  {transform:rotate(0deg)}
+  58.5%{opacity:1; transform:scale(1.07,.86)}
+  59.5%{opacity:1; transform:scale(.99,1.04)}
+  61%,100%{opacity:0; transform:translateY(-2%) scale(.92,1.1)}
+}
+.hl-cap{transform-origin:50% 45%}
+.hl-car.hl-hatching .hl-cap{animation-name:hCap;animation-timing-function:linear}
+.hl-pop{transform-origin:50% 88%}
+.hl-car.hl-hatching .hl-pop{animation-name:hPop}
+.hl-burst{pointer-events:none}
+.hl-flash{
+  position:absolute;left:50%;top:48%;width:88%;aspect-ratio:1/1;margin:-44% 0 0 -44%;
+  border-radius:50%;
+  background:radial-gradient(circle,#fff 0%,#fff 48%,rgba(255,255,255,0) 74%);opacity:0;
+}
+.hl-car.hl-hatching .hl-flash{animation-name:hFlash}
+.hl-ring{
+  position:absolute;left:50%;top:54%;width:34%;aspect-ratio:1/1;margin:-17% 0 0 -17%;
+  border-radius:50%;border:4px solid var(--egg-spot);opacity:0;
+}
+.hl-car.hl-hatching .hl-ring{animation-name:hRing}
+.hl-shard{
+  position:absolute;left:50%;top:54%;width:2.8%;aspect-ratio:1/1;margin:-1.4% 0 0 -1.4%;
+  background:var(--egg);border:2px solid var(--hl-outline);
+  border-radius:22% 60% 40% 60%;opacity:0;
+}
+.hl-car.hl-hatching .hl-shard{animation-name:hShard;animation-timing-function:cubic-bezier(.17,.67,.4,1)}
+.hl-shard:nth-child(even){background:var(--egg-spot);border-radius:50%}
+@media (max-width:720px){
+  .hl-scene{--hl-car:150px}
+  .hl-car{bottom:calc(var(--hl-belt-bottom) + var(--hl-belt-h) - 26px)}
+}
+@media (prefers-reduced-motion: reduce){
+  .hl-belt::before,.hl-roller,.hl-scene.hl-moving .hl-rig,.hl-car{animation:none;transition:none}
+  .hl-car.hl-hatched .hl-tag{animation:none;transform:translateX(-50%) scale(1)}
+}
+</style>
+
+<div class="hl-scene" id="hlScene">
+  <div class="hl-floor"></div>
+  <div class="hl-rollers" aria-hidden="true"></div>
+  <div class="hl-belt" aria-hidden="true"></div>
+</div>
+
+<template id="hlCarTemplate">
+  <div class="hl-car">
+    <div class="hl-rig">
+      <div class="hl-layer hl-anim hl-eggwrap">
+        <img src="egg-closed.webp" alt="" loading="lazy" decoding="async" />
+        <svg class="hl-cracks" viewBox="0 0 620 620" aria-hidden="true">
+          <path class="hl-c1" pathLength="1" d="M114,318 L146,302 L172,330 L200,296 L226,331 L245,301"/>
+          <path class="hl-c2" pathLength="1" d="M245,301 L272,336 L308,290 L338,332 L375,302"/>
+          <path class="hl-c3" pathLength="1" d="M375,302 L396,333 L420,298 L448,332 L474,300 L506,320"/>
+          <path class="hl-b1" pathLength="1" d="M272,336 L262,368 L272,392"/>
+          <path class="hl-b2" pathLength="1" d="M308,290 L318,262 L308,240"/>
+        </svg>
+      </div>
+      <img class="hl-layer hl-anim hl-cap" src="egg-shell-clean.webp" alt="" loading="lazy" decoding="async" />
+      <div class="hl-layer hl-anim hl-pop">
+        <div class="hl-ground"></div>
+        <img class="hl-bot" src="" alt="" loading="lazy" decoding="async" />
+      </div>
+      <div class="hl-layer hl-burst" aria-hidden="true">
+        <i class="hl-anim hl-flash"></i>
+        <i class="hl-anim hl-ring"></i>
+        <i class="hl-anim hl-shard" style="--fx:-160%;--fy:-560%;--r:340deg"></i>
+        <i class="hl-anim hl-shard" style="--fx:300%;--fy:-480%;--r:-290deg;animation-delay:.03s"></i>
+        <i class="hl-anim hl-shard" style="--fx:-460%;--fy:-260%;--r:260deg"></i>
+        <i class="hl-anim hl-shard" style="--fx:520%;--fy:-180%;--r:-320deg;animation-delay:.05s"></i>
+        <i class="hl-anim hl-shard" style="--fx:-540%;--fy:90%;--r:300deg"></i>
+        <i class="hl-anim hl-shard" style="--fx:480%;--fy:160%;--r:-260deg;animation-delay:.02s"></i>
+        <i class="hl-anim hl-shard" style="--fx:-240%;--fy:420%;--r:280deg;animation-delay:.04s"></i>
+        <i class="hl-anim hl-shard" style="--fx:180%;--fy:480%;--r:-300deg"></i>
+        <i class="hl-anim hl-shard" style="--fx:40%;--fy:-620%;--r:250deg;animation-delay:.06s"></i>
+        <i class="hl-anim hl-shard" style="--fx:-360%;--fy:-430%;--r:-270deg;animation-delay:.01s"></i>
+      </div>
+      <span class="hl-tag"></span>
+    </div>
+  </div>
+</template>
+
+<script>
+(() => {
+  // The hatchery line: the same 12 agents as /hatchery.html, one hatch per
+  // belt stop. Starts once the section scrolls into view.
+  let ROBOTS = [
+    { name: 'Sales Agent',   img: 'hatchy-pop.webp', hue: 0   },
+    { name: 'Support Agent', img: 'hatchy-pop.webp', hue: 300 },
+    { name: 'Invoice Agent', img: 'hatchy-pop.webp', hue: 150 },
+  ];
+  const STEP_MS = 1500, HATCH_MS = 5000, HOLD_MS = 450, CAR_COUNT = 7;
+  const scene = document.getElementById('hlScene');
+  const tmpl  = document.getElementById('hlCarTemplate');
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  let slotW = 240, carW = 210, nextRobot = 0;
+  const cars = [];
+
+  function measure(){
+    const w = scene.clientWidth;
+    slotW = Math.max(175, Math.min(265, w / 4));
+    carW  = parseFloat(getComputedStyle(scene).getPropertyValue('--hl-car'));
+  }
+  function place(car, instant){
+    const x = scene.clientWidth / 2 + car.slot * slotW - carW / 2;
+    if (instant) car.el.classList.add('hl-teleport');
+    car.el.style.transform = `translateX(${x}px)`;
+    if (instant){ car.el.offsetHeight; car.el.classList.remove('hl-teleport'); }
+  }
+  function dress(car, robot, hatched){
+    car.el.classList.remove('hl-hatching','hl-hatched');
+    if (hatched) car.el.classList.add('hl-hatched');
+    car.el.style.setProperty('--hue', robot.hue + 'deg');
+    car.el.querySelector('.hl-bot').src = robot.img;
+    car.el.querySelector('.hl-tag').textContent = robot.name;
+  }
+  function build(){
+    measure();
+    // eggs queue in from the left; cars right of centre start already hatched
+    for (let slot = 3; slot >= -3; slot--){
+      const el = tmpl.content.firstElementChild.cloneNode(true);
+      scene.appendChild(el);
+      const car = { el, slot };
+      dress(car, ROBOTS[nextRobot++ % ROBOTS.length], slot > 0);
+      place(car, true);
+      cars.push(car);
+    }
+    addEventListener('resize', () => { measure(); cars.forEach(c => place(c, true)); });
+  }
+  async function step(){
+    scene.classList.add('hl-moving');
+    cars.forEach(c => { c.slot++; place(c); });
+    await sleep(STEP_MS);
+    scene.classList.remove('hl-moving');
+    cars.filter(c => c.slot > 3).forEach(c => {
+      c.slot -= CAR_COUNT;
+      dress(c, ROBOTS[nextRobot++ % ROBOTS.length], false);
+      place(c, true);
+    });
+  }
+  async function hatch(car){
+    car.el.classList.add('hl-hatching');
+    await sleep(HATCH_MS);
+    car.el.classList.remove('hl-hatching');
+    car.el.classList.add('hl-hatched');
+  }
+  async function run(){
+    for(;;){
+      const centre = cars.find(c => c.slot === 0);
+      if (centre && !centre.el.classList.contains('hl-hatched')) await hatch(centre);
+      await sleep(HOLD_MS);
+      await step();
+      await sleep(220);
+    }
+  }
+
+  const rollers = scene.querySelector('.hl-rollers');
+  for (let i = 0; i < 14; i++){
+    const r = document.createElement('div');
+    r.className = 'hl-roller';
+    rollers.appendChild(r);
+  }
+
+  fetch('assets/agents/manifest.json')
+    .then(r => r.ok ? r.json() : null)
+    .then(pack => {
+      if (Array.isArray(pack) && pack.length){
+        ROBOTS = pack.map(m => ({ name: m.name, img: 'assets/agents/' + m.file, hue: m.hue ?? 0 }));
+      }
+    })
+    .catch(() => {})
+    .then(() => {
+      build();
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches){
+        const centre = cars.find(c => c.slot === 0);
+        centre.el.classList.add('hl-hatched');
+        return;
+      }
+      // hold the line until the visitor can actually see it
+      if ('IntersectionObserver' in window){
+        const io = new IntersectionObserver(entries => {
+          if (entries.some(e => e.isIntersecting)){ io.disconnect(); run(); }
+        }, { threshold: .25 });
+        io.observe(scene);
+      } else {
+        run();
+      }
+    });
+})();
+</script>
+</section>
+
 </main>
 
 <!-- FOOTER -->
