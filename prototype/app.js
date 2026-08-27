@@ -67,18 +67,22 @@
   function welcome(){return `<div class="stage welcome-grid"><div><h1 class="welcome-title">Hatch your agent</h1><div class="actions">${button('Start →','next')}</div></div><div class="welcome-art" aria-hidden="true"><div class="preview-egg"></div></div></div>`;}
   function nameScreen(){return `<div class="stage"><span class="eyebrow">Step 1 · Create a profile</span><h2>Create your agent</h2><p>Give it a name, tell us your type of company, and describe how it should look. You’ll pick specialist agents (sales, invoices, support…) from the marketplace next.</p><input class="name-field" id="agent-name" maxlength="28" autocomplete="off" placeholder="Agent name — e.g. Pip, Scout or Atlas" value="${escapeHtml(state.name)}" aria-label="Agent name"><label class="field-label" for="agent-biz">Type of company</label><input class="name-field" id="agent-biz" maxlength="60" autocomplete="off" placeholder="e.g. e-commerce, agency, clinic, SaaS" value="${escapeHtml(state.biz)}" aria-label="Type of company"><label class="field-label" for="agent-look">Image description</label><div class="mic-field"><textarea class="look-field" id="agent-look" placeholder="e.g. a friendly rounded robot in blue and white, holding a suitcase" aria-label="Image description">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div><div class="chips">${lookSeeds.map((s,i)=>`<button class="chip" data-look-index="${i}">${escapeHtml(s.label)}</button>`).join('')}</div><div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
   function designScreen(){return `<div class="stage"><span class="eyebrow">Step 2 · Design the look</span><h2>Describe how ${escapeHtml(state.name)} should look</h2><p>Write a short, practical description and we’ll hatch three designs for you to choose from.</p><div class="mic-field"><textarea class="look-field" id="agent-look" maxlength="600" placeholder="e.g. a friendly rounded robot medic in blue and white, holding a checklist" aria-label="Describe the avatar">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div><div class="chips">${lookSeeds.map((s,i)=>`<button class="chip" data-look-index="${i}">${escapeHtml(s.label)}</button>`).join('')}</div><div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
-  function eggScene(i){return `<div class="egg-cell"><div class="egg-scene" data-i="${i}"><div class="egg-stage">
-    <img class="egg-layer egg-pop pop-design" alt="">
-    <div class="egg-lid" aria-hidden="true">
-      <img class="lid-piece lp1" src="/egg-shell.webp" alt="" style="--fx:-63px;--fy:105px;--fr:-150deg">
-      <img class="lid-piece lp2" src="/egg-shell.webp" alt="" style="--fx:-35px;--fy:120px;--fr:-70deg">
-      <img class="lid-piece lp3" src="/egg-shell.webp" alt="" style="--fx:6px;--fy:126px;--fr:40deg">
-      <img class="lid-piece lp4" src="/egg-shell.webp" alt="" style="--fx:39px;--fy:116px;--fr:96deg">
-      <img class="lid-piece lp5" src="/egg-shell.webp" alt="" style="--fx:65px;--fy:100px;--fr:158deg">
-    </div>
-    <img class="egg-layer egg-closed" src="/egg-closed.webp" alt="">
-    <svg class="egg-crack" viewBox="0 0 620 620" aria-hidden="true"><path class="crackline" pathLength="1" d="M162,270 L170,276 L178,273 L186,262 L194,267 L202,274 L210,294 L218,303 L258,260 L298,382 L378,356 L386,358 L394,360 L402,268 L410,264 L418,260 L426,254 L434,254 L442,253 L450,250 L458,250 L466,251 L474,250" fill="none" stroke="#3b2c14" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  </div></div><span class="hatch-number">Design ${i+1}</span></div>`;}
+  // The EXACT homepage hero hatch (index.html #eggScene): closed egg wobbles ×3, one
+  // crack walks the seam, the lid tumbles off, the design springs out, shards burst.
+  // Same 620×620 layers, crack paths, keyframes — only the "pop" is the generated design.
+  const hatchShards = [
+    '--fx:-160%;--fy:-560%;--r:340deg','--fx:300%;--fy:-480%;--r:-290deg;animation-delay:.03s',
+    '--fx:-460%;--fy:-260%;--r:260deg','--fx:520%;--fy:-180%;--r:-320deg;animation-delay:.05s',
+    '--fx:-540%;--fy:90%;--r:300deg','--fx:480%;--fy:160%;--r:-260deg;animation-delay:.02s',
+    '--fx:-240%;--fy:420%;--r:280deg;animation-delay:.04s','--fx:180%;--fy:480%;--r:-300deg',
+    '--fx:40%;--fy:-620%;--r:250deg;animation-delay:.06s','--fx:-360%;--fy:-430%;--r:-270deg;animation-delay:.01s'
+  ].map(s=>`<i class="hatch-shard" style="${s}"></i>`).join('');
+  function eggScene(i){return `<div class="egg-cell"><div class="hhx" data-i="${i}">
+    <span class="hatch-layer hatch-egg" aria-hidden="true"><img src="/egg-closed.webp" alt=""><svg class="hatch-cracks" viewBox="0 0 620 620" aria-hidden="true"><path class="hatch-c1" pathLength="1" d="M114,318 L146,302 L172,330 L200,296 L226,331 L245,301"/><path class="hatch-c2" pathLength="1" d="M245,301 L272,336 L308,290 L338,332 L375,302"/><path class="hatch-c3" pathLength="1" d="M375,302 L396,333 L420,298 L448,332 L474,300 L506,320"/><path class="hatch-b1" pathLength="1" d="M272,336 L262,368 L272,392"/><path class="hatch-b2" pathLength="1" d="M308,290 L318,262 L308,240"/></svg></span>
+    <img class="hatch-layer hatch-cap" src="/egg-shell-clean.webp" alt="" aria-hidden="true">
+    <img class="hatch-layer hatch-pop" alt="">
+    <span class="hatch-layer hatch-burst" aria-hidden="true"><i class="hatch-flash"></i><i class="hatch-ring"></i>${hatchShards}</span>
+  </div><span class="hatch-number">Design ${i+1}</span></div>`;}
   function hatchScreen(){const settled=state.slots.length&&state.slots.every(Boolean);return `<div class="stage hatch-zone"><span class="eyebrow">Hatching</span><h2>Hatching ${escapeHtml(state.name||'your agent')}…</h2><p>Three takes on your description are hatching now.</p><div class="hatch-row" aria-live="polite">${[0,1,2].map(eggScene).join('')}</div><div class="hatch-actions">${settled?button('Choose a design for '+escapeHtml(state.name||'your agent')+' →','choose'):`<p class="hatch-status">Hatching your designs…</p>`}</div></div>`;}
   function revealScreen(){const slots=state.slots;return `<div class="stage"><span class="eyebrow">Meet the clutch</span><h2>${escapeHtml(state.name)} hatched — pick your favourite</h2><p>Three takes on your description. Choose the one to use as ${escapeHtml(state.name)}’s avatar.</p><div class="choice-grid">${slots.map((slot,i)=>`<button class="generated-choice ${state.variant===i?'selected':''}" data-option="${i}" aria-pressed="${state.variant===i}">${slotVisual(slot,i)}<span class="pick-name">${escapeHtml(state.name)}</span><span class="pick-tag">${slot&&slot.image?'Generated design':variantLabels[i]}</span></button>`).join('')}</div><div class="actions">${button('Redesign','redesign',true)}${button('Use this avatar →','market')}</div></div>`;}
   function initials(str){return String(str||'AH').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();}
@@ -293,9 +297,9 @@
     await Promise.all([0,1,2].map(async i=>{
       const image=await fetchPortrait(i);
       state.slots[i]={status:'ready',image};
-      const scene=root.querySelector(`.egg-scene[data-i="${i}"]`);
-      if(scene){const pop=scene.querySelector('.egg-pop');if(pop)pop.src=image||'/hatchy-pop.webp';scene.classList.add('hatched');}
-      await sleep(4200);
+      const scene=root.querySelector(`.hhx[data-i="${i}"]`);
+      if(scene){const pop=scene.querySelector('.hatch-pop');if(pop){pop.onload=()=>scene.classList.add('go');pop.src=image||'/hatchy-pop.webp';if(pop.complete)scene.classList.add('go');}}
+      await sleep(5000);
     }));
     celebrate();
     const bar=root.querySelector('.hatch-actions');if(bar){bar.innerHTML=button('Choose a design for '+escapeHtml(state.name||'your agent')+' →','choose');bind();}
