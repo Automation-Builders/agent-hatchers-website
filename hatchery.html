@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex" />
+<title>Hatchery line — test</title>
+<link rel="icon" type="image/png" href="agent-hatchers-mark.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700&family=Space+Mono:wght@400&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --paper:#F4F1EA;
+  --ink:#16150F;
+  --accent:#216BAC;
+  --egg:#F6EBD4;
+  --egg-spot:#2E7FC0;
+  --outline:#1b1a40;
+  --font-d:'Baloo 2',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-m:'Space Mono',ui-monospace,monospace;
+
+  --car:210px;        /* square stage each egg lives in */
+  --belt-h:48px;
+  --belt-bottom:56px; /* belt's distance from the scene floor */
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  background:var(--paper);
+  font-family:var(--font-d);
+  color:var(--ink);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:26px;
+  overflow:hidden;
+}
+img{-webkit-user-drag:none;user-select:none;pointer-events:none}
+
+/* ---------- scene ---------- */
+.scene{
+  position:relative;
+  width:min(96vw,1180px);
+  height:min(62vmin,420px);
+  overflow:hidden;
+}
+/* soft fades so eggs slide in/out of frame gently */
+.scene::before,.scene::after{
+  content:"";
+  position:absolute;
+  top:0;bottom:0;
+  width:9%;
+  z-index:5;
+  pointer-events:none;
+}
+.scene::before{left:0;background:linear-gradient(90deg,var(--paper),rgba(244,241,234,0))}
+.scene::after{right:0;background:linear-gradient(-90deg,var(--paper),rgba(244,241,234,0))}
+
+/* ---------- conveyor belt ---------- */
+.belt{
+  position:absolute;
+  left:2%; right:2%;
+  bottom:var(--belt-bottom);
+  height:var(--belt-h);
+  border-radius:999px;
+  background:var(--ink);
+  border:3px solid var(--outline);
+  box-shadow:0 10px 18px rgba(22,21,15,.18);
+  overflow:hidden;
+  z-index:2;
+}
+/* moving tread stripes — always animating, paused unless the belt steps */
+.belt::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:repeating-linear-gradient(90deg,
+    rgba(255,255,255,0) 0 26px,
+    rgba(255,255,255,.13) 26px 32px,
+    rgba(255,255,255,0) 32px 60px);
+  animation:tread .35s linear infinite;
+  animation-play-state:paused;
+}
+/* top-surface sheen */
+.belt::after{
+  content:"";
+  position:absolute;
+  left:0;right:0;top:0;
+  height:9px;
+  background:linear-gradient(rgba(255,255,255,.22),rgba(255,255,255,0));
+}
+.scene.moving .belt::before{animation-play-state:running}
+@keyframes tread{to{background-position-x:60px}}
+
+/* rollers peeking out under the belt */
+.rollers{
+  position:absolute;
+  left:4%; right:4%;
+  bottom:calc(var(--belt-bottom) - 26px);
+  height:34px;
+  display:flex;
+  justify-content:space-between;
+  z-index:1;
+}
+.roller{
+  width:34px;height:34px;
+  border-radius:50%;
+  background:var(--paper);
+  border:3px solid var(--outline);
+  position:relative;
+  animation:spin .5s linear infinite;
+  animation-play-state:paused;
+}
+.roller::before{
+  content:"";
+  position:absolute;
+  left:50%;top:3px;bottom:3px;
+  width:3px;margin-left:-1.5px;
+  border-radius:2px;
+  background:var(--outline);
+}
+.scene.moving .roller{animation-play-state:running}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* floor line */
+.floor{
+  position:absolute;
+  left:0;right:0;
+  bottom:calc(var(--belt-bottom) - 44px);
+  height:3px;
+  border-radius:2px;
+  background:rgba(22,21,15,.12);
+}
+
+/* ---------- egg cars ---------- */
+.car{
+  position:absolute;
+  left:0;
+  bottom:calc(var(--belt-bottom) + var(--belt-h) - 36px); /* egg's baked shadow overlaps the belt top */
+  width:var(--car);
+  height:var(--car);
+  z-index:3;
+  transition:transform 1.45s cubic-bezier(.45,.05,.35,1);
+  will-change:transform;
+}
+.car.teleport{transition:none}
+.rig{position:absolute;inset:0}
+.scene.moving .rig{animation:rock .72s ease-in-out infinite}
+@keyframes rock{
+  0%,100%{transform:rotate(0deg)}
+  25%{transform:rotate(1.4deg)}
+  75%{transform:rotate(-1.4deg)}
+}
+
+.layer{position:absolute;inset:0;width:100%;height:100%}
+/* the hue tints the egg, its cap and the burst debris — never the robot art */
+.egg-wrap img,.cap{filter:hue-rotate(var(--hue,0deg))}
+.burst{filter:hue-rotate(var(--hue,0deg))}
+
+/* standing robot, feet on the belt line (the egg's base sits ~17% up the car) */
+.pop .bot{
+  position:absolute;
+  left:50%; bottom:9.5%;  /* the pack art carries ~10% internal bottom padding */
+  transform:translateX(-50%);
+  max-width:86%;
+  max-height:80%;
+}
+.pop .ground{
+  position:absolute;
+  left:50%; bottom:15%;
+  width:44%; height:4.5%;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:rgba(22,21,15,.13);
+}
+
+/* base states: closed egg showing, everything else hidden */
+.cap,.pop{opacity:0}
+.car.hatched .egg-wrap{opacity:0}
+.car.hatched .pop{opacity:1}
+
+/* name chip that pops in once the robot is out */
+.tag{
+  position:absolute;
+  left:50%; top:-4%;
+  transform:translateX(-50%) scale(0);
+  font-family:var(--font-m);
+  font-size:11px;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  background:var(--ink);
+  color:var(--paper);
+  border-radius:999px;
+  padding:4px 12px;
+  white-space:nowrap;
+  z-index:4;
+}
+.car.hatched .tag{animation:tag-pop .45s cubic-bezier(.2,1.6,.4,1) .05s both}
+@keyframes tag-pop{
+  from{transform:translateX(-50%) scale(0)}
+  to{transform:translateX(-50%) scale(1)}
+}
+
+/* ---------- hatch choreography — the same 5s timeline as the homepage
+   hero (1% = 50ms), minus the hero's page-load fade-in since the egg is
+   already riding the belt ---------- */
+.car.hatching .anim{
+  animation-duration:5s;
+  animation-timing-function:ease;
+  animation-fill-mode:both;
+  animation-iteration-count:1;
+}
+
+/* 1. closed egg: wobbles, cracks, squashes, fades at the pop */
+.egg-wrap{transform-origin:50% 90%;will-change:transform,opacity}
+.car.hatching .egg-wrap{animation-name:egg-wobble}
+.egg-wrap img{width:100%;height:100%}
+.cracks{position:absolute;inset:0;width:100%;height:100%}
+.cracks path{
+  fill:none;
+  stroke:var(--outline);
+  stroke-width:5;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-dasharray:1;
+  stroke-dashoffset:1;
+}
+.car.hatching .cracks path{
+  animation-duration:5s;
+  animation-timing-function:linear;
+  animation-fill-mode:both;
+}
+.car.hatching .crack-1{animation-name:crack-1}
+.car.hatching .crack-2{animation-name:crack-2}
+.car.hatching .crack-3{animation-name:crack-3}
+.car.hatching .crack-b1{animation-name:crack-b1}
+.car.hatching .crack-b2{animation-name:crack-b2}
+.crack-b1,.crack-b2{stroke-width:3.5}
+
+@keyframes egg-wobble{
+  0%,8%{opacity:1; transform:none}
+  /* wobble 1 — gentle */
+  12%  {transform:rotate(0deg)}
+  14%  {transform:rotate(-3deg)}
+  16%  {transform:rotate(2.5deg)}
+  18%  {transform:rotate(-1.5deg)}
+  20%  {transform:rotate(0deg)}
+  /* wobble 2 — bigger, tiny hop */
+  28%  {transform:rotate(0deg)}
+  30%  {transform:rotate(-5deg) translateY(-1.2%)}
+  32%  {transform:rotate(4.5deg)}
+  34%  {transform:rotate(-3deg) translateY(-.6%)}
+  36%  {transform:rotate(0deg) translateY(0)}
+  /* wobble 3 — urgent */
+  44%  {transform:rotate(0deg)}
+  45.5%{transform:rotate(-7deg) translateY(-2%)}
+  47%  {transform:rotate(6.5deg)}
+  48.5%{transform:rotate(-5deg) translateY(-1.2%)}
+  50%  {transform:rotate(4deg)}
+  51.5%{transform:rotate(-2deg)}
+  52%  {transform:rotate(0deg)}
+  /* tremble */
+  53%  {transform:rotate(1.5deg)}
+  54%  {transform:rotate(-1.5deg)}
+  55%  {transform:rotate(1.5deg)}
+  56%  {transform:rotate(-1deg)}
+  /* squash anticipation, then burst + fade under the flash */
+  57%  {transform:rotate(0deg)}
+  58.5%{opacity:1; transform:scale(1.07,.86)}
+  59.5%{opacity:1; transform:scale(.99,1.04)}
+  61%  {opacity:0; transform:translateY(-2%) scale(.92,1.1)}
+  100% {opacity:0; transform:translateY(-2%) scale(.92,1.1)}
+}
+@keyframes crack-1{0%,16%{stroke-dashoffset:1}21%,100%{stroke-dashoffset:0}}
+@keyframes crack-2{0%,33%{stroke-dashoffset:1}38%,100%{stroke-dashoffset:0}}
+@keyframes crack-3{0%,48%{stroke-dashoffset:1}53%,100%{stroke-dashoffset:0}}
+@keyframes crack-b1{0%,53%{stroke-dashoffset:1}56%,100%{stroke-dashoffset:0}}
+@keyframes crack-b2{0%,54%{stroke-dashoffset:1}57%,100%{stroke-dashoffset:0}}
+
+/* 2. top of the shell — launches off at the pop */
+.cap{transform-origin:50% 45%;will-change:transform,opacity}
+.car.hatching .cap{animation-name:cap-fly;animation-timing-function:linear}
+@keyframes cap-fly{
+  0%,57.9%{opacity:0; transform:translate(0,-9%) scale(.82) rotate(0deg)}
+  58%  {opacity:1; transform:translate(0,-9%)    scale(.82) rotate(0deg)}
+  61%  {opacity:1; transform:translate(9%,-43%)  scale(.82) rotate(14deg)}
+  64%  {opacity:1; transform:translate(19%,-65%) scale(.82) rotate(26deg)}
+  67%  {opacity:1; transform:translate(28%,-73%) scale(.82) rotate(38deg)}
+  70%  {opacity:1; transform:translate(37%,-65%) scale(.82) rotate(50deg)}
+  73%  {opacity:1; transform:translate(45%,-39%) scale(.82) rotate(60deg)}
+  76%  {opacity:1; transform:translate(53%,3%)   scale(.82) rotate(70deg)}
+  79%  {opacity:.55;transform:translate(60%,59%) scale(.82) rotate(78deg)}
+  82%,100%{opacity:0; transform:translate(66%,121%) scale(.82) rotate(84deg)}
+}
+
+/* 3. robot in the open shell — springs up out of the pop, holds */
+.pop{transform-origin:50% 88%;will-change:transform,opacity}
+.car.hatching .pop{animation-name:pop-spring}
+@keyframes pop-spring{
+  0%,57.5%{opacity:0; transform:translateY(3%) scale(1.06,.7)}
+  60%  {opacity:1; transform:translateY(2.5%) scale(1.05,.74)}
+  67%  {opacity:1; transform:translateY(-2.5%) scale(.955,1.1)}
+  74%  {transform:translateY(.6%) scale(1.03,.96)}
+  80%  {transform:translateY(-.4%) scale(.99,1.02)}
+  88%,100%{opacity:1; transform:none}
+}
+
+/* 4. burst — flash, ring and shell shards masking the switch */
+.burst{pointer-events:none}
+.flash{
+  position:absolute;
+  left:50%; top:48%;
+  width:88%; aspect-ratio:1/1;
+  margin:-44% 0 0 -44%;
+  border-radius:50%;
+  background:radial-gradient(circle,#fff 0%,#fff 48%,rgba(255,255,255,0) 74%);
+  opacity:0;
+}
+.car.hatching .flash{animation-name:flash}
+.ring{
+  position:absolute;
+  left:50%; top:54%;
+  width:34%; aspect-ratio:1/1;
+  margin:-17% 0 0 -17%;
+  border-radius:50%;
+  border:4px solid var(--egg-spot);
+  opacity:0;
+}
+.car.hatching .ring{animation-name:ring}
+@keyframes flash{
+  0%,57.2%{opacity:0; transform:scale(.2)}
+  58.6% {opacity:1; transform:scale(1)}
+  60.5% {opacity:.9; transform:scale(1.25)}
+  66%,100%{opacity:0; transform:scale(2)}
+}
+@keyframes ring{
+  0%,57.5%{opacity:0; transform:scale(.25)}
+  59%   {opacity:.5; transform:scale(.6)}
+  66%,100%{opacity:0; transform:scale(2.1)}
+}
+.shard{
+  position:absolute;
+  left:50%; top:54%;
+  width:2.8%; aspect-ratio:1/1;
+  margin:-1.4% 0 0 -1.4%;
+  background:var(--egg);
+  border:2px solid var(--outline);
+  border-radius:22% 60% 40% 60%;
+  opacity:0;
+}
+.car.hatching .shard{animation-name:shard;animation-timing-function:cubic-bezier(.17,.67,.4,1)}
+.shard:nth-child(even){background:var(--egg-spot);border-radius:50%}
+.shard.s1{--fx:-160%; --fy:-560%; --r: 340deg}
+.shard.s2{--fx: 300%; --fy:-480%; --r:-290deg; animation-delay:.03s}
+.shard.s3{--fx:-460%; --fy:-260%; --r: 260deg}
+.shard.s4{--fx: 520%; --fy:-180%; --r:-320deg; animation-delay:.05s}
+.shard.s5{--fx:-540%; --fy:  90%; --r: 300deg}
+.shard.s6{--fx: 480%; --fy: 160%; --r:-260deg; animation-delay:.02s}
+.shard.s7{--fx:-240%; --fy: 420%; --r: 280deg; animation-delay:.04s}
+.shard.s8{--fx: 180%; --fy: 480%; --r:-300deg}
+.shard.s9{--fx:  40%; --fy:-620%; --r: 250deg; animation-delay:.06s}
+.shard.s10{--fx:-360%;--fy:-430%; --r:-270deg; animation-delay:.01s}
+@keyframes shard{
+  0%,57.5%{opacity:0; transform:translate(0,0) rotate(0) scale(.4)}
+  59%  {opacity:1; transform:translate(calc(var(--fx)*.45),calc(var(--fy)*.45)) rotate(calc(var(--r)*.45)) scale(1.1)}
+  68%  {opacity:1; transform:translate(calc(var(--fx)*.92),calc(var(--fy)*.92 + 60%)) rotate(calc(var(--r)*.92)) scale(.9)}
+  75%,100%{opacity:0; transform:translate(var(--fx),calc(var(--fy) + 240%)) rotate(var(--r)) scale(.55)}
+}
+
+/* ---------- page chrome ---------- */
+.note{
+  font-family:var(--font-m);
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  opacity:.45;
+}
+
+@media (max-width:720px){
+  :root{--car:150px}
+  .car{bottom:calc(var(--belt-bottom) + var(--belt-h) - 26px)}
+}
+
+/* Reduced motion: no belt, no hatch — just the line, mid-shift */
+@media (prefers-reduced-motion: reduce){
+  .belt::before,.roller,.scene.moving .rig,.car{animation:none;transition:none}
+  .car.hatched .tag{animation:none;transform:translateX(-50%) scale(1)}
+}
+</style>
+</head>
+<body>
+
+<div class="scene" id="scene" aria-label="Conveyor belt of robot eggs hatching">
+  <div class="floor"></div>
+  <div class="rollers" aria-hidden="true"></div>
+  <div class="belt" aria-hidden="true"></div>
+  <!-- egg cars are cloned from this template by the script -->
+</div>
+
+<template id="car-template">
+  <div class="car">
+    <div class="rig">
+      <div class="layer anim egg-wrap">
+        <img class="layer egg" src="egg-closed.webp" alt="" />
+        <svg class="cracks" viewBox="0 0 620 620" aria-hidden="true">
+          <path class="crack-1" pathLength="1" d="M114,318 L146,302 L172,330 L200,296 L226,331 L245,301"/>
+          <path class="crack-2" pathLength="1" d="M245,301 L272,336 L308,290 L338,332 L375,302"/>
+          <path class="crack-3" pathLength="1" d="M375,302 L396,333 L420,298 L448,332 L474,300 L506,320"/>
+          <path class="crack-b1" pathLength="1" d="M272,336 L262,368 L272,392"/>
+          <path class="crack-b2" pathLength="1" d="M308,290 L318,262 L308,240"/>
+        </svg>
+      </div>
+      <img class="layer anim cap" src="egg-shell-clean.webp" alt="" />
+      <div class="layer anim pop">
+        <div class="ground"></div>
+        <img class="bot" src="hatchy-pop.webp" alt="" />
+      </div>
+      <div class="layer burst" aria-hidden="true">
+        <div class="anim flash"></div>
+        <div class="anim ring"></div>
+        <div class="anim shard s1"></div>
+        <div class="anim shard s2"></div>
+        <div class="anim shard s3"></div>
+        <div class="anim shard s4"></div>
+        <div class="anim shard s5"></div>
+        <div class="anim shard s6"></div>
+        <div class="anim shard s7"></div>
+        <div class="anim shard s8"></div>
+        <div class="anim shard s9"></div>
+        <div class="anim shard s10"></div>
+      </div>
+      <span class="tag"></span>
+    </div>
+  </div>
+</template>
+
+<div class="note">hatchery line — test page</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// The line-up comes from assets/agents/manifest.json — twelve bespoke chibi
+// robots generated through the portrait proxy in the Hatchy house style, one
+// per job, each named for work a real hire would do. Each entry carries the
+// hue-rotation that tints its egg (the egg art is blue-spotted, so hue 0 =
+// the original blue). To add or replace an agent, drop the webp in
+// assets/agents/ and add a {file, name, hue} row to the manifest.
+// ---------------------------------------------------------------------------
+// Fallback if the manifest can't be fetched (e.g. opened as a file://):
+// hue-shifted Hatchys, same as the original placeholder line-up.
+let ROBOTS = [
+  { name: 'Sales Agent',    img: 'hatchy-pop.webp', hue: 0   },
+  { name: 'Support Agent',  img: 'hatchy-pop.webp', hue: 300 },
+  { name: 'Invoice Agent',  img: 'hatchy-pop.webp', hue: 150 },
+  { name: 'Research Agent', img: 'hatchy-pop.webp', hue: 65  },
+  { name: 'Website Agent',  img: 'hatchy-pop.webp', hue: 210 },
+];
+async function loadRobots(){
+  try{
+    const res = await fetch('assets/agents/manifest.json');
+    if (!res.ok) return;
+    const pack = await res.json();
+    if (!Array.isArray(pack) || !pack.length) return;
+    ROBOTS = pack.map(m => ({
+      name: m.name,
+      img: 'assets/agents/' + m.file,
+      hue: m.hue ?? 0,
+    }));
+  }catch(e){ /* keep the fallback line-up */ }
+}
+
+const STEP_MS   = 1500;  // one belt step (matches the .car transition)
+const HATCH_MS  = 5000;  // matches the hatch animation-duration (same 5s clock as the hero)
+const HOLD_MS   = 450;   // beat after the pop before the belt moves again
+const CAR_COUNT = 7;     // slots -3 … 3, centre slot = 0
+
+const scene = document.getElementById('scene');
+const tmpl  = document.getElementById('car-template');
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+let slotW = 240, carW = 210, nextRobot = 0;
+const cars = [];
+
+function measure(){
+  const w = scene.clientWidth;
+  slotW = Math.max(175, Math.min(265, w / 4));
+  carW  = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--car'));
+}
+function place(car, instant){
+  const x = scene.clientWidth / 2 + car.slot * slotW - carW / 2;
+  if (instant) car.el.classList.add('teleport');
+  car.el.style.transform = `translateX(${x}px)`;
+  if (instant){ car.el.offsetHeight; car.el.classList.remove('teleport'); }
+}
+function dress(car, robot, hatched){
+  car.el.classList.remove('hatching','hatched');
+  if (hatched) car.el.classList.add('hatched');
+  car.el.style.setProperty('--hue', robot.hue + 'deg');
+  car.el.querySelector('.pop .bot').src = robot.img;
+  car.el.querySelector('.tag').textContent = robot.name;
+}
+
+const rollers = scene.querySelector('.rollers');
+for (let i = 0; i < 14; i++){
+  const r = document.createElement('div');
+  r.className = 'roller';
+  rollers.appendChild(r);
+}
+
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function build(){
+  measure();
+  // Eggs queue in from the left and ride right; cars right of centre start
+  // already hatched — the line has clearly been running for a while.
+  // Centre car hatches first.
+  for (let slot = 3; slot >= -3; slot--){
+    const el = tmpl.content.firstElementChild.cloneNode(true);
+    scene.appendChild(el);
+    const car = { el, slot };
+    dress(car, ROBOTS[nextRobot++ % ROBOTS.length], slot > 0);
+    place(car, true);
+    cars.push(car);
+  }
+  addEventListener('resize', () => { measure(); cars.forEach(c => place(c, true)); });
+}
+
+async function step(){
+  scene.classList.add('moving');
+  cars.forEach(c => { c.slot++; place(c); });
+  await sleep(STEP_MS);
+  scene.classList.remove('moving');
+  // recycle anything that fell off the right edge back onto the left
+  cars.filter(c => c.slot > 3).forEach(c => {
+    c.slot -= CAR_COUNT;
+    dress(c, ROBOTS[nextRobot++ % ROBOTS.length], false);
+    place(c, true);
+  });
+}
+
+async function hatch(car){
+  car.el.classList.add('hatching');
+  await sleep(HATCH_MS);
+  car.el.classList.remove('hatching');
+  car.el.classList.add('hatched');
+}
+
+async function run(){
+  await sleep(700); // let the page settle before the first egg goes
+  for(;;){
+    const centre = cars.find(c => c.slot === 0);
+    if (centre && !centre.el.classList.contains('hatched')) await hatch(centre);
+    await sleep(HOLD_MS);
+    await step();
+    await sleep(220);
+  }
+}
+
+loadRobots().then(() => {
+  build();
+  if (reduceMotion){
+    // Static tableau: centre robot out, eggs queued to the right.
+    const centre = cars.find(c => c.slot === 0);
+    centre.el.classList.add('hatched');
+  } else {
+    run();
+  }
+});
+</script>
+
+</body>
+</html>
