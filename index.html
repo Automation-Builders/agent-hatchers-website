@@ -464,7 +464,9 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   67%  {opacity:1; transform:translateY(-2.5%) scale(.955,1.1)}
   74%  {transform:translateY(.6%) scale(1.03,.96)}
   80%  {transform:translateY(-.4%) scale(.99,1.02)}
-  88%,100%{transform:none}
+  /* opacity pinned to 1: the belt's pop layer is hidden at rest, and without
+     this the implicit final keyframe would fade the hatched robot back out */
+  88%,100%{opacity:1; transform:none}
 }
 /* 4 · the burst: flash + ring + shell shards that mask the layer switch */
 .hatch-flash{
