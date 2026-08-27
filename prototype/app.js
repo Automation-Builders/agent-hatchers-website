@@ -8,7 +8,7 @@
     {id:'website',icon:'◇',name:'Website Agent',industries:['all'],keywords:['website','content','seo','publish','webflow','wordpress','page','marketing','blog','copy'],summary:'Keeps website content accurate, on-brand and ready for approval before publishing.',portrait:'/hatchy-website.webp',team:'Marketing',scene:'It is a website agent, holding a laptop that displays a colourful web page.',mcps:['GitHub','Webflow','WordPress','Google Drive','Slack'],outcomes:['Draft new website pages','Update approved copy and details','Check pages for stale information','Prepare search-friendly metadata','Publish only after human approval']},
     {id:'operations',icon:'✓',name:'Operations Agent',industries:['professional-services','construction','healthcare','all'],keywords:['operations','workflow','project','task','deadline','schedule','coordination','process','compliance','ops'],summary:'Coordinates repeatable workflows and keeps teams informed when work changes state.',portrait:'/hatchy-routing.webp',team:'Operations',scene:'It is an operations agent, holding a checklist with gears and a small kanban board beside it.',mcps:['Monday.com','Asana','Notion','Slack','Microsoft Teams'],outcomes:['Turn requests into structured work','Monitor deadlines and blockers','Prepare daily operating summaries','Chase missing information','Escalate exceptions to the right person']}
   ];
-  const state = {step:0,name:'',biz:'',look:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:Object.assign({},config.bakedMarket||{}),marketStarted:false,tab:'profiles',chatActive:0,chatExtra:{}};
+  const state = {step:0,name:'',biz:'',look:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:0,chatExtra:{}};
   const root = document.getElementById('prototype-app');
   const company = config.company || 'Your Company';
   const industry = config.industry || 'professional-services';
@@ -82,7 +82,9 @@
   function hatchScreen(){const settled=state.slots.length&&state.slots.every(Boolean);return `<div class="stage hatch-zone"><span class="eyebrow">Hatching</span><h2>Hatching ${escapeHtml(state.name||'your agent')}…</h2><p>Three takes on your description are hatching now.</p><div class="hatch-row" aria-live="polite">${[0,1,2].map(eggScene).join('')}</div><div class="hatch-actions">${settled?button('Choose a design for '+escapeHtml(state.name||'your agent')+' →','choose'):`<p class="hatch-status">Hatching your designs…</p>`}</div></div>`;}
   function revealScreen(){const slots=state.slots;return `<div class="stage"><span class="eyebrow">Meet the clutch</span><h2>${escapeHtml(state.name)} hatched — pick your favourite</h2><p>Three takes on your description. Choose the one to use as ${escapeHtml(state.name)}’s avatar.</p><div class="choice-grid">${slots.map((slot,i)=>`<button class="generated-choice ${state.variant===i?'selected':''}" data-option="${i}" aria-pressed="${state.variant===i}">${slotVisual(slot,i)}<span class="pick-name">${escapeHtml(state.name)}</span><span class="pick-tag">${slot&&slot.image?'Generated design':variantLabels[i]}</span></button>`).join('')}</div><div class="actions">${button('Redesign','redesign',true)}${button('Use this avatar →','market')}</div></div>`;}
   function initials(str){return String(str||'AH').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();}
-  function agentCard(agent){const gen=state.marketImages[agent.id];const pending=!gen&&!state.marketStarted&&state.variant!==null&&usePortraits&&config.marketPortraits!==false;return `<article class="p-card" data-agent="${agent.id}" data-search="${escapeHtml((agent.name+' '+agent.team).toLowerCase())}" tabindex="0"><div class="p-thumb thumb-${agent.id} ${gen?'is-generated':''} ${pending?'is-pending':''}"><img data-portrait="${agent.id}" src="${gen||agent.portrait}" alt="${escapeHtml(agent.name)}" loading="lazy"></div><div class="p-meta"><div class="p-name">${agent.name} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(company)}</span><span class="p-tag">${agent.team}</span></div></div></article>`;}
+  const marketLoader='<div class="hatch-loader"><span class="loader-ring"></span><img class="loader-egg" src="/egg-closed.webp" alt=""><span class="loader-txt">Hatching…</span></div>';
+  function willGenerate(agent){return (usePortraits&&config.marketPortraits!==false&&state.variant!==null)||!!(config.bakedMarket&&config.bakedMarket[agent.id]);}
+  function agentCard(agent){const gen=state.marketImages[agent.id];const loading=!gen&&willGenerate(agent);const inner=gen?`<img src="${escapeHtml(gen)}" alt="${escapeHtml(agent.name)}">`:(loading?marketLoader:`<img src="${agent.portrait}" alt="${escapeHtml(agent.name)}" loading="lazy">`);return `<article class="p-card" data-agent="${agent.id}" data-search="${escapeHtml((agent.name+' '+agent.team).toLowerCase())}" tabindex="0"><div class="p-thumb thumb-${agent.id} ${gen?'is-generated':''} ${loading?'is-loading':''}" data-thumb="${agent.id}">${inner}</div><div class="p-meta"><div class="p-name">${agent.name} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(company)}</span><span class="p-tag">${agent.team}</span></div></div></article>`;}
   function hatchedCard(){const vis=state.selectedImage?`<img src="${escapeHtml(state.selectedImage)}" alt="${escapeHtml(state.name)}">`:`<div class="thumb-bot">${bot('v'+(state.variant||0))}</div>`;return `<article class="p-card is-yours"><div class="p-thumb thumb-new ${state.selectedImage?'is-generated':''}">${vis}</div><div class="p-meta"><div class="p-name">${escapeHtml(state.name||'Your agent')} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(company)}</span><span class="p-tag tag-new">Just hatched</span></div></div></article>`;}
   function profilesBoard(){
     const ranked=rankAgents().map(r=>r.agent);
@@ -118,11 +120,23 @@
     </div>`;
   }
   function analyticsView(){
-    const stats=[['Tasks completed','1,284','+18%'],['Hours saved','96','+12%'],['Messages handled','5,120','+7%'],['Approvals pending','4','']];
-    const bars=[40,62,55,78,70,88,95];
-    return `<div class="page-pad"><h2 class="page-h2">Analytics</h2><p class="page-sub">How ${escapeHtml(state.name||'your agent')} and the team performed this month.</p>
+    const stats=[['Messages','5,120','+7%'],['Tasks completed','1,284','+18%'],['Hours saved','96','+12%'],['Approvals pending','4','']];
+    const bars=[40,55,48,62,58,70,66,78,74,85,80,95];
+    const models=[['Nano Banana 2',62],['Claude',24],['GPT',14]];
+    const profiles=[['Sales Agent',88],['Support Agent',72],['Invoice Agent',54],['Website Agent',41]];
+    return `<div class="page-pad">
+      <div class="filter-bar an-bar">
+        <div class="seg"><button class="seg-on">Usage</button><button data-noop="1">Profiles</button><button data-noop="1">Skills</button></div>
+        <button class="filter-pill" data-noop="1">By day ${ic.chev}</button>
+        <button class="filter-pill sel" data-noop="1">Last 30 days ${ic.chev}</button>
+      </div>
+      <h2 class="page-h2">Usage · Overview</h2>
       <div class="stat-row">${stats.map(([l,v,d])=>`<div class="stat-tile"><div class="stat-label">${l}</div><div class="stat-val">${v}</div>${d?`<div class="stat-delta">${d}</div>`:''}</div>`).join('')}</div>
-      <div class="chart-card"><div class="chart-head"><b>Weekly activity</b><span>Last 7 days</span></div><div class="bars">${bars.map(h=>`<span style="height:${h}%"></span>`).join('')}</div></div>
+      <div class="an-grid">
+        <div class="chart-card"><div class="chart-head"><b>Over time</b><span>Last 30 days</span></div><div class="bars">${bars.map(h=>`<span style="height:${h}%"></span>`).join('')}</div></div>
+        <div class="chart-card"><div class="chart-head"><b>Models</b><span>Share of messages</span></div><div class="hbars">${models.map(([n,p])=>`<div class="hbar"><span class="hbar-l">${n}</span><span class="hbar-t"><i style="width:${p}%"></i></span><span class="hbar-v">${p}%</span></div>`).join('')}</div></div>
+      </div>
+      <div class="chart-card"><div class="chart-head"><b>Teams &amp; profiles</b><span>Activity by agent</span></div><div class="hbars">${profiles.map(([n,p])=>`<div class="hbar"><span class="hbar-l">${n}</span><span class="hbar-t"><i style="width:${p}%"></i></span><span class="hbar-v">${p}%</span></div>`).join('')}</div></div>
     </div>`;
   }
   function configView(){
@@ -141,7 +155,7 @@
     const body = state.tab==='chats'?chatsView():state.tab==='analytics'?analyticsView():state.tab==='config'?configView():profilesBoard();
     return `<div class="app">
       <header class="app-nav">
-        <div class="ws"><img class="ws-logo" src="/agent-hatchers-logo.png" alt=""><span>${escapeHtml(company)}</span><i class="ws-chev">${ic.chev}</i></div>
+        <div class="ws"><img class="ws-logo ${state.selectedImage?'ws-avatar-img':''}" src="${state.selectedImage||'/agent-hatchers-logo.png'}" alt=""><span>${escapeHtml(company)}</span><i class="ws-chev">${ic.chev}</i></div>
         <nav class="nav-tabs">${tab('profiles','Profiles')}${tab('chats','Chats')}${tab('analytics','Analytics')}${tab('config','Config')}${tab('market','Marketplace')}</nav>
         <div class="nav-right"><button class="create-btn" data-noop="1">${ic.plus}<span>Create</span></button><span class="nav-avatar">${initials(company)}</span></div>
       </header>
@@ -234,15 +248,21 @@
   }
   // Re-skin every marketplace agent in the chosen look, each dressed for its own job.
   async function generateMarket(){
-    if(state.marketStarted || !usePortraits || config.marketPortraits===false || state.variant===null) return;
+    if(state.marketStarted) return;
+    const baked = config.bakedMarket||{};
+    const useLive = usePortraits && config.marketPortraits!==false && state.variant!==null;
+    if(!useLive && !Object.keys(baked).length) return;   // nothing to hatch; cards keep mascot
     state.marketStarted = true;
     const agents = rankAgents().map(r=>r.agent);
-    await Promise.all(agents.map(async agent=>{
-      const img = await fetchImage({brief:state.look,name:agent.name,role:agent.scene,image:state.selectedImage,company,industry:industryLabel,variant:state.variant||0});
+    const started = Date.now();
+    await Promise.all(agents.map(async (agent,idx)=>{
+      let img = baked[agent.id];
+      if(!img && useLive) img = await fetchImage({brief:state.look,name:agent.name,role:agent.scene,image:state.selectedImage,company,industry:industryLabel,variant:state.variant||0});
+      const minMs=1100+idx*500;const wait=Math.max(0,minMs-(Date.now()-started));if(wait)await sleep(wait);  // let the loader show
       if(!img) return;
-      state.marketImages[agent.id] = img;
-      const el = root.querySelector(`img[data-portrait="${agent.id}"]`);
-      if(el){el.src=img;el.closest('.p-thumb')?.classList.add('is-generated');}
+      state.marketImages[agent.id]=img;
+      const thumb = root.querySelector(`[data-thumb="${agent.id}"]`);
+      if(thumb){thumb.innerHTML=`<img src="${escapeHtml(img)}" alt="${escapeHtml(agent.name)}">`;thumb.classList.remove('is-loading');thumb.classList.add('is-generated');}
     }));
   }
   // Exact homepage hero hatch (index.html): egg rocks, crack walks the seam, lid
@@ -271,7 +291,7 @@
       if(a==='open-connect'){openConnectDialog()}
       if(a==='chat-send'){const box=document.getElementById('chat-box');const t=box?box.value.trim():'';if(!t)return;const i=state.chatActive||0;state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['me',t],['pay','Please pay for your agent in order to continue talking.']]);render();const th=document.getElementById('chat-thread');if(th)th.scrollTop=th.scrollHeight;document.getElementById('chat-box')?.focus()}
       if(a==='market'){if(state.variant===null){state.variant=0;const s=state.slots[0];state.selectedImage=s&&s.image?s.image:''}document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=4;render();generateMarket()}
-      if(a==='reset'){state.step=0;state.name='';state.biz='';state.look='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages=Object.assign({},config.bakedMarket||{});state.marketStarted=false;state.tab='profiles';state.chatActive=0;state.chatExtra={};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='reset'){state.step=0;state.name='';state.biz='';state.look='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=0;state.chatExtra={};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-option]').forEach(el=>el.onclick=()=>{const i=+el.dataset.option;state.variant=i;const s=state.slots[i];state.selectedImage=s&&s.image?s.image:'';root.querySelectorAll('.generated-choice').forEach(c=>{const on=+c.dataset.option===i;c.classList.toggle('selected',on);c.setAttribute('aria-pressed',on)});});
     root.querySelectorAll('[data-look-index]').forEach(el=>el.onclick=()=>{const ta=document.getElementById('agent-look');if(ta){ta.value=lookSeeds[+el.dataset.lookIndex].text;ta.focus()}});
