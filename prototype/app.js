@@ -8,7 +8,7 @@
     {id:'website',icon:'◇',name:'Website Agent',industries:['all'],keywords:['website','content','seo','publish','webflow','wordpress','page','marketing','blog','copy'],summary:'Keeps website content accurate, on-brand and ready for approval before publishing.',portrait:'/hatchy-website.webp',team:'Marketing',scene:'It is a website agent, holding a laptop that displays a colourful web page.',mcps:['GitHub','Webflow','WordPress','Google Drive','Slack'],outcomes:['Draft new website pages','Update approved copy and details','Check pages for stale information','Prepare search-friendly metadata','Publish only after human approval']},
     {id:'operations',icon:'✓',name:'Operations Agent',industries:['professional-services','construction','healthcare','all'],keywords:['operations','workflow','project','task','deadline','schedule','coordination','process','compliance','ops'],summary:'Coordinates repeatable workflows and keeps teams informed when work changes state.',portrait:'/hatchy-routing.webp',team:'Operations',scene:'It is an operations agent, holding a checklist with gears and a small kanban board beside it.',mcps:['Monday.com','Asana','Notion','Slack','Microsoft Teams'],outcomes:['Turn requests into structured work','Monitor deadlines and blockers','Prepare daily operating summaries','Chase missing information','Escalate exceptions to the right person']}
   ];
-  const state = {step:0,name:'',biz:'',look:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:0,chatExtra:{}};
+  const state = {step:0,name:'',biz:'',look:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:8,chatExtra:{}};
   const root = document.getElementById('prototype-app');
   const company = config.company || 'Your Company';
   const industry = config.industry || 'professional-services';
@@ -100,59 +100,79 @@
       </div>`;
   }
   function agentAvatar(cls){return state.selectedImage?`<img class="${cls}" src="${escapeHtml(state.selectedImage)}" alt="">`:bot('v'+(state.variant||0)+' '+cls);}
-  function chatConvos(){const me=state.name||'Agent';return [
-    {n:me,t:'2m',p:'Draft the Q3 outreach sequence',thread:[['them','Morning! I qualified 8 new leads overnight and drafted follow-ups for the 3 hottest. Want me to send them?'],['me','Yes — send the top 3, hold the rest for review.'],['them','Done ✅ Sent to the top 3 and scheduled a reminder for the others tomorrow at 9am. I also updated HubSpot.']]},
-    {n:'Invoice Agent',t:'1h',p:'3 invoices ready for approval',thread:[['them','3 invoices are ready for your approval — total $4,120. Two matched cleanly; one looks like a possible duplicate.']]},
-    {n:'Support Agent',t:'3h',p:'Replied to 12 tickets',thread:[['them','I replied to 12 tickets this morning and flagged 2 that need a human. Want the summary?']]},
-    {n:'Website Agent',t:'Yesterday',p:'Homepage copy updated',thread:[['them','Homepage copy is updated and staged for your review before it goes live.']]}
-  ];}
+  const avatarPool=()=>[state.selectedImage,...Object.values(state.marketImages)].filter(Boolean);
+  const poolAv=i=>{const p=avatarPool();return p.length?`<img src="${escapeHtml(p[i%p.length])}" alt="">`:bot('v'+(i%3));};
   function chatsView(){
-    const convos=chatConvos();const active=Math.min(state.chatActive||0,convos.length-1);const c=convos[active];
-    const thread=c.thread.concat(state.chatExtra[active]||[]);
-    const renderMsg=([who,t])=>who==='pay'
-      ? `<div class="msg them"><div class="bubble paywall"><span class="pay-ic">${ci.key}</span><span>${escapeHtml(t)}</span><button class="btn pay-btn" data-noop="1">Unlock ${escapeHtml(c.n)}</button></div></div>`
-      : `<div class="msg ${who}">${who==='them'?agentAvatar('msg-ava'):''}<div class="bubble">${escapeHtml(t)}</div></div>`;
-    return `<div class="chat-wrap">
-      <aside class="chat-list"><div class="chat-list-head">${ic.search}<input placeholder="Search chats..."></div>${convos.map((cv,i)=>`<button class="chat-item ${i===active?'active':''}" data-chat="${i}">${agentAvatar('chat-ava')}<div class="chat-item-main"><div class="chat-item-top"><b>${escapeHtml(cv.n)}</b><span>${cv.t}</span></div><div class="chat-item-sub">${escapeHtml(cv.p)}</div></div></button>`).join('')}</aside>
-      <section class="chat-main"><div class="chat-head">${agentAvatar('chat-ava')}<div><b>${escapeHtml(c.n)}</b><span class="chat-status"><i class="dot"></i> Active</span></div></div>
-        <div class="chat-thread" id="chat-thread">${thread.map(renderMsg).join('')}</div>
-        <div class="chat-input"><input id="chat-box" placeholder="Message ${escapeHtml(c.n)}…" autocomplete="off"><button class="send-btn" data-action="chat-send" aria-label="Send">↑</button></div></section>
+    const your=['Default','Auto SDR','Content Writer','CRM Manager','Document Generator','Email Assistant','Merch Bot','Research Agent',state.name||'Timeliner','Travel Assistant'];
+    const other=['Bug Destroyer','Data Scientist','Hermes Helper','Hype Beast'];
+    const all=[...your,...other];const active=Math.min(state.chatActive??8,all.length-1);const activeName=all[active];
+    const extra=state.chatExtra[active]||[];
+    const item=(n,i)=>`<button class="pf-item ${i===active?'on':''}" data-chat="${i}"><span class="pf-av">${poolAv(i)}<i class="pf-dot"></i></span><span class="pf-name">${escapeHtml(n)}</span></button>`;
+    const renderMsg=([who,t])=>who==='pay'?`<div class="msg them"><div class="bubble paywall"><span class="pay-ic">${ci.key}</span><span>${escapeHtml(t)}</span><button class="btn pay-btn" data-noop="1">Unlock ${escapeHtml(activeName)}</button></div></div>`:`<div class="msg ${who}">${who==='them'?`<span class="msg-ava">${poolAv(active)}</span>`:''}<div class="bubble">${escapeHtml(t)}</div></div>`;
+    return `<div class="chats3">
+      <aside class="pf-side">
+        <div class="pf-side-h"><b>Profiles</b> <span class="pf-count">${all.length}</span><span class="pf-plus">${ic.plus}</span></div>
+        <div class="pf-search">${ic.search}<input placeholder="Search profiles..."></div>
+        <div class="pf-sec">Your profiles</div>${your.map((n,i)=>item(n,i)).join('')}
+        <div class="pf-sec">Other profiles</div>${other.map((n,i)=>item(n,your.length+i)).join('')}
+      </aside>
+      <aside class="chat-hist">
+        <div class="chat-hist-h"><b>Chat history</b></div>
+        <div class="pf-search hist"><input placeholder="Search messages..."></div>
+      </aside>
+      <section class="chat-empty">
+        ${extra.length?`<div class="chat-thread" id="chat-thread">${extra.map(renderMsg).join('')}</div>`:`<div class="chat-empty-mid"><span class="chat-empty-av">${poolAv(active)}</span><div class="chat-empty-name">${escapeHtml(activeName)}</div></div>`}
+        <div class="chat-input big"><input id="chat-box" placeholder="Message ${escapeHtml(activeName)}" autocomplete="off"><button class="chat-mic" data-noop="1">${micSvg}</button><button class="send-btn" data-action="chat-send" aria-label="Send">↑</button></div>
+      </section>
     </div>`;
   }
+  function areaChart(pts,ymax){const w=300,h=132,pad=8;const max=ymax||Math.max(...pts);const n=pts.length;const X=i=>pad+(i/(n-1))*(w-2*pad);const Y=v=>h-16-(v/(max||1))*(h-26);const line=pts.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(' ');const area=`${line} L${X(n-1).toFixed(1)} ${h-16} L${X(0).toFixed(1)} ${h-16} Z`;return `<svg class="area-chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path class="area-fill" d="${area}"/><path class="area-line" d="${line}"/></svg>`;}
   function analyticsView(){
-    const stats=[['Messages','5,120','+7%'],['Tasks completed','1,284','+18%'],['Hours saved','96','+12%'],['Approvals pending','4','']];
-    const bars=[40,55,48,62,58,70,66,78,74,85,80,95];
-    const models=[['Nano Banana 2',62],['Claude',24],['GPT',14]];
-    const profiles=[['Sales Agent',88],['Support Agent',72],['Invoice Agent',54],['Website Agent',41]];
-    return `<div class="page-pad">
-      <div class="filter-bar an-bar">
-        <div class="seg"><button class="seg-on">Usage</button><button data-noop="1">Profiles</button><button data-noop="1">Skills</button></div>
-        <button class="filter-pill" data-noop="1">By day ${ic.chev}</button>
-        <button class="filter-pill sel" data-noop="1">Last 30 days ${ic.chev}</button>
-      </div>
-      <h2 class="page-h2">Usage · Overview</h2>
-      <div class="stat-row">${stats.map(([l,v,d])=>`<div class="stat-tile"><div class="stat-label">${l}</div><div class="stat-val">${v}</div>${d?`<div class="stat-delta">${d}</div>`:''}</div>`).join('')}</div>
-      <div class="an-grid">
-        <div class="chart-card"><div class="chart-head"><b>Over time</b><span>Last 30 days</span></div><div class="bars">${bars.map(h=>`<span style="height:${h}%"></span>`).join('')}</div></div>
-        <div class="chart-card"><div class="chart-head"><b>Models</b><span>Share of messages</span></div><div class="hbars">${models.map(([n,p])=>`<div class="hbar"><span class="hbar-l">${n}</span><span class="hbar-t"><i style="width:${p}%"></i></span><span class="hbar-v">${p}%</span></div>`).join('')}</div></div>
-      </div>
-      <div class="chart-card"><div class="chart-head"><b>Teams &amp; profiles</b><span>Activity by agent</span></div><div class="hbars">${profiles.map(([n,p])=>`<div class="hbar"><span class="hbar-l">${n}</span><span class="hbar-t"><i style="width:${p}%"></i></span><span class="hbar-v">${p}%</span></div>`).join('')}</div></div>
-    </div>`;
-  }
-  function configView(){
-    const toggles=[['Human approval before sending','on'],['Auto-research new leads','on'],['Post daily summary to Slack','on'],['Learn from my edits','off']];
-    const conns=['HubSpot','Gmail','Slack','Google Drive','Xero'];
-    return `<div class="page-pad cfg"><h2 class="page-h2">Configuration</h2><p class="page-sub">Make ${escapeHtml(state.name||'your agent')} yours.</p>
-      <div class="cfg-grid">
-        <section class="cfg-card"><h3>Identity</h3><div class="cfg-identity">${agentAvatar('cfg-ava')}<div class="cfg-fields"><label class="field-label">Name</label><input class="cf-input" value="${escapeHtml(state.name||'Agent')}"><label class="field-label">Company</label><input class="cf-input" value="${escapeHtml(company)}"></div></div></section>
-        <section class="cfg-card"><h3>Behaviour</h3>${toggles.map(([l,s])=>`<div class="cfg-row"><span>${l}</span><span class="toggle ${s}"><i></i></span></div>`).join('')}</section>
-        <section class="cfg-card"><h3>Connected tools</h3><div class="cfg-conns">${conns.map(c=>`<span class="mcp">${c}</span>`).join('')}<button class="btn btn-outline" data-noop="1">+ Add</button></div></section>
-        <section class="cfg-card"><h3>Context &amp; knowledge</h3><p class="cfg-note">Files and notes ${escapeHtml(state.name||'your agent')} can draw on.</p><div class="ctx-list"><div class="ctx-item">${ci.server}Company handbook.pdf</div><div class="ctx-item">${ci.server}Brand voice.md</div><div class="ctx-item">${ci.server}Pricing.xlsx</div></div></section>
+    const nav=[['Usage',['Overview','Over time','Providers & sources','Models','Teams & profiles']],['Profiles',['Overview','Team, manager & workspace','Abilities per profile','Activity']],['Skills',['Overview','Adoption']],['Crons',['Overview','Growth over time','Ownership']]];
+    const tiles=[['Total spend','$334','Billed cost, all sources'],['Total tokens','47M','All accounts, incl. auth / BYOK'],['Sessions','961','18 profiles'],['Messages','17k','Across the fleet'],['Profiles','18','Tracked agents']];
+    const charts=[['Spend over time',[11.6,11.5,11.4,11.6,12.2,11.7,11.3,12.1,11.6,11.3,11.5,11.2]],['Tokens over time',[1.9,1.1,0.4,1.0,2.6,7.6,5.2,3.4,2.8,5.1,3.9,6.0]],['Messages over time',[1.1,0.7,0.4,0.9,1.9,3.2,2.6,1.7,1.9,2.6,1.6,2.4]],['Sessions over time',[40,22,18,28,52,120,70,44,52,90,60,110]],['Profiles over time',[10,11,12,12,13,14,15,16,16,17,17,18]],['Cost per session over time',[11.5,3,2.5,3,4,5,6,4.5,5,6.5,5.5,7]]];
+    return `<div class="an-page">
+      <aside class="an-side"><div class="an-side-h">On this page</div>${nav.map(([sec,items],si)=>`<div class="an-sec"><div class="an-sec-h ${si===0?'on':''}">${sec}</div>${items.map((it,i)=>`<div class="an-sub ${si===0&&i===0?'on':''}">${it}</div>`).join('')}</div>`).join('')}</aside>
+      <div class="an-main">
+        <div class="filter-bar an-filters">${['Status: All','Team: All','Manager: All','By day','Last 30 days'].map((l,i)=>`<button class="filter-pill ${i>2?'':''}" data-noop="1">${i===4?ci.cal:''}${l} ${ic.chev}</button>`).join('')}</div>
+        <h2 class="an-h">Usage</h2>
+        <div class="an-eyebrow">Overview</div>
+        <div class="an-tiles">${tiles.map(([l,v,s])=>`<div class="an-tile"><div class="an-tile-l">${l}</div><div class="an-tile-v">${v}</div><div class="an-tile-s">${s}</div></div>`).join('')}</div>
+        <div class="an-eyebrow">Over time</div>
+        <div class="an-charts">${charts.map(([t,data])=>`<div class="an-chart-card"><div class="an-chart-h">${t}</div>${areaChart(data)}<div class="an-x">1 Aug<span>16 Aug</span>27 Aug</div></div>`).join('')}</div>
       </div></div>`;
+  }
+  const cfgIcons={Communications:ic.chats,Integrations:'<svg viewBox="0 0 24 24"><path d="M9 2v6M15 2v6M7 8h10v4a5 5 0 01-10 0zM12 17v5"/></svg>',Models:'<svg viewBox="0 0 24 24"><path d="M12 3l9 5v8l-9 5-9-5V8z"/><path d="M3 8l9 5 9-5M12 13v9"/></svg>',Users:'<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0112 0M16 5a3.5 3.5 0 010 7M18 20a6 6 0 00-3-5"/></svg>',Permissions:'<svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6z"/></svg>',Media:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M4 18l5-4 4 3 3-3 4 4"/></svg>',Branding:'<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 100 18c1.5 0 2-1 2-2s-1-1.5-1-2.5.5-1.5 1.5-1.5H18a3 3 0 003-3c0-4-4-6-9-6z"/><circle cx="7.5" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16.5" cy="10.5" r="1"/></svg>',Connection:ci.link};
+  function configView(){
+    const side=['Communications','Integrations','Models','Users','Permissions','Media','Branding','Connection'];
+    const slackLogo='<svg viewBox="0 0 24 24" fill="none"><path d="M6 15a2 2 0 11-2-2h2zM7 15a2 2 0 014 0v5a2 2 0 01-4 0z" fill="#E01E5A"/><path d="M9 6a2 2 0 112 2H9zM9 7a2 2 0 010 4H4a2 2 0 010-4z" fill="#36C5F0"/><path d="M18 9a2 2 0 112 2h-2zM17 9a2 2 0 01-4 0V4a2 2 0 014 0z" fill="#2EB67D"/><path d="M15 18a2 2 0 11-2-2h2zM15 17a2 2 0 010-4h5a2 2 0 010 4z" fill="#ECB22E"/></svg>';
+    const teamsLogo='<svg viewBox="0 0 24 24"><rect x="3" y="6" width="12" height="12" rx="2" fill="#5059C9"/><text x="9" y="15" font-size="9" fill="#fff" text-anchor="middle" font-family="Inter">T</text><circle cx="18" cy="8" r="3" fill="#7B83EB"/></svg>';
+    const wsAv=state.selectedImage?`<img src="${escapeHtml(state.selectedImage)}">`:bot('v'+(state.variant||0));
+    const workspaces=[['Agent-Hatchers','T0A8CMQN1PH'],[escapeHtml(company),'T0BJX6REVC2']];
+    const channels=[['Agent-Hatchers','7 / 23 Channels Assigned'],[escapeHtml(company),'13 / 16 Channels Assigned']];
+    return `<div class="cfg-page">
+      <aside class="cfg-side">${side.map((n,i)=>`<div class="cfg-side-item ${i===0?'on':''}" data-noop="1"><span class="cfg-side-ic">${cfgIcons[n]}</span>${n}</div>`).join('')}</aside>
+      <div class="cfg-main">
+        <div class="cfg-head"><span class="cfg-head-ic">${ic.chats}</span><h2>Communications</h2></div>
+        <div class="cfg-label">Chat platform</div>
+        <div class="platform-row"><button class="platform sel" data-noop="1"><span class="pf-ic">${slackLogo}</span> Slack <span class="pf-ok">${ci.check}</span></button><button class="platform" data-noop="1"><span class="pf-ic">${teamsLogo}</span> Microsoft Teams <span class="pf-ok">${ci.check}</span></button></div>
+        <div class="cfg-sub"><span><b>Workspaces</b> <span class="count">2</span></span><button class="btn cfg-connect" data-noop="1">${ic.plus}<span>Connect Workspace</span></button></div>
+        ${workspaces.map(([n,id])=>`<div class="ws-row"><span class="ws-av2">${wsAv}</span><div class="ws-row-main"><b>${n}</b><div class="ws-id">${id}</div></div><div class="ws-actions"><button data-noop="1" aria-label="Edit">✎</button><button data-noop="1" aria-label="Delete">🗑</button></div></div>`).join('')}
+        <div class="cfg-sub"><span><b>Channels</b> <span class="count">39</span></span></div>
+        <div class="chan-filters"><button class="filter-pill" data-noop="1">All channels ${ic.chev}</button><button class="filter-pill" data-noop="1">All assignments ${ic.chev}</button><div class="search-box">${ic.search}<input placeholder="Search channels or agents..."></div></div>
+        ${channels.map(([n,c])=>`<div class="chan-row"><span class="ws-av2">${wsAv}</span><b>${n}</b><span class="chan-count">${c} ${ic.chev}</span></div>`).join('')}
+      </div></div>`;
+  }
+  function marketplaceView(){
+    const ranked=rankAgents().map(r=>r.agent);
+    return `<div class="mkt-page">
+      <div class="mkt-head"><h2><span class="mkt-head-ic">${ic.market}</span>Marketplace</h2><div class="mkt-head-r"><button class="filter-pill" data-noop="1">All categories ${ic.chev}</button><div class="search-box">${ic.search}<input placeholder="Search agents..."></div></div></div>
+      <div class="mkt-grid">${ranked.map((a,i)=>{const img=state.marketImages[a.id];const installed=recommended.has(a.id);return `<article class="mkt-card" data-agent="${a.id}" data-search="${escapeHtml((a.name+' '+a.team).toLowerCase())}" tabindex="0"><div class="mkt-thumb thumb-${a.id}">${img?`<img src="${escapeHtml(img)}" alt="${escapeHtml(a.name)}">`:marketLoader}${installed?`<span class="mkt-installed">${ci.check}<span>Installed</span></span>`:''}</div><div class="mkt-body"><h3>${a.name}</h3><p>${a.summary}</p><div class="mkt-tags"><span class="p-tag">${a.team}</span><span class="mkt-skills">${a.outcomes.length} skills</span></div></div></article>`;}).join('')}</div>
+    </div>`;
   }
   function marketScreen(){
     const tab=(k,label)=>`<button class="nav-tab ${state.tab===k?'active':''}" data-tab="${k}">${ic[k==='market'?'market':k]}<span>${label}</span></button>`;
-    const body = state.tab==='chats'?chatsView():state.tab==='analytics'?analyticsView():state.tab==='config'?configView():profilesBoard();
+    const body = state.tab==='chats'?chatsView():state.tab==='analytics'?analyticsView():state.tab==='config'?configView():state.tab==='market'?marketplaceView():profilesBoard();
     return `<div class="app">
       <header class="app-nav">
         <div class="ws"><img class="ws-logo ${state.selectedImage?'ws-avatar-img':''}" src="${state.selectedImage||'/agent-hatchers-logo.png'}" alt=""><span>${escapeHtml(company)}</span><i class="ws-chev">${ic.chev}</i></div>
@@ -289,9 +309,9 @@
       if(a==='choose'){if(state.variant===null)state.variant=0;state.step=3;render()}
       if(a==='redesign'){state.step=1;render()}
       if(a==='open-connect'){openConnectDialog()}
-      if(a==='chat-send'){const box=document.getElementById('chat-box');const t=box?box.value.trim():'';if(!t)return;const i=state.chatActive||0;state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['me',t],['pay','Please pay for your agent in order to continue talking.']]);render();const th=document.getElementById('chat-thread');if(th)th.scrollTop=th.scrollHeight;document.getElementById('chat-box')?.focus()}
+      if(a==='chat-send'){const box=document.getElementById('chat-box');const t=box?box.value.trim():'';if(!t)return;const i=state.chatActive??8;state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['me',t],['pay','Please pay for your agent in order to continue talking.']]);render();const th=document.getElementById('chat-thread');if(th)th.scrollTop=th.scrollHeight;document.getElementById('chat-box')?.focus()}
       if(a==='market'){if(state.variant===null){state.variant=0;const s=state.slots[0];state.selectedImage=s&&s.image?s.image:''}document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=4;render();generateMarket()}
-      if(a==='reset'){state.step=0;state.name='';state.biz='';state.look='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=0;state.chatExtra={};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='reset'){state.step=0;state.name='';state.biz='';state.look='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=8;state.chatExtra={};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-option]').forEach(el=>el.onclick=()=>{const i=+el.dataset.option;state.variant=i;const s=state.slots[i];state.selectedImage=s&&s.image?s.image:'';root.querySelectorAll('.generated-choice').forEach(c=>{const on=+c.dataset.option===i;c.classList.toggle('selected',on);c.setAttribute('aria-pressed',on)});});
     root.querySelectorAll('[data-look-index]').forEach(el=>el.onclick=()=>{const ta=document.getElementById('agent-look');if(ta){ta.value=lookSeeds[+el.dataset.lookIndex].text;ta.focus()}});
