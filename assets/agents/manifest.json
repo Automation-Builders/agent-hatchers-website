@@ -1,0 +1,62 @@
+[
+  {
+    "file": "agent-sales.webp",
+    "name": "Sales Agent",
+    "hue": 0
+  },
+  {
+    "file": "agent-support.webp",
+    "name": "Support Agent",
+    "hue": 300
+  },
+  {
+    "file": "agent-invoice.webp",
+    "name": "Invoice Agent",
+    "hue": 150
+  },
+  {
+    "file": "agent-coding.webp",
+    "name": "Coding Agent",
+    "hue": 210
+  },
+  {
+    "file": "agent-marketing.webp",
+    "name": "Marketing Agent",
+    "hue": 85
+  },
+  {
+    "file": "agent-recruiting.webp",
+    "name": "Recruiting Agent",
+    "hue": 55
+  },
+  {
+    "file": "agent-research.webp",
+    "name": "Research Agent",
+    "hue": 265
+  },
+  {
+    "file": "agent-success.webp",
+    "name": "Customer Success Agent",
+    "hue": 125
+  },
+  {
+    "file": "agent-security.webp",
+    "name": "Security Agent",
+    "hue": 345
+  },
+  {
+    "file": "agent-logistics.webp",
+    "name": "Logistics Agent",
+    "hue": 190
+  },
+  {
+    "file": "agent-reception.webp",
+    "name": "Reception Agent",
+    "hue": 330
+  },
+  {
+    "file": "agent-copywriting.webp",
+    "name": "Copywriting Agent",
+    "hue": 230
+  }
+]
