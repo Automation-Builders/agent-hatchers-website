@@ -382,47 +382,79 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   -webkit-tap-highlight-color:transparent;
 }
 .egg-stage{
-  position:relative;width:clamp(240px,26vw,400px);cursor:pointer;border:none;background:none;padding:0;
+  position:relative;width:clamp(280px,32vw,480px);cursor:pointer;border:none;background:none;padding:0;
 }
 .egg-stage:focus-visible{outline:3px dashed var(--accent);outline-offset:12px;border-radius:50%;}
-.egg-svg{width:100%;height:auto;display:block;overflow:visible;}
-/* idle: the egg breathes gently, waiting to be tapped */
-.egg-whole{transform-origin:50% 92%;animation:eggBreathe 4.5s ease-in-out infinite;}
-@keyframes eggBreathe{
-  0%,100%{transform:translateY(0) rotate(0deg);}
-  50%{transform:translateY(-5px) rotate(-1deg);}
+/* three registered layers */
+.egg-layer{width:100%;height:auto;display:block;}
+.egg-closed{position:relative;}                 /* whole egg, in flow → sets the stage height */
+.egg-pop{position:absolute;left:0;top:0;}
+.egg-lid{position:absolute;inset:0;}
+/* idle: the whole egg rocks gently back and forth */
+.egg-closed{transform-origin:50% 84%;animation:eggRock 2.8s ease-in-out infinite;}
+@keyframes eggRock{
+  0%,100%{transform:rotate(0deg);} 25%{transform:rotate(-5deg);} 75%{transform:rotate(5deg);}
 }
-.egg-stage:hover .egg-whole{animation-duration:2.4s;}
-/* hatch! shells fly, Hatchy springs up */
-.egg-scene.hatched .egg-whole{animation:none;}
-.egg-top,.egg-bot{transform-box:fill-box;transform-origin:center;}
-.egg-scene.hatched .egg-top{
-  animation:shellTop .9s cubic-bezier(.22,1,.36,1) forwards;
+.egg-stage:hover .egg-closed{animation-duration:1.5s;}
+/* the lid pieces and Hatchy wait behind, hidden until the egg opens */
+.egg-pop{opacity:0;}
+/* the lid, sliced into shards that scatter down around the egg then vanish */
+.lid-piece{position:absolute;left:0;top:0;width:100%;height:auto;display:block;opacity:0;transform-origin:50% 46%;}
+.lp1{clip-path:polygon(50% 62%, 4% 50%, 10% 18%);}
+.lp2{clip-path:polygon(50% 62%, 10% 18%, 34% 4%);}
+.lp3{clip-path:polygon(50% 62%, 34% 4%, 66% 4%);}
+.lp4{clip-path:polygon(50% 62%, 66% 4%, 90% 18%);}
+.lp5{clip-path:polygon(50% 62%, 90% 18%, 96% 50%);}
+
+/* hatch: rock hard, the whole egg fades, the lid flies off, Hatchy pops out then settles */
+.egg-scene.hatched .egg-closed{
+  transform-origin:50% 84%;
+  animation:closedHatch 3.05s cubic-bezier(.4,0,.3,1) forwards;
 }
-@keyframes shellTop{
-  0%{transform:translate(0,0) rotate(0);}
-  100%{transform:translate(-96px,-210px) rotate(-38deg);opacity:0;}
+@keyframes closedHatch{
+  0%{transform:rotate(0);opacity:1;}
+  5%{transform:rotate(-4deg);} 10%{transform:rotate(4deg);} 15%{transform:rotate(-2deg);}
+  20%{transform:rotate(0);opacity:1;}   /* a little wobble, then hold dead still while it cracks */
+  90%{transform:rotate(0);opacity:1;}
+  100%{transform:rotate(0);opacity:0;}  /* fades only once the crack is complete */
 }
-.egg-scene.hatched .egg-bot{
-  animation:shellBot .9s cubic-bezier(.22,1,.36,1) forwards;
+/* the crack walks along the real seam in stages — left→middle, then on to the right, then finishing the line */
+.egg-crack{position:absolute;inset:0;width:100%;height:auto;display:block;pointer-events:none;overflow:visible;}
+.crackline{stroke-dasharray:1;stroke-dashoffset:1;opacity:0;}
+.egg-scene.hatched .crackline{animation:crackStaged 2.1s cubic-bezier(.5,0,.5,1) .55s forwards;}
+@keyframes crackStaged{
+  0%{opacity:1;stroke-dashoffset:1;}    /* starts at the left */
+  16%{stroke-dashoffset:.74;}           /* cracks in to the first quarter... */
+  30%{stroke-dashoffset:.74;}           /* ...pause */
+  44%{stroke-dashoffset:.5;}            /* on toward the middle... */
+  58%{stroke-dashoffset:.5;}            /* ...pause */
+  72%{stroke-dashoffset:.26;}           /* on toward the right... */
+  84%{stroke-dashoffset:.26;}           /* ...pause */
+  95%{opacity:1;stroke-dashoffset:0;}   /* finishes the line all the way round */
+  100%{opacity:0;stroke-dashoffset:0;}  /* fades as the shell gives way */
 }
-@keyframes shellBot{
-  0%{transform:translate(0,0) rotate(0);}
-  100%{transform:translate(110px,-150px) rotate(42deg);opacity:0;}
+/* only once the crack is complete does the shell shatter into shards that scatter and vanish */
+.egg-scene.hatched .lid-piece{animation:lidBreak 1.4s cubic-bezier(.42,0,.72,.62) 2.7s forwards;}
+.egg-scene.hatched .lp2{animation-delay:2.74s;}
+.egg-scene.hatched .lp3{animation-delay:2.72s;}
+.egg-scene.hatched .lp4{animation-delay:2.77s;}
+.egg-scene.hatched .lp5{animation-delay:2.8s;}
+@keyframes lidBreak{
+  0%{opacity:0;transform:translate(0,0) rotate(0);}
+  8%{opacity:1;}
+  20%{transform:translate(0,0) rotate(0);}   /* the lid, briefly whole */
+  82%{opacity:1;}
+  100%{opacity:0;transform:translate(var(--fx),var(--fy)) rotate(var(--fr));} /* fallen around the base, vanished */
 }
-.egg-hatchy{
-  position:absolute;left:50%;bottom:0;width:104%;
-  transform:translateX(-50%) scale(0);transform-origin:50% 90%;
-  filter:drop-shadow(0 14px 24px rgba(22,21,15,.18));
-  pointer-events:none;
+.egg-scene.hatched .egg-pop{
+  transform-origin:50% 82%;
+  animation:popRise 1.15s cubic-bezier(.34,1.4,.5,1) 2.68s forwards;
 }
-.egg-scene.hatched .egg-hatchy{
-  animation:hatchPop .8s cubic-bezier(.34,1.56,.64,1) .12s forwards;
-}
-@keyframes hatchPop{
-  0%{transform:translateX(-50%) scale(0);}
-  70%{transform:translateX(-50%) scale(1.06);}
-  100%{transform:translateX(-50%) scale(1);}
+@keyframes popRise{
+  0%{opacity:0;transform:translateY(6%) scale(.86);}
+  26%{opacity:1;}
+  62%{transform:translateY(-2%) scale(1.07);}          /* pops out big */
+  100%{transform:translateY(0) scale(1);opacity:1;}    /* settles to resting size */
 }
 /* tap hint — a quiet caption, no bounce */
 .egg-hint{
@@ -442,13 +474,13 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   white-space:nowrap;
 }
 .egg-scene.hatched .egg-bubble{
-  animation:bubbleIn .45s cubic-bezier(.22,1,.36,1) .7s forwards;
+  animation:bubbleIn .45s cubic-bezier(.22,1,.36,1) 1.5s forwards;
 }
 @keyframes bubbleIn{to{opacity:1;transform:translateY(0);}}
 @media (prefers-reduced-motion: reduce){
-  .egg-whole,.egg-stage:hover .egg-whole{animation:none;}
-  .egg-scene.hatched .egg-top,.egg-scene.hatched .egg-bot{animation:none;opacity:0;}
-  .egg-scene.hatched .egg-hatchy{animation:none;transform:translateX(-50%) scale(1);}
+  .egg-closed,.egg-stage:hover .egg-closed{animation:none;}
+  .egg-scene.hatched .egg-closed,.egg-scene.hatched .lid-piece,.egg-scene.hatched .crackline{animation:none;opacity:0;}
+  .egg-scene.hatched .egg-pop{animation:none;opacity:1;transform:none;}
   .egg-scene.hatched .egg-bubble{animation:none;opacity:1;transform:none;}
 }
 @media(max-width:860px){
@@ -1158,17 +1190,20 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   background:#fff;border:1.5px solid var(--ink);border-radius:18px;
   padding:clamp(24px,2.4vw,38px);
   display:grid;grid-template-columns:auto minmax(0,1fr);
-  column-gap:clamp(16px,1.6vw,22px);row-gap:10px;align-items:start;
+  column-gap:clamp(18px,1.8vw,26px);row-gap:10px;align-items:start;
   transition:transform .28s cubic-bezier(.22,1,.36,1),box-shadow .28s;
 }
 .safe:hover{transform:translateY(-4px);box-shadow:0 16px 34px rgba(22,21,15,.10);}
-.safe-ic{
-  grid-row:1 / span 2;
-  width:52px;height:52px;border-radius:14px;border:1.5px solid var(--ink);
-  display:grid;place-items:center;background:var(--accent);
-  box-shadow:inset 0 0 0 2px rgba(255,255,255,.16);
+.safe-illo{
+  grid-row:1 / span 2;align-self:center;
+  display:grid;place-items:center;
+  width:clamp(96px,9vw,132px);
 }
-.safe-ic svg{width:28px;height:28px;color:#fff;display:block;}
+.safe-illo img{
+  width:100%;height:auto;display:block;
+  filter:drop-shadow(0 5px 10px rgba(22,21,15,.12));
+}
+.safe:hover .safe-illo img{transform:translateY(-3px) scale(1.03);transition:transform .28s cubic-bezier(.22,1,.36,1);}
 .safe h3{
   align-self:center;
   font-size:clamp(19px,1.7vw,24px);font-weight:700;letter-spacing:-.02em;line-height:1.15;
@@ -1548,30 +1583,17 @@ html.lenis,html.lenis body{height:auto;}
       <div class="egg-scene" id="eggScene">
         <button class="egg-stage" id="eggStage" type="button" aria-label="Tap the egg to hatch your first agent">
           <span class="egg-hint" id="eggHint">Tap to hatch →</span>
-          <img class="egg-hatchy" src="hatchy-hero.webp" alt="Hatchy, your first hatched agent, bursting out of its egg" width="420" height="486" decoding="async" />
-          <svg class="egg-svg" viewBox="0 0 420 480" aria-hidden="true">
-            <ellipse cx="210" cy="452" rx="150" ry="18" fill="rgba(22,21,15,.10)"/>
-            <g class="egg-whole">
-              <g class="egg-top">
-                <path d="M66 258 L105 232 L145 262 L185 228 L225 264 L265 230 L305 262 L354 252 C354 140 300 30 210 30 C120 30 66 140 66 258 Z"
-                      fill="var(--egg)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/>
-                <ellipse cx="150" cy="120" rx="17" ry="14" fill="var(--egg-spot)" opacity=".85"/>
-                <ellipse cx="262" cy="92" rx="13" ry="11" fill="var(--egg-spot)" opacity=".85"/>
-                <ellipse cx="300" cy="185" rx="20" ry="16" fill="var(--egg-spot)" opacity=".85"/>
-                <ellipse cx="108" cy="185" rx="12" ry="10" fill="var(--egg-spot)" opacity=".85"/>
-                <ellipse cx="208" cy="196" rx="10" ry="8" fill="var(--egg-spot)" opacity=".85"/>
-              </g>
-              <g class="egg-bot">
-                <path d="M66 258 L105 232 L145 262 L185 228 L225 264 L265 230 L305 262 L354 252 C354 362 292 440 210 440 C128 440 66 362 66 258 Z"
-                      fill="var(--egg)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/>
-                <ellipse cx="142" cy="332" rx="18" ry="15" fill="var(--egg-spot)" opacity=".85"/>
-                <ellipse cx="252" cy="302" rx="14" ry="12" fill="var(--egg-spot)" opacity=".85"/>
-                <ellipse cx="298" cy="352" rx="12" ry="10" fill="var(--egg-spot)" opacity=".85"/>
-                <ellipse cx="190" cy="388" rx="15" ry="12" fill="var(--egg-spot)" opacity=".85"/>
-                <ellipse cx="97" cy="295" rx="10" ry="8" fill="var(--egg-spot)" opacity=".85"/>
-              </g>
-            </g>
-          </svg>
+          <!-- three registered layers: Hatchy reveal (back), the lid that flies off, the whole egg (front) -->
+          <img class="egg-layer egg-pop" src="hatchy-pop.webp" alt="Hatchy, your first hatched agent, bursting out of its egg" width="620" height="620" decoding="async" />
+          <div class="egg-lid" aria-hidden="true">
+            <img class="lid-piece lp1" src="egg-shell.webp" alt="" style="--fx:-150px;--fy:250px;--fr:-150deg" decoding="async" />
+            <img class="lid-piece lp2" src="egg-shell.webp" alt="" style="--fx:-84px;--fy:286px;--fr:-70deg" decoding="async" />
+            <img class="lid-piece lp3" src="egg-shell.webp" alt="" style="--fx:14px;--fy:300px;--fr:40deg" decoding="async" />
+            <img class="lid-piece lp4" src="egg-shell.webp" alt="" style="--fx:92px;--fy:276px;--fr:96deg" decoding="async" />
+            <img class="lid-piece lp5" src="egg-shell.webp" alt="" style="--fx:154px;--fy:238px;--fr:158deg" decoding="async" />
+          </div>
+          <img class="egg-layer egg-closed" src="egg-closed.webp" alt="A blue-speckled egg, waiting to hatch" width="620" height="620" decoding="async" />
+          <svg class="egg-crack" viewBox="0 0 620 620" aria-hidden="true"><path class="crackline" pathLength="1" d="M162,270 L170,276 L178,273 L186,262 L194,267 L202,274 L210,294 L218,303 L258,260 L298,382 L378,356 L386,358 L394,360 L402,268 L410,264 L418,260 L426,254 L434,254 L442,253 L450,250 L458,250 L466,251 L474,250" fill="none" stroke="#3b2c14" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span class="egg-bubble" id="eggBubble">Hi, I'm Hatchy!</span>
         </button>
       </div>
@@ -1641,7 +1663,7 @@ html.lenis,html.lenis body{height:auto;}
       <div class="ws" id="ws" data-platform="slack">
         <div class="ws-shell">
           <aside class="ws-sidebar" aria-label="Channels">
-            <div class="ws-side-head"><span id="wsBrandIcon" aria-hidden="true"></span><span>Agent Hatchers</span><span class="caret" aria-hidden="true">▾</span></div>
+            <div class="ws-side-head"><span id="wsBrandIcon" aria-hidden="true"></span><span>Workspace</span><span class="caret" aria-hidden="true">▾</span></div>
             <div class="ws-side-label">Channels</div>
             <div id="wsChanList" role="tablist" aria-label="Choose a channel">
               <button class="ws-chan is-active" type="button" role="tab" aria-selected="true" data-agent="invoice"><span class="hash">#</span> invoice-generator</button>
@@ -1919,22 +1941,22 @@ html.lenis,html.lenis body{height:auto;}
 
     <div class="safe-grid">
       <div class="safe reveal">
-        <span class="safe-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#ic-key"/></svg></span>
+        <span class="safe-illo" aria-hidden="true"><img src="hatchy-key.webp" alt="" width="150" height="210" loading="lazy" decoding="async" /></span>
         <h3>One job, one set of keys</h3>
         <p>The invoice agent can reach your accounting software — <strong>and nothing else.</strong> Like a bookkeeper who has the Xero login but not the payroll one.</p>
       </div>
       <div class="safe reveal">
-        <span class="safe-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#ic-approve"/></svg></span>
+        <span class="safe-illo" aria-hidden="true"><img src="hatchy-approve.webp" alt="" width="150" height="210" loading="lazy" decoding="async" /></span>
         <h3>Nothing sent without you</h3>
         <p>Agents draft and prepare on their own, but <strong>anything that reaches a customer or moves money waits for a human to click approve.</strong> You saw it in the demo.</p>
       </div>
       <div class="safe reveal">
-        <span class="safe-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#ic-lock"/></svg></span>
+        <span class="safe-illo" aria-hidden="true"><img src="hatchy-guard.webp" alt="" width="150" height="210" loading="lazy" decoding="async" /></span>
         <h3>Your data trains no one</h3>
         <p>Your emails and documents do <em>your</em> job and nothing else. <strong>Never fed back to train anyone's AI models</strong> — ours or the providers'. And we never ask for passwords: only official "Sign in with…" approvals.</p>
       </div>
       <div class="safe reveal">
-        <span class="safe-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#ic-power"/></svg></span>
+        <span class="safe-illo" aria-hidden="true"><img src="hatchy-plug.webp" alt="" width="150" height="210" loading="lazy" decoding="async" /></span>
         <h3>You hold the plug</h3>
         <p>Pause an agent, revoke a connection, remove the app — <strong>from your side, in seconds, no exit fee.</strong> Like deactivating a staff pass.</p>
       </div>
@@ -2233,7 +2255,7 @@ const PLATFORMS = {
 const AGENTS = {
   invoice: {
     bot: 'Invoice Generator', hue: 'hue-invoice', channel: 'invoice-generator',
-    team: 'Agent Hatchers', teamChannel: 'invoice-generator',
+    team: 'Your workspace', teamChannel: 'invoice-generator',
     blurb: 'Invoice Generator — in this channel',
     script: [
       { t:'msg', who:'you', name:'You', av:'YO', time:'9:02', cmd:'@Hatchy chase everything unpaid over 30 days' },
@@ -2266,7 +2288,7 @@ const AGENTS = {
 
   sales: {
     bot: 'Sales Agent', hue: 'hue-sales', channel: 'sales-agent',
-    team: 'Agent Hatchers', teamChannel: 'sales-agent',
+    team: 'Your workspace', teamChannel: 'sales-agent',
     blurb: 'Sales Agent — in this channel',
     script: [
       { t:'msg', who:'you', name:'You', av:'YO', time:'7:41', cmd:'@Hatchy anything worth my time from overnight?' },
@@ -2301,7 +2323,7 @@ const AGENTS = {
 
   docs: {
     bot: 'Document Generator', hue: 'hue-docs', channel: 'document-generator',
-    team: 'Agent Hatchers', teamChannel: 'document-generator',
+    team: 'Your workspace', teamChannel: 'document-generator',
     blurb: 'Document Generator — in this channel',
     script: [
       { t:'msg', who:'you', name:'You', av:'YO', time:'2:15',
@@ -2332,7 +2354,7 @@ const AGENTS = {
 
   web: {
     bot: 'Website Agent', hue: 'hue-web', channel: 'website-agent',
-    team: 'Agent Hatchers', teamChannel: 'website-agent',
+    team: 'Your workspace', teamChannel: 'website-agent',
     blurb: 'Website Agent — in this channel',
     script: [
       { t:'msg', who:'you', name:'You', av:'YO', time:'4:48', cmd:'@Hatchy we’re open Saturdays now, 9–2' },
@@ -2361,7 +2383,7 @@ const AGENTS = {
 
   email: {
     bot: 'Email Assistant', hue: 'hue-email', channel: 'email-assistant',
-    team: 'Agent Hatchers', teamChannel: 'email-assistant',
+    team: 'Your workspace', teamChannel: 'email-assistant',
     blurb: 'Email Assistant — in this channel',
     script: [
       { t:'msg', who:'you', name:'You', av:'YO', time:'8:12', cmd:'@Hatchy what came in overnight that actually needs me?' },
@@ -2393,7 +2415,7 @@ const AGENTS = {
 
   meme: {
     bot: 'Meme Lord', hue: 'hue-meme', channel: 'meme-lord',
-    team: 'Agent Hatchers', teamChannel: 'meme-lord',
+    team: 'Your workspace', teamChannel: 'meme-lord',
     blurb: 'Meme Lord — in this channel',
     script: [
       { t:'msg', who:'you', name:'You', av:'YO', time:'4:31', cmd:'@Hatchy we just hit 1,000 signups 🎉 make something the team will actually share' },
@@ -2418,7 +2440,7 @@ const AGENTS = {
 
   hype: {
     bot: 'Hype Agent', hue: 'hue-hype', channel: 'hype-agent',
-    team: 'Agent Hatchers', teamChannel: 'hype-agent',
+    team: 'Your workspace', teamChannel: 'hype-agent',
     blurb: 'Hype Agent — in this channel',
     script: [
       { t:'msg', who:'you', name:'You', av:'YO', time:'3:04', cmd:'@Hatchy Meridian just signed — biggest deal this year' },
@@ -2442,7 +2464,7 @@ const AGENTS = {
 
   news: {
     bot: 'News Agent', hue: 'hue-news', channel: 'news-agent',
-    team: 'Agent Hatchers', teamChannel: 'news-agent',
+    team: 'Your workspace', teamChannel: 'news-agent',
     blurb: 'News Agent — in this channel',
     script: [
       { t:'msg', who:'you', name:'You', av:'YO', time:'7:02', cmd:'@Hatchy anything happen in our space overnight I should know about?' },
@@ -2464,7 +2486,7 @@ const AGENTS = {
 
   test: {
     bot: 'Test Bot', hue: 'hue-test', channel: 'test-channel',
-    team: 'Agent Hatchers', teamChannel: 'test-channel',
+    team: 'Your workspace', teamChannel: 'test-channel',
     blurb: 'Test Bot — your sandbox',
     script: [
       { t:'msg', who:'you', name:'You', av:'YO', time:'10:15', cmd:'@Hatchy is this thing on?' },
@@ -2536,8 +2558,8 @@ const AGENTS = {
 
   /* ── message parts ── */
   function avatar(who, initials){
-    // the bot's avatar is the hatched Hatchy, tinted to this channel's agent
-    if (who === 'bot') return '<div class="ws-av ws-av-hatchy" aria-hidden="true"><img class="' + AGENTS[agentKey].hue + '" src="hatchy-avatar.webp" alt="" /></div>';
+    // the bot's avatar is this channel's own Hatchy — same character, job-specific props
+    if (who === 'bot') return '<div class="ws-av ws-av-hatchy" aria-hidden="true"><img class="' + AGENTS[agentKey].hue + '" src="hatchy-av-' + agentKey + '.webp" alt="" /></div>';
     return '<div class="ws-av" aria-hidden="true">' + initials + '</div>';
   }
 
@@ -2547,14 +2569,16 @@ const AGENTS = {
     const name = isBot ? AGENTS[agentKey].bot : m.name;
     const badge = isBot ? '<span class="ws-badge">' + p.badge + '</span>' : '';
 
+    // you @-mention this channel's agent by name, and that same agent answers
+    const mention = '@' + AGENTS[agentKey].bot;
     let inner = '';
     if (m.cmd){
       // a channel message that @-mentions the bot, exactly like Slack/Teams
       const sp = m.cmd.indexOf(' ');
-      inner += '<div class="ws-text"><span class="mention">' + m.cmd.slice(0, sp) +
+      inner += '<div class="ws-text"><span class="mention">' + mention +
                '</span>' + m.cmd.slice(sp) + '</div>';
     }
-    if (m.text) inner += '<div class="ws-text">' + m.text + '</div>';
+    if (m.text) inner += '<div class="ws-text">' + m.text.replaceAll('@Hatchy', mention) + '</div>';
 
     if (m.file){
       inner += '<div class="ws-file">' +
