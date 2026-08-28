@@ -1597,11 +1597,42 @@ html.lenis,html.lenis body{height:auto;}
   </div>
 </nav>
 
+<!-- HERMES LETTER-RAIN — "powered by Hermes" letters fall from the top of
+     the page and land left→right above the hero headline -->
+<style>
+.hermes-rain{
+  font-family:var(--font-s);font-style:italic;font-weight:400;
+  font-size:clamp(24px,3.2vw,52px);
+  line-height:1.08;letter-spacing:.01em;
+  color:var(--ink);
+  margin-bottom:clamp(14px,2vw,26px);
+  min-height:1.1em;              /* space is reserved, so nothing shifts when letters land */
+}
+.hermes-rain .hr-hermes{color:var(--accent);font-weight:400;}
+.hermes-rain .hl{display:inline-block;will-change:transform;}
+.hermes-rain.is-rain .hl{
+  animation:hl-fall .9s cubic-bezier(.36,.9,.4,1) both;
+  animation-delay:calc(var(--d)*1ms);
+}
+@keyframes hl-fall{
+  0%  {transform:translateY(-105vh) rotate(var(--r,0deg));}
+  62% {transform:translateY(0)      rotate(0deg);}
+  78% {transform:translateY(-.2em)  rotate(calc(var(--r,0deg) * -.2));}
+  100%{transform:translateY(0)      rotate(0deg);}
+}
+@media (prefers-reduced-motion: reduce){
+  .hermes-rain.is-rain .hl{animation:none;}
+}
+</style>
+
 <main id="top">
 
 <!-- HERO — the egg -->
 <header class="hero">
   <div class="wrap">
+    <p class="hermes-rain" aria-label="Agent Hatchers is powered by Hermes">
+      <span class="hr-seg" aria-hidden="true">Agent Hatchers is powered by </span><span class="hr-seg hr-hermes" aria-hidden="true">Hermes</span>
+    </p>
     <div class="hero-grid">
       <div>
         <h1 class="hero-title">
@@ -2544,6 +2575,32 @@ async function postLead(kind, payload){
     return false;
   }
 }
+
+/* ── HERMES LETTER-RAIN — split the line into letters, drop them in order ── */
+(function hermesRain(){
+  const p = document.querySelector('.hermes-rain');
+  if (!p) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return; // line stays static
+  let i = 0;
+  p.querySelectorAll('.hr-seg').forEach(seg => {
+    const chars = seg.textContent.split('');
+    seg.textContent = '';
+    chars.forEach(ch => {
+      if (ch === ' ') {                    // spaces don't fall — real spaces so the line can wrap
+        seg.appendChild(document.createTextNode(' '));
+        return;
+      }
+      const s = document.createElement('span');
+      s.className = 'hl';
+      s.textContent = ch;
+      s.style.setProperty('--d', 380 + i * 55);
+      s.style.setProperty('--r', ((i % 2 ? 1 : -1) * (6 + (i * 7) % 11)) + 'deg');
+      i++;
+      seg.appendChild(s);
+    });
+  });
+  requestAnimationFrame(() => requestAnimationFrame(() => p.classList.add('is-rain')));
+})();
 
 /* ── HERO LINE REVEAL ── */
 (function heroLines(){
