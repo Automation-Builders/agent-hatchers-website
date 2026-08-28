@@ -742,3 +742,15 @@ h1{font-weight:800}h2{font-weight:700}
   .hhx.go .hatch-cracks{opacity:0}
   .hhx.go .hatch-pop{animation:none;opacity:1;transform:none}
 }
+/* ============ Hatch screen: pick your design in place (no separate step) ============ */
+.egg-cell{position:relative;border-radius:20px;padding:8px 8px 4px;border:2px solid transparent;transition:border-color .2s,background .2s,transform .2s;outline:none}
+.egg-cell.is-ready{cursor:pointer}
+.egg-cell.is-ready:hover,.egg-cell.is-ready:focus-visible{transform:translateY(-3px)}
+.egg-cell.selected{border-color:var(--brand);background:#fff;box-shadow:0 12px 28px rgba(33,107,172,.15)}
+.egg-tick{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:var(--brand);display:none;place-items:center;box-shadow:0 4px 10px rgba(33,107,172,.35)}
+.egg-tick svg{width:14px;height:14px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.egg-cell.selected .egg-tick{display:grid;animation:tickPop .3s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes tickPop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+/* a design that already hatched holds its final pose on re-render (no reset to a closed egg) */
+.hhx.done .hatch-egg,.hhx.done .hatch-cap,.hhx.done .hatch-burst,.hhx.done .hatch-cracks{animation:none!important;opacity:0!important}
+.hhx.done .hatch-pop{animation:none!important;opacity:1!important;transform:none!important}

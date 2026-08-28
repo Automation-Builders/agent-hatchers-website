@@ -13,7 +13,6 @@
   const company = config.company || 'Your Company';
   const industry = config.industry || 'professional-services';
   const industryLabel = config.industryLabel || 'Your industry';
-  const variantLabels = ['Cobalt','Teal','Indigo'];
   // Real portrait generation. Point portraitEndpoint at a callable endpoint and it upgrades
   // automatically; until then each egg falls back to an on-brand simulated mascot so the
   // prospect experience is never broken. Set generatePortraits:false to skip the call entirely.
@@ -41,15 +40,14 @@
     check:'<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11"/></svg>',
     cal:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>'
   };
-  const slotVisual = (slot,i) => slot && slot.image ? `<img src="${escapeHtml(slot.image)}" alt="Agent design ${i+1}">` : bot('v'+i);
   function escapeHtml(value){return String(value).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
   function chip(){if(state.variant===null)return `<span class="private-pill">Private preview for ${escapeHtml(company)}</span>`;const inner=state.selectedImage?`<img class="chip-img" src="${escapeHtml(state.selectedImage)}" alt="">`:bot('v'+state.variant+' chip');return `<span class="agent-chip">${inner}<span>${escapeHtml(state.name)}</span></span>`;}
-  const layout = content => `<main class="shell"><header class="topbar"><div class="brand"><img src="/agent-hatchers-logo.png" alt=""><span>Agent Hatchers</span></div>${chip()}</header><section class="panel"><div class="progress" aria-label="Prototype progress"><span style="--progress:${Math.min(100,(state.step+1)/6*100)}%"></span></div><div class="step-label">Step ${state.step+1} of 6</div>${content}</section></main>`;
+  const layout = content => `<main class="shell"><header class="topbar"><div class="brand"><img src="/agent-hatchers-logo.png" alt=""><span>Agent Hatchers</span></div>${chip()}</header><section class="panel"><div class="progress" aria-label="Prototype progress"><span style="--progress:${Math.min(100,(state.step+1)/5*100)}%"></span></div><div class="step-label">Step ${state.step+1} of 5</div>${content}</section></main>`;
 
   function render(){
-    const screens = [welcome,nameScreen,hatchScreen,revealScreen,marketScreen,connectScreen];
+    const screens = [welcome,nameScreen,hatchScreen,marketScreen,connectScreen];
     const inner = screens[state.step]();
-    root.innerHTML = state.step>=4 ? inner : layout(inner);
+    root.innerHTML = state.step>=3 ? inner : layout(inner);
     bind();
   }
   const ic = {
@@ -77,14 +75,24 @@
     '--fx:-240%;--fy:420%;--r:280deg;animation-delay:.04s','--fx:180%;--fy:480%;--r:-300deg',
     '--fx:40%;--fy:-620%;--r:250deg;animation-delay:.06s','--fx:-360%;--fy:-430%;--r:-270deg;animation-delay:.01s'
   ].map(s=>`<i class="hatch-shard" style="${s}"></i>`).join('');
-  function eggScene(i){return `<div class="egg-cell"><div class="hhx" data-i="${i}">
+  function eggScene(i){
+    // Rendered stateful: a slot that already hatched shows its design (.done skips the
+    // animation on re-renders instead of resetting to a closed egg), and each hatched
+    // design is clickable to select right away — no separate "pick" step.
+    const slot=state.slots[i];const ready=!!(slot&&slot.status==='ready');const img=ready?(slot.image||'/hatchy-pop.webp'):'';const sel=state.variant===i;
+    return `<div class="egg-cell ${ready?'is-ready':''} ${sel?'selected':''}" data-egg="${i}" role="button" tabindex="0" aria-pressed="${sel}"><div class="hhx ${ready?'done':''}" data-i="${i}">
     <span class="hatch-layer hatch-egg" aria-hidden="true"><img src="/egg-closed.webp" alt=""><svg class="hatch-cracks" viewBox="0 0 620 620" aria-hidden="true"><path class="hatch-c1" pathLength="1" d="M114,318 L146,302 L172,330 L200,296 L226,331 L245,301"/><path class="hatch-c2" pathLength="1" d="M245,301 L272,336 L308,290 L338,332 L375,302"/><path class="hatch-c3" pathLength="1" d="M375,302 L396,333 L420,298 L448,332 L474,300 L506,320"/></svg></span>
     <img class="hatch-layer hatch-cap" src="/egg-shell-clean.webp" alt="" aria-hidden="true">
-    <img class="hatch-layer hatch-pop" alt="">
+    <img class="hatch-layer hatch-pop" ${img?`src="${escapeHtml(img)}"`:''} alt="">
     <span class="hatch-layer hatch-burst" aria-hidden="true"><i class="hatch-flash"></i><i class="hatch-ring"></i>${hatchShards}</span>
-  </div><span class="hatch-number">Design ${i+1}</span></div>`;}
-  function hatchScreen(){const settled=state.slots.length&&state.slots.every(Boolean);return `<div class="stage hatch-zone"><span class="eyebrow">Hatching</span><h2>Hatching ${escapeHtml(state.name||'your agent')}…</h2><p>Three takes on your description are hatching now.</p><div class="hatch-row" aria-live="polite">${[0,1,2].map(eggScene).join('')}</div><div class="hatch-actions">${settled?button('Choose a design for '+escapeHtml(state.name||'your agent')+' →','choose'):`<p class="hatch-status">Hatching your designs…</p>`}</div></div>`;}
-  function revealScreen(){const slots=state.slots;return `<div class="stage"><span class="eyebrow">Meet the clutch</span><h2>${escapeHtml(state.name)} hatched — pick your favourite</h2><p>Three takes on your description. Choose the one to use as ${escapeHtml(state.name)}’s avatar.</p><div class="choice-grid">${slots.map((slot,i)=>`<button class="generated-choice ${state.variant===i?'selected':''}" data-option="${i}" aria-pressed="${state.variant===i}">${slotVisual(slot,i)}<span class="pick-name">${escapeHtml(state.name)}</span><span class="pick-tag">${slot&&slot.image?'Generated design':variantLabels[i]}</span></button>`).join('')}</div><div class="actions">${button('Redesign','redesign',true)}${button('Use this avatar →','market')}</div></div>`;}
+  </div><span class="hatch-number">Design ${i+1}</span><span class="egg-tick" aria-hidden="true">${ci.check}</span></div>`;}
+  function hatchActionsBar(){
+    const settled=state.slots.length&&state.slots.every(Boolean);
+    const anyReady=state.slots.some(s=>s&&s.status==='ready');
+    if(!anyReady) return `<p class="hatch-status">Hatching your designs… click your favourite as soon as it pops out.</p>`;
+    return `${settled?button('Redesign','redesign',true):''}${button('Use this avatar →','market')}`;
+  }
+  function hatchScreen(){return `<div class="stage hatch-zone"><span class="eyebrow">Hatching</span><h2>Hatching ${escapeHtml(state.name||'your agent')}…</h2><p>Three takes on your description. Click your favourite — it becomes ${escapeHtml(state.name||'your agent')}’s avatar.</p><div class="hatch-row" aria-live="polite">${[0,1,2].map(eggScene).join('')}</div><div class="hatch-actions">${hatchActionsBar()}</div></div>`;}
   function initials(str){return String(str||'AH').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();}
   const marketLoader='<div class="hatch-loader"><span class="loader-ring"></span><img class="loader-egg" src="/egg-closed.webp" alt=""><span class="loader-txt">Hatching…</span></div>';
   function willGenerate(agent){return (usePortraits&&config.marketPortraits!==false&&state.variant!==null)||!!(config.bakedMarket&&config.bakedMarket[agent.id]);}
@@ -255,11 +263,17 @@
   const sleep = ms => new Promise(r=>setTimeout(r,ms));
   async function fetchImage(params){
     if(!usePortraits) return null;
-    try{
-      const res = await fetch(portraitEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(params)});
-      const body = await res.json().catch(()=>({}));
-      if(res.ok && body && body.image) return String(body.image);
-    }catch(e){/* fall through to simulated design */}
+    // Up to 3 attempts: a single cold start / provider hiccup must not cost a prospect
+    // their design (a failed hero portrait cascades into blob avatars + mismatched market).
+    for(let attempt=0;attempt<3;attempt++){
+      if(attempt) await sleep(900*attempt);
+      try{
+        const res = await fetch(portraitEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(params)});
+        const body = await res.json().catch(()=>({}));
+        if(res.ok && body && body.image) return String(body.image);
+        if(res.status===400) break; // bad input won't improve with retries
+      }catch(e){/* retry */}
+    }
     return null;
   }
   async function fetchPortrait(variant){
@@ -279,9 +293,12 @@
     state.marketStarted = true;
     const agents = rankAgents().map(r=>r.agent);
     const started = Date.now();
+    // Always re-dress the SAME hatched character: use the chosen design as the edit
+    // reference, falling back to any hatched design rather than generating strangers.
+    const ref = state.selectedImage || ((state.slots.find(s=>s&&s.image)||{}).image) || '';
     await Promise.all(agents.map(async (agent,idx)=>{
       let img = baked[agent.id];
-      if(!img && useLive) img = await fetchImage({brief:state.look,name:agent.name,role:agent.scene,image:state.selectedImage,company,industry:industryLabel,variant:state.variant||0});
+      if(!img && useLive) img = await fetchImage({brief:state.look,name:agent.name,role:agent.scene,image:ref,company,industry:industryLabel,variant:state.variant||0});
       const minMs=1100+idx*500;const wait=Math.max(0,minMs-(Date.now()-started));if(wait)await sleep(wait);  // let the loader show
       if(!img) return;
       state.marketImages[agent.id]=img;
@@ -294,15 +311,24 @@
   async function generateAgents(){
     const lookTa=document.getElementById('agent-look');if(lookTa&&lookTa.value.trim())state.look=lookTa.value.trim();
     state.slots=[null,null,null];state.variant=null;state.selectedImage='';state.step=2;render();
+    const refreshBar=()=>{const bar=root.querySelector('.hatch-actions');if(bar){bar.innerHTML=hatchActionsBar();bind();}};
     await Promise.all([0,1,2].map(async i=>{
       const image=await fetchPortrait(i);
       state.slots[i]={status:'ready',image};
       const scene=root.querySelector(`.hhx[data-i="${i}"]`);
-      if(scene){const pop=scene.querySelector('.hatch-pop');if(pop){pop.onload=()=>scene.classList.add('go');pop.src=image||'/hatchy-pop.webp';if(pop.complete)scene.classList.add('go');}}
+      if(scene){const pop=scene.querySelector('.hatch-pop');if(pop){
+        const arm=()=>scene.classList.add('go');
+        pop.onload=arm;
+        pop.onerror=()=>{pop.onerror=null;pop.src='/hatchy-pop.webp';};  // never leave an egg stuck closed
+        pop.src=image||'/hatchy-pop.webp';
+        if(pop.complete&&pop.naturalWidth)arm();
+      }}
+      const cell=root.querySelector(`.egg-cell[data-egg="${i}"]`);if(cell)cell.classList.add('is-ready');
+      refreshBar();               // selectable the moment the first design is out
       await sleep(5000);
     }));
     celebrate();
-    const bar=root.querySelector('.hatch-actions');if(bar){bar.innerHTML=button('Choose a design for '+escapeHtml(state.name||'your agent')+' →','choose');bind();}
+    refreshBar();
   }
   function bind(){
     root.querySelectorAll('[data-action]').forEach(el=>el.onclick=()=>{
@@ -310,14 +336,28 @@
       if(a==='back'){state.step=Math.max(0,state.step-1);render()}
       if(a==='next'){state.step++;render()}
       if(a==='generate'){const input=document.getElementById('agent-name');const name=input.value.trim();if(!name){input.focus();input.setAttribute('aria-invalid','true');return}state.name=name;const bizIn=document.getElementById('agent-biz');state.biz=bizIn?bizIn.value.trim():'';const lookTa=document.getElementById('agent-look');state.look=(lookTa&&lookTa.value.trim())||'a friendly rounded robot in blue and white';generateAgents()}
-      if(a==='choose'){if(state.variant===null)state.variant=0;state.step=3;render()}
       if(a==='redesign'){state.step=1;render()}
       if(a==='open-connect'){openConnectDialog()}
       if(a==='chat-send'){const box=document.getElementById('chat-box');const t=box?box.value.trim():'';if(!t)return;const i=state.chatActive??8;state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['me',t],['pay','Please pay for your agent in order to continue talking.']]);render();const th=document.getElementById('chat-thread');if(th)th.scrollTop=th.scrollHeight;document.getElementById('chat-box')?.focus()}
-      if(a==='market'){if(state.variant===null){state.variant=0;const s=state.slots[0];state.selectedImage=s&&s.image?s.image:''}document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=4;render();generateMarket()}
+      if(a==='market'){
+        // No explicit pick → default to the first design that actually has an image, and
+        // always fall back to ANY generated image so the avatar/logo/market ref never go blank.
+        if(state.variant===null){const i=state.slots.findIndex(s=>s&&s.image);state.variant=i>=0?i:0}
+        const s=state.slots[state.variant];
+        state.selectedImage=(s&&s.image)||state.selectedImage||((state.slots.find(x=>x&&x.image)||{}).image)||'';
+        document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=3;render();generateMarket()}
       if(a==='reset'){state.step=0;state.name='';state.biz='';state.look='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=8;state.chatExtra={};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
-    root.querySelectorAll('[data-option]').forEach(el=>el.onclick=()=>{const i=+el.dataset.option;state.variant=i;const s=state.slots[i];state.selectedImage=s&&s.image?s.image:'';root.querySelectorAll('.generated-choice').forEach(c=>{const on=+c.dataset.option===i;c.classList.toggle('selected',on);c.setAttribute('aria-pressed',on)});});
+    root.querySelectorAll('[data-egg]').forEach(el=>{
+      // Select a design the moment it's hatched — direct DOM updates only, so picking
+      // one egg never restarts the others' hatch animations.
+      const pick=()=>{const i=+el.dataset.egg;const s=state.slots[i];if(!s||s.status!=='ready')return;
+        state.variant=i;state.selectedImage=s.image||'';
+        root.querySelectorAll('[data-egg]').forEach(c=>{const on=+c.dataset.egg===i;c.classList.toggle('selected',on);c.setAttribute('aria-pressed',on)});
+        const bar=root.querySelector('.hatch-actions');if(bar){bar.innerHTML=hatchActionsBar();bind();}};
+      el.onclick=pick;
+      el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick()}};
+    });
     root.querySelectorAll('[data-look-index]').forEach(el=>el.onclick=()=>{const ta=document.getElementById('agent-look');if(ta){ta.value=lookSeeds[+el.dataset.lookIndex].text;ta.focus()}});
     root.querySelectorAll('[data-mic]').forEach(btn=>btn.onclick=()=>startDictation(btn));
     root.querySelectorAll('[data-tab]').forEach(el=>el.onclick=()=>{state.tab=el.dataset.tab;render();});

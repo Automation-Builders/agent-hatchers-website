@@ -15,8 +15,11 @@ class PrototypeContractTests(unittest.TestCase):
         self.assertIn('name="robots" content="noindex,nofollow,noarchive"', self.demo)
 
     def test_flow_contains_every_required_stage(self):
-        for stage in ("welcome", "nameScreen", "designScreen", "hatchScreen", "revealScreen", "marketScreen"):
+        # revealScreen was merged into hatchScreen (Aug 2026): designs are selected in
+        # place as soon as they hatch, so the flow is 5 steps, not 6.
+        for stage in ("welcome", "nameScreen", "designScreen", "hatchScreen", "marketScreen", "connectScreen"):
             self.assertRegex(self.app, rf"function {stage}\(")
+        self.assertNotIn("function revealScreen(", self.app)
 
     def test_each_agent_has_exactly_five_outcomes(self):
         outcome_blocks = re.findall(r"outcomes:\[(.*?)\]\}", self.app)
