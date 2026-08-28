@@ -1790,7 +1790,7 @@ html.lenis,html.lenis body{height:auto;}
         </div>
       </div>
 
-      <p class="tabs-note">Each channel is its own agent — <strong>@mention it like a teammate</strong> and finished work comes back. Swap the model with one click; the agent keeps its memory, skills and voice.</p>
+      <p class="tabs-note">Each channel is its own agent — <strong>@mention Hatchy like a teammate</strong> and finished work comes back. Swap the model with one click; the agent keeps its memory, skills and voice.</p>
     </div>
   </div>
 </section>
@@ -2998,8 +2998,8 @@ const AGENTS = {
     const name = isBot ? AGENTS[agentKey].bot : m.name;
     const badge = isBot ? '<span class="ws-badge">' + p.badge + '</span>' : '';
 
-    // you @-mention this channel's agent by name, and that same agent answers
-    const mention = '@' + AGENTS[agentKey].bot;
+    // you always @-mention Hatchy, and this channel's specialist agent answers
+    const mention = '@Hatchy';
     let inner = '';
     if (m.cmd){
       // a channel message that @-mentions the bot, exactly like Slack/Teams
@@ -3007,7 +3007,7 @@ const AGENTS = {
       inner += '<div class="ws-text"><span class="mention">' + mention +
                '</span>' + m.cmd.slice(sp) + '</div>';
     }
-    if (m.text) inner += '<div class="ws-text">' + m.text.replaceAll('@Hatchy', mention) + '</div>';
+    if (m.text) inner += '<div class="ws-text">' + m.text + '</div>';
 
     if (m.file){
       inner += '<div class="ws-file">' +
