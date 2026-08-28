@@ -464,7 +464,9 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   67%  {opacity:1; transform:translateY(-2.5%) scale(.955,1.1)}
   74%  {transform:translateY(.6%) scale(1.03,.96)}
   80%  {transform:translateY(-.4%) scale(.99,1.02)}
-  88%,100%{transform:none}
+  /* opacity pinned to 1: the belt's pop layer is hidden at rest, and without
+     this the implicit final keyframe would fade the hatched robot back out */
+  88%,100%{opacity:1; transform:none}
 }
 /* 4 · the burst: flash + ring + shell shards that mask the layer switch */
 .hatch-flash{
@@ -2186,8 +2188,9 @@ html.lenis,html.lenis body{height:auto;}
 .hl-car.hl-hatched .hl-pop{opacity:1}
 .hl-tag{
   position:absolute;left:50%;top:-4%;transform:translateX(-50%) scale(0);
-  font-family:var(--font-m);font-size:11px;letter-spacing:.09em;text-transform:uppercase;
-  background:var(--ink);color:var(--paper);border-radius:999px;padding:4px 12px;
+  font-family:var(--font-m);font-weight:700;font-size:13px;letter-spacing:.07em;text-transform:uppercase;
+  background:var(--ink);color:#fff;border-radius:999px;padding:6px 15px;
+  border:2px solid var(--paper);box-shadow:0 4px 12px rgba(22,21,15,.28);
   white-space:nowrap;z-index:4;
 }
 .hl-car.hl-hatched .hl-tag{animation:hlTagPop .45s cubic-bezier(.2,1.6,.4,1) .05s both}
