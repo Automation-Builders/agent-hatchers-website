@@ -35,8 +35,10 @@ class PrototypeContractTests(unittest.TestCase):
 
     def test_demo_uses_shared_assets_and_company_configuration(self):
         self.assertIn('window.PROTOTYPE_CONFIG', self.demo)
-        self.assertIn('src="../app.js"', self.demo)
-        self.assertIn('href="../styles.css"', self.demo)
+        # Assets carry a cache-busting ?v= so a stale cached stylesheet can never
+        # pair with newer markup (that mismatch once rendered cracks as black shapes).
+        self.assertRegex(self.demo, r'src="\.\./app\.js\?v=\d+"')
+        self.assertRegex(self.demo, r'href="\.\./styles\.css\?v=\d+"')
 
     def test_brand_tokens_and_reduced_motion_are_present(self):
         self.assertIn("--brand:#216bac", self.css.lower())

@@ -670,7 +670,11 @@ h1{font-weight:800}h2{font-weight:700}
 .hhx .hatch-pop{border-radius:14px;overflow:hidden}
 .hhx .hatch-pop img,.hhx .hatch-pop{object-fit:cover}
 .hhx .hatch-cracks{position:absolute;inset:0;width:100%;height:100%}
-.hhx .hatch-cracks path{fill:none;stroke:#1b1a40;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}
+/* Cracks draw with REAL path lengths (198/202/204 units), not pathLength="1" —
+   WebKit/Safari mishandles pathLength normalisation and renders the whole crack
+   immediately. The dasharray/dashoffset also sit inline on each <path> so even a
+   stale cached stylesheet can only hide the cracks, never show them early. */
+.hhx .hatch-cracks path{fill:none;stroke:#1b1a40;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
 /* pre-hatch (still generating): closed egg sits and gently rocks; nothing else shows */
 .hhx:not(.go) .hatch-egg{transform-origin:50% 90%;animation:hhIdle 2.6s ease-in-out infinite}
 .hhx:not(.go) .hatch-cap,.hhx:not(.go) .hatch-pop,.hhx:not(.go) .hatch-burst,.hhx:not(.go) .hatch-cracks{opacity:0}
@@ -688,14 +692,10 @@ h1{font-weight:800}h2{font-weight:700}
 }
 /* the crack: one continuous fracture, one leg per wobble */
 .hhx.go .hatch-cracks path{animation-duration:5s;animation-timing-function:linear;animation-fill-mode:both}
-.hhx.go .hatch-c1{animation-name:hhCrack1}.hhx.go .hatch-c2{animation-name:hhCrack2}.hhx.go .hatch-c3{animation-name:hhCrack3}
-.hhx.go .hatch-b1{animation-name:hhCrackB1}.hhx.go .hatch-b2{animation-name:hhCrackB2}
-.hhx .hatch-b1,.hhx .hatch-b2{stroke-width:3.5}
-@keyframes hhCrack1{0%,16%{stroke-dashoffset:1}21%,100%{stroke-dashoffset:0}}
-@keyframes hhCrack2{0%,33%{stroke-dashoffset:1}38%,100%{stroke-dashoffset:0}}
-@keyframes hhCrack3{0%,48%{stroke-dashoffset:1}53%,100%{stroke-dashoffset:0}}
-@keyframes hhCrackB1{0%,53%{stroke-dashoffset:1}56%,100%{stroke-dashoffset:0}}
-@keyframes hhCrackB2{0%,54%{stroke-dashoffset:1}57%,100%{stroke-dashoffset:0}}
+.hhx.go .hatch-k1{animation-name:hhCrack1}.hhx.go .hatch-k2{animation-name:hhCrack2}.hhx.go .hatch-k3{animation-name:hhCrack3}
+@keyframes hhCrack1{0%,16%{stroke-dashoffset:198}21%,100%{stroke-dashoffset:0}}
+@keyframes hhCrack2{0%,33%{stroke-dashoffset:202}38%,100%{stroke-dashoffset:0}}
+@keyframes hhCrack3{0%,48%{stroke-dashoffset:204}53%,100%{stroke-dashoffset:0}}
 /* 2 · the lid: launches in a tumbling arc */
 .hhx.go .hatch-cap{transform-origin:50% 45%;animation:hhCap 5s linear both}
 @keyframes hhCap{
