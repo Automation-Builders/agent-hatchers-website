@@ -78,7 +78,7 @@
     '--fx:40%;--fy:-620%;--r:250deg;animation-delay:.06s','--fx:-360%;--fy:-430%;--r:-270deg;animation-delay:.01s'
   ].map(s=>`<i class="hatch-shard" style="${s}"></i>`).join('');
   function eggScene(i){return `<div class="egg-cell"><div class="hhx" data-i="${i}">
-    <span class="hatch-layer hatch-egg" aria-hidden="true"><img src="/egg-closed.webp" alt=""><svg class="hatch-cracks" viewBox="0 0 620 620" aria-hidden="true"><path class="hatch-c1" pathLength="1" d="M114,318 L146,302 L172,330 L200,296 L226,331 L245,301"/><path class="hatch-c2" pathLength="1" d="M245,301 L272,336 L308,290 L338,332 L375,302"/><path class="hatch-c3" pathLength="1" d="M375,302 L396,333 L420,298 L448,332 L474,300 L506,320"/><path class="hatch-b1" pathLength="1" d="M272,336 L262,368 L272,392"/><path class="hatch-b2" pathLength="1" d="M308,290 L318,262 L308,240"/></svg></span>
+    <span class="hatch-layer hatch-egg" aria-hidden="true"><img src="/egg-closed.webp" alt=""><svg class="hatch-cracks" viewBox="0 0 620 620" aria-hidden="true"><path class="hatch-c1" pathLength="1" d="M114,318 L146,302 L172,330 L200,296 L226,331 L245,301"/><path class="hatch-c2" pathLength="1" d="M245,301 L272,336 L308,290 L338,332 L375,302"/><path class="hatch-c3" pathLength="1" d="M375,302 L396,333 L420,298 L448,332 L474,300 L506,320"/></svg></span>
     <img class="hatch-layer hatch-cap" src="/egg-shell-clean.webp" alt="" aria-hidden="true">
     <img class="hatch-layer hatch-pop" alt="">
     <span class="hatch-layer hatch-burst" aria-hidden="true"><i class="hatch-flash"></i><i class="hatch-ring"></i>${hatchShards}</span>
