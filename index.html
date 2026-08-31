@@ -1081,10 +1081,10 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   .lib-illo{height:clamp(150px,40vw,205px);}
 }
 
-/* ── COMPARE — us vs the chatbots, one honest table ── */
+/* ── COMPARE — us vs Viktor vs the chatbots, one honest table ── */
 .compare-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .compare{
-  width:100%;min-width:640px;border-collapse:separate;border-spacing:0;
+  width:100%;min-width:780px;border-collapse:separate;border-spacing:0;
   border:1.5px solid var(--ink);border-radius:20px;overflow:hidden;
   background:#fff;
 }
@@ -1106,10 +1106,10 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 .compare thead .co-head .lg{width:24px;height:24px;}
 .compare thead .co-head img{width:30px;height:30px;border-radius:8px;}
 .compare tbody th{
-  font-weight:600;color:var(--ink);width:30%;
+  font-weight:600;color:var(--ink);width:22%;
   font-family:var(--font-d);letter-spacing:-.01em;
 }
-.compare td{color:var(--ink-70);width:35%;}
+.compare td{color:var(--ink-70);width:26%;}
 .compare td.co-us{
   background:linear-gradient(150deg,#E7F1FA 0%,#DDEBF7 100%);
   color:var(--ink);font-weight:600;
@@ -1127,6 +1127,8 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 }
 .compare .mark-yes{background:var(--accent);color:#fff;border:1.5px solid var(--ink);}
 .compare .mark-no{background:var(--paper-2);color:var(--ink-50);border:1.5px solid var(--line);}
+.compare .mark-mid{background:var(--accent-2);color:var(--ink);border:1.5px solid var(--line);}
+.compare thead .co-head img.lg-viktor{width:24px;height:24px;border-radius:6px;}
 /* ticks stamp themselves in as the table scrolls into view */
 .js .compare .mark{transform:scale(0);}
 .compare.is-visible .mark{
@@ -1966,7 +1968,7 @@ html.lenis,html.lenis body{height:auto;}
   <div class="wrap">
     <div class="sec-head reveal">
       <h2 class="sec-title">The <em>Difference.</em></h2>
-      <p class="sec-intro">Chatbots are brilliant at answering. Then the work is still sitting there.</p>
+      <p class="sec-intro">A model answers questions. An agent gets the job done. Here's the difference, in plain English.</p>
     </div>
 
     <div class="compare-wrap reveal">
@@ -1975,43 +1977,51 @@ html.lenis,html.lenis body{height:auto;}
           <tr>
             <th scope="col"><span class="sr-only">What we're comparing</span></th>
             <th scope="col" class="co-us-h"><span class="co-head"><img src="hatchy-avatar.webp" alt="" width="30" height="30" />Your hatched agent</span></th>
+            <th scope="col"><span class="co-head"><img class="lg-viktor" src="viktor-logo.png" alt="" width="24" height="24" />Viktor</span></th>
             <th scope="col"><span class="co-head co-head-vs"><svg class="lg"><use href="#lg-openai"/></svg><svg class="lg"><use href="#lg-claude"/></svg>ChatGPT / Claude</span></th>
           </tr>
         </thead>
         <tbody>
           <tr>
+            <th scope="row">What is it?</th>
+            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:0">✓</span>An agent — does the job, start to finish</span></td>
+            <td><span class="cwrap"><span class="mark mark-yes" style="--d:0">✓</span>An agent too — the same one for everyone</span></td>
+            <td><span class="cwrap"><span class="mark mark-no" style="--d:0">–</span>A model — brilliant answers, zero hands</span></td>
+          </tr>
+          <tr>
             <th scope="row">What you get back</th>
-            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:0">✓</span>Finished work — sent, filed, live</span></td>
-            <td><span class="cwrap"><span class="mark mark-no" style="--d:0">–</span>An answer you act on</span></td>
+            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:1">✓</span>The finished job — sent, filed, live</span></td>
+            <td><span class="cwrap"><span class="mark mark-mid" style="--d:1">~</span>The job done — if a ready-made skill fits it</span></td>
+            <td><span class="cwrap"><span class="mark mark-no" style="--d:1">–</span>An answer — the work is still yours</span></td>
           </tr>
           <tr>
-            <th scope="row">Where it lives</th>
-            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:1">✓</span>Inside your Slack &amp; Teams</span></td>
-            <td><span class="cwrap"><span class="mark mark-no" style="--d:1">–</span>Its own separate app</span></td>
+            <th scope="row">In your Slack &amp; Teams?</th>
+            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:2">✓</span>Yes — it works where your team already talks</span></td>
+            <td><span class="cwrap"><span class="mark mark-yes" style="--d:2">✓</span>Yes — Slack &amp; Teams too</span></td>
+            <td><span class="cwrap"><span class="mark mark-no" style="--d:2">–</span>No — its own separate app</span></td>
           </tr>
           <tr>
-            <th scope="row">Knows your business</th>
-            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:2">✓</span>Your tone, templates &amp; tools</span></td>
-            <td><span class="cwrap"><span class="mark mark-no" style="--d:2">–</span>Starts generic every time</span></td>
+            <th scope="row">The harness</th>
+            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:3">✓</span>Skills, memory &amp; approvals around the model — that's what makes it an agent</span></td>
+            <td><span class="cwrap"><span class="mark mark-mid" style="--d:3">~</span>Fixed — take it as it ships</span></td>
+            <td><span class="cwrap"><span class="mark mark-no" style="--d:3">–</span>None — just the raw model</span></td>
           </tr>
           <tr>
-            <th scope="row">The harness around it</th>
-            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:3">✓</span>Skills, memory &amp; approvals wrapped around the model</span></td>
-            <td><span class="cwrap"><span class="mark mark-no" style="--d:3">–</span>Just the raw model in a chat box</span></td>
+            <th scope="row">Knows your business?</th>
+            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:4">✓</span>Yes — your tone, templates &amp; tools</span></td>
+            <td><span class="cwrap"><span class="mark mark-mid" style="--d:4">~</span>Barely — same assistant for every company</span></td>
+            <td><span class="cwrap"><span class="mark mark-no" style="--d:4">–</span>No — starts generic every chat</span></td>
           </tr>
           <tr>
             <th scope="row">What you pay</th>
-            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:4">✓</span>Per token, at cost — only what you use</span></td>
-            <td><span class="cwrap"><span class="mark mark-no" style="--d:4">–</span>A flat per-seat fee, every month</span></td>
-          </tr>
-          <tr>
-            <th scope="row">The AI inside</th>
-            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:5">✓</span>Any model — swap in one click</span></td>
-            <td><span class="cwrap"><span class="mark mark-no" style="--d:5">–</span>Locked to one vendor's models</span></td>
+            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:5">✓</span>Model cost only — per use, nothing flat</span></td>
+            <td><span class="cwrap"><span class="mark mark-no" style="--d:5">–</span>A subscription every month, busy or quiet</span></td>
+            <td><span class="cwrap"><span class="mark mark-no" style="--d:5">–</span>A per-seat fee every month</span></td>
           </tr>
           <tr>
             <th scope="row">Set-up &amp; upkeep</th>
-            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:6">✓</span>We install &amp; maintain it for you</span></td>
+            <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:6">✓</span>We do it — installed, maintained, improved</span></td>
+            <td><span class="cwrap"><span class="mark mark-mid" style="--d:6">~</span>You do it — self-serve</span></td>
             <td><span class="cwrap"><span class="mark mark-no" style="--d:6">–</span>You're on your own</span></td>
           </tr>
         </tbody>
