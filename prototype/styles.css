@@ -754,3 +754,58 @@ h1{font-weight:800}h2{font-weight:700}
 /* a design that already hatched holds its final pose on re-render (no reset to a closed egg) */
 .hhx.done .hatch-egg,.hhx.done .hatch-cap,.hhx.done .hatch-burst,.hhx.done .hatch-cracks{animation:none!important;opacity:0!important}
 .hhx.done .hatch-pop{animation:none!important;opacity:1!important;transform:none!important}
+/* ============ Welcome hatch — one continuous 5s choreography, no layer swaps ============
+   The egg is two clip-path halves of the same egg image split along the crack seam, so the
+   composed egg is pixel-identical to the whole egg until the lid (the real egg top) tumbles
+   off. Hatchy rises from behind the bottom shell on the same clock. Every layer uses one 5s
+   timeline (1% = 50ms) with fill-mode both, so the final frame is held — nothing swaps in. */
+.hx5{position:relative;width:min(300px,80%);aspect-ratio:31/38;z-index:1;cursor:pointer;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.hx5-egg{position:absolute;left:0;bottom:0;width:100%;aspect-ratio:1/1}
+.hx5-egg img,.hx5-cracks{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.hx5-robot{position:absolute;left:16%;bottom:13%;width:68%;pointer-events:none;transform-origin:50% 100%;transform:translateY(3%) scale(.42);clip-path:polygon(0 0,66% 0,66% 19%,72% 19%,72% 24.5%,100% 24.5%,100% 100%,0 100%)}
+.hx5-lid{transform-origin:50% 42%}
+/* egg group: settle in, three wobble bouts, tremble — then rests (the shell stays) */
+.hx5.run .hx5-egg{animation:hx5Egg 5s ease both}
+@keyframes hx5Egg{
+  0%{opacity:0;transform:translateY(-2%) scale(.96)}
+  6%{opacity:1;transform:none}
+  12%{transform:rotate(0)}14%{transform:rotate(-3deg)}16%{transform:rotate(2.5deg)}18%{transform:rotate(-1.5deg)}20%{transform:rotate(0)}
+  28%{transform:rotate(0)}30%{transform:rotate(-5deg) translateY(-1.2%)}32%{transform:rotate(4.5deg)}34%{transform:rotate(-3deg) translateY(-.6%)}36%{transform:rotate(0) translateY(0)}
+  44%{transform:rotate(0)}45.5%{transform:rotate(-6deg) translateY(-1.6%)}47%{transform:rotate(5.5deg)}48.5%{transform:rotate(-4deg) translateY(-1%)}50%{transform:rotate(3deg)}51.5%{transform:rotate(-1.5deg)}53%{transform:rotate(1.5deg)}54.5%{transform:rotate(-1deg)}56%{transform:rotate(.8deg)}57.5%,100%{transform:rotate(0)}
+}
+/* the crack draws leg by leg during the wobbles, then fades as the real seam takes over */
+.hx5.run .hx5-cracks{animation:hx5CrackFade 5s linear both}
+@keyframes hx5CrackFade{0%,58%{opacity:1}63%,100%{opacity:0}}
+.hx5.run .hx5-c1{animation:hx5C1 5s linear both}
+.hx5.run .hx5-c2{animation:hx5C2 5s linear both}
+.hx5.run .hx5-c3{animation:hx5C3 5s linear both}
+@keyframes hx5C1{0%,16%{stroke-dashoffset:198}21%,100%{stroke-dashoffset:0}}
+@keyframes hx5C2{0%,33%{stroke-dashoffset:202}38%,100%{stroke-dashoffset:0}}
+@keyframes hx5C3{0%,48%{stroke-dashoffset:204}53%,100%{stroke-dashoffset:0}}
+/* the lid IS the egg's top: it hinges up off the seam, arcs over and tumbles out of frame */
+.hx5.run .hx5-lid{animation:hx5Lid 5s linear both}
+@keyframes hx5Lid{
+  0%,58%{transform:none}
+  62%{transform:translate(3%,-14%) rotate(9deg)}
+  70%{transform:translate(14%,-42%) rotate(30deg)}
+  78%{transform:translate(30%,-52%) rotate(56deg)}
+  86%{transform:translate(50%,-26%) rotate(80deg)}
+  93%{transform:translate(66%,44%) rotate(98deg)}
+  100%{transform:translate(78%,140%) rotate(110deg)}
+}
+/* the bottom shell gives a little kick as the lid pops */
+.hx5.run .hx5-bottom{animation:hx5Kick 5s ease both}
+@keyframes hx5Kick{0%,58%{transform:none}60.5%{transform:translateY(1.6%) scale(1.015,.985)}64%{transform:translateY(-.5%)}67%,100%{transform:none}}
+/* Hatchy rises from inside the shell with overshoot and simply holds */
+.hx5.run .hx5-robot{animation:hx5Robot 5s both;animation-timing-function:cubic-bezier(.3,1.2,.45,1)}
+@keyframes hx5Robot{
+  0%,59%{transform:translateY(3%) scale(.42)}
+  73%{transform:translateY(-4%) scale(1.04)}
+  81%{transform:translateY(1.2%) scale(.985)}
+  88%,100%{transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .hx5 .hx5-egg,.hx5 .hx5-lid,.hx5 .hx5-bottom,.hx5 .hx5-robot,.hx5 .hx5-cracks,.hx5 .hx5-cracks path{animation:none!important}
+  .hx5 .hx5-lid,.hx5 .hx5-cracks{opacity:0}
+  .hx5 .hx5-robot{transform:none}
+}

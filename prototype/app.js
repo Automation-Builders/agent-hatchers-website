@@ -62,7 +62,21 @@
     plus:'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-width="2.4"/></svg>',
     chev:'<svg viewBox="0 0 24 24"><path d="M8 10l4 4 4-4" fill="none" stroke-width="2"/></svg>'
   };
-  function welcome(){return `<div class="stage welcome-grid"><div><h1 class="welcome-title">Hatch your agent</h1><div class="actions">${button('Start →','next')}</div></div><div class="welcome-art" aria-hidden="true"><div class="preview-egg"></div></div></div>`;}
+  // Welcome hatch: ONE continuous 5s animation, no layer swaps. The egg is two
+  // clip-path halves of the same egg-closed.webp split along the crack seam, so the
+  // lid that tumbles off IS the egg's top; Hatchy rises from behind the bottom shell
+  // on the same clock and the last keyframe simply holds (fill-mode: both).
+  const HX5_SEAM='81.61% 51.61%,76.45% 48.39%,72.26% 53.55%,67.74% 48.06%,63.87% 53.71%,60.48% 48.71%,54.52% 53.55%,49.68% 46.77%,43.87% 54.19%,39.52% 48.55%,36.45% 53.39%,32.26% 47.74%,27.74% 53.23%,23.55% 48.71%,18.39% 51.29%';
+  const HX5_SEAM_UP='18.39% 50.69%,23.55% 48.11%,27.74% 52.63%,32.26% 47.14%,36.45% 52.79%,39.52% 47.95%,43.87% 53.59%,49.68% 46.17%,54.52% 52.95%,60.48% 48.11%,63.87% 53.11%,67.74% 47.46%,72.26% 52.95%,76.45% 47.79%,81.61% 51.01%';
+  function hatch5(){return `<div class="hx5 run" data-hatch5 aria-hidden="true">
+    <img class="hx5-robot" src="/hatchy-success.webp" alt="">
+    <div class="hx5-egg">
+      <img class="hx5-bottom" src="/egg-closed.webp" alt="" style="clip-path:polygon(0 50.69%,${HX5_SEAM_UP},100% 51.01%,100% 100%,0 100%)">
+      <img class="hx5-lid" src="/egg-closed.webp" alt="" style="clip-path:polygon(0 0,100% 0,100% 51.61%,${HX5_SEAM},0 51.29%)">
+      <svg class="hx5-cracks" viewBox="0 0 620 620"><path class="hx5-c1" d="M114,318 L146,302 L172,330 L200,296 L226,331 L245,301" fill="none" stroke="#1b1a40" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:198;stroke-dashoffset:198"/><path class="hx5-c2" d="M245,301 L272,336 L308,290 L338,332 L375,302" fill="none" stroke="#1b1a40" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:202;stroke-dashoffset:202"/><path class="hx5-c3" d="M375,302 L396,333 L420,298 L448,332 L474,300 L506,320" fill="none" stroke="#1b1a40" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:204;stroke-dashoffset:204"/></svg>
+    </div>
+  </div>`;}
+  function welcome(){return `<div class="stage welcome-grid"><div><h1 class="welcome-title">Hatch your agent</h1><div class="actions">${button('Start →','next')}</div></div><div class="welcome-art" aria-hidden="true">${hatch5()}</div></div>`;}
   function nameScreen(){return `<div class="stage"><span class="eyebrow">Step 1 · Create a profile</span><h2>Create your agent</h2><p>Give it a name, tell us your type of company, and describe how it should look. You’ll pick specialist agents (sales, invoices, support…) from the marketplace next.</p><input class="name-field" id="agent-name" maxlength="28" autocomplete="off" placeholder="Agent name — e.g. Pip, Scout or Atlas" value="${escapeHtml(state.name)}" aria-label="Agent name"><label class="field-label" for="agent-biz">Type of company</label><input class="name-field" id="agent-biz" maxlength="60" autocomplete="off" placeholder="e.g. e-commerce, agency, clinic, SaaS" value="${escapeHtml(state.biz)}" aria-label="Type of company"><label class="field-label" for="agent-look">Image description</label><div class="mic-field"><textarea class="look-field" id="agent-look" placeholder="e.g. a friendly rounded robot in blue and white, holding a suitcase" aria-label="Image description">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div><div class="chips">${lookSeeds.map((s,i)=>`<button class="chip" data-look-index="${i}">${escapeHtml(s.label)}</button>`).join('')}</div><div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
   function designScreen(){return `<div class="stage"><span class="eyebrow">Step 2 · Design the look</span><h2>Describe how ${escapeHtml(state.name)} should look</h2><p>Write a short, practical description and we’ll hatch three designs for you to choose from.</p><div class="mic-field"><textarea class="look-field" id="agent-look" maxlength="600" placeholder="e.g. a friendly rounded robot medic in blue and white, holding a checklist" aria-label="Describe the avatar">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div><div class="chips">${lookSeeds.map((s,i)=>`<button class="chip" data-look-index="${i}">${escapeHtml(s.label)}</button>`).join('')}</div><div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
   // The EXACT homepage hero hatch (index.html #eggScene): closed egg wobbles ×3, one
@@ -359,6 +373,7 @@
       el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick()}};
     });
     root.querySelectorAll('[data-look-index]').forEach(el=>el.onclick=()=>{const ta=document.getElementById('agent-look');if(ta){ta.value=lookSeeds[+el.dataset.lookIndex].text;ta.focus()}});
+    root.querySelectorAll('[data-hatch5]').forEach(el=>el.onclick=()=>{el.classList.remove('run');void el.offsetWidth;el.classList.add('run');});
     root.querySelectorAll('[data-mic]').forEach(btn=>btn.onclick=()=>startDictation(btn));
     root.querySelectorAll('[data-tab]').forEach(el=>el.onclick=()=>{state.tab=el.dataset.tab;render();});
     root.querySelectorAll('[data-chat]').forEach(el=>el.onclick=()=>{state.chatActive=+el.dataset.chat;render();});
