@@ -139,7 +139,7 @@
           "name": "Is my data safe? Do you need my passwords?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "We never ask for passwords — we connect through each app's official 'Sign in with…' approval screen, and you can revoke any connection yourself at any time. Hermes is installed for your business alone, each agent gets access only to the tools its job needs, nothing goes out without a person approving it, and your data is never used to train anyone's AI models."
+            "text": "We never ask for passwords — we connect through each app's official 'Sign in with…' approval screen, and you can revoke any connection yourself at any time. Hermes is installed for your business alone — on its own Linode server, with your files in your own Google Cloud storage bucket — each agent gets access only to the tools its job needs, anything customer-facing waits for a person to approve it, and we don't use your data to train AI models."
           }
         },
         {
@@ -1229,40 +1229,32 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 }
 .price-foot strong{color:var(--ink);font-weight:600;}
 
-/* ── SECURITY — two roomy rows, icon beside the words ── */
-.safe-grid{
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:clamp(16px,1.8vw,26px);
-}
+/* ── SECURITY — editorial ledger rows, plain facts ── */
+.safe-list{border-top:1.5px solid var(--ink);}
 .safe{
-  background:#fff;border:1.5px solid var(--ink);border-radius:18px;
-  padding:clamp(24px,2.4vw,38px);
-  display:grid;grid-template-columns:auto minmax(0,1fr);
-  column-gap:clamp(18px,1.8vw,26px);row-gap:10px;align-items:start;
-  transition:transform .28s cubic-bezier(.22,1,.36,1),box-shadow .28s;
+  display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.45fr);
+  column-gap:clamp(20px,4vw,72px);row-gap:10px;
+  padding:clamp(22px,2.8vw,36px) 0;
+  border-bottom:1px solid var(--line);align-items:center;
 }
-.safe:hover{transform:translateY(-4px);box-shadow:0 16px 34px rgba(22,21,15,.10);}
-.safe-illo{
-  grid-row:1 / span 2;align-self:center;
-  display:grid;place-items:center;
-  width:clamp(96px,9vw,132px);
+.safe-lead{display:flex;align-items:center;gap:clamp(14px,1.6vw,22px);}
+.safe-ic{
+  width:clamp(44px,3.6vw,54px);height:clamp(44px,3.6vw,54px);
+  border-radius:50%;flex-shrink:0;
+  background:var(--accent-2);border:1.5px solid var(--ink);
+  display:grid;place-items:center;color:var(--ink);
+  transition:background .25s,color .25s,transform .28s cubic-bezier(.22,1,.36,1);
 }
-.safe-illo img{
-  width:100%;height:auto;display:block;
-  filter:drop-shadow(0 5px 10px rgba(22,21,15,.12));
-  transition:transform .28s cubic-bezier(.22,1,.36,1);
-}
-.safe:hover .safe-illo img{transform:translateY(-3px) scale(1.03);}
+.safe-ic svg{width:46%;height:46%;}
+.safe:hover .safe-ic{background:var(--accent);color:#fff;transform:rotate(-8deg) scale(1.06);}
 .safe h3{
-  align-self:center;
-  font-size:clamp(19px,1.7vw,24px);font-weight:700;letter-spacing:-.02em;line-height:1.15;
+  font-size:clamp(19px,1.9vw,27px);font-weight:700;letter-spacing:-.02em;line-height:1.15;
 }
-.safe p{grid-column:2;font-size:clamp(15px,1.15vw,16.5px);line-height:1.65;color:var(--ink-70);}
+.safe p{font-size:clamp(15px,1.2vw,17px);line-height:1.65;color:var(--ink-70);max-width:58ch;}
 .safe p strong{color:var(--ink);font-weight:600;}
 .safe-note{margin-top:clamp(24px,3vw,40px);font-size:15.5px;line-height:1.6;color:var(--ink-70);max-width:74ch;}
 @media(max-width:760px){
-  .safe-grid{grid-template-columns:1fr;}
-  .safe{padding:clamp(20px,5vw,28px);}
+  .safe{grid-template-columns:1fr;padding:20px 0;}
 }
 
 /* ── FOUNDERS — one compact row ── */
@@ -1580,6 +1572,14 @@ html.lenis,html.lenis body{height:auto;}
     <symbol id="ic-power" viewBox="0 0 24 24">
       <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
       <line x1="12" y1="2.5" x2="12" y2="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="ic-server" viewBox="0 0 24 24">
+      <rect x="3" y="4" width="18" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+      <rect x="3" y="13" width="18" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+      <circle cx="7" cy="7.5" r="1.3" fill="currentColor"/>
+      <circle cx="7" cy="16.5" r="1.3" fill="currentColor"/>
+      <line x1="14" y1="7.5" x2="18" y2="7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <line x1="14" y1="16.5" x2="18" y2="16.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
     </symbol>
   </defs>
 </svg>
@@ -2040,25 +2040,40 @@ html.lenis,html.lenis body{height:auto;}
       <p class="sec-intro">It reads invoices and sends email as your company. Here's how we keep that safe — no acronyms.</p>
     </div>
 
-    <div class="safe-grid">
+    <div class="safe-list">
       <div class="safe reveal">
-        <span class="safe-illo" aria-hidden="true"><img src="hatchy-brass-key-transparent.webp" alt="" width="1178" height="1335" loading="lazy" decoding="async" /></span>
-        <h3>One job, one set of keys</h3>
-        <p>The invoice agent can reach your accounting software — <strong>and nothing else.</strong> Like a bookkeeper who has the Xero login but not the payroll one.</p>
+        <div class="safe-lead">
+          <span class="safe-ic" aria-hidden="true"><svg><use href="#ic-server"/></svg></span>
+          <h3>Your own server, your own storage</h3>
+        </div>
+        <p>Hermes isn't a shared app you log into next to a thousand other companies. It runs on <strong>a separate Linode server set up for your business alone,</strong> and your files sit in your business's own Google Cloud storage bucket — not in a pool with anyone else's.</p>
       </div>
       <div class="safe reveal">
-        <span class="safe-illo" aria-hidden="true"><img src="hatchy-envelope-bright.webp" alt="" width="1172" height="1342" loading="lazy" decoding="async" /></span>
-        <h3>Nothing sent without you</h3>
+        <div class="safe-lead">
+          <span class="safe-ic" aria-hidden="true"><svg><use href="#ic-key"/></svg></span>
+          <h3>One job, one set of keys</h3>
+        </div>
+        <p>The invoice agent can reach your accounting software — <strong>and nothing else.</strong> Like a bookkeeper who has the Xero login but not the payroll one. And we never ask for passwords: every connection goes through the app's official "Sign in with…" screen, so you can revoke it yourself.</p>
+      </div>
+      <div class="safe reveal">
+        <div class="safe-lead">
+          <span class="safe-ic" aria-hidden="true"><svg><use href="#ic-approve"/></svg></span>
+          <h3>Nothing sent without you</h3>
+        </div>
         <p>Agents draft and prepare on their own, but <strong>anything that reaches a customer or moves money waits for a human to click approve.</strong> You saw it in the demo.</p>
       </div>
       <div class="safe reveal">
-        <span class="safe-illo" aria-hidden="true"><img src="hatchy-locked-folder.webp" alt="" width="1254" height="1254" loading="lazy" decoding="async" /></span>
-        <h3>Your data trains no one</h3>
-        <p>Your emails and documents do <em>your</em> job and nothing else. <strong>Never fed back to train anyone's AI models</strong> — ours or the providers'. And we never ask for passwords: only official "Sign in with…" approvals.</p>
+        <div class="safe-lead">
+          <span class="safe-ic" aria-hidden="true"><svg><use href="#ic-lock"/></svg></span>
+          <h3>Your data isn't training material</h3>
+        </div>
+        <p>Your emails and documents do <em>your</em> job and nothing else — <strong>we don't use them to train AI models.</strong> AI requests run pay-per-use through paid business APIs, not through free consumer chatbots.</p>
       </div>
       <div class="safe reveal">
-        <span class="safe-illo" aria-hidden="true"><img src="hatchy-power-plug.webp" alt="" width="1254" height="1254" loading="lazy" decoding="async" /></span>
-        <h3>You hold the plug</h3>
+        <div class="safe-lead">
+          <span class="safe-ic" aria-hidden="true"><svg><use href="#ic-power"/></svg></span>
+          <h3>You hold the plug</h3>
+        </div>
         <p>Pause an agent, revoke a connection, remove the app — <strong>from your side, in seconds, no exit fee.</strong> Like deactivating a staff pass.</p>
       </div>
     </div>
@@ -2096,7 +2111,7 @@ html.lenis,html.lenis body{height:auto;}
       </details>
       <details class="faq-item reveal" id="faq-data">
         <summary>Is my data safe? Do you need my passwords?<span class="faq-icon">+</span></summary>
-        <div class="faq-body">Never a password — we connect through each app's official "Sign in with…" approval screen, and you can revoke any connection yourself, at any time, from your own admin settings. Hermes is installed for your business alone, each agent gets access only to the tools its job needs, nothing goes out without a person approving it, and your data is never used to train anyone's AI models. More in the <a href="#security" class="tlink">security section</a>.</div>
+        <div class="faq-body">Never a password — we connect through each app's official "Sign in with…" approval screen, and you can revoke any connection yourself, at any time, from your own admin settings. Hermes is installed for your business alone — on its own Linode server, with your files in your own Google Cloud storage bucket — each agent gets access only to the tools its job needs, anything customer-facing waits for a person to approve it, and we don't use your data to train AI models. More in the <a href="#security" class="tlink">security section</a>.</div>
       </details>
       <details class="faq-item reveal" id="faq-offboard">
         <summary>What if I want out, or something breaks?<span class="faq-icon">+</span></summary>
