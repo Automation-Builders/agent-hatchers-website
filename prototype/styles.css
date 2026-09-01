@@ -794,3 +794,63 @@ h1{font-weight:800}h2{font-weight:700}
 .profile-art{border-radius:18px;overflow:hidden;box-shadow:0 12px 28px rgba(33,107,172,.18);border:1px solid #dcebf3;background:#f2f8fc}
 .profile-art img{width:100%;height:100%;aspect-ratio:1/1;object-fit:cover;display:block}
 @media(max-width:640px){.profile-cols{grid-template-columns:1fr}.profile-art{max-width:220px}}
+/* ============ Merch tab — mirrors the real dashboard's Printful page ============ */
+.merch-page{flex:1;overflow-y:auto;max-width:1600px;width:100%;margin:0 auto;padding:20px clamp(16px,2.4vw,30px) 40px}
+.merch-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.merch-head h2{display:flex;align-items:center;gap:11px;font-size:1.5rem;font-weight:800;color:#16253f;margin:0}
+.merch-ic{width:34px;height:34px;border-radius:10px;background:#fdeeda;display:grid;place-items:center;color:#c07f1f}
+.merch-ic svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2}
+.merch-sub{font-size:.85rem;color:#8a94a0}
+.merch-note{margin:14px 0 4px;background:#fff8e6;border:1px solid #f3dfae;color:#a4700c;font:600 .84rem 'Inter',system-ui;padding:10px 14px;border-radius:10px}
+.merch-step{font-size:1.02rem;font-weight:800;color:#16253f;margin:26px 0 12px}
+.mr-row{display:flex;gap:14px;overflow-x:auto;padding:4px 2px 10px}
+.mr{display:flex;flex-direction:column;align-items:center;gap:6px;border:0;background:none;cursor:pointer;flex:0 0 auto;width:86px}
+.mr-ava{width:64px;height:64px;border-radius:50%;overflow:hidden;border:3px solid transparent;background:#eef4f9;transition:border-color .15s,transform .15s}
+.mr:hover .mr-ava{transform:translateY(-2px)}
+.mr.on .mr-ava{border-color:#216bac}
+.mr-ava img{width:100%;height:100%;object-fit:cover}
+.mr-name{font:600 .72rem 'Inter',system-ui;color:#54606e;max-width:86px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.merch-prods{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+.merch-prod{display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff;border:1.5px solid #e7e9ee;border-radius:18px;padding:22px 16px 18px;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.merch-prod:hover{box-shadow:0 10px 24px rgba(20,40,70,.08)}
+.merch-prod.on{border-color:#216bac;box-shadow:0 10px 24px rgba(33,107,172,.12)}
+.merch-prod.is-off{opacity:.55;cursor:default}
+.merch-prod b{font-size:.98rem;color:#16253f;margin-top:8px}
+.merch-prod>span{font-size:.8rem;color:#8a94a0}
+.mock{position:relative;width:130px;aspect-ratio:1/1}
+.mock.big{width:min(240px,36vw);flex:0 0 auto}
+.mock.mini{width:52px}
+.merch-page .mock svg,.g-svg{width:100%!important;height:100%!important;display:block;flex:none}
+.g-print{position:absolute;border-radius:8%;object-fit:cover}
+.g-print.tee{left:36%;top:33%;width:28%}
+.g-print.jumper{left:36%;top:31%;width:28%}
+.g-print.hat{left:41%;top:34%;width:18%;border-radius:50%}
+.g-print.sock1{left:40%;top:22%;width:15%;border-radius:50%}
+.g-print.sock2{left:40%;top:42%;width:15%;border-radius:50%}
+.merch-detail{display:flex;gap:clamp(18px,3vw,40px);align-items:flex-start;background:#fff;border:1px solid #e7e9ee;border-radius:20px;padding:clamp(16px,2.4vw,28px);margin-top:18px}
+.merch-code{font-size:1.05rem;color:#16253f}
+.merch-conf{flex:1;min-width:0}
+.merch-conf p{margin:4px 0 14px;font-size:.9rem}
+.merch-label{font:700 .78rem 'Inter',system-ui;color:#54606e;margin:12px 0 8px}
+.swatches{display:flex;flex-wrap:wrap;gap:7px;max-width:920px}
+.sw{width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(16,16,40,.15);cursor:pointer;padding:0}
+.sw.on{outline:2.5px solid #216bac;outline-offset:2px}
+.sizes{display:flex;gap:8px;flex-wrap:wrap}
+.size{min-width:40px;padding:7px 11px;border-radius:999px;border:1.5px solid #dfe3e9;background:#fff;font:700 .8rem 'Inter',system-ui;color:#54606e;cursor:pointer}
+.size.on{border-color:#216bac;color:#216bac;background:#eef5fc}
+.merch-buy{display:flex;align-items:center;gap:14px;margin-top:18px;flex-wrap:wrap}
+.merch-buy>b{font-size:1.05rem;color:#16253f}
+.qty{display:inline-flex;align-items:center;gap:2px;border:1.5px solid #dfe3e9;border-radius:999px;padding:3px}
+.qty button{width:28px;height:28px;border:0;background:none;font-size:1rem;color:#54606e;cursor:pointer}
+.qty i{font-style:normal;font:700 .88rem 'Inter',system-ui;min-width:22px;text-align:center}
+.basket-btn{display:inline-flex;align-items:center;gap:8px;background:#1a9d5f;color:#fff;border:0;border-radius:999px;padding:11px 18px;font:700 .88rem 'Inter',system-ui;cursor:pointer}
+.basket-btn svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.merch-empty{color:#8a94a0;font-size:.92rem}
+.basket{background:#fff;border:1px solid #e7e9ee;border-radius:16px;padding:14px 18px;max-width:640px}
+.basket-row{display:flex;align-items:center;gap:14px;padding:9px 0;border-bottom:1px solid #f0f2f5}
+.basket-desc{flex:1;font-size:.9rem;color:#16253f}
+.basket-row.total{border-bottom:0;font-size:.95rem;justify-content:space-between}
+.basket .btn{margin-top:12px}
+.merch-pay{display:flex;align-items:center;gap:9px;margin-top:12px;background:#fff8e6;border:1px solid #f3dfae;color:#a4700c;font:700 .86rem 'Inter',system-ui;padding:11px 14px;border-radius:12px}
+.merch-pay svg{width:16px;height:16px;stroke:#c07f1f;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:760px){.merch-detail{flex-direction:column;align-items:center}}

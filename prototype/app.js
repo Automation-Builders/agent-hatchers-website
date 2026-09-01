@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 17;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 18;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -17,7 +17,7 @@
     {id:'website',icon:'◇',name:'Website Agent',industries:['all'],keywords:['website','content','publish','webflow','wordpress','page','blog','copy','web','online'],summary:'Keeps website content accurate, on-brand and ready for approval before publishing.',portrait:'/hatchy-website.webp',team:'Marketing',scene:'It is a website agent wearing a comfy hoodie and headphones around its neck, at a dual-monitor desk in a loft studio at night editing a colourful online storefront, with sticky notes on the window and a small cactus by the keyboard.',mcps:['GitHub','Webflow','WordPress','Google Drive','Slack'],outcomes:['Draft new website pages','Update approved copy and details','Check pages for stale information','Prepare search-friendly metadata','Publish only after human approval']},
     {id:'operations',icon:'✓',name:'Operations Agent',industries:['professional-services','construction','healthcare','all'],keywords:['operations','workflow','project','task','deadline','schedule','coordination','process','compliance','ops','clinic','manufacturing'],summary:'Coordinates repeatable workflows and keeps teams informed when work changes state.',portrait:'/hatchy-routing.webp',team:'Operations',scene:'It is an operations agent wearing a project-manager lanyard and holding a marker, standing at a wall-sized kanban board covered in swim-lanes and sticky notes in a bright planning room, with interlocking gears drawn on a whiteboard behind it.',mcps:['Monday.com','Asana','Notion','Slack','Microsoft Teams'],outcomes:['Turn requests into structured work','Monitor deadlines and blockers','Prepare daily operating summaries','Chase missing information','Escalate exceptions to the right person']}
   ];
-  const state = {step:0,name:'',biz:'',look:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:8,chatExtra:{},company:''};
+  const state = {step:0,name:'',biz:'',look:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:8,chatExtra:{},company:'',merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
   const root = document.getElementById('prototype-app');
   const co = () => state.company || config.company || 'Your Company';
   const DESIGN_AXES={
@@ -93,6 +93,7 @@
     analytics:'<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke-width="2"/></svg>',
     config:'<svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10" stroke-width="2"/><circle cx="16" cy="7" r="2.4" fill="none" stroke-width="2"/><circle cx="8" cy="17" r="2.4" fill="none" stroke-width="2"/></svg>',
     market:'<svg viewBox="0 0 24 24"><path d="M4 9l1-4h14l1 4M4 9h16v10H4zM4 9a3 3 0 006 0 3 3 0 006 0 3 3 0 004 0" fill="none" stroke-width="2"/></svg>',
+    merch:'<svg viewBox="0 0 24 24"><path d="M8 4l-5 3 2.5 4L8 10v10h8V10l2.5 1L21 7l-5-3a4 4 0 01-8 0z" fill="none" stroke-width="2"/></svg>',
     gallery:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.4"/><rect x="14" y="3" width="7" height="7" rx="1.4"/><rect x="3" y="14" width="7" height="7" rx="1.4"/><rect x="14" y="14" width="7" height="7" rx="1.4"/></svg>',
     kanban:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.4"/><rect x="10" y="4" width="5" height="11" rx="1.4"/><rect x="17" y="4" width="4" height="14" rx="1.4"/></svg>',
     search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke-width="2"/><path d="M20 20l-4-4" stroke-width="2"/></svg>',
@@ -226,13 +227,69 @@
       <div class="mkt-grid">${ranked.map((a,i)=>{const img=state.marketImages[a.id];const installed=topAgents().some(t=>t.id===a.id);const inner=img?`<img src="${escapeHtml(img)}" alt="${escapeHtml(a.name)}">`:(willGenerate(a)?marketLoader:`<img src="${a.portrait}" alt="${escapeHtml(a.name)}" loading="lazy">`);return `<article class="mkt-card" data-agent="${a.id}" data-search="${escapeHtml((a.name+' '+a.team).toLowerCase())}" tabindex="0"><div class="mkt-thumb thumb-${a.id}">${inner}${installed?`<span class="mkt-installed">${ci.check}<span>Installed</span></span>`:''}</div><div class="mkt-body"><h3>${a.name}</h3><p>${a.summary}</p><div class="mkt-tags"><span class="p-tag">${a.team}</span><span class="mkt-skills">${a.outcomes.length} skills</span></div></div></article>`;}).join('')}</div>
     </div>`;
   }
+
+  // ── Merch tab — mirrors the real dashboard's Printful page ──
+  const MERCH_PRODUCTS=[
+    {id:'tee',name:'T-shirt',price:11.92,code:'3001',desc:'Classic unisex tee with the robot printed front and centre.'},
+    {id:'jumper',name:'Jumper',price:19.17,code:'18500',desc:'Heavyweight hooded jumper with the robot printed front and centre.'},
+    {id:'socks',name:'Socks',price:null,code:'Crew',desc:'Crew socks with an all-over robot pattern.'},
+    {id:'hat',name:'Hat',price:14.94,code:'Snapback',desc:'Structured snapback with the robot embroidered on the front.'}
+  ];
+  const MERCH_COLORS=[['Aqua','#1D9FBF'],['Army','#5F5E44'],['Ash','#F2F1EC'],['Asphalt','#54514E'],['Athletic Heather','#CBCBCB'],['Autumn','#C85313'],['Baby Blue','#CDE0F2'],['Berry','#C4265E'],['Black','#101010'],['Black Heather','#1E1C1C'],['Brown','#4E3629'],['Burnt Orange','#D9773B'],['Cardinal','#9A1B2F'],['Charity Pink','#F67599'],['Charcoal','#3C3B3D'],['Dark Grey','#575959'],['Forest','#1C4230'],['Gold','#F2A93B'],['Ocean Blue','#1D9FBF'],['Toast','#B4653A'],['Clay','#9A5B44'],['Lavender Blue','#C4CFF0'],['Terracotta','#A85341'],['True Royal','#3E5EBF'],['Steel Blue','#4C6E8B'],['Cream','#EDE4D3'],['Evergreen','#1E4E36'],['Kelly','#2E8B57'],['Leaf','#5C9346'],['Mint','#DFF5EC'],['Teal','#12A29B'],['Mauve','#C77E8F'],['Navy','#1F2A44'],['Sage','#C9E5C5'],['Ivory','#F5EEDF'],['Deep Heather','#3F4149'],['Olive','#5B5B33'],['Coral','#F26D5B'],['Dusty Pink','#E1A9B8'],['Seafoam','#BFE3D5'],['Ice Blue','#D4EEF2'],['Pink','#F3B8CF'],['Spring Green','#A9D9A2'],['Red','#C8102E'],['Scarlet','#E23A3A'],['Slate','#5E7079'],['Lilac','#B78BD1'],['Indigo','#5A6BB0'],['Yellow','#F3C13A'],['Kelly Green','#28A05C'],['Soft Pink','#F2C6D8'],['Maroon','#6E1F32'],['Rose','#D4707E'],['Moss','#7C8449'],['Light Green','#C4EDB2'],['Butter','#F6E27F'],['Midnight','#232A5C'],['Sky','#BEE3F2'],['Olive Drab','#6B7031'],['Tangerine','#EE7B3C'],['Cocoa','#7A5643'],['Blush','#F6D7DC'],['True Red','#D31F2C'],['Sea Green','#7FBFA0'],['Stone','#D6D2C4'],['Turquoise','#37C2C8'],['Plum','#3B2A50'],['Amber','#E0932F'],['Royal','#2450B5'],['Aqua Blue','#59CBE8'],['Onyx','#232323'],['Snow','#FBFBFB'],['White','#FFFFFF'],['Lemon','#F5E15C']];
+  const MERCH_SIZES=['S','M','L','XL','2XL','3XL','4XL'];
+  function merchRobots(){
+    const you={id:'__you',name:state.name||'Your agent',img:state.selectedImage||'/hatchy-pop.webp'};
+    return [you,...catalog.map(a=>({id:a.id,name:a.name.replace(' Agent','').toLowerCase()+'-agent',img:state.marketImages[a.id]||a.portrait}))];
+  }
+  function merchRobotImg(){const r=merchRobots().find(r=>r.id===state.merch.robot)||merchRobots()[0];return r.img;}
+  function garmentSvg(kind,color){
+    const g=escapeHtml(color);
+    if(kind==='tee')return `<svg viewBox="0 0 100 100" class="g-svg"><path d="M20 18 L38 9 C42 16 58 16 62 9 L80 18 L93 33 L79 41 L79 90 L21 90 L21 41 L7 33 Z" style="fill:${g}" stroke="rgba(16,16,40,.18)" stroke-width="1.5"/></svg>`;
+    if(kind==='jumper')return `<svg viewBox="0 0 100 100" class="g-svg"><path d="M22 16 L39 8 C43 14 57 14 61 8 L78 16 L92 58 L79 62 L79 90 L21 90 L21 62 L8 58 Z" style="fill:${g}" stroke="rgba(16,16,40,.18)" stroke-width="1.5"/><path d="M39 8 C43 14 57 14 61 8 L58 16 C54 20 46 20 42 16 Z" style="fill:rgba(16,16,40,.12)"/></svg>`;
+    if(kind==='socks')return `<svg viewBox="0 0 100 100" class="g-svg"><path d="M36 8 h26 v42 c0 6 4 11 10 15 l7 5 c7 5 3 18 -8 18 h-15 c-11 0 -20 -9 -20 -20 Z" style="fill:${g}" stroke="rgba(16,16,40,.18)" stroke-width="1.5"/><path d="M36 8 h26 v8 h-26 Z" style="fill:rgba(16,16,40,.12)"/></svg>`;
+    return `<svg viewBox="0 0 100 100" class="g-svg"><path d="M22 56 a28 28 0 0 1 56 0 v4 h-56 Z" style="fill:${g}" stroke="rgba(16,16,40,.18)" stroke-width="1.5"/><path d="M20 60 h72 a7 7 0 0 1 -5 11 h-67 Z" style="fill:${g}" stroke="rgba(16,16,40,.18)" stroke-width="1.5"/></svg>`;
+  }
+  function merchMock(kind,color,img,cls){
+    const print=kind==='socks'
+      ? `<img class="g-print sock1" src="${escapeHtml(img)}" alt=""><img class="g-print sock2" src="${escapeHtml(img)}" alt="">`
+      : `<img class="g-print ${kind}" src="${escapeHtml(img)}" alt="">`;
+    return `<div class="mock ${cls||''}">${garmentSvg(kind,color)}${print}</div>`;
+  }
+  function merchView(){
+    const m=state.merch;const robots=merchRobots();const img=merchRobotImg();
+    const prod=MERCH_PRODUCTS.find(p=>p.id===m.product)||MERCH_PRODUCTS[0];
+    const colorHex=m.product==='hat'?'#16150F':MERCH_COLORS[m.color][1];
+    const basket=m.basket;
+    return `<div class="merch-page">
+      <div class="merch-head"><h2><span class="merch-ic">${ic.merch}</span>Merch</h2><span class="merch-sub">Your robots, printed and shipped by Printful</span></div>
+      <div class="merch-note">Browsing only — merch ordering unlocks with your live workspace.</div>
+      <h3 class="merch-step">1 · Pick a robot</h3>
+      <div class="mr-row">${robots.map(r=>`<button class="mr ${m.robot===r.id?'on':''}" data-merch-robot="${r.id}"><span class="mr-ava"><img src="${escapeHtml(r.img)}" alt=""></span><span class="mr-name">${escapeHtml(r.id==='__you'?'default':r.name)}</span></button>`).join('')}</div>
+      <h3 class="merch-step">2 · Pick the merch</h3>
+      <div class="merch-prods">${MERCH_PRODUCTS.map(p=>`<button class="merch-prod ${m.product===p.id?'on':''} ${p.price===null?'is-off':''}" data-merch-prod="${p.id}" ${p.price===null?'disabled':''}>${merchMock(p.id,p.id==='hat'?'#16150F':(p.id==='tee'?MERCH_COLORS[m.color][1]:'#F4F2EC'),img)}<b>${p.name}</b><span>${p.price===null?'unavailable':'from $'+p.price.toFixed(2)}</span></button>`).join('')}</div>
+      <div class="merch-detail">
+        ${merchMock(prod.id,colorHex,img,'big')}
+        <div class="merch-conf">
+          <b class="merch-code">${prod.code}</b>
+          <p>${prod.desc}</p>
+          ${prod.id!=='hat'?`<div class="merch-label">Colour · ${MERCH_COLORS[m.color][0]}</div>
+          <div class="swatches">${MERCH_COLORS.map((c,i)=>`<button class="sw ${i===m.color?'on':''}" style="background:${c[1]}" data-merch-color="${i}" title="${c[0]}" aria-label="${c[0]}"></button>`).join('')}</div>`:''}
+          <div class="merch-label">Size</div>
+          <div class="sizes">${(prod.id==='hat'?['One size']:MERCH_SIZES).map(s=>`<button class="size ${m.size===s?'on':''}" data-merch-size="${s}">${s}</button>`).join('')}</div>
+          <div class="merch-buy"><b>$${(prod.price||0).toFixed(2)}</b><span class="qty"><button data-merch-qty="-1">−</button><i>${m.qty}</i><button data-merch-qty="1">+</button></span><button class="basket-btn" data-merch-add="1">${ci.check} Add to basket</button></div>
+        </div>
+      </div>
+      <h3 class="merch-step">3 · Basket</h3>
+      ${basket.length?`<div class="basket">${basket.map((b,i)=>`<div class="basket-row">${merchMock(b.prod,b.color,b.img,'mini')}<span class="basket-desc"><b>${b.name}</b> · ${escapeHtml(b.colorName)} · ${b.size} ×${b.qty}</span><b>$${(b.price*b.qty).toFixed(2)}</b></div>`).join('')}<div class="basket-row total"><span>Total</span><b>$${basket.reduce((t,b)=>t+b.price*b.qty,0).toFixed(2)}</b></div>${m.note?`<div class="merch-pay">${ci.key} Please pay for your agent in order to order merch.</div>`:`<button class="btn btn-primary" data-merch-checkout="1">Checkout →</button>`}</div>`:`<p class="merch-empty">Nothing yet — add something above.</p>`}
+    </div>`;
+  }
   function marketScreen(){
     const tab=(k,label)=>`<button class="nav-tab ${state.tab===k?'active':''}" data-tab="${k}">${ic[k==='market'?'market':k]}<span>${label}</span></button>`;
-    const body = state.tab==='chats'?chatsView():state.tab==='analytics'?analyticsView():state.tab==='config'?configView():state.tab==='market'?marketplaceView():profilesBoard();
+    const body = state.tab==='chats'?chatsView():state.tab==='analytics'?analyticsView():state.tab==='config'?configView():state.tab==='market'?marketplaceView():state.tab==='merch'?merchView():profilesBoard();
     return `<div class="app">
       <header class="app-nav">
         <div class="ws"><img class="ws-logo ${state.selectedImage?'ws-avatar-img':''}" src="${state.selectedImage||'/agent-hatchers-logo.png'}" alt=""><span>${escapeHtml(co())}</span><i class="ws-chev">${ic.chev}</i></div>
-        <nav class="nav-tabs">${tab('profiles','Profiles')}${tab('chats','Chats')}${tab('analytics','Analytics')}${tab('config','Config')}${tab('market','Marketplace')}</nav>
+        <nav class="nav-tabs">${tab('profiles','Profiles')}${tab('chats','Chats')}${tab('analytics','Analytics')}${tab('config','Config')}${tab('market','Marketplace')}${tab('merch','Merch')}</nav>
         <div class="nav-right"><button class="create-btn" data-noop="1">${ic.plus}<span>Create</span></button><span class="nav-avatar">${initials(co())}</span></div>
       </header>
       ${body}
@@ -393,7 +450,7 @@
         const s=state.slots[state.variant];
         state.selectedImage=(s&&s.image)||state.selectedImage||((state.slots.find(x=>x&&x.image)||{}).image)||'';
         document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=3;render();generateMarket()}
-      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.look='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=8;state.chatExtra={};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.look='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=8;state.chatExtra={};state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-egg]').forEach(el=>{
       // Select a design the moment it's hatched — direct DOM updates only, so picking
@@ -406,6 +463,13 @@
       el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick()}};
     });
     root.querySelectorAll('[data-look-index]').forEach(el=>el.onclick=()=>{const ta=document.getElementById('agent-look');if(ta){ta.value=lookSeeds[+el.dataset.lookIndex].text;ta.focus()}});
+    root.querySelectorAll('[data-merch-robot]').forEach(el=>el.onclick=()=>{state.merch.robot=el.dataset.merchRobot;render();});
+    root.querySelectorAll('[data-merch-prod]').forEach(el=>el.onclick=()=>{state.merch.product=el.dataset.merchProd;state.merch.size=el.dataset.merchProd==='hat'?'One size':'S';render();});
+    root.querySelectorAll('[data-merch-color]').forEach(el=>el.onclick=()=>{state.merch.color=+el.dataset.merchColor;render();});
+    root.querySelectorAll('[data-merch-size]').forEach(el=>el.onclick=()=>{state.merch.size=el.dataset.merchSize;render();});
+    root.querySelectorAll('[data-merch-qty]').forEach(el=>el.onclick=()=>{state.merch.qty=Math.max(1,state.merch.qty + +el.dataset.merchQty);render();});
+    root.querySelectorAll('[data-merch-add]').forEach(el=>el.onclick=()=>{const m=state.merch;const p=MERCH_PRODUCTS.find(x=>x.id===m.product);if(!p||p.price===null)return;m.basket.push({prod:p.id,name:p.name,price:p.price,size:m.size,qty:m.qty,color:p.id==='hat'?'#16150F':MERCH_COLORS[m.color][1],colorName:p.id==='hat'?'Black':MERCH_COLORS[m.color][0],img:merchRobotImg()});m.qty=1;render();});
+    root.querySelectorAll('[data-merch-checkout]').forEach(el=>el.onclick=()=>{state.merch.note=true;render();});
     root.querySelectorAll('[data-hatch5]').forEach(el=>el.onclick=()=>{el.classList.remove('run');void el.offsetWidth;el.classList.add('run');});
     root.querySelectorAll('[data-mic]').forEach(btn=>btn.onclick=()=>startDictation(btn));
     root.querySelectorAll('[data-tab]').forEach(el=>el.onclick=()=>{state.tab=el.dataset.tab;render();});
