@@ -1,12 +1,12 @@
 (() => {
-  const BUILD = 20;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 21;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
   // its own outfit, props and environment — so the generated marketplace portraits don't
   // all end up in the same room wearing the same thing.
   const catalog = [
-    {id:'logistics',icon:'▣',name:'Logistics Agent',industries:['retail','all'],keywords:['e-commerce','ecommerce','shipping','delivery','logistics','warehouse','freight','courier','luggage','travel','orders','fulfilment','fulfillment','supply','store','shop'],summary:'Tracks every order and shipment, chases carriers and keeps customers informed.',portrait:'/hatchy-routing.webp',team:'Logistics',scene:'It is a logistics agent wearing a hi-vis orange safety vest and holding a barcode scanner, standing in a busy warehouse aisle between tall shelves of labelled parcels, with a conveyor belt of boxes and a shipping-routes wall map behind it.',mcps:['Shopify','ShipStation','AfterShip','Gmail','Slack'],outcomes:['Track every order from checkout to doorstep','Chase carriers on late or stuck shipments','Send customers proactive delivery updates','Flag lost parcels before customers complain','Prepare daily fulfilment summaries']},
+    {id:'logistics',icon:'▣',name:'Logistics Agent',industries:['retail','all'],keywords:['e-commerce','ecommerce','shipping','delivery','logistics','warehouse','freight','courier','luggage','travel','orders','tracking','parcel','auspost','carrier','shopify','fulfilment','fulfillment','supply','store','shop'],summary:'Tracks every order and shipment, chases carriers and keeps customers informed.',portrait:'/hatchy-routing.webp',team:'Logistics',scene:'It is a logistics agent wearing a hi-vis orange safety vest and holding a barcode scanner, standing in a busy warehouse aisle between tall shelves of labelled parcels, with a conveyor belt of boxes and a shipping-routes wall map behind it.',mcps:['Shopify','ShipStation','AfterShip','Gmail','Slack'],outcomes:['Track every order from checkout to doorstep','Chase carriers on late or stuck shipments','Send customers proactive delivery updates','Flag lost parcels before customers complain','Prepare daily fulfilment summaries']},
     {id:'marketing',icon:'✦',name:'Marketing Agent',industries:['retail','technology','all'],keywords:['e-commerce','ecommerce','marketing','ads','advertising','paid','ppc','seo','social','brand','growth','shop','store','d2c','retail','campaign'],summary:'Runs your campaigns end to end — paid ads, SEO and social — and reports what actually converts.',portrait:'/hatchy-website.webp',team:'Marketing',scene:'It is a marketing agent wearing a stylish beret and round glasses, holding a colour-swatch tablet in a bright creative studio, surrounded by mood boards, a ring light, and floating holographic ad-campaign dashboards with rising graphs.',mcps:['Google Ads','Meta Ads','Google Analytics','Klaviyo','Canva'],outcomes:['Draft and schedule ad campaigns','Rebalance spend toward what converts','Prepare weekly performance reports','Keep product listings search-friendly','Draft on-brand social and email content']},
     {id:'support',icon:'◉',name:'Support Agent',industries:['retail','healthcare','technology','all'],keywords:['support','enquiry','ticket','customer service','help desk','reply','triage','complaint','inbox','customer'],summary:'Triages customer enquiries, drafts helpful replies and escalates what matters.',portrait:'/hatchy-support.webp',team:'Support',scene:'It is a customer support agent wearing an over-ear headset with a boom microphone, sitting at a cosy help-desk pod with a warm desk lamp, a mug, and a wall of floating chat bubbles and five-star reviews behind it.',mcps:['Zendesk','Intercom','Gmail','Slack','Microsoft Teams'],outcomes:['Classify every inbound enquiry','Draft replies in your support voice','Surface urgent or sensitive cases','Find answers from your knowledge base','Track recurring customer issues']},
     {id:'returns',icon:'⇄',name:'Returns Agent',industries:['retail','all'],keywords:['e-commerce','ecommerce','returns','refund','exchange','warranty','rma','store','shop','retail','luggage'],summary:'Handles returns and exchanges end to end — labels, refunds and restocking.',portrait:'/hatchy-invoice.webp',team:'Support',scene:'It is a returns agent wearing a red apron and holding a tape gun, standing at a returns counter stacked with open parcels and bubble wrap, scanning a prepaid return label under a big hanging RETURNS & EXCHANGES sign.',mcps:['Shopify','Loop Returns','Stripe','Gmail','Slack'],outcomes:['Issue return labels automatically','Approve straightforward refunds instantly','Spot serial refunders and fraud patterns','Route damaged-item claims with photos','Report the top reasons items come back']},
@@ -17,7 +17,7 @@
     {id:'website',icon:'◇',name:'Website Agent',industries:['all'],keywords:['website','content','publish','webflow','wordpress','page','blog','copy','web','online'],summary:'Keeps website content accurate, on-brand and ready for approval before publishing.',portrait:'/hatchy-website.webp',team:'Marketing',scene:'It is a website agent wearing a comfy hoodie and headphones around its neck, at a dual-monitor desk in a loft studio at night editing a colourful online storefront, with sticky notes on the window and a small cactus by the keyboard.',mcps:['GitHub','Webflow','WordPress','Google Drive','Slack'],outcomes:['Draft new website pages','Update approved copy and details','Check pages for stale information','Prepare search-friendly metadata','Publish only after human approval']},
     {id:'operations',icon:'✓',name:'Operations Agent',industries:['professional-services','construction','healthcare','all'],keywords:['operations','workflow','project','task','deadline','schedule','coordination','process','compliance','ops','clinic','manufacturing'],summary:'Coordinates repeatable workflows and keeps teams informed when work changes state.',portrait:'/hatchy-routing.webp',team:'Operations',scene:'It is an operations agent wearing a project-manager lanyard and holding a marker, standing at a wall-sized kanban board covered in swim-lanes and sticky notes in a bright planning room, with interlocking gears drawn on a whiteboard behind it.',mcps:['Monday.com','Asana','Notion','Slack','Microsoft Teams'],outcomes:['Turn requests into structured work','Monitor deadlines and blockers','Prepare daily operating summaries','Chase missing information','Escalate exceptions to the right person']}
   ];
-  const state = {step:0,name:'',biz:'',look:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:8,chatExtra:{},company:'',merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
+  const state = {step:0,name:'',biz:'',look:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:8,chatExtra:{},chatTyping:{},company:'',merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
   const root = document.getElementById('prototype-app');
   const co = () => state.company || config.company || 'Your Company';
   const DESIGN_AXES={
@@ -40,6 +40,7 @@
   // prospect experience is never broken. Set generatePortraits:false to skip the call entirely.
   const portraitEndpoint = config.portraitEndpoint || 'https://agent-hatchers-portrait-proxy.vercel.app/api/prototype-portrait';
   const usePortraits = config.generatePortraits !== false && !!portraitEndpoint;
+  const chatEndpoint = config.chatEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-chat');
   const recommended = new Set(config.recommendedAgents||[]);
   function rankAgents(){const text=`${state.name} ${state.biz} ${state.look} ${industryLabel}`.toLowerCase();return catalog.map((agent,index)=>{let score=0;agent.keywords.forEach(k=>{if(text.includes(k))score+=4});if(agent.industries.includes(industry))score+=2;if(recommended.has(agent.id))score+=1;return{agent,score,index};}).sort((a,b)=>b.score-a.score||a.index-b.index);}
   // The 6 best-matched agents for this business get generated portraits + the Recommended row.
@@ -179,14 +180,51 @@
   }
   function agentAvatar(cls){return state.selectedImage?`<img class="${cls}" src="${escapeHtml(state.selectedImage)}" alt="">`:bot('v'+(state.variant||0)+' '+cls);}
   const avatarPool=()=>[state.selectedImage,...Object.values(state.marketImages)].filter(Boolean);
-  const poolAv=i=>{const p=avatarPool();return p.length?`<img src="${escapeHtml(p[i%p.length])}" alt="">`:bot('v'+(i%3));};
-  function chatsView(){
+  function chatProfiles(){
     const your=['Default','Auto SDR','Content Writer','CRM Manager','Document Generator','Email Assistant','Merch Bot','Research Agent',state.name||'Timeliner','Travel Assistant'];
     const other=['Bug Destroyer','Data Scientist','Hermes Helper','Hype Beast'];
-    const all=[...your,...other];const active=Math.min(state.chatActive??8,all.length-1);const activeName=all[active];
-    const extra=state.chatExtra[active]||[];
+    return {your,other,all:[...your,...other]};
+  }
+  // The prospect's FIRST message in a chat gets a real answer (their sales free taste);
+  // every later message meets the paywall.
+  async function fetchChatReply(question,agentName){
+    const roster=catalog.map(a=>({name:a.name,summary:a.summary,mcps:a.mcps}));
+    for(let attempt=0;attempt<2;attempt++){
+      if(attempt) await sleep(700);
+      try{
+        const res=await fetch(chatEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question,agent:agentName,company:co(),business:state.biz,roster})});
+        const body=await res.json().catch(()=>({}));
+        if(res.ok&&body&&body.reply)return String(body.reply);
+        if(res.status===400)break;
+      }catch(e){/* retry then fall back */}
+    }
+    return fallbackReply(question);
+  }
+  function fallbackReply(question){
+    const text=question.toLowerCase();
+    const scored=catalog.map(a=>({a,s:a.keywords.reduce((n,k)=>n+(text.includes(k)?1:0),0)})).sort((x,y)=>y.s-x.s);
+    const picks=scored.filter(x=>x.s>0).slice(0,2).map(x=>x.a);
+    const mates=picks.length?picks:catalog.slice(0,2);
+    const names=mates.map(m=>m.name).join(' and ');
+    const tools=[...new Set(mates.flatMap(m=>m.mcps))].slice(0,4).join(', ');
+    return `Good question — here is how I would run it down. First I would pull the full context from your connected systems (${tools}) so we are not guessing, then send the customer a clear answer with the exact link or next step, and log the fix so nobody has to ask twice. For this one I would loop in ${names} — this is exactly their lane, and they would pick it up from me mid-thread. If I were fully connected to ${co()}'s stack, the answer would already be on its way back to your customer.`;
+  }
+  const poolAv=i=>{const p=avatarPool();return p.length?`<img src="${escapeHtml(p[i%p.length])}" alt="">`:bot('v'+(i%3));};
+  function chatsView(){
+    const {your,other,all}=chatProfiles();
+    const active=Math.min(state.chatActive??8,all.length-1);const activeName=all[active];
+    const extra=(state.chatExtra[active]||[]).concat(state.chatTyping[active]?[['typing','']]:[]);
     const item=(n,i)=>`<button class="pf-item ${i===active?'on':''}" data-chat="${i}"><span class="pf-av">${poolAv(i)}<i class="pf-dot"></i></span><span class="pf-name">${escapeHtml(n)}</span></button>`;
-    const renderMsg=([who,t])=>who==='pay'?`<div class="msg them"><div class="bubble paywall"><span class="pay-ic">${ci.key}</span><span>${escapeHtml(t)}</span><button class="btn pay-btn" data-noop="1">Unlock ${escapeHtml(activeName)}</button></div></div>`:`<div class="msg ${who}">${who==='them'?`<span class="msg-ava">${poolAv(active)}</span>`:''}<div class="bubble">${escapeHtml(t)}</div></div>`;
+    const renderMsg=([who,t])=>{
+      if(who==='pay')return `<div class="msg them"><div class="bubble paywall"><span class="pay-ic">${ci.key}</span><span>${escapeHtml(t)}</span><button class="btn pay-btn" data-noop="1">Unlock ${escapeHtml(activeName)}</button></div></div>`;
+      if(who==='typing')return `<div class="msg them"><span class="msg-ava">${poolAv(active)}</span><div class="bubble typing"><i></i><i></i><i></i></div></div>`;
+      if(who==='them'){
+        const mentioned=catalog.filter(a=>t.includes(a.name));
+        const chips=mentioned.length?`<div class="chat-recs">${mentioned.map(a=>`<button class="chat-rec" data-agent="${a.id}"><img src="${escapeHtml(state.marketImages[a.id]||a.portrait)}" alt="">${a.name}</button>`).join('')}</div>`:'';
+        return `<div class="msg them"><span class="msg-ava">${poolAv(active)}</span><div class="bubble-wrap"><div class="bubble">${escapeHtml(t).replace(/\n/g,'<br>')}</div>${chips}</div></div>`;
+      }
+      return `<div class="msg ${who}"><div class="bubble">${escapeHtml(t)}</div></div>`;
+    };
     return `<div class="chats3">
       <aside class="pf-side">
         <div class="pf-side-h"><b>Profiles</b> <span class="pf-count">${all.length}</span><span class="pf-plus">${ic.plus}</span></div>
@@ -513,7 +551,14 @@
       if(a==='generate'){const input=document.getElementById('agent-name');const name=input.value.trim();if(!name){input.focus();input.setAttribute('aria-invalid','true');return}state.name=name;const coIn=document.getElementById('agent-co');if(coIn)state.company=coIn.value.trim();const bizIn=document.getElementById('agent-biz');state.biz=bizIn?bizIn.value.trim():'';const lookTa=document.getElementById('agent-look');state.look=(lookTa&&lookTa.value.trim())||'a friendly rounded robot in blue and white';generateAgents()}
       if(a==='redesign'){state.step=1;render()}
       if(a==='open-connect'){openConnectDialog()}
-      if(a==='chat-send'){const box=document.getElementById('chat-box');const t=box?box.value.trim():'';if(!t)return;const i=state.chatActive??8;state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['me',t],['pay','Please pay for your agent in order to continue talking.']]);render();const th=document.getElementById('chat-thread');if(th)th.scrollTop=th.scrollHeight;document.getElementById('chat-box')?.focus()}
+      if(a==='chat-send'){const box=document.getElementById('chat-box');const t=box?box.value.trim():'';if(!t)return;const i=state.chatActive??8;
+        const prior=(state.chatExtra[i]||[]).filter(m=>m[0]==='me').length;
+        const scrollFocus=()=>{const th=document.getElementById('chat-thread');if(th)th.scrollTop=th.scrollHeight;document.getElementById('chat-box')?.focus()};
+        if(prior>=1){state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['me',t],['pay','Please pay for your agent in order to continue talking.']]);render();scrollFocus();return;}
+        state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['me',t]]);state.chatTyping[i]=true;render();scrollFocus();
+        const agentName=chatProfiles().all[i]||state.name||'your agent';
+        fetchChatReply(t,agentName).then(reply=>{state.chatTyping[i]=false;state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['them',reply]]);if(state.tab==='chats'){render();scrollFocus();}});
+      }
       if(a==='market'){
         // No explicit pick → default to the first design that actually has an image, and
         // always fall back to ANY generated image so the avatar/logo/market ref never go blank.
@@ -521,7 +566,7 @@
         const s=state.slots[state.variant];
         state.selectedImage=(s&&s.image)||state.selectedImage||((state.slots.find(x=>x&&x.image)||{}).image)||'';
         document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=3;render();generateMarket()}
-      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.look='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=8;state.chatExtra={};state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.look='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=8;state.chatExtra={};state.chatTyping={};state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-egg]').forEach(el=>{
       // Select a design the moment it's hatched — direct DOM updates only, so picking
