@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 21;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 22;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -187,12 +187,12 @@
   }
   // The prospect's FIRST message in a chat gets a real answer (their sales free taste);
   // every later message meets the paywall.
-  async function fetchChatReply(question,agentName){
+  async function fetchChatReply(question,agentName,history,turn){
     const roster=catalog.map(a=>({name:a.name,summary:a.summary,mcps:a.mcps}));
     for(let attempt=0;attempt<2;attempt++){
       if(attempt) await sleep(700);
       try{
-        const res=await fetch(chatEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question,agent:agentName,company:co(),business:state.biz,roster})});
+        const res=await fetch(chatEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question,agent:agentName,company:co(),business:state.biz,roster,history:history||[],turn:turn||1})});
         const body=await res.json().catch(()=>({}));
         if(res.ok&&body&&body.reply)return String(body.reply);
         if(res.status===400)break;
@@ -552,12 +552,14 @@
       if(a==='redesign'){state.step=1;render()}
       if(a==='open-connect'){openConnectDialog()}
       if(a==='chat-send'){const box=document.getElementById('chat-box');const t=box?box.value.trim():'';if(!t)return;const i=state.chatActive??8;
+        const FREE_TURNS=5;
         const prior=(state.chatExtra[i]||[]).filter(m=>m[0]==='me').length;
         const scrollFocus=()=>{const th=document.getElementById('chat-thread');if(th)th.scrollTop=th.scrollHeight;document.getElementById('chat-box')?.focus()};
-        if(prior>=1){state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['me',t],['pay','Please pay for your agent in order to continue talking.']]);render();scrollFocus();return;}
+        if(prior>=FREE_TURNS){state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['me',t],['pay','Please pay for your agent in order to continue talking.']]);render();scrollFocus();return;}
+        const history=(state.chatExtra[i]||[]).filter(m=>m[0]==='me'||m[0]==='them').map(m=>({role:m[0]==='me'?'user':'assistant',content:m[1]}));
         state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['me',t]]);state.chatTyping[i]=true;render();scrollFocus();
         const agentName=chatProfiles().all[i]||state.name||'your agent';
-        fetchChatReply(t,agentName).then(reply=>{state.chatTyping[i]=false;state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['them',reply]]);if(state.tab==='chats'){render();scrollFocus();}});
+        fetchChatReply(t,agentName,history,prior+1).then(reply=>{state.chatTyping[i]=false;state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['them',reply]]);if(state.tab==='chats'){render();scrollFocus();}});
       }
       if(a==='market'){
         // No explicit pick → default to the first design that actually has an image, and

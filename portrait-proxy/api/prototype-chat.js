@@ -45,6 +45,13 @@ export default async function handler(req, res) {
     mcps: Array.isArray(a.mcps) ? a.mcps.slice(0, 6).map(m => String(m).slice(0, 30)) : []
   })) : [];
   if (question.length < 5) { res.status(400).json({ error: 'question too short' }); return; }
+  // Prior turns of this conversation (client sends up to the last 10), so follow-up
+  // replies stay consistent with what the agent already said.
+  const history = (Array.isArray(body.history) ? body.history : [])
+    .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+    .slice(-10)
+    .map(m => ({ role: m.role, content: m.content.slice(0, 1500) }));
+  const turn = Math.max(1, Math.min(10, parseInt(body.turn, 10) || 1));
 
   const rosterText = roster.map(a => `- ${a.name}: ${a.summary} (connects to: ${a.mcps.join(', ')})`).join('\n');
   const system =
@@ -55,8 +62,11 @@ export default async function handler(req, res) {
     `Where it helps, say which teammate agents you would loop in (by exact name) and what you'd ` +
     `hand them, and mention the real connectors you'd use. Your teammate agents:\n${rosterText}\n` +
     `Rules: plain text only (no markdown symbols, no asterisks, no headers; short dashes for lists ` +
-    `are fine). 120-190 words. End with one crisp sentence saying what you would already be doing ` +
-    `right now if you were fully connected.`;
+    (turn === 1
+      ? `are fine). 120-190 words. End with one crisp sentence saying what you would already be doing ` +
+        `right now if you were fully connected.`
+      : `are fine). 60-160 words. This is an ongoing conversation - continue naturally, stay ` +
+        `consistent with what you already said, and don't repeat your earlier framing or closing line.`);
 
   async function callModel(params) {
     const upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -71,6 +81,7 @@ export default async function handler(req, res) {
         temperature: 0.7,
         messages: [
           { role: 'system', content: system },
+          ...history,
           { role: 'user', content: question }
         ],
         ...params
