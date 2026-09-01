@@ -965,17 +965,18 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   border:1px solid var(--ink);border-radius:999px;padding:3px 9px;
   background:var(--paper);color:var(--ink);
 }
-/* a colour per category — soft washes from the banner/paper palette, ink-adjacent text */
-.lib-sales   .lib-cat{background:#DCE9DC;color:#28583C;} /* Growth     */
-.lib-docs    .lib-cat{background:#D8E7F1;color:#1D5486;} /* Operations */
-.lib-support .lib-cat{background:#D8E7F1;color:#1D5486;} /* Operations */
-.lib-invoice .lib-cat{background:#F0E6CE;color:#755410;} /* Finance    */
-.lib-web     .lib-cat{background:#E4DFF1;color:#4C3C85;} /* Creative   */
+/* a colour per category — one cool-toned family (teal → blue → indigo → violet),
+   subtly shifted so the teams read as different without breaking the palette */
+.lib-sales   .lib-cat{background:#D7EAE4;color:#1B5F51;} /* Growth     — teal   */
+.lib-docs    .lib-cat{background:#D8E7F1;color:#1D5486;} /* Operations — blue   */
+.lib-support .lib-cat{background:#D8E7F1;color:#1D5486;} /* Operations — blue   */
+.lib-invoice .lib-cat{background:#DCE2F4;color:#35468C;} /* Finance    — indigo */
+.lib-web     .lib-cat{background:#E4DFF1;color:#4C3C85;} /* Creative   — violet */
 .lib-card h3{
   font-size:clamp(16px,1.3vw,19px);font-weight:600;letter-spacing:-.02em;
   line-height:1;text-transform:uppercase;
 }
-.lib-desc{color:var(--ink-70);font-size:12.5px;line-height:1.5;}
+.lib-desc{color:var(--ink-70);font-size:12.5px;line-height:1.5;min-height:4.5em;} /* 3 lines, so the tool chips start on the same line everywhere */
 .lib-tools{
   display:flex;gap:5px;flex-wrap:wrap;margin-top:auto;padding-top:8px;
 }
@@ -1010,11 +1011,11 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   padding:clamp(14px,1.4vw,20px);
   background:var(--accent);color:#fff;              /* per-category colour set below */
 }
-/* back face matches the card's category colour */
-.lib-sales   .lib-back{background:linear-gradient(160deg,#25A16B 0%,#1F8A5B 100%);}
+/* back face matches the card's category colour — same cool family as the pills */
+.lib-sales   .lib-back{background:linear-gradient(160deg,#1F9B84 0%,#17836F 100%);}
 .lib-docs    .lib-back{background:linear-gradient(160deg,#2A7EC4 0%,#216BAC 100%);}
 .lib-support .lib-back{background:linear-gradient(160deg,#2A7EC4 0%,#216BAC 100%);}
-.lib-invoice .lib-back{background:linear-gradient(160deg,#C07E14 0%,#A66C0F 100%);}
+.lib-invoice .lib-back{background:linear-gradient(160deg,#4A5FB5 0%,#3C4F9E 100%);}
 .lib-web     .lib-back{background:linear-gradient(160deg,#7E60CE 0%,#6B4FB8 100%);}
 .lib-flip .lib-back h3{
   color:#fff;
@@ -1812,7 +1813,7 @@ html.lenis,html.lenis body{height:auto;}
       <div class="lib-card lib-flip lib-sales reveal" role="button" tabindex="0" aria-pressed="false" aria-label="Sales agent — flip to see its skills">
         <div class="lib-inner">
           <div class="lib-front">
-            <div class="lib-banner"><span class="lib-cat">Growth</span><img class="lib-illo" src="assets/agents/agent-sales.webp" alt="Sales agent robot in a pinstripe vest and tie, waving with a briefcase" width="640" height="640" loading="lazy" /></div>
+            <div class="lib-banner"><span class="lib-cat">Growth</span><img class="lib-illo" src="assets/agents/hatchy-lib-sales.webp" alt="Sales agent Hatchy in a necktie, reaching out for a handshake with a briefcase in hand" width="640" height="640" loading="lazy" /></div>
             <div class="lib-body">
               <h3>Sales</h3>
               <p class="lib-desc">Qualifies new leads, drafts outreach in your voice, follows up so nothing goes cold.</p>
@@ -1840,7 +1841,7 @@ html.lenis,html.lenis body{height:auto;}
       <div class="lib-card lib-flip lib-docs reveal" role="button" tabindex="0" aria-pressed="false" aria-label="Document agent — flip to see its skills">
         <div class="lib-inner">
           <div class="lib-front">
-            <div class="lib-banner"><span class="lib-cat">Operations</span><img class="lib-illo" src="assets/agents/agent-copywriting.webp" alt="Document agent robot in a beret and glasses, holding a giant pencil and ink pot" width="640" height="640" loading="lazy" /></div>
+            <div class="lib-banner"><span class="lib-cat">Operations</span><img class="lib-illo" src="assets/agents/hatchy-lib-docs.webp" alt="Document agent Hatchy in a beret and glasses, scribbling notes on a clipboard with a pencil" width="640" height="640" loading="lazy" /></div>
             <div class="lib-body">
               <h3>Documents</h3>
               <p class="lib-desc">Reports, proposals and client documents in your template and your tone, in minutes.</p>
@@ -1868,7 +1869,7 @@ html.lenis,html.lenis body{height:auto;}
       <div class="lib-card lib-flip lib-invoice reveal" role="button" tabindex="0" aria-pressed="false" aria-label="Invoice agent — flip to see its skills">
         <div class="lib-inner">
           <div class="lib-front">
-            <div class="lib-banner"><span class="lib-cat">Finance</span><img class="lib-illo" src="assets/agents/agent-invoice.webp" alt="Invoice agent robot in a visor and bow tie, holding a calculator and flipping a coin" width="640" height="640" loading="lazy" /></div>
+            <div class="lib-banner"><span class="lib-cat">Finance</span><img class="lib-illo" src="assets/agents/hatchy-lib-invoice.webp" alt="Invoice agent Hatchy in a green visor, stamping an invoice as paid with a rubber stamp" width="640" height="640" loading="lazy" /></div>
             <div class="lib-body">
               <h3>Invoices</h3>
               <p class="lib-desc">Reads invoices, matches them, logs them in your accounting system, flags the odd ones out.</p>
@@ -1897,7 +1898,7 @@ html.lenis,html.lenis body{height:auto;}
       <div class="lib-card lib-flip lib-support reveal" role="button" tabindex="0" aria-pressed="false" aria-label="Support agent — flip to see its skills">
         <div class="lib-inner">
           <div class="lib-front">
-            <div class="lib-banner"><span class="lib-cat">Operations</span><img class="lib-illo" src="assets/agents/agent-support.webp" alt="Support agent robot wearing a headset, juggling four telephone handsets" width="640" height="640" loading="lazy" /></div>
+            <div class="lib-banner"><span class="lib-cat">Operations</span><img class="lib-illo" src="assets/agents/hatchy-lib-support.webp" alt="Support agent Hatchy in a headset, answering a call with telephone handsets all around" width="640" height="640" loading="lazy" /></div>
             <div class="lib-body">
               <h3>Support</h3>
               <p class="lib-desc">Triages enquiries, drafts replies that sound like your team, escalates what matters.</p>
@@ -1925,7 +1926,7 @@ html.lenis,html.lenis body{height:auto;}
       <div class="lib-card lib-flip lib-web reveal" role="button" tabindex="0" aria-pressed="false" aria-label="Website agent — flip to see its skills">
         <div class="lib-inner">
           <div class="lib-front">
-            <div class="lib-banner"><span class="lib-cat">Creative</span><img class="lib-illo" src="assets/agents/agent-coding.webp" alt="Website agent robot in a hoodie, walking with a laptop and a coffee" width="640" height="640" loading="lazy" /></div>
+            <div class="lib-banner"><span class="lib-cat">Creative</span><img class="lib-illo" src="assets/agents/hatchy-lib-web.webp" alt="Website agent Hatchy in a blue hoodie, typing on an open laptop" width="640" height="640" loading="lazy" /></div>
             <div class="lib-body">
               <h3>Website</h3>
               <p class="lib-desc">Updates your site when you ask it to — new hours, new pages, new copy. Preview, approve, live.</p>
