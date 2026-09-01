@@ -1230,32 +1230,39 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 }
 .price-foot strong{color:var(--ink);font-weight:600;}
 
-/* ── SECURITY — editorial ledger rows, plain facts ── */
-.safe-list{border-top:1.5px solid var(--ink);}
+/* ── SECURITY — friendly cards, plain facts ── */
+.safe-list{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:clamp(16px,2.2vw,28px);
+}
 .safe{
-  display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.45fr);
-  column-gap:clamp(20px,4vw,72px);row-gap:10px;
-  padding:clamp(22px,2.8vw,36px) 0;
-  border-bottom:1px solid var(--line);align-items:center;
+  display:flex;align-items:center;gap:clamp(16px,2.4vw,36px);
+  background:#fff;border:1.5px solid var(--ink);border-radius:22px;
+  padding:clamp(18px,2.4vw,34px);
+  transition:transform .28s cubic-bezier(.22,1,.36,1),box-shadow .28s;
 }
-.safe-lead{display:flex;align-items:center;gap:clamp(14px,1.6vw,22px);}
-.safe-ic{
-  width:clamp(44px,3.6vw,54px);height:clamp(44px,3.6vw,54px);
-  border-radius:50%;flex-shrink:0;
-  background:var(--accent-2);border:1.5px solid var(--ink);
-  display:grid;place-items:center;color:var(--ink);
-  transition:background .25s,color .25s,transform .28s cubic-bezier(.22,1,.36,1);
+.safe:hover{transform:translateY(-3px);box-shadow:0 10px 0 -6px var(--accent-2);}
+.safe--wide{grid-column:1/-1;}
+.safe-img{
+  width:clamp(96px,11vw,168px);flex-shrink:0;align-self:flex-end;
 }
-.safe-ic svg{width:46%;height:46%;}
-.safe:hover .safe-ic{background:var(--accent);color:#fff;transform:rotate(-8deg) scale(1.06);}
+.safe--wide{gap:clamp(20px,3.4vw,56px);}
+.safe--wide .safe-img{width:clamp(130px,17vw,250px);}
+.safe--wide .safe-body p{max-width:80ch;}
+.safe-img img{width:100%;height:auto;display:block;}
 .safe h3{
   font-size:clamp(19px,1.9vw,27px);font-weight:700;letter-spacing:-.02em;line-height:1.15;
+  margin-bottom:10px;
 }
 .safe p{font-size:clamp(15px,1.2vw,17px);line-height:1.65;color:var(--ink-70);max-width:58ch;}
 .safe p strong{color:var(--ink);font-weight:600;}
 .safe-note{margin-top:clamp(24px,3vw,40px);font-size:15.5px;line-height:1.6;color:var(--ink-70);max-width:74ch;}
-@media(max-width:760px){
-  .safe{grid-template-columns:1fr;padding:20px 0;}
+@media(max-width:860px){
+  .safe-list{grid-template-columns:1fr;}
+}
+@media(max-width:560px){
+  .safe{flex-direction:column;align-items:flex-start;gap:12px;}
+  .safe-img,.safe--wide .safe-img{width:112px;align-self:center;}
 }
 
 /* ── FOUNDERS — one compact row ── */
@@ -1556,31 +1563,6 @@ html.lenis,html.lenis body{height:auto;}
         <path d="M12 12C11.2 9.2 11.2 5.8 12 3C12.8 5.8 12.8 9.2 12 12Z" transform="rotate(315 12 12)"/>
         <circle cx="12" cy="12" r="1.6"/>
       </g>
-    </symbol>
-    <!-- security card line-icons (stroke = currentColor) -->
-    <symbol id="ic-key" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3"/>
-    </symbol>
-    <symbol id="ic-approve" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 22s7-3.5 7-9V5.5L12 3 5 5.5V13c0 5.5 7 9 7 9z"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4.5"/>
-    </symbol>
-    <symbol id="ic-lock" viewBox="0 0 24 24">
-      <rect x="4" y="10.5" width="16" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M7.5 10.5V7a4.5 4.5 0 0 1 9 0v3.5"/>
-      <circle cx="12" cy="15.5" r="1.4" fill="currentColor"/>
-    </symbol>
-    <symbol id="ic-power" viewBox="0 0 24 24">
-      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
-      <line x1="12" y1="2.5" x2="12" y2="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    </symbol>
-    <symbol id="ic-server" viewBox="0 0 24 24">
-      <rect x="3" y="4" width="18" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
-      <rect x="3" y="13" width="18" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
-      <circle cx="7" cy="7.5" r="1.3" fill="currentColor"/>
-      <circle cx="7" cy="16.5" r="1.3" fill="currentColor"/>
-      <line x1="14" y1="7.5" x2="18" y2="7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      <line x1="14" y1="16.5" x2="18" y2="16.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
     </symbol>
   </defs>
 </svg>
@@ -2042,40 +2024,40 @@ html.lenis,html.lenis body{height:auto;}
     </div>
 
     <div class="safe-list">
-      <div class="safe reveal">
-        <div class="safe-lead">
-          <span class="safe-ic" aria-hidden="true"><svg><use href="#ic-server"/></svg></span>
+      <div class="safe safe--wide reveal">
+        <div class="safe-img"><img src="hatchy-sec-storage.webp" alt="Hatchy resting a hand on its own little storage cabinet" width="640" height="640" loading="lazy"></div>
+        <div class="safe-body">
           <h3>Your own server, your own storage</h3>
+          <p>Hermes isn't a shared app you log into next to a thousand other companies. It runs on <strong>its own Linode server, set up for your business alone,</strong> and your files live in <strong>your business's own Google Cloud storage bucket.</strong> Everything is encrypted on the way there and while it sits there, nobody else's data shares the space — and if you ever leave, it's handed back to you and wiped from our side. Your own office with your own filing cabinet, not a hot desk in a shared building.</p>
         </div>
-        <p>Hermes isn't a shared app you log into next to a thousand other companies. It runs on <strong>a separate Linode server set up for your business alone,</strong> and your files sit in your business's own Google Cloud storage bucket — not in a pool with anyone else's.</p>
       </div>
       <div class="safe reveal">
-        <div class="safe-lead">
-          <span class="safe-ic" aria-hidden="true"><svg><use href="#ic-key"/></svg></span>
+        <div class="safe-img"><img src="hatchy-sec-keys.webp" alt="Hatchy holding up a single brass key" width="640" height="640" loading="lazy"></div>
+        <div class="safe-body">
           <h3>One job, one set of keys</h3>
+          <p>The invoice agent can reach your accounting software — <strong>and nothing else.</strong> Like a bookkeeper who has the Xero login but not the payroll one. And we never ask for passwords: every connection goes through the app's official "Sign in with…" screen, so you can revoke it yourself.</p>
         </div>
-        <p>The invoice agent can reach your accounting software — <strong>and nothing else.</strong> Like a bookkeeper who has the Xero login but not the payroll one. And we never ask for passwords: every connection goes through the app's official "Sign in with…" screen, so you can revoke it yourself.</p>
       </div>
       <div class="safe reveal">
-        <div class="safe-lead">
-          <span class="safe-ic" aria-hidden="true"><svg><use href="#ic-approve"/></svg></span>
+        <div class="safe-img"><img src="hatchy-sec-approve.webp" alt="Hatchy holding an envelope, waiting for approval" width="640" height="640" loading="lazy"></div>
+        <div class="safe-body">
           <h3>Nothing sent without you</h3>
+          <p>Agents draft and prepare on their own, but <strong>anything that reaches a customer or moves money waits for a human to click approve.</strong> You saw it in the demo.</p>
         </div>
-        <p>Agents draft and prepare on their own, but <strong>anything that reaches a customer or moves money waits for a human to click approve.</strong> You saw it in the demo.</p>
       </div>
       <div class="safe reveal">
-        <div class="safe-lead">
-          <span class="safe-ic" aria-hidden="true"><svg><use href="#ic-lock"/></svg></span>
+        <div class="safe-img"><img src="hatchy-sec-training.webp" alt="Hatchy hugging a padlocked folder" width="640" height="640" loading="lazy"></div>
+        <div class="safe-body">
           <h3>Your data isn't training material</h3>
+          <p>Your emails and documents do <em>your</em> job and nothing else — <strong>we don't use them to train AI models.</strong> AI requests run pay-per-use through paid business APIs, not through free consumer chatbots.</p>
         </div>
-        <p>Your emails and documents do <em>your</em> job and nothing else — <strong>we don't use them to train AI models.</strong> AI requests run pay-per-use through paid business APIs, not through free consumer chatbots.</p>
       </div>
       <div class="safe reveal">
-        <div class="safe-lead">
-          <span class="safe-ic" aria-hidden="true"><svg><use href="#ic-power"/></svg></span>
+        <div class="safe-img"><img src="hatchy-sec-plug.webp" alt="Hatchy holding an unplugged power plug" width="640" height="640" loading="lazy"></div>
+        <div class="safe-body">
           <h3>You hold the plug</h3>
+          <p>Pause an agent, revoke a connection, remove the app — <strong>from your side, in seconds, no exit fee.</strong> Like deactivating a staff pass.</p>
         </div>
-        <p>Pause an agent, revoke a connection, remove the app — <strong>from your side, in seconds, no exit fee.</strong> Like deactivating a staff pass.</p>
       </div>
     </div>
 
