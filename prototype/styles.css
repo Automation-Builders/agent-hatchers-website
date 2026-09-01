@@ -527,11 +527,13 @@ h1{font-weight:800}h2{font-weight:700}
 /* The design pops out of the egg as a clean rounded image (not the generic Hatchy) */
 .egg-pop.pop-design{width:80%;left:10%;top:3%;height:auto;border-radius:16px;box-shadow:0 12px 26px rgba(22,21,70,.16);background:#fff}
 /* Marketplace agent loading state — a spinner around an egg while it hatches */
-.p-thumb.is-loading{position:relative}
+/* While a portrait is generating, the card drops its team tint for the clean Hatchy
+   blue-on-white look — one consistent loader, no clashing colours per agent. */
+.p-thumb.is-loading,.mkt-thumb:has(.hatch-loader){position:relative;background:radial-gradient(circle at 50% 30%,#fff 0%,#f2f8fc 55%,#e2eef7 100%)!important}
 .hatch-loader{display:grid;place-items:center;width:100%;height:100%;gap:0;position:relative}
-.hatch-loader .loader-egg{width:44%;height:auto;animation:eggRock 1.7s ease-in-out infinite;filter:drop-shadow(0 6px 10px rgba(20,40,70,.12))}
-.hatch-loader .loader-ring{position:absolute;top:calc(50% - 8px);left:50%;width:62%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:3px solid rgba(33,107,172,.16);border-top-color:#216bac;animation:spin .9s linear infinite}
-.hatch-loader .loader-txt{position:absolute;bottom:8px;left:0;right:0;text-align:center;font:700 .7rem 'Inter',system-ui;letter-spacing:.06em;text-transform:uppercase;color:#8aa0b5}
+.hatch-loader .loader-egg{width:42%;height:auto;animation:eggRock 1.7s ease-in-out infinite;filter:drop-shadow(0 6px 10px rgba(33,107,172,.16))}
+.hatch-loader .loader-ring{position:absolute;top:calc(50% - 8px);left:50%;width:60%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:3px solid rgba(33,107,172,.14);border-top-color:var(--brand,#216bac);animation:spin .9s linear infinite}
+.hatch-loader .loader-txt{position:absolute;bottom:9px;left:0;right:0;text-align:center;font:800 .68rem 'Inter',system-ui;letter-spacing:.09em;text-transform:uppercase;color:var(--brand,#216bac)}
 .ws-avatar-img{border-radius:50%;object-fit:cover}
 /* Analytics — filter bar + horizontal bar charts */
 .an-bar{max-width:1200px;margin:0 auto;border-radius:14px;border:1px solid #e7e9ee;background:#fff;margin-top:4px}
