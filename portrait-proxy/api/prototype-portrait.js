@@ -12,11 +12,9 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
 // google/gemini-3.1-flash-lite-image for cheaper/faster but rougher output. Note: text
 // models like google/gemini-3.7-flash do NOT generate images and will not work here.
 const MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-3.1-flash-image';
-const PALETTES = [
-  'a cool blue and white colour scheme',
-  'a teal and slate colour scheme',
-  'an indigo and white colour scheme'
-];
+// NOTE: an earlier version forced three fixed palettes (blue / teal / indigo) here, which
+// made every run produce the same-coloured trio of robots. Colours now follow the brief;
+// when the brief names none, the model may choose freely — so designs genuinely vary.
 
 function applyCors(res, origin) {
   const allow = ALLOWED_ORIGINS.includes('*')
@@ -77,8 +75,9 @@ export default async function handler(req, res) {
       `${role ? `${role} ` : ''}` +
       `Give it one or two fitting accessories and one or two clear props that show what it does. ` +
       `Plain solid white background, soft even studio lighting, the character centred and full-body. ` +
-      `${PALETTES[variant]}. Polished, high-quality, sharp 3D cartoon mascot render, crisp clean ` +
-      `edges, no text, no watermark, no clutter.`;
+      `Use the colours the description asks for; if it names none, choose an appealing scheme of your ` +
+      `own — avoid defaulting to blue. Make this a distinctive, original character design. Polished, ` +
+      `high-quality, sharp 3D cartoon mascot render, crisp clean edges, no text, no watermark, no clutter.`;
 
   const upstreamUrl = ref
     ? 'https://openrouter.ai/api/v1/chat/completions'

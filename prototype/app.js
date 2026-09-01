@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 15;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 16;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -20,6 +20,19 @@
   const state = {step:0,name:'',biz:'',look:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:8,chatExtra:{},company:''};
   const root = document.getElementById('prototype-app');
   const co = () => state.company || config.company || 'Your Company';
+  const DESIGN_AXES={
+    build:['a compact chibi build with a big round head and stubby limbs','a tall slender build with long thin limbs','a chunky sturdy build with a barrel chest and broad shoulders','a small hovering build with no legs, floating on a rounded base'],
+    face:['two big expressive round eyes','a single friendly camera-lens eye','a wide glowing visor face','a pixel-matrix screen face with a smiley expression'],
+    finish:['glossy ceramic-like panels','brushed metal with visible panel seams and rivets','a soft matte rubberised shell','clean moulded plastic like a premium toy'],
+    style:['retro 1970s tin-toy robot styling','sleek near-future android styling','cute kitchen-appliance-inspired styling','sporty drone-inspired styling with fins']
+  };
+  const shuffle=a=>{const c=[...a];for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[c[i],c[j]]=[c[j],c[i]];}return c;};
+  function dealDesignAxes(){state.axes={build:shuffle(DESIGN_AXES.build),face:shuffle(DESIGN_AXES.face),finish:shuffle(DESIGN_AXES.finish),style:shuffle(DESIGN_AXES.style)};}
+  function designBrief(variant){
+    const ax=state.axes||{};const pick=k=>((ax[k]||DESIGN_AXES[k])[variant%4]);
+    return `${state.look}. This is design ${variant+1} of 3 and it must look clearly different from the other two: give it ${pick('build')}, ${pick('face')}, ${pick('finish')}, and ${pick('style')}.`;
+  }
+
   const industry = config.industry || 'professional-services';
   const industryLabel = config.industryLabel || 'Your industry';
   // Real portrait generation. Point portraitEndpoint at a callable endpoint and it upgrades
@@ -313,7 +326,7 @@
     const baked = Array.isArray(config.bakedImages) ? config.bakedImages[variant] : null;
     if(baked) return String(baked);
     const context = state.biz ? `an agent at a ${state.biz} company` : '';
-    return fetchImage({brief:state.look,name:state.name,role:context,company:co(),industry:industryLabel,variant});
+    return fetchImage({brief:designBrief(variant),name:state.name,role:context,company:co(),industry:industryLabel,variant});
   }
   // Re-skin every marketplace agent in the chosen look, each dressed for its own job.
   async function generateMarket(){
@@ -343,6 +356,7 @@
   // shatters into shards, the design pops out. Runs when each design's image is ready.
   async function generateAgents(){
     const lookTa=document.getElementById('agent-look');if(lookTa&&lookTa.value.trim())state.look=lookTa.value.trim();
+    dealDesignAxes();
     state.slots=[null,null,null];state.variant=null;state.selectedImage='';state.step=2;render();
     const refreshBar=()=>{const bar=root.querySelector('.hatch-actions');if(bar){bar.innerHTML=hatchActionsBar();bind();}};
     await Promise.all([0,1,2].map(async i=>{
