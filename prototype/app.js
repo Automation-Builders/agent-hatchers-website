@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 22;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 23;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -17,7 +17,7 @@
     {id:'website',icon:'◇',name:'Website Agent',industries:['all'],keywords:['website','content','publish','webflow','wordpress','page','blog','copy','web','online'],summary:'Keeps website content accurate, on-brand and ready for approval before publishing.',portrait:'/hatchy-website.webp',team:'Marketing',scene:'It is a website agent wearing a comfy hoodie and headphones around its neck, at a dual-monitor desk in a loft studio at night editing a colourful online storefront, with sticky notes on the window and a small cactus by the keyboard.',mcps:['GitHub','Webflow','WordPress','Google Drive','Slack'],outcomes:['Draft new website pages','Update approved copy and details','Check pages for stale information','Prepare search-friendly metadata','Publish only after human approval']},
     {id:'operations',icon:'✓',name:'Operations Agent',industries:['professional-services','construction','healthcare','all'],keywords:['operations','workflow','project','task','deadline','schedule','coordination','process','compliance','ops','clinic','manufacturing'],summary:'Coordinates repeatable workflows and keeps teams informed when work changes state.',portrait:'/hatchy-routing.webp',team:'Operations',scene:'It is an operations agent wearing a project-manager lanyard and holding a marker, standing at a wall-sized kanban board covered in swim-lanes and sticky notes in a bright planning room, with interlocking gears drawn on a whiteboard behind it.',mcps:['Monday.com','Asana','Notion','Slack','Microsoft Teams'],outcomes:['Turn requests into structured work','Monitor deadlines and blockers','Prepare daily operating summaries','Chase missing information','Escalate exceptions to the right person']}
   ];
-  const state = {step:0,name:'',biz:'',look:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:8,chatExtra:{},chatTyping:{},company:'',merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
+  const state = {step:0,name:'',biz:'',look:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:0,chatExtra:{},chatTyping:{},company:'',editUses:0,merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
   const root = document.getElementById('prototype-app');
   const co = () => state.company || config.company || 'Your Company';
   const DESIGN_AXES={
@@ -179,10 +179,14 @@
       </div>`;
   }
   function agentAvatar(cls){return state.selectedImage?`<img class="${cls}" src="${escapeHtml(state.selectedImage)}" alt="">`:bot('v'+(state.variant||0)+' '+cls);}
-  const avatarPool=()=>[state.selectedImage,...Object.values(state.marketImages)].filter(Boolean);
+  // The chat sidebar mirrors the Profiles board exactly: the hatched agent first, then
+  // the six recommended agents (same names, same generated avatars). "Other profiles"
+  // is workspace flavour using the stock Hatchy avatar art.
   function chatProfiles(){
-    const your=['Default','Auto SDR','Content Writer','CRM Manager','Document Generator','Email Assistant','Merch Bot','Research Agent',state.name||'Timeliner','Travel Assistant'];
-    const other=['Bug Destroyer','Data Scientist','Hermes Helper','Hype Beast'];
+    const you={name:state.name||'Your agent',img:state.selectedImage||'/hatchy-pop.webp'};
+    const team=topAgents().map(a=>({name:a.name,img:state.marketImages[a.id]||a.portrait}));
+    const other=[['Bug Destroyer','/hatchy-av-test.webp'],['Data Scientist','/hatchy-av-docs.webp'],['Hermes Helper','/hatchy-avatar.webp'],['Hype Beast','/hatchy-av-hype.webp'],['Meme Lord','/hatchy-av-meme.webp'],['Vibe Coder','/hatchy-av-web.webp']].map(([name,img])=>({name,img}));
+    const your=[you,...team];
     return {your,other,all:[...your,...other]};
   }
   // The prospect's FIRST message in a chat gets a real answer (their sales free taste);
@@ -209,19 +213,19 @@
     const tools=[...new Set(mates.flatMap(m=>m.mcps))].slice(0,4).join(', ');
     return `Good question — here is how I would run it down. First I would pull the full context from your connected systems (${tools}) so we are not guessing, then send the customer a clear answer with the exact link or next step, and log the fix so nobody has to ask twice. For this one I would loop in ${names} — this is exactly their lane, and they would pick it up from me mid-thread. If I were fully connected to ${co()}'s stack, the answer would already be on its way back to your customer.`;
   }
-  const poolAv=i=>{const p=avatarPool();return p.length?`<img src="${escapeHtml(p[i%p.length])}" alt="">`:bot('v'+(i%3));};
   function chatsView(){
     const {your,other,all}=chatProfiles();
-    const active=Math.min(state.chatActive??8,all.length-1);const activeName=all[active];
+    const active=Math.min(state.chatActive??0,all.length-1);const activeName=all[active].name;
+    const avOf=p=>`<img src="${escapeHtml(p.img)}" alt="">`;const activeAv=avOf(all[active]);
     const extra=(state.chatExtra[active]||[]).concat(state.chatTyping[active]?[['typing','']]:[]);
-    const item=(n,i)=>`<button class="pf-item ${i===active?'on':''}" data-chat="${i}"><span class="pf-av">${poolAv(i)}<i class="pf-dot"></i></span><span class="pf-name">${escapeHtml(n)}</span></button>`;
+    const item=(p,i)=>`<button class="pf-item ${i===active?'on':''}" data-chat="${i}"><span class="pf-av">${avOf(p)}<i class="pf-dot"></i></span><span class="pf-name">${escapeHtml(p.name)}</span></button>`;
     const renderMsg=([who,t])=>{
       if(who==='pay')return `<div class="msg them"><div class="bubble paywall"><span class="pay-ic">${ci.key}</span><span>${escapeHtml(t)}</span><button class="btn pay-btn" data-noop="1">Unlock ${escapeHtml(activeName)}</button></div></div>`;
-      if(who==='typing')return `<div class="msg them"><span class="msg-ava">${poolAv(active)}</span><div class="bubble typing"><i></i><i></i><i></i></div></div>`;
+      if(who==='typing')return `<div class="msg them"><span class="msg-ava">${activeAv}</span><div class="bubble typing"><i></i><i></i><i></i></div></div>`;
       if(who==='them'){
         const mentioned=catalog.filter(a=>t.includes(a.name));
         const chips=mentioned.length?`<div class="chat-recs">${mentioned.map(a=>`<button class="chat-rec" data-agent="${a.id}"><img src="${escapeHtml(state.marketImages[a.id]||a.portrait)}" alt="">${a.name}</button>`).join('')}</div>`:'';
-        return `<div class="msg them"><span class="msg-ava">${poolAv(active)}</span><div class="bubble-wrap"><div class="bubble">${escapeHtml(t).replace(/\n/g,'<br>')}</div>${chips}</div></div>`;
+        return `<div class="msg them"><span class="msg-ava">${activeAv}</span><div class="bubble-wrap"><div class="bubble">${escapeHtml(t).replace(/\n/g,'<br>')}</div>${chips}</div></div>`;
       }
       return `<div class="msg ${who}"><div class="bubble">${escapeHtml(t)}</div></div>`;
     };
@@ -229,15 +233,15 @@
       <aside class="pf-side">
         <div class="pf-side-h"><b>Profiles</b> <span class="pf-count">${all.length}</span><span class="pf-plus">${ic.plus}</span></div>
         <div class="pf-search">${ic.search}<input placeholder="Search profiles..."></div>
-        <div class="pf-sec">Your profiles</div>${your.map((n,i)=>item(n,i)).join('')}
-        <div class="pf-sec">Other profiles</div>${other.map((n,i)=>item(n,your.length+i)).join('')}
+        <div class="pf-sec">Your profiles</div>${your.map((p,i)=>item(p,i)).join('')}
+        <div class="pf-sec">Other profiles</div>${other.map((p,i)=>item(p,your.length+i)).join('')}
       </aside>
       <aside class="chat-hist">
         <div class="chat-hist-h"><b>Chat history</b></div>
         <div class="pf-search hist"><input placeholder="Search messages..."></div>
       </aside>
       <section class="chat-empty">
-        ${extra.length?`<div class="chat-thread" id="chat-thread">${extra.map(renderMsg).join('')}</div>`:`<div class="chat-empty-mid"><span class="chat-empty-av">${poolAv(active)}</span><div class="chat-empty-name">${escapeHtml(activeName)}</div></div>`}
+        ${extra.length?`<div class="chat-thread" id="chat-thread">${extra.map(renderMsg).join('')}</div>`:`<div class="chat-empty-mid"><span class="chat-empty-av">${activeAv}</span><div class="chat-empty-name">${escapeHtml(activeName)}</div></div>`}
         <div class="chat-input big"><input id="chat-box" placeholder="Message ${escapeHtml(activeName)}" autocomplete="off"><button class="chat-mic" data-noop="1">${micSvg}</button><button class="send-btn" data-action="chat-send" aria-label="Send">↑</button></div>
       </section>
     </div>`;
@@ -382,12 +386,14 @@
     const close=()=>backdrop.remove();
     function draw(phase){
       const name=escapeHtml(state.name||'Your agent');
+      const left=Math.max(0,2-state.editUses);
       const inner=phase==='form'
         ? `<div class="el-body"><div class="el-current"><img src="${escapeHtml(state.selectedImage)}" alt=""><span>Current look</span></div>
-           <div class="el-form"><p>Tweak the current design, or describe something new and hatch it fresh.</p>
-           <textarea class="look-field" id="el-text" maxlength="400" placeholder="e.g. give it a red scarf and a captain’s hat — or describe a whole new look">${escapeHtml(lastText)}</textarea>
+           <div class="el-form"><p>Tweak the current design, or describe something new and hatch it fresh. <b class="el-left">${left} redesign${left===1?'':'s'} left</b></p>
+           <textarea class="look-field" id="el-text" maxlength="400" placeholder="e.g. give it a red scarf and a captain’s hat — or describe a whole new look" ${left?'':'disabled'}>${escapeHtml(lastText)}</textarea>
            <div class="el-err" hidden>That didn’t hatch — please try again.</div>
-           <div class="actions"><button class="btn btn-secondary" data-el="edit">✎ Edit this photo</button><button class="btn btn-primary" data-el="new">✦ Hatch a new look</button></div></div></div>`
+           ${left?`<div class="actions"><button class="btn btn-secondary" data-el="edit">✎ Edit this photo</button><button class="btn btn-primary" data-el="new">✦ Hatch a new look</button></div>`
+                 :`<div class="merch-pay">${ci.key} Please pay for your agent to keep redesigning its look.</div>`}</div></div>`
         : `<div class="el-hatch">${hx6Shell('el-egg')}<p class="el-note">Hatching the new look…</p>
            <div class="actions el-ready" style="display:none"><button class="btn btn-secondary" data-el="again">Try another</button><button class="btn btn-primary" data-el="apply">Use this look →</button></div></div>`;
       backdrop.innerHTML=`<section class="modal el-modal" role="dialog" aria-modal="true"><div class="modal-top"><div><span class="eyebrow">Your agent</span><h2>${name}’s look</h2></div><button class="close" aria-label="Close">×</button></div>${inner}</section>`;
@@ -406,6 +412,7 @@
         close();render();generateMarket();return;
       }
       if(busy)return;
+      if(state.editUses>=2){draw('form');return;}
       const ta=backdrop.querySelector('#el-text');const text=(ta?ta.value.trim():'');
       if(text.length<4){if(ta){ta.focus();ta.setAttribute('aria-invalid','true');}return;}
       lastText=text;busy=true;newImg=null;
@@ -416,6 +423,7 @@
       busy=false;
       if(!backdrop.isConnected)return;
       if(!img){draw('form');const err=backdrop.querySelector('.el-err');if(err)err.hidden=false;return;}
+      state.editUses++;   // a successful generation consumes one of the two redesigns
       newImg=img;
       const scene=backdrop.querySelector('.el-egg');const pop=scene&&scene.querySelector('.hx6-pop');
       if(pop){const arm=()=>{scene.classList.add('go');setTimeout(()=>{const r=backdrop.querySelector('.el-ready');const n=backdrop.querySelector('.el-note');if(r)r.style.display='flex';if(n)n.textContent='Hatched — keep it?';},5100);};
@@ -558,7 +566,7 @@
         if(prior>=FREE_TURNS){state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['me',t],['pay','Please pay for your agent in order to continue talking.']]);render();scrollFocus();return;}
         const history=(state.chatExtra[i]||[]).filter(m=>m[0]==='me'||m[0]==='them').map(m=>({role:m[0]==='me'?'user':'assistant',content:m[1]}));
         state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['me',t]]);state.chatTyping[i]=true;render();scrollFocus();
-        const agentName=chatProfiles().all[i]||state.name||'your agent';
+        const agentName=(chatProfiles().all[i]||{}).name||state.name||'your agent';
         fetchChatReply(t,agentName,history,prior+1).then(reply=>{state.chatTyping[i]=false;state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['them',reply]]);if(state.tab==='chats'){render();scrollFocus();}});
       }
       if(a==='market'){
@@ -568,7 +576,7 @@
         const s=state.slots[state.variant];
         state.selectedImage=(s&&s.image)||state.selectedImage||((state.slots.find(x=>x&&x.image)||{}).image)||'';
         document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=3;render();generateMarket()}
-      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.look='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=8;state.chatExtra={};state.chatTyping={};state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.look='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-egg]').forEach(el=>{
       // Select a design the moment it's hatched — direct DOM updates only, so picking
