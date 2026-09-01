@@ -69,7 +69,10 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: CHAT_MODEL,
-        max_tokens: 600,
+        // Thinking models spend hidden reasoning tokens from the same budget — keep the
+        // budget generous and the reasoning capped so the visible reply always completes.
+        max_tokens: 2400,
+        reasoning: { max_tokens: 512 },
         temperature: 0.7,
         messages: [
           { role: 'system', content: system },
