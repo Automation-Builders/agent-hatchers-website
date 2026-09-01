@@ -117,15 +117,15 @@ export default async function handler(req, res) {
       trace.push({ params: Object.keys(params).join('+'), status: r.status, finish: r.finish, len: r.text.length, error: r.error, usage: r.usage });
       // a good reply is non-trivially long and didn't stop because it ran out of budget
       if (r.ok && r.text.length >= 300 && r.finish !== 'length') {
-        res.status(200).json({ reply: r.text, v: 3, finish: r.finish, usage: r.usage });
+        res.status(200).json({ reply: r.text, v: 4, finish: r.finish, usage: r.usage });
         return;
       }
       // keep the best partial in case every attempt truncates
       if (r.ok && r.text.length > (trace.best?.len || 0)) trace.best = { len: r.text.length, text: r.text, finish: r.finish, usage: r.usage };
     }
-    if (trace.best?.text) { res.status(200).json({ reply: trace.best.text, v: 3, finish: trace.best.finish, usage: trace.best.usage, degraded: true, trace }); return; }
-    res.status(502).json({ error: 'No usable reply', v: 3, trace });
+    if (trace.best?.text) { res.status(200).json({ reply: trace.best.text, v: 4, finish: trace.best.finish, usage: trace.best.usage, degraded: true, trace }); return; }
+    res.status(502).json({ error: 'No usable reply', v: 4, trace });
   } catch (e) {
-    res.status(502).json({ error: 'Upstream request failed: ' + (e && e.message), v: 3 });
+    res.status(502).json({ error: 'Upstream request failed: ' + (e && e.message), v: 4 });
   }
 }
