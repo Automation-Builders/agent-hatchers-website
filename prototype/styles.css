@@ -870,3 +870,7 @@ h1{font-weight:800}h2{font-weight:700}
 .el-note{margin:0;font:600 .92rem 'Inter',system-ui;color:#60758c}
 .el-ready{justify-content:center}
 @media(max-width:640px){.el-body{flex-direction:column;align-items:center}}
+/* Create-button paywall popover */
+.create-pop{position:fixed;top:70px;right:24px;z-index:60;display:flex;align-items:center;gap:10px;max-width:340px;background:#fff;border:1px solid #f3dfae;border-left:4px solid #c07f1f;border-radius:14px;box-shadow:0 18px 44px rgba(20,25,35,.18);padding:13px 16px;font:600 .88rem 'Inter',system-ui;color:#7a5410;opacity:0;transform:translateY(-8px);transition:opacity .25s,transform .25s}
+.create-pop.show{opacity:1;transform:none}
+.create-pop svg{width:18px;height:18px;flex:0 0 auto;stroke:#c07f1f;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}

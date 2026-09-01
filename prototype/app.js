@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 19;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 20;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -71,10 +71,29 @@
   const MCP_MONO={'AfterShip':['AS','#FF6B2C'],'Asana':['as','#F06A6A'],'Canva':['C','#00C4CC'],'Cin7':['C7','#0B2E4F'],'Dropbox':['D','#0061FF'],'GitHub':['GH','#181717'],'Google Ads':['GA','#4285F4'],'Google Analytics':['An','#E37400'],'Google Drive':['GD','#1FA463'],'Google Sheets':['GS','#188038'],'Intercom':['IC','#1F8DED'],'Klaviyo':['K','#16120F'],'LinkedIn':['in','#0A66C2'],'Loop Returns':['L','#3D3AF2'],'MYOB':['M','#6100A5'],'Meta Ads':['M','#0081FB'],'Microsoft 365':['MS','#D83B01'],'Monday.com':['mo','#FF3D57'],'Salesforce':['SF','#00A1E0'],'ShipStation':['SS','#2E7FC0'],'Shopify':['S','#96BF48'],'Webflow':['W','#4353FF'],'WordPress':['W','#21759B']};
   // Which agents naturally hand work to each other — shown as a suggested team.
   const WORKS_WITH={logistics:['inventory','returns','support'],marketing:['website','sales','support'],support:['returns','logistics','sales'],returns:['logistics','invoices','support'],sales:['marketing','invoices','documents'],inventory:['logistics','invoices','operations'],invoices:['inventory','returns','operations'],documents:['sales','operations','invoices'],website:['marketing','support','sales'],operations:['inventory','documents','invoices']};
+  // Hand-drawn brand marks for MCPs the homepage sprite doesn't carry.
+  const MCP_SVGS={
+    'Google Ads':'<svg viewBox="0 0 24 24" class="mcp-lg"><rect x="9.8" y="2.6" width="4.6" height="16" rx="2.3" transform="rotate(30 12 10.6)" fill="#FBBC04"/><rect x="9.8" y="2.6" width="4.6" height="16" rx="2.3" transform="rotate(-30 12 10.6)" fill="#4285F4"/><circle cx="5.6" cy="18.4" r="3.2" fill="#34A853"/></svg>',
+    'Google Analytics':'<svg viewBox="0 0 24 24" class="mcp-lg"><rect x="15.6" y="3" width="5.2" height="18" rx="2.6" fill="#F9AB00"/><rect x="9.4" y="9.5" width="5.2" height="11.5" rx="2.6" fill="#E37400"/><circle cx="5.8" cy="18.4" r="2.6" fill="#E37400"/></svg>',
+    'Google Drive':'<svg viewBox="0 0 24 24" class="mcp-lg"><path d="M8.7 3h6.6l7 12.2H15.7Z" fill="#FFBA00"/><path d="M8.7 3 1.7 15.2l3.3 5.8 7-12.2Z" fill="#00AC47"/><path d="M5 21h13.9l3.4-5.8H8.4Z" fill="#2684FC"/></svg>',
+    'Google Sheets':'<svg viewBox="0 0 24 24" class="mcp-lg"><rect x="5" y="2.5" width="14" height="19" rx="2" fill="#188038"/><path d="M8.2 10.2h7.6v7.6H8.2Z M8.2 14h7.6 M12 10.2v7.6" fill="none" stroke="#fff" stroke-width="1.4"/></svg>',
+    'Meta Ads':'<svg viewBox="0 0 24 24" class="mcp-lg"><path d="M6.7 17.4c-2.1 0-3.5-1.9-3.5-4.4 0-3.6 2.3-6.4 5-6.4 2.8 0 4.5 2.7 5.8 5.7 1.3-3 2.6-5.7 5.4-5.7 2.4 0 4.4 2.4 4.4 5.7 0 2.9-1.5 5.1-3.7 5.1-2.6 0-4.1-2.9-5.4-5.8-1.4 2.9-3.1 5.8-6 5.8Z" fill="none" stroke="#0081FB" stroke-width="2.1"/></svg>',
+    'LinkedIn':'<svg viewBox="0 0 24 24" class="mcp-lg"><rect x="2" y="2" width="20" height="20" rx="3.5" fill="#0A66C2"/><circle cx="7.9" cy="8.4" r="1.7" fill="#fff"/><rect x="6.4" y="10.8" width="3" height="7.6" fill="#fff"/><path d="M11.5 10.8h2.9v1.2c.5-.8 1.6-1.5 3-1.5 2.2 0 3.5 1.5 3.5 3.9v4h-3v-3.6c0-1.2-.5-1.9-1.5-1.9s-1.9.7-1.9 2v3.5h-3Z" fill="#fff"/></svg>',
+    'GitHub':'<svg viewBox="0 0 16 16" class="mcp-lg"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" fill="#181717"/></svg>',
+    'Salesforce':'<svg viewBox="0 0 24 24" class="mcp-lg"><path d="M7.4 9.2c.9-1.8 2.8-3 4.9-3 1.7 0 3.2.7 4.2 1.9.6-.3 1.3-.5 2-.5 2.6 0 4.7 2.1 4.7 4.7s-2.1 4.8-4.7 4.8H7.9C5.5 17.1 3.5 15.1 3.5 12.7c0-2.1 1.6-3.9 3.9-3.5Z" fill="#00A1E0"/></svg>',
+    'Dropbox':'<svg viewBox="0 0 24 24" class="mcp-lg"><path d="M7 2.6l5 3.2-5 3.2-5-3.2Zm10 0 5 3.2-5 3.2-5-3.2ZM2 12.2l5-3.2 5 3.2-5 3.2Zm15-3.2 5 3.2-5 3.2-5-3.2ZM7 16.6l5-3.2 5 3.2-5 3.2Z" fill="#0061FF"/></svg>',
+    'Asana':'<svg viewBox="0 0 24 24" class="mcp-lg"><circle cx="12" cy="7.2" r="3.5" fill="#F06A6A"/><circle cx="6" cy="16.6" r="3.5" fill="#F06A6A"/><circle cx="18" cy="16.6" r="3.5" fill="#F06A6A"/></svg>',
+    'Monday.com':'<svg viewBox="0 0 24 24" class="mcp-lg"><rect x="3.4" y="6" width="4.6" height="12.4" rx="2.3" fill="#FF3D57"/><rect x="9.7" y="6" width="4.6" height="12.4" rx="2.3" fill="#FFCB00"/><rect x="16" y="6" width="4.6" height="12.4" rx="2.3" fill="#00D647"/></svg>',
+    'Canva':'<svg viewBox="0 0 24 24" class="mcp-lg"><circle cx="12" cy="12" r="10" fill="#00C4CC"/><text x="12" y="16.4" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="12.5" fill="#fff">C</text></svg>',
+    'WordPress':'<svg viewBox="0 0 24 24" class="mcp-lg"><circle cx="12" cy="12" r="10" fill="#21759B"/><text x="12" y="16" text-anchor="middle" font-family="Georgia,serif" font-size="11.5" fill="#fff">W</text></svg>',
+    'Webflow':'<svg viewBox="0 0 24 24" class="mcp-lg"><rect x="2" y="2" width="20" height="20" rx="5" fill="#4353FF"/><text x="12" y="16.2" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-weight="800" font-style="italic" font-size="11" fill="#fff">W</text></svg>',
+    'Shopify':'<svg viewBox="0 0 24 24" class="mcp-lg"><path d="M7.6 7.4l.9-3c.2-.7.8-1.2 1.5-1.2h4c.7 0 1.3.5 1.5 1.2l.9 3h2.1c.6 0 1 .4 1.1 1l1 11c.1.8-.5 1.5-1.3 1.5H4.7c-.8 0-1.4-.7-1.3-1.5l1-11c.1-.6.5-1 1.1-1Z" fill="#96BF48"/><text x="12" y="17.2" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-style="italic" font-size="9.5" fill="#fff">S</text></svg>',
+    'Intercom':'<svg viewBox="0 0 24 24" class="mcp-lg"><rect x="2.5" y="2.5" width="19" height="19" rx="4.5" fill="#1F8DED"/><rect x="6.1" y="7" width="1.7" height="7" rx=".85" fill="#fff"/><rect x="9.4" y="6.2" width="1.7" height="8.6" rx=".85" fill="#fff"/><rect x="12.7" y="6.2" width="1.7" height="8.6" rx=".85" fill="#fff"/><rect x="16" y="7" width="1.7" height="7" rx=".85" fill="#fff"/><path d="M6.5 17c3.6 2.4 7.4 2.4 11 0" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></svg>'
+  };
   function mcpChip(name){
     const sym=MCP_ICONS[name];
     const icon=sym?`<svg class="mcp-lg" aria-hidden="true"><use href="#${sym}"/></svg>`
-      :(MCP_MONO[name]?`<span class="mcp-mono" style="background:${MCP_MONO[name][1]}">${MCP_MONO[name][0]}</span>`:'');
+      :(MCP_SVGS[name]||(MCP_MONO[name]?`<span class="mcp-mono" style="background:${MCP_MONO[name][1]}">${MCP_MONO[name][0]}</span>`:''));
     return `<span class="mcp">${icon}${escapeHtml(name)}</span>`;
   }
   function escapeHtml(value){return String(value).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
@@ -292,7 +311,7 @@
       <header class="app-nav">
         <div class="ws"><img class="ws-logo ${state.selectedImage?'ws-avatar-img':''}" src="${state.selectedImage||'/agent-hatchers-logo.png'}" alt=""><span>${escapeHtml(co())}</span><i class="ws-chev">${ic.chev}</i></div>
         <nav class="nav-tabs">${tab('profiles','Profiles')}${tab('chats','Chats')}${tab('analytics','Analytics')}${tab('config','Config')}${tab('market','Marketplace')}${tab('merch','Merch')}</nav>
-        <div class="nav-right"><button class="create-btn" data-noop="1">${ic.plus}<span>Create</span></button><span class="nav-avatar">${initials(co())}</span></div>
+        <div class="nav-right"><button class="create-btn" data-create="1">${ic.plus}<span>Create</span></button><span class="nav-avatar">${initials(co())}</span></div>
       </header>
       ${body}
       <div class="board-foot"><div class="foot-nav">${button('← Back','back',true)}${button('Start over','reset',true)}</div>${button('Connect your agent →','next')}</div>
@@ -515,6 +534,7 @@
       el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick()}};
     });
     root.querySelectorAll('[data-look-index]').forEach(el=>el.onclick=()=>{const ta=document.getElementById('agent-look');if(ta){ta.value=lookSeeds[+el.dataset.lookIndex].text;ta.focus()}});
+    root.querySelectorAll('[data-create]').forEach(el=>el.onclick=()=>{document.querySelectorAll('.create-pop').forEach(p=>p.remove());const pop=document.createElement('div');pop.className='create-pop';pop.innerHTML=`${ci.key}<span>Please pay for your agent to see what a new profile would look like.</span>`;document.body.appendChild(pop);setTimeout(()=>pop.classList.add('show'),10);setTimeout(()=>{pop.classList.remove('show');setTimeout(()=>pop.remove(),300)},4600);});
     root.querySelectorAll('[data-merch-robot]').forEach(el=>el.onclick=()=>{state.merch.robot=el.dataset.merchRobot;render();});
     root.querySelectorAll('[data-merch-prod]').forEach(el=>el.onclick=()=>{state.merch.product=el.dataset.merchProd;state.merch.size=el.dataset.merchProd==='hat'?'One size':'S';render();});
     root.querySelectorAll('[data-merch-color]').forEach(el=>el.onclick=()=>{state.merch.color=+el.dataset.merchColor;render();});
