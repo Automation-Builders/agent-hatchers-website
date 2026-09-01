@@ -660,87 +660,53 @@ h1{font-weight:800}h2{font-weight:700}
 .mkt-tags{display:flex;align-items:center;gap:10px}
 .mkt-skills{font-size:.8rem;color:#9aa3ad;font-weight:600}
 .mkt-thumb .hatch-loader{position:absolute;inset:0}
-/* ============ Egg hatch — EXACT copy of the agenthatchers.com homepage hero ============ */
-/* Layers over a 620×620 frame; every layer runs the same 5s clock (1% = 50ms). The only
-   change from index.html is that the "pop" layer is the generated design, and the whole
-   choreography is gated behind .go so it fires the moment each design finishes generating. */
-.hhx{position:relative;width:clamp(120px,17vw,200px);aspect-ratio:1/1;--egg:#F6EBD4;--egg-spot:#2E7FC0}
-.hhx .hatch-layer{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
-.hhx .hatch-layer img{width:100%;height:100%;display:block}
-.hhx .hatch-pop{border-radius:14px;overflow:hidden}
-.hhx .hatch-pop img,.hhx .hatch-pop{object-fit:cover}
-.hhx .hatch-cracks{position:absolute;inset:0;width:100%;height:100%}
-/* Cracks draw with REAL path lengths (198/202/204 units), not pathLength="1" —
-   WebKit/Safari mishandles pathLength normalisation and renders the whole crack
-   immediately. The dasharray/dashoffset also sit inline on each <path> so even a
-   stale cached stylesheet can only hide the cracks, never show them early. */
-.hhx .hatch-cracks path{fill:none;stroke:#1b1a40;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
-/* pre-hatch (still generating): closed egg sits and gently rocks; nothing else shows */
-.hhx:not(.go) .hatch-egg{transform-origin:50% 90%;animation:hhIdle 2.6s ease-in-out infinite}
-.hhx:not(.go) .hatch-cap,.hhx:not(.go) .hatch-pop,.hhx:not(.go) .hatch-burst,.hhx:not(.go) .hatch-cracks{opacity:0}
-@keyframes hhIdle{0%,100%{transform:rotate(0)}25%{transform:rotate(-3deg)}75%{transform:rotate(3deg)}}
-/* 1 · closed egg: settles in, wobbles three times, trembles, bursts */
-.hhx.go .hatch-egg{transform-origin:50% 90%;animation:hhEgg 5s ease both}
-@keyframes hhEgg{
-  0%{opacity:0;transform:translateY(-2%) scale(.96)}
-  6%{opacity:1;transform:none}
-  12%{transform:rotate(0deg)}14%{transform:rotate(-3deg)}16%{transform:rotate(2.5deg)}18%{transform:rotate(-1.5deg)}20%{transform:rotate(0deg)}
-  28%{transform:rotate(0deg)}30%{transform:rotate(-5deg) translateY(-1.2%)}32%{transform:rotate(4.5deg)}34%{transform:rotate(-3deg) translateY(-.6%)}36%{transform:rotate(0deg) translateY(0)}
-  44%{transform:rotate(0deg)}45.5%{transform:rotate(-7deg) translateY(-2%)}47%{transform:rotate(6.5deg)}48.5%{transform:rotate(-5deg) translateY(-1.2%)}50%{transform:rotate(4deg)}51.5%{transform:rotate(-2deg)}52%{transform:rotate(0deg)}53%{transform:rotate(1.5deg)}54%{transform:rotate(-1.5deg)}55%{transform:rotate(1.5deg)}56%{transform:rotate(-1deg)}57%{transform:rotate(0deg)}
-  58.5%{opacity:1;transform:scale(1.07,.86)}59.5%{opacity:1;transform:scale(.99,1.04)}
-  61%,100%{opacity:0;transform:translateY(-2%) scale(.92,1.1)}
+/* ============ Design hatch (.hx6) — the same continuous split-egg animation ============
+   One per design, identical choreography to the welcome hatch: the egg is two clip-path
+   halves of egg-closed.webp split along the crack seam, so the lid that tumbles off IS the
+   egg's top. While a design is generating the egg idles with a gentle rock; the moment its
+   image is ready (.go) the 5s clock runs — wobble, crack, lid off, and the generated design
+   rises from inside the shell — then holds its last keyframe. .done renders the finished
+   pose statically so re-renders never reset a hatched egg. Reuses the hx5 keyframes. */
+.hx6{position:relative;width:clamp(130px,18vw,210px);aspect-ratio:31/42;overflow:hidden}
+.hx6-wrap{position:absolute;left:0;bottom:0;width:100%;aspect-ratio:1/1}
+.hx6-wrap img,.hx6-cracks{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.hx6-lid{transform-origin:50% 42%}
+.hx6-pop{position:absolute;left:13%;bottom:12%;width:74%;aspect-ratio:1/1;object-fit:cover;border-radius:14px;box-shadow:0 10px 22px rgba(22,21,70,.18);background:#fff;pointer-events:none;transform-origin:50% 100%;transform:translateY(4%) scale(.45)}
+.hx6:not(.go):not(.done) .hx6-wrap{transform-origin:50% 90%;animation:hx6Idle 2.6s ease-in-out infinite}
+@keyframes hx6Idle{0%,100%{transform:rotate(0)}25%{transform:rotate(-3deg)}75%{transform:rotate(3deg)}}
+.hx6.go .hx6-wrap{transform-origin:50% 90%;animation:hx6Egg 5s ease both}
+@keyframes hx6Egg{
+  0%,12%{transform:rotate(0)}14%{transform:rotate(-3deg)}16%{transform:rotate(2.5deg)}18%{transform:rotate(-1.5deg)}20%{transform:rotate(0)}
+  28%{transform:rotate(0)}30%{transform:rotate(-5deg) translateY(-1.2%)}32%{transform:rotate(4.5deg)}34%{transform:rotate(-3deg) translateY(-.6%)}36%{transform:rotate(0) translateY(0)}
+  44%{transform:rotate(0)}45.5%{transform:rotate(-6deg) translateY(-1.6%)}47%{transform:rotate(5.5deg)}48.5%{transform:rotate(-4deg) translateY(-1%)}50%{transform:rotate(3deg)}51.5%{transform:rotate(-1.5deg)}53%{transform:rotate(1.5deg)}54.5%{transform:rotate(-1deg)}56%{transform:rotate(.8deg)}57.5%,100%{transform:rotate(0)}
 }
-/* the crack: one continuous fracture, one leg per wobble */
-.hhx.go .hatch-cracks path{animation-duration:5s;animation-timing-function:linear;animation-fill-mode:both}
-.hhx.go .hatch-k1{animation-name:hhCrack1}.hhx.go .hatch-k2{animation-name:hhCrack2}.hhx.go .hatch-k3{animation-name:hhCrack3}
-@keyframes hhCrack1{0%,16%{stroke-dashoffset:198}21%,100%{stroke-dashoffset:0}}
-@keyframes hhCrack2{0%,33%{stroke-dashoffset:202}38%,100%{stroke-dashoffset:0}}
-@keyframes hhCrack3{0%,48%{stroke-dashoffset:204}53%,100%{stroke-dashoffset:0}}
-/* 2 · the lid: launches in a tumbling arc */
-.hhx.go .hatch-cap{transform-origin:50% 45%;animation:hhCap 5s linear both}
-@keyframes hhCap{
-  0%,57.9%{opacity:0;transform:translate(0,-9%) scale(.82) rotate(0deg)}
-  58%{opacity:1;transform:translate(0,-9%) scale(.82) rotate(0deg)}
-  61%{opacity:1;transform:translate(9%,-43%) scale(.82) rotate(14deg)}
-  64%{opacity:1;transform:translate(19%,-65%) scale(.82) rotate(26deg)}
-  67%{opacity:1;transform:translate(28%,-73%) scale(.82) rotate(38deg)}
-  70%{opacity:1;transform:translate(37%,-65%) scale(.82) rotate(50deg)}
-  73%{opacity:1;transform:translate(45%,-39%) scale(.82) rotate(60deg)}
-  76%{opacity:1;transform:translate(53%,3%) scale(.82) rotate(70deg)}
-  79%{opacity:.55;transform:translate(60%,59%) scale(.82) rotate(78deg)}
-  82%,100%{opacity:0;transform:translate(66%,121%) scale(.82) rotate(84deg)}
+.hx6.go .hx6-cracks{animation:hx5CrackFade 5s linear both}
+.hx6.go .hx6-c1{animation:hx5C1 5s linear both}
+.hx6.go .hx6-c2{animation:hx5C2 5s linear both}
+.hx6.go .hx6-c3{animation:hx5C3 5s linear both}
+.hx6.go .hx6-lid{animation:hx6Lid 5s linear both}
+.hx6.go .hx6-bottom{animation:hx5Kick 5s ease both}
+@keyframes hx6Lid{
+  0%,58%{transform:none;opacity:1}
+  62%{transform:translate(3%,-10%) rotate(8deg)}
+  68%{transform:translate(9%,-24%) rotate(24deg);opacity:1}
+  76%{transform:translate(16%,-30%) rotate(46deg);opacity:.85}
+  84%{transform:translate(23%,-24%) rotate(64deg);opacity:.35}
+  90%,100%{transform:translate(28%,-10%) rotate(76deg);opacity:0}
 }
-/* 3 · the design springs up with overshoot, settles, holds */
-.hhx.go .hatch-pop{transform-origin:50% 88%;animation:hhPop 5s ease both}
-@keyframes hhPop{
-  0%,57.5%{opacity:0;transform:translateY(3%) scale(1.06,.7)}
-  60%{opacity:1;transform:translateY(2.5%) scale(1.05,.74)}
-  67%{opacity:1;transform:translateY(-2.5%) scale(.955,1.1)}
-  74%{transform:translateY(.6%) scale(1.03,.96)}
-  80%{transform:translateY(-.4%) scale(.99,1.02)}
+.hx6.go .hx6-pop{animation:hx6Pop 5s both;animation-timing-function:cubic-bezier(.3,1.2,.45,1)}
+@keyframes hx6Pop{
+  0%,59%{transform:translateY(4%) scale(.45)}
+  73%{transform:translateY(-4%) scale(1.04)}
+  81%{transform:translateY(1.2%) scale(.985)}
   88%,100%{transform:none}
 }
-/* 4 · the burst: flash + ring + shell shards that mask the switch */
-.hhx .hatch-flash{position:absolute;left:50%;top:48%;width:88%;aspect-ratio:1/1;margin:-44% 0 0 -44%;border-radius:50%;background:radial-gradient(circle,#fff 0%,#fff 48%,rgba(255,255,255,0) 74%)}
-.hhx.go .hatch-flash{animation:hhFlash 5s ease both}
-@keyframes hhFlash{0%,57.2%{opacity:0;transform:scale(.2)}58.6%{opacity:1;transform:scale(1)}60.5%{opacity:.9;transform:scale(1.25)}66%,100%{opacity:0;transform:scale(2)}}
-.hhx .hatch-ring{position:absolute;left:50%;top:54%;width:34%;aspect-ratio:1/1;margin:-17% 0 0 -17%;border-radius:50%;border:4px solid var(--egg-spot)}
-.hhx.go .hatch-ring{animation:hhRing 5s ease both}
-@keyframes hhRing{0%,57.5%{opacity:0;transform:scale(.25)}59%{opacity:.5;transform:scale(.6)}66%,100%{opacity:0;transform:scale(2.1)}}
-.hhx .hatch-shard{position:absolute;left:50%;top:54%;width:2.8%;aspect-ratio:1/1;margin:-1.4% 0 0 -1.4%;background:var(--egg);border:2px solid #1b1a40;border-radius:22% 60% 40% 60%}
-.hhx .hatch-shard:nth-child(even){background:var(--egg-spot);border-radius:50%}
-.hhx.go .hatch-shard{animation:hhShard 5s cubic-bezier(.17,.67,.4,1) both}
-@keyframes hhShard{
-  0%,57.5%{opacity:0;transform:translate(0,0) rotate(0) scale(.4)}
-  59%{opacity:1;transform:translate(calc(var(--fx)*.45),calc(var(--fy)*.45)) rotate(calc(var(--r)*.45)) scale(1.1)}
-  68%{opacity:1;transform:translate(calc(var(--fx)*.92),calc(var(--fy)*.92 + 60%)) rotate(calc(var(--r)*.92)) scale(.9)}
-  75%,100%{opacity:0;transform:translate(var(--fx),calc(var(--fy) + 240%)) rotate(var(--r)) scale(.55)}
-}
+.hx6.done .hx6-wrap,.hx6.done .hx6-bottom,.hx6.done .hx6-pop{animation:none;transform:none}
+.hx6.done .hx6-lid,.hx6.done .hx6-cracks{animation:none;opacity:0}
 @media(prefers-reduced-motion:reduce){
-  .hhx .hatch-egg,.hhx .hatch-cap,.hhx .hatch-flash,.hhx .hatch-ring,.hhx .hatch-shard,.hhx .hatch-cracks path{animation:none!important}
-  .hhx.go .hatch-egg,.hhx.go .hatch-cap,.hhx.go .hatch-flash,.hhx.go .hatch-ring,.hhx.go .hatch-shard{opacity:0}
-  .hhx.go .hatch-cracks{opacity:0}
-  .hhx.go .hatch-pop{animation:none;opacity:1;transform:none}
+  .hx6 .hx6-wrap,.hx6 .hx6-lid,.hx6 .hx6-bottom,.hx6 .hx6-pop,.hx6 .hx6-cracks,.hx6 .hx6-cracks path{animation:none!important}
+  .hx6.go .hx6-lid,.hx6.go .hx6-cracks{opacity:0}
+  .hx6.go .hx6-pop{transform:none}
 }
 /* ============ Hatch screen: pick your design in place (no separate step) ============ */
 .egg-cell{position:relative;border-radius:20px;padding:8px 8px 4px;border:2px solid transparent;transition:border-color .2s,background .2s,transform .2s;outline:none}
@@ -751,9 +717,7 @@ h1{font-weight:800}h2{font-weight:700}
 .egg-tick svg{width:14px;height:14px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
 .egg-cell.selected .egg-tick{display:grid;animation:tickPop .3s cubic-bezier(.2,1.6,.4,1) both}
 @keyframes tickPop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
-/* a design that already hatched holds its final pose on re-render (no reset to a closed egg) */
-.hhx.done .hatch-egg,.hhx.done .hatch-cap,.hhx.done .hatch-burst,.hhx.done .hatch-cracks{animation:none!important;opacity:0!important}
-.hhx.done .hatch-pop{animation:none!important;opacity:1!important;transform:none!important}
+
 /* ============ Welcome hatch — one continuous 5s choreography, no layer swaps ============
    The egg is two clip-path halves of the same egg image split along the crack seam, so the
    composed egg is pixel-identical to the whole egg until the lid (the real egg top) tumbles
@@ -785,13 +749,13 @@ h1{font-weight:800}h2{font-weight:700}
 /* the lid IS the egg's top: it hinges up off the seam, arcs over and tumbles out of frame */
 .hx5.run .hx5-lid{animation:hx5Lid 5s linear both}
 @keyframes hx5Lid{
-  0%,58%{transform:none}
+  0%,58%{transform:none;opacity:1}
   62%{transform:translate(3%,-14%) rotate(9deg)}
   70%{transform:translate(14%,-42%) rotate(30deg)}
   78%{transform:translate(30%,-52%) rotate(56deg)}
   86%{transform:translate(50%,-26%) rotate(80deg)}
-  93%{transform:translate(66%,44%) rotate(98deg)}
-  100%{transform:translate(78%,140%) rotate(110deg)}
+  93%{transform:translate(66%,44%) rotate(98deg);opacity:.45}
+  100%{transform:translate(78%,140%) rotate(110deg);opacity:0}
 }
 /* the bottom shell gives a little kick as the lid pops */
 .hx5.run .hx5-bottom{animation:hx5Kick 5s ease both}
