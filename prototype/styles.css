@@ -786,3 +786,5 @@ h1{font-weight:800}h2{font-weight:700}
 .mate-meta{display:flex;flex-direction:column;line-height:1.2}
 .mate-meta b{font:700 .88rem 'Inter',system-ui;color:var(--ink)}
 .mate-meta i{font:600 .72rem 'Inter',system-ui;font-style:normal;color:var(--muted)}
+.build-tag{position:absolute;right:18px;bottom:12px;font:600 .68rem 'Inter',system-ui;color:#a8b6c4;letter-spacing:.04em}
+.welcome-grid{position:relative}
