@@ -58,7 +58,7 @@ export default async function handler(req, res) {
     `are fine). 120-190 words. End with one crisp sentence saying what you would already be doing ` +
     `right now if you were fully connected.`;
 
-  try {
+  async function callModel(params) {
     const upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -68,28 +68,53 @@ export default async function handler(req, res) {
         'X-Title': 'Agent Hatchers Prototype Chat'
       },
       body: JSON.stringify({
-        model: CHAT_MODEL,
-        // Thinking models spend hidden reasoning tokens from the same budget — keep the
-        // budget generous and the reasoning capped so the visible reply always completes.
-        max_tokens: 2400,
-        reasoning: { max_tokens: 512 },
         temperature: 0.7,
         messages: [
           { role: 'system', content: system },
           { role: 'user', content: question }
-        ]
+        ],
+        ...params
       })
     });
     const data = await upstream.json().catch(() => ({}));
-    if (!upstream.ok) {
-      const msg = (data && (data.error?.message || data.error)) || `Provider error ${upstream.status}`;
-      res.status(502).json({ error: String(msg) });
-      return;
+    const msg = data?.choices?.[0]?.message;
+    // content can be a string or an array of parts depending on the provider
+    let text = '';
+    if (typeof msg?.content === 'string') text = msg.content;
+    else if (Array.isArray(msg?.content)) text = msg.content.map(p => p?.text || '').join('');
+    return {
+      ok: upstream.ok, status: upstream.status,
+      error: data?.error?.message || data?.error || null,
+      text: (text || '').trim(),
+      finish: data?.choices?.[0]?.finish_reason || data?.choices?.[0]?.native_finish_reason || null,
+      usage: data?.usage || null
+    };
+  }
+
+  try {
+    // Thinking models can silently spend the whole token budget on hidden reasoning and
+    // truncate the visible reply, and providers differ on how reasoning is disabled — so
+    // try progressively blunter configurations until a complete reply lands.
+    const attempts = [
+      { model: CHAT_MODEL, max_tokens: 3000, reasoning: { enabled: false } },
+      { model: CHAT_MODEL, max_tokens: 8000, reasoning: { effort: 'low' } },
+      { model: CHAT_MODEL, max_tokens: 8000 }
+    ];
+    const trace = [];
+    for (const params of attempts) {
+      const r = await callModel(params);
+      trace.push({ params: Object.keys(params).join('+'), status: r.status, finish: r.finish, len: r.text.length, error: r.error, usage: r.usage });
+      // a good reply is non-trivially long and didn't stop because it ran out of budget
+      if (r.ok && r.text.length >= 300 && r.finish !== 'length') {
+        res.status(200).json({ reply: r.text, v: 3, finish: r.finish, usage: r.usage });
+        return;
+      }
+      // keep the best partial in case every attempt truncates
+      if (r.ok && r.text.length > (trace.best?.len || 0)) trace.best = { len: r.text.length, text: r.text, finish: r.finish, usage: r.usage };
     }
-    const reply = data?.choices?.[0]?.message?.content?.trim();
-    if (!reply) { res.status(502).json({ error: 'No reply returned' }); return; }
-    res.status(200).json({ reply });
+    if (trace.best?.text) { res.status(200).json({ reply: trace.best.text, v: 3, finish: trace.best.finish, usage: trace.best.usage, degraded: true, trace }); return; }
+    res.status(502).json({ error: 'No usable reply', v: 3, trace });
   } catch (e) {
-    res.status(502).json({ error: 'Upstream request failed' });
+    res.status(502).json({ error: 'Upstream request failed: ' + (e && e.message), v: 3 });
   }
 }
