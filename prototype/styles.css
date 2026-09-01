@@ -788,3 +788,9 @@ h1{font-weight:800}h2{font-weight:700}
 .mate-meta i{font:600 .72rem 'Inter',system-ui;font-style:normal;color:var(--muted)}
 .build-tag{position:absolute;right:18px;bottom:12px;font:600 .68rem 'Inter',system-ui;color:#a8b6c4;letter-spacing:.04em}
 .welcome-grid{position:relative}
+/* agent profile: portrait beside the outcomes checklist */
+.profile-cols{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:22px;align-items:start}
+.profile-cols h3{margin-top:0}
+.profile-art{border-radius:18px;overflow:hidden;box-shadow:0 12px 28px rgba(33,107,172,.18);border:1px solid #dcebf3;background:#f2f8fc}
+.profile-art img{width:100%;height:100%;aspect-ratio:1/1;object-fit:cover;display:block}
+@media(max-width:640px){.profile-cols{grid-template-columns:1fr}.profile-art{max-width:220px}}
