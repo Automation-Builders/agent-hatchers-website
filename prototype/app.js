@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 18;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 19;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -121,6 +121,8 @@
   // Rendered stateful: a slot that already hatched shows its design (.done skips the
   // animation on re-renders instead of resetting to a closed egg), and each hatched
   // design is clickable to select right away — no separate "pick" step.
+  const HX6_CRACKS=`<svg class="hx6-cracks" viewBox="0 0 620 620"><path class="hx6-c1" d="M114,318 L146,302 L172,330 L200,296 L226,331 L245,301" fill="none" stroke="#1b1a40" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:198;stroke-dashoffset:198"/><path class="hx6-c2" d="M245,301 L272,336 L308,290 L338,332 L375,302" fill="none" stroke="#1b1a40" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:202;stroke-dashoffset:202"/><path class="hx6-c3" d="M375,302 L396,333 L420,298 L448,332 L474,300 L506,320" fill="none" stroke="#1b1a40" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:204;stroke-dashoffset:204"/></svg>`;
+  const hx6Shell=extra=>`<div class="hx6 ${extra||''}"><img class="hx6-pop" alt=""><div class="hx6-wrap" aria-hidden="true"><img class="hx6-bottom" src="/egg-closed.webp" alt="" style="clip-path:polygon(0 50.69%,${HX5_SEAM_UP},100% 51.01%,100% 100%,0 100%)"><img class="hx6-lid" src="/egg-closed.webp" alt="" style="clip-path:polygon(0 0,100% 0,100% 51.61%,${HX5_SEAM},0 51.29%)">${HX6_CRACKS}</div></div>`;
   function eggScene(i){
     const slot=state.slots[i];const ready=!!(slot&&slot.status==='ready');const img=ready?(slot.image||'/hatchy-pop.webp'):'';const sel=state.variant===i;
     return `<div class="egg-cell ${ready?'is-ready':''} ${sel?'selected':''}" data-egg="${i}" role="button" tabindex="0" aria-pressed="${sel}"><div class="hx6 ${ready?'done':''}" data-i="${i}">
@@ -315,6 +317,56 @@
     </main>`;
   }
   // Faithful port of the dashboard's AddInstanceDialog: Name it → Connect → Dashboard.
+
+  function openEditLook(){
+    if(!state.selectedImage) return;
+    const backdrop=document.createElement('div');backdrop.className='modal-backdrop';
+    let lastText='';let newImg=null;let busy=false;
+    const close=()=>backdrop.remove();
+    function draw(phase){
+      const name=escapeHtml(state.name||'Your agent');
+      const inner=phase==='form'
+        ? `<div class="el-body"><div class="el-current"><img src="${escapeHtml(state.selectedImage)}" alt=""><span>Current look</span></div>
+           <div class="el-form"><p>Tweak the current design, or describe something new and hatch it fresh.</p>
+           <textarea class="look-field" id="el-text" maxlength="400" placeholder="e.g. give it a red scarf and a captain’s hat — or describe a whole new look">${escapeHtml(lastText)}</textarea>
+           <div class="el-err" hidden>That didn’t hatch — please try again.</div>
+           <div class="actions"><button class="btn btn-secondary" data-el="edit">✎ Edit this photo</button><button class="btn btn-primary" data-el="new">✦ Hatch a new look</button></div></div></div>`
+        : `<div class="el-hatch">${hx6Shell('el-egg')}<p class="el-note">Hatching the new look…</p>
+           <div class="actions el-ready" style="display:none"><button class="btn btn-secondary" data-el="again">Try another</button><button class="btn btn-primary" data-el="apply">Use this look →</button></div></div>`;
+      backdrop.innerHTML=`<section class="modal el-modal" role="dialog" aria-modal="true"><div class="modal-top"><div><span class="eyebrow">Your agent</span><h2>${name}’s look</h2></div><button class="close" aria-label="Close">×</button></div>${inner}</section>`;
+      backdrop.querySelector('.close').onclick=close;backdrop.onclick=e=>{if(e.target===backdrop)close()};
+      backdrop.querySelectorAll('[data-el]').forEach(b=>b.onclick=()=>act(b.dataset.el));
+      const ta=backdrop.querySelector('#el-text');if(ta)ta.focus();
+    }
+    async function act(a){
+      if(a==='again'){draw('form');return;}
+      if(a==='apply'){
+        if(!newImg)return;
+        state.selectedImage=newImg;
+        if(state.variant!==null&&state.slots[state.variant])state.slots[state.variant].image=newImg;
+        // the whole marketplace re-dresses around the new character
+        state.marketImages={};state.marketStarted=false;
+        close();render();generateMarket();return;
+      }
+      if(busy)return;
+      const ta=backdrop.querySelector('#el-text');const text=(ta?ta.value.trim():'');
+      if(text.length<4){if(ta){ta.focus();ta.setAttribute('aria-invalid','true');}return;}
+      lastText=text;busy=true;newImg=null;
+      draw('hatch');
+      const img=a==='edit'
+        ? await fetchImage({brief:text,role:`Apply this change while keeping everything else about the character the same: ${text}.`,image:state.selectedImage,name:state.name,company:co(),industry:industryLabel,variant:0})
+        : await fetchImage({brief:`${text}. Give it ${DESIGN_AXES.build[Math.floor(Math.random()*4)]}, ${DESIGN_AXES.face[Math.floor(Math.random()*4)]} and ${DESIGN_AXES.style[Math.floor(Math.random()*4)]}.`,name:state.name,role:'',company:co(),industry:industryLabel,variant:0});
+      busy=false;
+      if(!backdrop.isConnected)return;
+      if(!img){draw('form');const err=backdrop.querySelector('.el-err');if(err)err.hidden=false;return;}
+      newImg=img;
+      const scene=backdrop.querySelector('.el-egg');const pop=scene&&scene.querySelector('.hx6-pop');
+      if(pop){const arm=()=>{scene.classList.add('go');setTimeout(()=>{const r=backdrop.querySelector('.el-ready');const n=backdrop.querySelector('.el-note');if(r)r.style.display='flex';if(n)n.textContent='Hatched — keep it?';},5100);};
+        pop.onload=arm;pop.onerror=()=>{draw('form');};pop.src=img;if(pop.complete&&pop.naturalWidth)arm();}
+    }
+    document.body.appendChild(backdrop);draw('form');
+    document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc)}},{once:true});
+  }
   function openConnectDialog(){
     const STEPS=[
       {key:'name',title:'Name it',lead:'What should this Hermes box be called in the switcher?'},
@@ -475,6 +527,7 @@
     root.querySelectorAll('[data-tab]').forEach(el=>el.onclick=()=>{state.tab=el.dataset.tab;render();});
     root.querySelectorAll('[data-chat]').forEach(el=>el.onclick=()=>{state.chatActive=+el.dataset.chat;render();});
     const cb=document.getElementById('chat-box');if(cb)cb.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();root.querySelector('[data-action="chat-send"]').click();}};
+    const yours=root.querySelector('.p-card.is-yours');if(yours){yours.style.cursor='pointer';yours.onclick=()=>openEditLook();yours.tabIndex=0;yours.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openEditLook()}};}
     root.querySelectorAll('[data-agent]').forEach(el=>{el.onclick=()=>showAgent(el.dataset.agent);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();showAgent(el.dataset.agent)}};});
     const search=document.getElementById('market-search');if(search)search.oninput=()=>{const q=search.value.trim().toLowerCase();let visible=0;root.querySelectorAll('.p-card[data-search]').forEach(c=>{const show=!q||c.dataset.search.includes(q);c.hidden=!show;if(show)visible++;});const yours=root.querySelector('.p-card.is-yours');if(yours)yours.hidden=!!q;root.querySelectorAll('.board-group').forEach(g=>{g.hidden=![...g.querySelectorAll('.p-card')].some(c=>!c.hidden);});const empty=document.getElementById('board-empty');if(empty)empty.hidden=visible>0;};
     const input=document.getElementById('agent-name');if(input)input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('agent-biz')?.focus()}};

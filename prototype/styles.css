@@ -854,3 +854,19 @@ h1{font-weight:800}h2{font-weight:700}
 .merch-pay{display:flex;align-items:center;gap:9px;margin-top:12px;background:#fff8e6;border:1px solid #f3dfae;color:#a4700c;font:700 .86rem 'Inter',system-ui;padding:11px 14px;border-radius:12px}
 .merch-pay svg{width:16px;height:16px;stroke:#c07f1f;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 @media(max-width:760px){.merch-detail{flex-direction:column;align-items:center}}
+/* ============ Edit-your-agent dialog ============ */
+.p-card.is-yours .p-thumb{position:relative}
+.p-card.is-yours .p-thumb:after{content:"✎ Edit look";position:absolute;top:8px;right:8px;background:rgba(22,37,63,.82);color:#fff;font:700 .68rem 'Inter',system-ui;padding:5px 9px;border-radius:999px;opacity:0;transition:opacity .15s;pointer-events:none}
+.p-card.is-yours:hover .p-thumb:after,.p-card.is-yours:focus-visible .p-thumb:after{opacity:1}
+.el-body{display:flex;gap:22px;align-items:flex-start;margin-top:8px}
+.el-current{display:flex;flex-direction:column;align-items:center;gap:8px;flex:0 0 auto}
+.el-current img{width:170px;height:170px;object-fit:cover;border-radius:18px;border:1px solid #dcebf3;box-shadow:0 10px 24px rgba(33,107,172,.15)}
+.el-current span{font:700 .72rem 'Inter',system-ui;letter-spacing:.06em;text-transform:uppercase;color:#8a94a0}
+.el-form{flex:1;min-width:0}
+.el-form .look-field{width:100%;min-height:96px}
+.el-err{margin-top:10px;color:#b3352c;font:600 .85rem 'Inter',system-ui}
+.el-hatch{display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 0 4px}
+.el-hatch .hx6{width:min(280px,60vw)}
+.el-note{margin:0;font:600 .92rem 'Inter',system-ui;color:#60758c}
+.el-ready{justify-content:center}
+@media(max-width:640px){.el-body{flex-direction:column;align-items:center}}
