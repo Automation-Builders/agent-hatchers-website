@@ -532,7 +532,6 @@ h1{font-weight:800}h2{font-weight:700}
 .p-thumb.is-loading,.mkt-thumb:has(.hatch-loader){position:relative;background:radial-gradient(circle at 50% 30%,#fff 0%,#f2f8fc 55%,#e2eef7 100%)!important}
 .hatch-loader{display:grid;place-items:center;width:100%;height:100%;gap:0;position:relative}
 .hatch-loader .loader-egg{width:42%;height:auto;animation:eggRock 1.7s ease-in-out infinite;filter:drop-shadow(0 6px 10px rgba(33,107,172,.16))}
-.hatch-loader .loader-ring{position:absolute;top:calc(50% - 8px);left:50%;width:60%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:3px solid rgba(33,107,172,.14);border-top-color:var(--brand,#216bac);animation:spin .9s linear infinite}
 .hatch-loader .loader-txt{position:absolute;bottom:9px;left:0;right:0;text-align:center;font:800 .68rem 'Inter',system-ui;letter-spacing:.09em;text-transform:uppercase;color:var(--brand,#216bac)}
 .ws-avatar-img{border-radius:50%;object-fit:cover}
 /* Analytics — filter bar + horizontal bar charts */
@@ -775,3 +774,15 @@ h1{font-weight:800}h2{font-weight:700}
   .hx5 .hx5-lid,.hx5 .hx5-bottom,.hx5 .hx5-cracks{opacity:0}
   .hx5 .hx5-robot{transform:none}
 }
+/* ============ Agent profile: MCP logos + suggested team ============ */
+.mcp{display:inline-flex;align-items:center;gap:7px}
+.mcp-lg{width:16px;height:16px;flex:0 0 auto}
+.mcp-mono{width:16px;height:16px;flex:0 0 auto;border-radius:5px;color:#fff;font:800 .52rem 'Inter',system-ui;display:inline-grid;place-items:center;letter-spacing:0}
+.mate-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.mate{display:flex;align-items:center;gap:10px;border:1px solid #dcebf3;background:#f7fbfd;border-radius:14px;padding:9px 12px;cursor:pointer;text-align:left;transition:border-color .15s,transform .15s,box-shadow .15s}
+.mate:hover,.mate:focus-visible{border-color:var(--brand);transform:translateY(-2px);box-shadow:0 8px 18px rgba(33,107,172,.14);outline:none}
+.mate-ava{width:36px;height:36px;border-radius:10px;overflow:hidden;flex:0 0 auto;background:#e8f1f8}
+.mate-ava img{width:100%;height:100%;object-fit:cover}
+.mate-meta{display:flex;flex-direction:column;line-height:1.2}
+.mate-meta b{font:700 .88rem 'Inter',system-ui;color:var(--ink)}
+.mate-meta i{font:600 .72rem 'Inter',system-ui;font-style:normal;color:var(--muted)}
