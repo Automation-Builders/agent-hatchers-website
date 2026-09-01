@@ -685,7 +685,7 @@ h1{font-weight:800}h2{font-weight:700}
 .hx6.go .hx6-c2{animation:hx5C2 5s linear both}
 .hx6.go .hx6-c3{animation:hx5C3 5s linear both}
 .hx6.go .hx6-lid{animation:hx6Lid 5s linear both}
-.hx6.go .hx6-bottom{animation:hx5Kick 5s ease both}
+.hx6.go .hx6-bottom{animation:hxBottom 5s ease both}
 @keyframes hx6Lid{
   0%,58%{transform:none;opacity:1}
   62%{transform:translate(3%,-10%) rotate(8deg)}
@@ -701,11 +701,11 @@ h1{font-weight:800}h2{font-weight:700}
   81%{transform:translateY(1.2%) scale(.985)}
   88%,100%{transform:none}
 }
-.hx6.done .hx6-wrap,.hx6.done .hx6-bottom,.hx6.done .hx6-pop{animation:none;transform:none}
-.hx6.done .hx6-lid,.hx6.done .hx6-cracks{animation:none;opacity:0}
+.hx6.done .hx6-wrap,.hx6.done .hx6-pop{animation:none;transform:none}
+.hx6.done .hx6-lid,.hx6.done .hx6-bottom,.hx6.done .hx6-cracks{animation:none;opacity:0}
 @media(prefers-reduced-motion:reduce){
   .hx6 .hx6-wrap,.hx6 .hx6-lid,.hx6 .hx6-bottom,.hx6 .hx6-pop,.hx6 .hx6-cracks,.hx6 .hx6-cracks path{animation:none!important}
-  .hx6.go .hx6-lid,.hx6.go .hx6-cracks{opacity:0}
+  .hx6.go .hx6-lid,.hx6.go .hx6-bottom,.hx6.go .hx6-cracks{opacity:0}
   .hx6.go .hx6-pop{transform:none}
 }
 /* ============ Hatch screen: pick your design in place (no separate step) ============ */
@@ -758,8 +758,8 @@ h1{font-weight:800}h2{font-weight:700}
   100%{transform:translate(78%,140%) rotate(110deg);opacity:0}
 }
 /* the bottom shell gives a little kick as the lid pops */
-.hx5.run .hx5-bottom{animation:hx5Kick 5s ease both}
-@keyframes hx5Kick{0%,58%{transform:none}60.5%{transform:translateY(1.6%) scale(1.015,.985)}64%{transform:translateY(-.5%)}67%,100%{transform:none}}
+.hx5.run .hx5-bottom{animation:hxBottom 5s ease both}
+@keyframes hxBottom{0%,58%{transform:none;opacity:1}60.5%{transform:translateY(1.6%) scale(1.015,.985)}64%{transform:translateY(-.5%)}67%{transform:none}82%{opacity:1}94%,100%{transform:none;opacity:0}}
 /* Hatchy rises from inside the shell with overshoot and simply holds */
 .hx5.run .hx5-robot{animation:hx5Robot 5s both;animation-timing-function:cubic-bezier(.3,1.2,.45,1)}
 @keyframes hx5Robot{
@@ -770,6 +770,6 @@ h1{font-weight:800}h2{font-weight:700}
 }
 @media(prefers-reduced-motion:reduce){
   .hx5 .hx5-egg,.hx5 .hx5-lid,.hx5 .hx5-bottom,.hx5 .hx5-robot,.hx5 .hx5-cracks,.hx5 .hx5-cracks path{animation:none!important}
-  .hx5 .hx5-lid,.hx5 .hx5-cracks{opacity:0}
+  .hx5 .hx5-lid,.hx5 .hx5-bottom,.hx5 .hx5-cracks{opacity:0}
   .hx5 .hx5-robot{transform:none}
 }
