@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 28;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 29;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -116,16 +116,16 @@
   // an AI agent: one sentence of what it does for you, a short "job" for the hand-off flow,
   // and a unique stock Hatchy so the pre-hatch list never repeats a picture.
   const PLAIN={
-    logistics:{does:'Watches every delivery and tells your customers where their order is.',job:'tracks the delivery',art:'/hatchy-routing.webp'},
-    marketing:{does:'Runs your ads and social posts, and tells you what actually brings customers in.',job:'brings customers in',art:'/hatchy-website.webp'},
+    logistics:{does:'Watches every delivery and tells your customers where their order is.',job:'tracks the delivery',art:'/hatchy-av-web.webp'},
+    marketing:{does:'Runs your ads and social posts, and tells you what actually brings customers in.',job:'brings customers in',art:'/hatchy-av-hype.webp'},
     support:{does:'Answers customer questions and passes the tricky ones to you.',job:'answers their questions',art:'/assets/agents/hatchy-lib-support.webp'},
-    returns:{does:'Sorts out returns and refunds without you lifting a finger.',job:'handles any returns',art:'/hatchy-envelope-bright.webp'},
+    returns:{does:'Sorts out returns and refunds without you lifting a finger.',job:'handles any returns',art:'/hatchy-sec-approve.webp'},
     sales:{does:'Finds new customers and keeps following up so no lead goes cold.',job:'wins the customer',art:'/assets/agents/hatchy-lib-sales.webp'},
-    inventory:{does:'Keeps an eye on stock and reorders before you run out.',job:'keeps stock topped up',art:'/hatchy-document.webp'},
+    inventory:{does:'Keeps an eye on stock and reorders before you run out.',job:'keeps stock topped up',art:'/hatchy-sec-storage.webp'},
     invoices:{does:'Reads your invoices, checks them and gets them ready to pay.',job:'sends and checks the bills',art:'/assets/agents/hatchy-lib-invoice.webp'},
     documents:{does:'Writes your proposals, reports and contracts from your own templates.',job:'writes the paperwork',art:'/assets/agents/hatchy-lib-docs.webp'},
     website:{does:'Keeps your website up to date and asks you before anything goes live.',job:'keeps the website fresh',art:'/assets/agents/hatchy-lib-web.webp'},
-    operations:{does:'Keeps every job on schedule and chases anything running late.',job:'keeps the job on track',art:'/hatchy-success.webp'}
+    operations:{does:'Keeps every job on schedule and chases anything running late.',job:'keeps the job on track',art:'/hatchy-sec-training.webp'}
   };
   // The order agents hand work to each other across a typical business day.
   const FLOW_ORDER=['marketing','website','sales','documents','operations','inventory','logistics','invoices','returns','support'];
