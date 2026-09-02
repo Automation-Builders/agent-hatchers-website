@@ -4,15 +4,22 @@ Each prospect receives an unlisted GitHub Pages route at `/prototype/<company-sl
 
 ## The flow
 
-Every page runs the same six-step hatching experience (shared code in `app.js` / `styles.css`):
+Every page runs the same hatching experience (shared code in `app.js` / `styles.css`):
 
-1. **Welcome** — tailored to the prospect's industry.
-2. **Create a profile** — name the agent and say what it should help with.
-3. **Design the look** — free-text description of the avatar (like agenthatchers.ai).
-4. **Hatch** — three eggs hatch in sequence into three different designs.
-5. **Pick your favourite** — choose one of the three; it becomes the agent's avatar.
-6. **Marketplace** — agents ranked from what was described + the industry; open one to see
-   its MCP connections and five concrete outcomes.
+1. **What can our agents do for you?** — one box: the prospect types what their business
+   does (or taps an example). Written for people who have never used an AI agent.
+2. **Your team** — the five/six agents that fit that business, one plain-English line each,
+   and a "how they work together" hand-off chain. Ends with "Ready to hatch your first agent?".
+3. **Create a profile** — company, agent name, type of company (prefilled) and the look.
+4. **Hatch** — three eggs hatch into three different designs; click one to pick it.
+5. **Dashboard** — a mimic of the product's Profiles board, Chats, Analytics, Config,
+   Marketplace and Merch, all populated with the hatched character.
+6. **Connect** — the Slack/Teams connection dialog.
+
+Ranking uses the catalog keyword sets plus `BIZ_HINTS` (everyday words like "dentist" or
+"café" → the agents that matter for that business). The Chats sidebar's "Other profiles"
+(Bug Destroyer, Data Scientist, …) are generated in the hatched character's look right after
+the marketplace batch, so no stock robot ever appears next to the prospect's agent.
 
 ## Adding a prospect
 

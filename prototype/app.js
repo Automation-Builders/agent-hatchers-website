@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 26;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 27;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -17,7 +17,7 @@
     {id:'website',icon:'◇',name:'Website Agent',industries:['all'],keywords:['website','content','publish','webflow','wordpress','page','blog','copy','web','online'],summary:'Keeps website content accurate, on-brand and ready for approval before publishing.',portrait:'/hatchy-website.webp',team:'Marketing',scene:'It is a website agent wearing a comfy hoodie and headphones around its neck, at a dual-monitor desk in a loft studio at night editing a colourful online storefront, with sticky notes on the window and a small cactus by the keyboard.',mcps:['GitHub','Webflow','WordPress','Google Drive','Slack'],outcomes:['Draft new website pages','Update approved copy and details','Check pages for stale information','Prepare search-friendly metadata','Publish only after human approval']},
     {id:'operations',icon:'✓',name:'Operations Agent',industries:['professional-services','construction','healthcare','all'],keywords:['operations','workflow','project','task','deadline','schedule','coordination','process','compliance','ops','clinic','manufacturing'],summary:'Coordinates repeatable workflows and keeps teams informed when work changes state.',portrait:'/hatchy-routing.webp',team:'Operations',scene:'It is an operations agent wearing a project-manager lanyard and holding a marker, standing at a wall-sized kanban board covered in swim-lanes and sticky notes in a bright planning room, with interlocking gears drawn on a whiteboard behind it.',mcps:['Monday.com','Asana','Notion','Slack','Microsoft Teams'],outcomes:['Turn requests into structured work','Monitor deadlines and blockers','Prepare daily operating summaries','Chase missing information','Escalate exceptions to the right person']}
   ];
-  const state = {step:0,name:'',biz:'',look:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:0,chatExtra:{},chatTyping:{},company:'',editUses:0,merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
+  const state = {step:0,name:'',biz:'',look:'',refPhoto:'',brand:null,refBusy:false,refError:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:0,chatExtra:{},chatTyping:{},company:'',editUses:0,merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
   const root = document.getElementById('prototype-app');
   const co = () => state.company || config.company || 'Your Company';
   const DESIGN_AXES={
@@ -41,16 +41,11 @@
   const portraitEndpoint = config.portraitEndpoint || 'https://agent-hatchers-portrait-proxy.vercel.app/api/prototype-portrait';
   const usePortraits = config.generatePortraits !== false && !!portraitEndpoint;
   const chatEndpoint = config.chatEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-chat');
+  const brandEndpoint = config.brandEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-brand');
   const recommended = new Set(config.recommendedAgents||[]);
-  function rankAgents(){const text=`${state.name} ${state.biz} ${state.look} ${industryLabel}`.toLowerCase();return catalog.map((agent,index)=>{let score=0;agent.keywords.forEach(k=>{if(text.includes(k))score+=4});if(agent.industries.includes(industry))score+=2;if(recommended.has(agent.id))score+=1;return{agent,score,index};}).sort((a,b)=>b.score-a.score||a.index-b.index);}
+  function rankAgents(){const text=`${state.name} ${state.biz} ${state.look} ${industryLabel}`.toLowerCase();const boost=bizBoost(text);return catalog.map((agent,index)=>{let score=boost[agent.id]||0;agent.keywords.forEach(k=>{if(text.includes(k))score+=4});if(agent.industries.includes(industry))score+=2;if(recommended.has(agent.id))score+=1;return{agent,score,index};}).sort((a,b)=>b.score-a.score||a.index-b.index);}
   // The 6 best-matched agents for this business get generated portraits + the Recommended row.
   const topAgents = () => rankAgents().slice(0,6).map(r=>r.agent);
-  const lookSeeds = [
-    {label:'Friendly & rounded',text:'a friendly, rounded robot with big eyes in blue and white'},
-    {label:'Sleek & techy',text:'a sleek metallic assistant with glowing blue accents'},
-    {label:'Playful mascot',text:'a playful cartoon mascot, soft and approachable'},
-    {label:'Calm & professional',text:'a calm, professional helper in navy and white'}
-  ];
 
   const button = (label, action, secondary=false) => `<button class="btn ${secondary?'btn-secondary':'btn-primary'}" data-action="${action}">${label}</button>`;
   const bot = (extra='') => `<div class="bot ${extra}" role="img" aria-label="Agent design"></div>`;
@@ -71,6 +66,55 @@
   const MCP_ICONS={'Gmail':'lg-gmail','Slack':'lg-slack','Microsoft Teams':'lg-teams','HubSpot':'lg-hubspot','Xero':'lg-xero','QuickBooks':'lg-quickbooks','Stripe':'lg-stripe','Notion':'lg-notion','Zendesk':'lg-zendesk'};
   const MCP_MONO={'AfterShip':['AS','#FF6B2C'],'Asana':['as','#F06A6A'],'Canva':['C','#00C4CC'],'Cin7':['C7','#0B2E4F'],'Dropbox':['D','#0061FF'],'GitHub':['GH','#181717'],'Google Ads':['GA','#4285F4'],'Google Analytics':['An','#E37400'],'Google Drive':['GD','#1FA463'],'Google Sheets':['GS','#188038'],'Intercom':['IC','#1F8DED'],'Klaviyo':['K','#16120F'],'LinkedIn':['in','#0A66C2'],'Loop Returns':['L','#3D3AF2'],'MYOB':['M','#6100A5'],'Meta Ads':['M','#0081FB'],'Microsoft 365':['MS','#D83B01'],'Monday.com':['mo','#FF3D57'],'Salesforce':['SF','#00A1E0'],'ShipStation':['SS','#2E7FC0'],'Shopify':['S','#96BF48'],'Webflow':['W','#4353FF'],'WordPress':['W','#21759B']};
   // Which agents naturally hand work to each other — shown as a suggested team.
+  // Plain-English intro (welcome + team screens), written for people who have never used
+  // an AI agent: one sentence of what it does for you, a short "job" for the hand-off flow,
+  // and a unique stock Hatchy so the pre-hatch list never repeats a picture.
+  const PLAIN={
+    logistics:{does:'Watches every delivery and tells your customers where their order is.',job:'tracks the delivery',art:'/hatchy-routing.webp'},
+    marketing:{does:'Runs your ads and social posts, and tells you what actually brings customers in.',job:'brings customers in',art:'/hatchy-website.webp'},
+    support:{does:'Answers customer questions and passes the tricky ones to you.',job:'answers their questions',art:'/assets/agents/hatchy-lib-support.webp'},
+    returns:{does:'Sorts out returns and refunds without you lifting a finger.',job:'handles any returns',art:'/hatchy-envelope-bright.webp'},
+    sales:{does:'Finds new customers and keeps following up so no lead goes cold.',job:'wins the customer',art:'/assets/agents/hatchy-lib-sales.webp'},
+    inventory:{does:'Keeps an eye on stock and reorders before you run out.',job:'keeps stock topped up',art:'/hatchy-document.webp'},
+    invoices:{does:'Reads your invoices, checks them and gets them ready to pay.',job:'sends and checks the bills',art:'/assets/agents/hatchy-lib-invoice.webp'},
+    documents:{does:'Writes your proposals, reports and contracts from your own templates.',job:'writes the paperwork',art:'/assets/agents/hatchy-lib-docs.webp'},
+    website:{does:'Keeps your website up to date and asks you before anything goes live.',job:'keeps the website fresh',art:'/assets/agents/hatchy-lib-web.webp'},
+    operations:{does:'Keeps every job on schedule and chases anything running late.',job:'keeps the job on track',art:'/hatchy-success.webp'}
+  };
+  // The order agents hand work to each other across a typical business day.
+  const FLOW_ORDER=['marketing','website','sales','documents','operations','inventory','logistics','invoices','returns','support'];
+  // Everyday business words → the agents that matter most for that kind of business. The
+  // catalog keywords are tool-ish ("crm", "sku"); a dentist or a café types neither.
+  const BIZ_HINTS=[
+    [/dent|clinic|doctor|medic|physio|chiro|health|\bvet|pharm|optom|psych|therap|\bgp\b|hospital|nurs|allied/,['operations','support','invoices','documents','marketing']],
+    [/caf|coffee|restaurant|\bbar\b|\bpub\b|bakery|food|catering|hospitality|hotel|motel|airbnb|takeaway|pizza|winery|brew/,['inventory','marketing','support','operations','invoices']],
+    [/plumb|electric|builder|build|construct|carpent|roof|paint|landscap|trade|tradie|hvac|air.?con|renovat|fencing|concret|handyman|tiler|mechanic|\bauto\b|garage|solar/,['operations','invoices','documents','sales','support']],
+    [/real.?estate|property|realtor|rental|mortgage|broker|strata/,['sales','documents','marketing','support','operations']],
+    [/account|bookkeep|\btax|\bcpa\b|financ|payroll|advis|wealth/,['invoices','documents','operations','sales','support']],
+    [/\blaw|legal|solicitor|lawyer|conveyanc|barrister/,['documents','operations','invoices','sales','support']],
+    [/shop|store|retail|ecommerce|e-commerce|online|boutique|clothing|fashion|brand|\bsell|etsy|shopify|amazon|product|florist|flower|gift|jewel|furniture/,['logistics','support','returns','marketing','inventory']],
+    [/gym|fitness|yoga|pilates|coach|personal.?train|sport|\bclub|dance|martial/,['marketing','support','operations','invoices','website']],
+    [/salon|hair|beauty|barber|\bspa\b|nail|tattoo|massage/,['support','marketing','operations','invoices','website']],
+    [/school|tutor|educat|training|course|childcare|daycare|kindy|college|academy/,['support','operations','documents','marketing','invoices']],
+    [/agency|consult|market|design|creative|studio|freelanc|media|\bpr\b|advertis|photograph|architect/,['sales','documents','marketing','invoices','operations']],
+    [/software|saas|\btech|\bapp\b|startup|\bit\b|developer|\bdev\b|cloud|\bdata/,['support','sales','marketing','documents','operations']],
+    [/wholesale|manufactur|factory|supplier|distribut|import|export|warehouse|logistic|freight|transport|courier|truck/,['logistics','inventory','invoices','operations','sales']],
+    [/clean|pest|removal|security|maintenance|facility|garden|lawn|pool/,['operations','sales','invoices','support','marketing']],
+    [/charity|non.?profit|church|community|council|association/,['documents','support','marketing','operations','invoices']],
+    [/recruit|staffing|\bhr\b|labour|labor/,['documents','sales','operations','support','invoices']]
+  ];
+  function bizBoost(text){const boost={};BIZ_HINTS.forEach(([re,ids])=>{if(re.test(text))ids.forEach((id,i)=>{boost[id]=Math.max(boost[id]||0,(5-i)*2)})});return boost;}
+  // "Other profiles" in Chats: workspace flavour, but every portrait is the prospect's OWN
+  // hatched character re-dressed for the role (generated right after the marketplace batch),
+  // never stock art of a different robot. While they hatch, the row shows a closed egg.
+  const EXTRA_PROFILES=[
+    {id:'x-bug',name:'Bug Destroyer',portrait:'/hatchy-av-test.webp',scene:'It is a bug-destroyer agent wearing a pest-control jumpsuit and goggles, swinging an electric bug-zapper racket at cartoon bugs crawling over a giant wall screen of code in a dim server room.'},
+    {id:'x-data',name:'Data Scientist',portrait:'/hatchy-av-docs.webp',scene:'It is a data-scientist agent wearing a white lab coat and safety glasses, pointing at floating holographic scatter plots and bar charts in a bright research lab full of monitors.'},
+    {id:'x-hermes',name:'Hermes Helper',portrait:'/hatchy-avatar.webp',scene:'It is a messenger agent wearing a winged golden helmet and winged sandals, sprinting with a leather satchel full of letters along a sunlit marble colonnade above the clouds.'},
+    {id:'x-hype',name:'Hype Beast',portrait:'/hatchy-av-hype.webp',scene:'It is a hype agent wearing a puffer jacket, bucket hat and chunky sneakers, shouting into a megaphone at a neon-lit product launch with confetti falling.'},
+    {id:'x-meme',name:'Meme Lord',portrait:'/hatchy-av-meme.webp',scene:'It is a meme-lord agent wearing a gold crown and sunglasses, lounging on a throne built from laptops with laughing-face emoji balloons floating around a colourful gaming den.'},
+    {id:'x-vibe',name:'Vibe Coder',portrait:'/hatchy-av-web.webp',scene:'It is a vibe-coder agent wearing an oversized hoodie and neon headphones, typing on a glowing mechanical keyboard in a dim bedroom studio lit by purple RGB light strips.'}
+  ];
   const WORKS_WITH={logistics:['inventory','returns','support'],marketing:['website','sales','support'],support:['returns','logistics','sales'],returns:['logistics','invoices','support'],sales:['marketing','invoices','documents'],inventory:['logistics','invoices','operations'],invoices:['inventory','returns','operations'],documents:['sales','operations','invoices'],website:['marketing','support','sales'],operations:['inventory','documents','invoices']};
   // Hand-drawn brand marks for MCPs the homepage sprite doesn't carry.
   const MCP_SVGS={
@@ -99,12 +143,14 @@
   }
   function escapeHtml(value){return String(value).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
   function chip(){if(state.variant===null)return `<span class="private-pill">Private preview</span>`;const inner=state.selectedImage?`<img class="chip-img" src="${escapeHtml(state.selectedImage)}" alt="">`:bot('v'+state.variant+' chip');return `<span class="agent-chip">${inner}<span>${escapeHtml(state.name)}</span></span>`;}
-  const layout = content => `<main class="shell"><section class="panel"><div class="progress" aria-label="Prototype progress"><span style="--progress:${Math.min(100,(state.step+1)/5*100)}%"></span></div><header class="topbar"><div class="brand"><img src="/agent-hatchers-logo.png" alt=""><span>Agent Hatchers</span></div><div class="topbar-right">${chip()}<span class="step-label">Step ${state.step+1} of 5</span></div></header>${content}</section></main>`;
+  // Both intro screens (ask + team) count as step 1; create is 2, hatch is 3.
+  const stepNo = () => Math.max(1,state.step);
+  const layout = content => `<main class="shell"><section class="panel"><div class="progress" aria-label="Prototype progress"><span style="--progress:${Math.min(100,stepNo()/5*100)}%"></span></div><header class="topbar"><div class="brand"><img src="/agent-hatchers-logo.png" alt=""><span>Agent Hatchers</span></div><div class="topbar-right">${chip()}<span class="step-label">Step ${stepNo()} of 5</span></div></header>${content}</section></main>`;
 
   function render(){
-    const screens = [welcome,nameScreen,hatchScreen,marketScreen,connectScreen];
+    const screens = [welcome,teamScreen,nameScreen,hatchScreen,marketScreen,connectScreen];
     const inner = screens[state.step]();
-    root.innerHTML = state.step>=3 ? inner : layout(inner);
+    root.innerHTML = state.step>=4 ? inner : layout(inner);
     bind();
   }
   const ic = {
@@ -134,9 +180,21 @@
       <svg class="hx5-cracks" viewBox="0 0 620 620"><path class="hx5-c1" d="M114,318 L146,302 L172,330 L200,296 L226,331 L245,301" fill="none" stroke="#1b1a40" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:198;stroke-dashoffset:198"/><path class="hx5-c2" d="M245,301 L272,336 L308,290 L338,332 L375,302" fill="none" stroke="#1b1a40" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:202;stroke-dashoffset:202"/><path class="hx5-c3" d="M375,302 L396,333 L420,298 L448,332 L474,300 L506,320" fill="none" stroke="#1b1a40" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:204;stroke-dashoffset:204"/></svg>
     </div>
   </div>`;}
-  function welcome(){return `<div class="stage welcome-grid"><div><h1 class="welcome-title">Hatch your<br>agent</h1><div class="actions">${button('Start →','next')}</div></div><div class="welcome-art" aria-hidden="true">${hatch5()}</div></div>`;}
-  function nameScreen(){return `<div class="stage"><span class="eyebrow">Create a profile</span><h2>Create your agent</h2><p>Give it a name, tell us your type of company, and describe how it should look. You’ll pick specialist agents (sales, invoices, support…) from the marketplace next.</p><label class="field-label" for="agent-co">Company name</label><input class="name-field" id="agent-co" maxlength="40" autocomplete="off" placeholder="Company name — e.g. Tanssu" value="${escapeHtml(state.company||config.company||'')}" aria-label="Company name"><label class="field-label" for="agent-name">Agent name</label><input class="name-field" id="agent-name" maxlength="28" autocomplete="off" placeholder="Agent name — e.g. Pip, Scout or Atlas" value="${escapeHtml(state.name)}" aria-label="Agent name"><label class="field-label" for="agent-biz">Type of company</label><input class="name-field" id="agent-biz" maxlength="60" autocomplete="off" placeholder="e.g. e-commerce, agency, clinic, SaaS" value="${escapeHtml(state.biz)}" aria-label="Type of company"><label class="field-label" for="agent-look">Image description</label><div class="mic-field"><textarea class="look-field" id="agent-look" placeholder="e.g. a friendly rounded robot in blue and white, holding a suitcase" aria-label="Image description">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div><div class="chips">${lookSeeds.map((s,i)=>`<button class="chip" data-look-index="${i}">${escapeHtml(s.label)}</button>`).join('')}</div><div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
-  function designScreen(){return `<div class="stage"><span class="eyebrow">Design the look</span><h2>Describe how ${escapeHtml(state.name)} should look</h2><p>Write a short, practical description and we’ll hatch three designs for you to choose from.</p><div class="mic-field"><textarea class="look-field" id="agent-look" maxlength="600" placeholder="e.g. a friendly rounded robot medic in blue and white, holding a checklist" aria-label="Describe the avatar">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div><div class="chips">${lookSeeds.map((s,i)=>`<button class="chip" data-look-index="${i}">${escapeHtml(s.label)}</button>`).join('')}</div><div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
+  // Screen 1 — for people who have never used an AI agent: one question, one box.
+  const BIZ_EXAMPLES=['Café','Online shop','Dental clinic','Plumber','Law firm','Real estate'];
+  function welcome(){return `<div class="stage welcome-grid intro"><div><span class="eyebrow">Agent Hatchers</span><h1 class="welcome-title intro-title">What can our agents do for you?</h1><p class="intro-lead">Tell us what your business does and we’ll show you, in plain English.</p><div class="mic-field intro-field"><input class="name-field" id="biz-intro" maxlength="60" autocomplete="off" placeholder="e.g. dental clinic, online clothing shop, plumber" value="${escapeHtml(state.biz)}" aria-label="What your business does"><button type="button" class="mic-btn" data-mic="biz-intro" aria-label="Dictate what your business does">${micSvg}</button></div><div class="chips">${BIZ_EXAMPLES.map(b=>`<button class="chip" data-biz="${escapeHtml(b)}">${escapeHtml(b)}</button>`).join('')}</div><div class="actions">${button('Show me →','team')}</div></div><div class="welcome-art" aria-hidden="true">${hatch5()}</div></div>`;}
+  // Screen 2 — the agents for that business, what each does, and how they hand work on.
+  function teamScreen(){
+    const team=topAgents();const biz=state.biz||'your business';
+    const flow=FLOW_ORDER.filter(id=>team.some(a=>a.id===id)).map(id=>catalog.find(a=>a.id===id));
+    return `<div class="stage team-stage"><span class="eyebrow">For a ${escapeHtml(biz)}</span><h2>Here’s the team we’d hatch for you.</h2><p class="team-what"><b>What’s an agent?</b> A helper that does one job for your business, all day, inside the tools you already use — like a new team member who never forgets.</p>
+      <ol class="team-list">${team.map(a=>`<li class="team-row"><span class="team-av"><img src="${PLAIN[a.id].art}" alt=""></span><span class="team-txt"><b>${a.name}</b><span>${PLAIN[a.id].does}</span></span></li>`).join('')}</ol>
+      <h3 class="team-h">How they work together</h3>
+      <div class="team-flow">${flow.map((a,i)=>`${i?'<span class="flow-arrow" aria-hidden="true">→</span>':''}<span class="flow-step"><img src="${PLAIN[a.id].art}" alt=""><span><b>${a.name.replace(' Agent','')}</b> ${PLAIN[a.id].job}</span></span>`).join('')}</div>
+      <div class="actions">${button('Ready to hatch your first agent? →','next')}${button('Try another business','back',true)}</div></div>`;
+  }
+  function nameScreen(){return `<div class="stage"><span class="eyebrow">Create a profile</span><h2>Create your agent</h2><p>Give it a name, tell us your type of company, and describe how it should look. You’ll pick specialist agents (sales, invoices, support…) from the marketplace next.</p><label class="field-label" for="agent-co">Company name</label><input class="name-field" id="agent-co" maxlength="40" autocomplete="off" placeholder="Company name — e.g. Tanssu" value="${escapeHtml(state.company||config.company||'')}" aria-label="Company name"><label class="field-label" for="agent-name">Agent name</label><input class="name-field" id="agent-name" maxlength="28" autocomplete="off" placeholder="Agent name — e.g. Pip, Scout or Atlas" value="${escapeHtml(state.name)}" aria-label="Agent name"><label class="field-label" for="agent-biz">Type of company</label><input class="name-field" id="agent-biz" maxlength="60" autocomplete="off" placeholder="e.g. dental clinic, online clothing shop, plumber" value="${escapeHtml(state.biz)}" aria-label="Type of company"><label class="field-label" for="agent-look">Image description</label><div class="mic-field"><textarea class="look-field" id="agent-look" placeholder="e.g. a friendly rounded robot holding a suitcase — or leave it to the photo / website below" aria-label="Image description">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div>${referenceBlock()}<div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
+  function designScreen(){return `<div class="stage"><span class="eyebrow">Design the look</span><h2>Describe how ${escapeHtml(state.name)} should look</h2><p>Write a short, practical description and we’ll hatch three designs for you to choose from.</p><div class="mic-field"><textarea class="look-field" id="agent-look" maxlength="600" placeholder="e.g. a friendly rounded robot medic in blue and white, holding a checklist" aria-label="Describe the avatar">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div>${referenceBlock()}<div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
   // The same continuous split-egg hatch as the welcome screen, one per design.
   // Rendered stateful: a slot that already hatched shows its design (.done skips the
   // animation on re-renders instead of resetting to a closed egg), and each hatched
@@ -185,7 +243,8 @@
   function chatProfiles(){
     const you={name:state.name||'Your agent',img:state.selectedImage||'/hatchy-pop.webp'};
     const team=topAgents().map(a=>({name:a.name,img:state.marketImages[a.id]||a.portrait}));
-    const other=[['Bug Destroyer','/hatchy-av-test.webp'],['Data Scientist','/hatchy-av-docs.webp'],['Hermes Helper','/hatchy-avatar.webp'],['Hype Beast','/hatchy-av-hype.webp'],['Meme Lord','/hatchy-av-meme.webp'],['Vibe Coder','/hatchy-av-web.webp']].map(([name,img])=>({name,img}));
+    const live=usePortraits&&config.marketPortraits!==false&&state.variant!==null;
+    const other=EXTRA_PROFILES.map(p=>{const gen=state.marketImages[p.id];return {id:p.id,name:p.name,img:gen||(live?'/egg-closed.webp':(state.selectedImage||p.portrait)),egg:!gen&&live};});
     const your=[you,...team];
     return {your,other,all:[...your,...other]};
   }
@@ -216,7 +275,7 @@
   function chatsView(){
     const {your,other,all}=chatProfiles();
     const active=Math.min(state.chatActive??0,all.length-1);const activeName=all[active].name;
-    const avOf=p=>`<img src="${escapeHtml(p.img)}" alt="">`;const activeAv=avOf(all[active]);
+    const avOf=p=>`<img src="${escapeHtml(p.img)}" alt="" ${p.id?`data-xav="${p.id}"`:''} ${p.egg?'class="egg"':''}>`;const activeAv=avOf(all[active]);
     const extra=(state.chatExtra[active]||[]).concat(state.chatTyping[active]?[['typing','']]:[]);
     const item=(p,i)=>`<button class="pf-item ${i===active?'on':''}" data-chat="${i}"><span class="pf-av">${avOf(p)}<i class="pf-dot"></i></span><span class="pf-name">${escapeHtml(p.name)}</span></button>`;
     const renderMsg=([who,t])=>{
@@ -478,6 +537,117 @@
       rec.start();
     }catch(e){btn.classList.remove('mic-live');activeRec=null;}
   }
+
+  // ---------- Reference: drop a photo, or paste a website for its brand colours ----------
+  const hasReference = () => !!(state.refPhoto || state.brand);
+  // What the portrait proxy gets alongside the brief. Images are already downscaled.
+  function inspiration(){
+    if(!hasReference()) return undefined;
+    const b=state.brand;
+    return {photo:state.refPhoto||undefined,brand:b?{name:b.name,colors:b.colors,logo:b.logo||undefined,hero:b.hero||undefined}:undefined};
+  }
+  const loadImg = src => new Promise((ok,bad)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=bad;im.src=src;});
+  // Shrink to `max` px on the long edge so a phone photo doesn't ship 8 MB to the proxy.
+  async function downscale(src,max=768,jpeg=false){
+    try{
+      const im=await loadImg(src);const k=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));
+      const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.naturalWidth*k));c.height=Math.max(1,Math.round(im.naturalHeight*k));
+      c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+      return jpeg?c.toDataURL('image/jpeg',.86):c.toDataURL('image/png');
+    }catch(e){return src;}
+  }
+  // Dominant non-grey colours of an image (logo pixels beat CSS guesses for the true brand colour).
+  async function dominantColors(src,n=3){
+    try{
+      const im=await loadImg(src);const c=document.createElement('canvas');const S=48;c.width=S;c.height=S;
+      const ctx=c.getContext('2d');ctx.drawImage(im,0,0,S,S);const d=ctx.getImageData(0,0,S,S).data;
+      const groups=[];
+      for(let i=0;i<d.length;i+=4){
+        const a=d[i+3];if(a<128)continue;const r=d[i],g=d[i+1],b=d[i+2];
+        const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/510,sat=mx===mn?0:(mx-mn)/(1-Math.abs(2*l-1))/255;
+        if(l<.13||l>.9||sat<.22)continue;
+        const g2=groups.find(x=>Math.hypot(x.r-r,x.g-g,x.b-b)<42);
+        if(g2){g2.n++;}else groups.push({r,g,b,n:1});
+      }
+      return groups.sort((a,b)=>b.n-a.n).slice(0,n).map(x=>'#'+[x.r,x.g,x.b].map(v=>v.toString(16).padStart(2,'0')).join(''));
+    }catch(e){return [];}
+  }
+  const mergeColors=(...lists)=>{const out=[];lists.flat().forEach(h=>{if(!h)return;const rgb=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));if(!out.some(o=>Math.hypot(o.rgb[0]-rgb[0],o.rgb[1]-rgb[1],o.rgb[2]-rgb[2])<42))out.push({h,rgb});});return out.slice(0,5).map(o=>o.h);};
+  async function attachPhoto(file){
+    if(!file||!/^image\//.test(file.type)){state.refError='That file isn’t an image.';renderReference();return;}
+    state.refError='';state.refBusy=true;renderReference();
+    try{
+      const raw=await new Promise((ok,bad)=>{const r=new FileReader();r.onload=()=>ok(String(r.result));r.onerror=bad;r.readAsDataURL(file);});
+      state.refPhoto=await downscale(raw,768,true);
+    }catch(e){state.refError='We couldn’t read that image.';}
+    state.refBusy=false;renderReference();
+  }
+  async function attachWebsite(url){
+    url=String(url||'').trim();if(!url)return;
+    state.refError='';state.refBusy=true;renderReference();
+    try{
+      const res=await fetch(brandEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});
+      const body=await res.json().catch(()=>({}));
+      if(!res.ok||!body||!body.name)throw new Error((body&&body.error)||'lookup failed');
+      const logo=body.logo?await downscale(body.logo,512):'';
+      const hero=body.hero?await downscale(body.hero,768,true):'';
+      const fromLogo=logo?await dominantColors(logo,3):[];
+      state.brand={url:body.url||url,name:body.name,description:body.description||'',colors:mergeColors(fromLogo,body.colors||[]),logo,hero};
+      const coIn=document.getElementById('agent-co');if(coIn&&!coIn.value.trim()){coIn.value=body.name;state.company=body.name;}
+    }catch(e){state.refError=(e&&e.message&&!/failed to fetch|lookup failed/i.test(e.message))?e.message:'We couldn’t read that website — try another address, or drop a screenshot of it instead.';}
+    state.refBusy=false;renderReference();
+  }
+  function referenceBlock(){
+    const b=state.brand;
+    const cards=[
+      state.refPhoto?`<div class="ref-card"><img src="${escapeHtml(state.refPhoto)}" alt="Reference photo"><div class="ref-card-body"><strong>Photo</strong><span>The robot will take after this person</span></div><button type="button" class="ref-x" data-ref-remove="photo" aria-label="Remove photo">×</button></div>`:'',
+      b?`<div class="ref-card">${b.logo?`<img src="${escapeHtml(b.logo)}" alt="" class="ref-logo">`:(b.hero?`<img src="${escapeHtml(b.hero)}" alt="">`:`<div class="ref-glyph">◇</div>`)}<div class="ref-card-body"><strong>${escapeHtml(b.name)}</strong><span class="ref-swatches">${b.colors.length?b.colors.map(c=>`<i style="background:${escapeHtml(c)}" title="${escapeHtml(c)}"></i>`).join(''):'No brand colours found — we’ll work from the logo'}</span></div><button type="button" class="ref-x" data-ref-remove="brand" aria-label="Remove website">×</button></div>`:''
+    ].join('');
+    return `<label class="field-label">Reference <span class="opt">optional</span></label><div class="ref-wrap" id="ref-wrap">
+      <div class="ref-zone${state.refBusy?' is-busy':''}" id="ref-zone">
+        <input type="file" id="ref-file" accept="image/*" hidden>
+        <div class="ref-drop" tabindex="0" role="button" aria-label="Add a photo"><span class="ref-ico">📷</span><div><strong>Drop in a photo</strong> of someone, or <button type="button" class="ref-browse" data-ref-browse>browse</button> — pasting works too<br><span class="ref-sub">We’ll hatch a robot version of them.</span></div></div>
+        <div class="ref-or">or</div>
+        <div class="ref-url"><span class="ref-ico">🌐</span><input type="text" id="ref-url" placeholder="Paste a website — e.g. tanssu.com" autocomplete="off" aria-label="Website address" ${state.refBusy?'disabled':''}><button type="button" class="btn btn-secondary ref-go" data-ref-go ${state.refBusy?'disabled':''}>${state.refBusy?'Reading…':'Use its brand'}</button></div>
+        <div class="ref-sub ref-url-sub">We’ll pull its brand colours and logo and match the look.</div>
+      </div>
+      ${state.refError?`<div class="ref-error">${escapeHtml(state.refError)}</div>`:''}
+      ${cards?`<div class="ref-cards">${cards}</div>`:''}
+    </div>`;
+  }
+  // Re-render just the reference block so typing in the other fields is never lost.
+  function renderReference(){
+    const wrap=document.getElementById('ref-wrap');if(!wrap)return;
+    const urlIn=document.getElementById('ref-url');const typed=urlIn?urlIn.value:'';
+    const tmp=document.createElement('div');tmp.innerHTML=referenceBlock();
+    wrap.replaceWith(tmp.querySelector('#ref-wrap'));
+    const again=document.getElementById('ref-url');if(again&&!state.brand)again.value=typed;
+    bindReference();
+  }
+  let pasteBound=false;
+  function bindReference(){
+    const zone=document.getElementById('ref-zone');if(!zone)return;
+    const file=document.getElementById('ref-file');const drop=zone.querySelector('.ref-drop');
+    root.querySelectorAll('[data-ref-browse]').forEach(b=>b.onclick=e=>{e.stopPropagation();file.click();});
+    file.onchange=()=>{if(file.files&&file.files[0])attachPhoto(file.files[0]);};
+    drop.onclick=e=>{if(!e.target.closest('button'))file.click();};
+    drop.onkeydown=e=>{if((e.key==='Enter'||e.key===' ')&&e.target===drop){e.preventDefault();file.click();}};
+    zone.ondragover=e=>{e.preventDefault();zone.classList.add('is-over');};
+    zone.ondragleave=()=>zone.classList.remove('is-over');
+    zone.ondrop=e=>{e.preventDefault();zone.classList.remove('is-over');
+      const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f){attachPhoto(f);return;}
+      const t=(e.dataTransfer.getData('text/uri-list')||e.dataTransfer.getData('text/plain')||'').trim();
+      if(/^https?:\/\//i.test(t)){const u=document.getElementById('ref-url');if(u)u.value=t;attachWebsite(t);}};
+    const go=()=>{const u=document.getElementById('ref-url');if(u&&u.value.trim())attachWebsite(u.value);};
+    root.querySelectorAll('[data-ref-go]').forEach(b=>b.onclick=go);
+    const urlIn=document.getElementById('ref-url');if(urlIn)urlIn.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();go();}};
+    root.querySelectorAll('[data-ref-remove]').forEach(b=>b.onclick=()=>{if(b.dataset.refRemove==='photo')state.refPhoto='';else state.brand=null;state.refError='';renderReference();});
+    if(!pasteBound){pasteBound=true;document.addEventListener('paste',e=>{
+      if(!document.getElementById('ref-zone'))return;
+      const items=[...((e.clipboardData&&e.clipboardData.items)||[])];const img=items.find(i=>i.type&&i.type.startsWith('image/'));
+      if(img){e.preventDefault();attachPhoto(img.getAsFile());}
+    });}
+  }
   const sleep = ms => new Promise(r=>setTimeout(r,ms));
   async function fetchImage(params){
     if(!usePortraits) return null;
@@ -500,7 +670,7 @@
     const baked = Array.isArray(config.bakedImages) ? config.bakedImages[variant] : null;
     if(baked) return String(baked);
     const context = state.biz ? `an agent at a ${state.biz} company` : '';
-    return fetchImage({brief:designBrief(variant),name:state.name,role:context,company:co(),industry:industryLabel,variant});
+    return fetchImage({brief:designBrief(variant),name:state.name,role:context,company:co(),industry:industryLabel,variant,inspiration:inspiration()});
   }
   // Re-skin every marketplace agent in the chosen look, each dressed for its own job.
   async function generateMarket(){
@@ -525,13 +695,21 @@
       const thumb = root.querySelector(`[data-thumb="${agent.id}"]`);
       if(thumb){thumb.innerHTML=`<img src="${escapeHtml(img)}" alt="${escapeHtml(agent.name)}">`;thumb.classList.remove('is-loading');thumb.classList.add('is-generated');}
     }));
+    // Then the six "Other profiles" for the Chats sidebar, same character, each in its own
+    // costume. A failed call settles on the prospect's own avatar — never a stranger.
+    await Promise.all(EXTRA_PROFILES.map(async p=>{
+      let img=baked[p.id];
+      if(!img&&useLive) img=await fetchImage({brief:state.look,name:p.name,role:p.scene,image:ref,company:co(),industry:industryLabel,variant:state.variant||0});
+      state.marketImages[p.id]=img||state.selectedImage||p.portrait;
+      root.querySelectorAll(`[data-xav="${p.id}"]`).forEach(el=>{el.src=state.marketImages[p.id];el.classList.remove('egg');});
+    }));
   }
   // Exact homepage hero hatch (index.html): egg rocks, crack walks the seam, lid
   // shatters into shards, the design pops out. Runs when each design's image is ready.
   async function generateAgents(){
     const lookTa=document.getElementById('agent-look');if(lookTa&&lookTa.value.trim())state.look=lookTa.value.trim();
     dealDesignAxes();
-    state.slots=[null,null,null];state.variant=null;state.selectedImage='';state.step=2;render();
+    state.slots=[null,null,null];state.variant=null;state.selectedImage='';state.step=3;render();
     const refreshBar=()=>{const bar=root.querySelector('.hatch-actions');if(bar){bar.innerHTML=hatchActionsBar();bind();}};
     await Promise.all([0,1,2].map(async i=>{
       const image=await fetchPortrait(i);
@@ -556,8 +734,9 @@
       const a=el.dataset.action;
       if(a==='back'){state.step=Math.max(0,state.step-1);render()}
       if(a==='next'){state.step++;render()}
-      if(a==='generate'){const input=document.getElementById('agent-name');const name=input.value.trim();if(!name){input.focus();input.setAttribute('aria-invalid','true');return}state.name=name;const coIn=document.getElementById('agent-co');if(coIn)state.company=coIn.value.trim();const bizIn=document.getElementById('agent-biz');state.biz=bizIn?bizIn.value.trim():'';const lookTa=document.getElementById('agent-look');state.look=(lookTa&&lookTa.value.trim())||'a friendly rounded robot in blue and white';generateAgents()}
-      if(a==='redesign'){state.step=1;render()}
+      if(a==='team'){const input=document.getElementById('biz-intro');const biz=input?input.value.trim():'';if(!biz){input?.focus();input?.setAttribute('aria-invalid','true');return}state.biz=biz;state.step=1;render()}
+      if(a==='generate'){const input=document.getElementById('agent-name');const name=input.value.trim();if(!name){input.focus();input.setAttribute('aria-invalid','true');return}state.name=name;const coIn=document.getElementById('agent-co');if(coIn)state.company=coIn.value.trim();const bizIn=document.getElementById('agent-biz');state.biz=bizIn?bizIn.value.trim():'';const lookTa=document.getElementById('agent-look');state.look=(lookTa&&lookTa.value.trim())||(hasReference()?'a friendly robot mascot':'a friendly rounded robot in blue and white');generateAgents()}
+      if(a==='redesign'){state.step=2;render()}
       if(a==='open-connect'){openConnectDialog()}
       if(a==='chat-send'){const box=document.getElementById('chat-box');const t=box?box.value.trim():'';if(!t)return;const i=state.chatActive??8;
         const FREE_TURNS=5;
@@ -575,8 +754,8 @@
         if(state.variant===null){const i=state.slots.findIndex(s=>s&&s.image);state.variant=i>=0?i:0}
         const s=state.slots[state.variant];
         state.selectedImage=(s&&s.image)||state.selectedImage||((state.slots.find(x=>x&&x.image)||{}).image)||'';
-        document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=3;render();generateMarket()}
-      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.look='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+        document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=4;render();generateMarket()}
+      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.look='';state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-egg]').forEach(el=>{
       // Select a design the moment it's hatched — direct DOM updates only, so picking
@@ -588,7 +767,9 @@
       el.onclick=pick;
       el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick()}};
     });
-    root.querySelectorAll('[data-look-index]').forEach(el=>el.onclick=()=>{const ta=document.getElementById('agent-look');if(ta){ta.value=lookSeeds[+el.dataset.lookIndex].text;ta.focus()}});
+    root.querySelectorAll('[data-biz]').forEach(el=>el.onclick=()=>{state.biz=el.dataset.biz;state.step=1;render();});
+    const bizIntro=document.getElementById('biz-intro');if(bizIntro)bizIntro.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();root.querySelector('[data-action="team"]')?.click()}};
+    bindReference();
     root.querySelectorAll('[data-create]').forEach(el=>el.onclick=()=>{document.querySelectorAll('.create-pop').forEach(p=>p.remove());const pop=document.createElement('div');pop.className='create-pop';pop.innerHTML=`${ci.key}<span>Please pay for your agent to see what a new profile would look like.</span>`;document.body.appendChild(pop);setTimeout(()=>pop.classList.add('show'),10);setTimeout(()=>{pop.classList.remove('show');setTimeout(()=>pop.remove(),300)},4600);});
     root.querySelectorAll('[data-merch-robot]').forEach(el=>el.onclick=()=>{state.merch.robot=el.dataset.merchRobot;render();});
     root.querySelectorAll('[data-merch-prod]').forEach(el=>el.onclick=()=>{state.merch.product=el.dataset.merchProd;state.merch.size=el.dataset.merchProd==='hat'?'One size':'S';render();});

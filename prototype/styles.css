@@ -896,3 +896,66 @@ h1{font-weight:800}h2{font-weight:700}
 .welcome-grid{padding-top:36px}
 .welcome-title{font-size:clamp(3.4rem,7.6vw,6.2rem);line-height:.92;margin:0 0 28px;letter-spacing:-.015em}
 @media(max-width:760px){.panel .topbar{padding:18px 22px 0}.topbar-right{flex-direction:row;align-items:center;gap:10px}.private-pill{display:inline-block}.welcome-title{font-size:clamp(2.8rem,13vw,4rem)}}
+/* create screen: reference (photo or website) — build 27 */
+.ref-wrap{width:min(620px,100%);margin-top:2px}
+.ref-zone{border:1.5px dashed #cfd6de;border-radius:14px;background:#fafbfc;padding:14px 16px;transition:border-color .15s,background .15s}
+.ref-zone.is-over{border-color:#216bac;background:#eef5fc}
+.ref-zone.is-busy{opacity:.75}
+.ref-drop{display:flex;gap:12px;align-items:center;padding:8px 6px;border-radius:10px;cursor:pointer;font:500 .93rem/1.4 'Inter',system-ui;color:#48505a}
+.ref-drop:hover,.ref-drop:focus-visible{background:#f1f5f9;outline:none}
+.ref-drop strong{color:var(--ink);font-weight:700}
+.ref-ico{font-size:1.35rem;line-height:1;flex:0 0 auto}
+.ref-browse{border:0;background:none;padding:0;color:#216bac;font:inherit;font-weight:700;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.ref-sub{display:block;font:500 .8rem 'Inter',system-ui;color:#9aa3ad;margin-top:2px}
+.ref-or{display:flex;align-items:center;gap:10px;margin:6px 0;font:700 .72rem 'Inter',system-ui;color:#b3bac3;text-transform:uppercase;letter-spacing:.08em}
+.ref-or:before,.ref-or:after{content:"";flex:1;height:1px;background:#e7e9ee}
+.ref-url{display:flex;align-items:center;gap:10px;padding:2px 6px}
+.ref-url input{flex:1;min-width:0;border:1.5px solid #e2e5ea;border-radius:10px;background:#fff;padding:11px 13px;font:500 .95rem 'Inter',system-ui;color:var(--ink);outline:none}
+.ref-url input:focus{border-color:#216bac;box-shadow:0 0 0 4px rgba(33,107,172,.12)}
+.ref-url .btn{padding:11px 16px;font-size:.9rem;white-space:nowrap}
+.ref-url .btn[disabled]{opacity:.6;cursor:wait}
+.ref-url-sub{padding:0 6px 4px 44px}
+.ref-error{margin-top:10px;background:#fff1f0;border:1px solid #f5c6c2;color:#b42318;font:600 .86rem 'Inter',system-ui;padding:10px 13px;border-radius:10px}
+.ref-cards{display:grid;gap:10px;margin-top:12px}
+.ref-card{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #e2e5ea;border-radius:14px;padding:10px 12px;animation:arrive .3s ease both}
+.ref-card>img,.ref-glyph{width:58px;height:58px;flex:0 0 58px;border-radius:12px;object-fit:cover;background:#f1f5f9}
+.ref-card>img.ref-logo{object-fit:contain;padding:6px;background:#fff;border:1px solid #eef0f3}
+.ref-glyph{display:grid;place-items:center;color:#216bac;font-size:1.5rem}
+.ref-card-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;font:500 .86rem 'Inter',system-ui;color:#6b7480}
+.ref-card-body strong{color:var(--ink);font-weight:700;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ref-swatches{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ref-swatches i{width:22px;height:22px;border-radius:7px;border:1px solid rgba(0,0,0,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}
+.ref-x{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:1px solid #e2e5ea;background:#fff;color:#6b7480;font-size:1.1rem;line-height:1;cursor:pointer;padding:0}
+.ref-x:hover{border-color:#b42318;color:#b42318}
+@media(max-width:600px){.ref-url{flex-wrap:wrap}.ref-url .btn{flex:1}.ref-url-sub{padding-left:6px}}
+/* ============ Plain-English intro: "What can our agents do for you?" → the team screen ============ */
+.welcome-grid.intro{align-items:center;padding-top:44px}
+.intro-title{font-size:clamp(2.4rem,5.2vw,4rem);line-height:.98;margin:10px 0 14px;letter-spacing:-.015em}
+.intro-lead{max-width:520px;margin:0 0 18px;font-size:1.05rem}
+.intro-field{max-width:520px}
+.intro-field .name-field{width:100%;padding-right:54px}
+.intro-field .mic-btn{bottom:auto;top:50%;transform:translateY(-50%)}
+.name-field[aria-invalid="true"]{border-color:#d9534f}
+.welcome-grid.intro .chips{margin-top:12px;max-width:520px}
+.welcome-grid.intro .actions{margin-top:22px}
+.team-stage{padding-top:40px}
+.team-stage h2{margin-bottom:10px}
+.team-what{max-width:640px;font-size:1.02rem;margin:0 0 18px}
+.team-what b{color:var(--ink)}
+.team-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.team-row{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #e3edf5;border-radius:16px;padding:9px 14px}
+.team-av{width:48px;height:48px;flex:0 0 48px;border-radius:12px;display:grid;place-items:center;overflow:hidden;background:linear-gradient(160deg,#eef5fc,#dbe9f6)}
+.team-av img{width:86%;height:86%;object-fit:contain}
+.team-txt{display:flex;flex-direction:column;gap:1px;font-family:'Inter',system-ui;min-width:0}
+.team-txt b{font-size:.98rem;color:var(--ink)}
+.team-txt span{font-size:.9rem;color:var(--muted);line-height:1.4}
+.team-h{font-size:1.15rem;margin:26px 0 10px}
+.team-flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 6px}
+.flow-step{display:inline-flex;align-items:center;gap:8px;background:#eef5fc;border:1px solid #d6e6f3;border-radius:999px;padding:5px 14px 5px 5px;font:500 .86rem 'Inter',system-ui;color:#36516d}
+.flow-step img{width:30px;height:30px;border-radius:50%;object-fit:contain;background:#fff;padding:2px}
+.flow-step b{color:var(--ink);margin-right:3px}
+.flow-arrow{color:var(--brand);font-weight:800;font-size:1.1rem}
+.team-stage .actions{margin-top:28px}
+/* Chats sidebar: "Other profiles" still hatching in the prospect's look */
+.pf-av img.egg,.chat-empty-av img.egg,.msg-ava img.egg{object-fit:contain;padding:4px;background:#fff}
+@media(max-width:760px){.welcome-grid.intro{padding-top:8px}.intro-title{font-size:clamp(2.1rem,9.5vw,3rem)}.team-stage{padding-top:24px}.team-row{align-items:flex-start}.team-flow{flex-direction:column;align-items:flex-start;gap:4px}.flow-arrow{transform:rotate(90deg);margin-left:14px;line-height:1}.flow-step{border-radius:14px}}
