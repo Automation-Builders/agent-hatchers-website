@@ -6,6 +6,9 @@
     },
     "api/prototype-brand.js": {
       "maxDuration": 30
+    },
+    "api/prototype-team.js": {
+      "maxDuration": 60
     }
   }
 }

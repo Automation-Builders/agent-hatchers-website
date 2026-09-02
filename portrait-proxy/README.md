@@ -57,6 +57,15 @@ curl -X POST "https://<your-vercel-url>/api/prototype-portrait" \
 
 A working response is `{ "image": "data:image/png;base64,…" }`.
 
+## Team research (`api/prototype-team.js`)
+
+The first screen asks what the prospect's business does. `POST /api/prototype-team` with
+`{ business, roster:[{id,name,summary}] }` has a text model (default
+`google/gemini-3.7-flash`, override `OPENROUTER_TEAM_MODEL`) reason about that specific
+business and return `{ intro, team:[{id, does, job}] }` — six catalog agents, best first, each
+with a one-line description written for that business. The page shows a "working out your
+team" state while it thinks and falls back to keyword ranking if the call fails.
+
 ## Website brand lookup (`api/prototype-brand.js`)
 
 The create screen lets a prospect paste their website. The browser can't read a third-party
