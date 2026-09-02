@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 30;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 31;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -116,8 +116,8 @@
   // an AI agent: one sentence of what it does for you, a short "job" for the hand-off flow,
   // and a unique stock Hatchy so the pre-hatch list never repeats a picture.
   const PLAIN={
-    logistics:{does:'Watches every delivery and tells your customers where their order is.',job:'tracks the delivery',art:'/hatchy-av-web.webp'},
-    marketing:{does:'Runs your ads and social posts, and tells you what actually brings customers in.',job:'brings customers in',art:'/hatchy-av-hype.webp'},
+    logistics:{does:'Watches every delivery and tells your customers where their order is.',job:'tracks the delivery',art:'/assets/agents/hatchy-lib-logistics.webp'},
+    marketing:{does:'Runs your ads and social posts, and tells you what actually brings customers in.',job:'brings customers in',art:'/assets/agents/hatchy-lib-marketing.webp'},
     support:{does:'Answers customer questions and passes the tricky ones to you.',job:'answers their questions',art:'/assets/agents/hatchy-lib-support.webp'},
     returns:{does:'Sorts out returns and refunds without you lifting a finger.',job:'handles any returns',art:'/hatchy-sec-approve.webp'},
     sales:{does:'Finds new customers and keeps following up so no lead goes cold.',job:'wins the customer',art:'/assets/agents/hatchy-lib-sales.webp'},
