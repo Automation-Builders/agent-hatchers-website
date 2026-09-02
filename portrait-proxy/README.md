@@ -57,6 +57,17 @@ curl -X POST "https://<your-vercel-url>/api/prototype-portrait" \
 
 A working response is `{ "image": "data:image/png;base64,…" }`.
 
+## Website brand lookup (`api/prototype-brand.js`)
+
+The create screen lets a prospect paste their website. The browser can't read a third-party
+site, so `POST /api/prototype-brand` with `{ "url": "tanssu.com" }` fetches it server-side
+and returns `{ url, name, description, colors:["#hex",…], logo:<data-uri>, hero:<data-uri> }`
+— theme-colour + CSS colour literals ranked (greys/white/black dropped), the logo image and
+the `og:image`. The page shows them as a brand card and sends them to `prototype-portrait`
+as `inspiration:{ photo, brand:{ name, colors, logo, hero } }`, which switches the prompt into
+"design a new robot in this brand's colours / like this person" mode (distinct from `image`,
+which re-dresses an existing character). No API key is needed for the lookup itself.
+
 ## Cost & abuse notes
 
 - Each call costs one OpenRouter image generation; a full hatch generates **3**.

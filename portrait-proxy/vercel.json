@@ -3,6 +3,9 @@
   "functions": {
     "api/prototype-portrait.js": {
       "maxDuration": 60
+    },
+    "api/prototype-brand.js": {
+      "maxDuration": 30
     }
   }
 }

@@ -927,7 +927,7 @@ h1{font-weight:800}h2{font-weight:700}
 .ref-swatches i{width:22px;height:22px;border-radius:7px;border:1px solid rgba(0,0,0,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}
 .ref-x{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:1px solid #e2e5ea;background:#fff;color:#6b7480;font-size:1.1rem;line-height:1;cursor:pointer;padding:0}
 .ref-x:hover{border-color:#b42318;color:#b42318}
-@media(max-width:600px){.ref-url{flex-wrap:wrap}.ref-url .btn{flex:1}.ref-url-sub{padding-left:6px}}
+@media(max-width:600px){.ref-url{flex-wrap:wrap}.ref-url input{flex:1 1 100%;order:-1}.ref-url .ref-ico{display:none}.ref-url .btn{flex:1}.ref-url-sub{padding-left:6px}}
 /* ============ Plain-English intro: "What can our agents do for you?" → the team screen ============ */
 .welcome-grid.intro{align-items:center;padding-top:44px}
 .intro-title{font-size:clamp(2.4rem,5.2vw,4rem);line-height:.98;margin:10px 0 14px;letter-spacing:-.015em}

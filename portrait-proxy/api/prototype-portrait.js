@@ -62,9 +62,55 @@ export default async function handler(req, res) {
   const variant = Math.max(0, Math.min(2, parseInt(body.variant, 10) || 0));
   // A reference image turns this into an EDIT: keep the same character, re-dress + re-scene it.
   const ref = typeof body.image === 'string' && /^data:image\//.test(body.image) ? body.image : '';
-  if (!ref && brief.length < 8) { res.status(400).json({ error: 'brief too short' }); return; }
+  // Inspiration (create screen): a photo of a person and/or a website's brand cues. Unlike
+  // `image`, these are NOT the character — they steer a brand-new design.
+  const insp = body.inspiration && typeof body.inspiration === 'object' ? body.inspiration : null;
+  const isDataImg = v => typeof v === 'string' && /^data:image\/(png|jpeg|jpg|webp|gif);base64,/.test(v) && v.length < 4_000_000;
+  const photo = insp && isDataImg(insp.photo) ? insp.photo : '';
+  const brand = insp && insp.brand && typeof insp.brand === 'object' ? insp.brand : null;
+  const brandName = brand ? String(brand.name || '').slice(0, 60) : '';
+  const brandColors = brand && Array.isArray(brand.colors)
+    ? brand.colors.map(c => String(c)).filter(c => /^#[0-9a-fA-F]{6}$/.test(c)).slice(0, 5) : [];
+  const brandLogo = brand && isDataImg(brand.logo) ? brand.logo : '';
+  const brandHero = brand && isDataImg(brand.hero) ? brand.hero : '';
+  const hasInsp = !!(photo || brandColors.length || brandLogo || brandHero);
+  if (!ref && !hasInsp && brief.length < 8) { res.status(400).json({ error: 'brief too short' }); return; }
 
-  const prompt = ref
+  // Ordered attachments for the inspiration prompt so the text can refer to "image 1/2/3".
+  const inspImages = [];
+  const inspNotes = [];
+  if (photo) {
+    inspImages.push(photo);
+    inspNotes.push(`Image ${inspImages.length} is a photo of a person. Design the robot as a robot version of them: ` +
+      `echo their hairstyle and hair colour, glasses, facial hair, clothing, accessories and overall vibe in robotic ` +
+      `form (e.g. hair as a moulded panel, glasses as a visor, their outfit as body panelling). It must stay a clearly ` +
+      `robotic cartoon character — do not draw the person, do not copy the photo.`);
+  }
+  if (brandLogo) {
+    inspImages.push(brandLogo);
+    inspNotes.push(`Image ${inspImages.length} is the ${brandName || 'company'} logo. Borrow its colours, shapes and motif ` +
+      `so the robot clearly belongs to that brand — for instance as a chest emblem, visor shape, antenna or panel pattern.`);
+  }
+  if (brandHero) {
+    inspImages.push(brandHero);
+    inspNotes.push(`Image ${inspImages.length} shows ${brandName || 'the company'}'s website / main product. Take a prop, ` +
+      `texture or styling cue from what they sell or do so the robot fits their business.`);
+  }
+  if (brandColors.length) {
+    inspNotes.push(`${brandName ? brandName + '’s' : 'The'} brand colours are ${brandColors.join(', ')} (most important ` +
+      `first). Paint the robot in this palette — make the first colour dominant with the others as accents — instead of ` +
+      `any colours the description doesn't explicitly ask for.`);
+  }
+
+  const prompt = hasInsp && !ref
+    ? `${brief ? brief + '. ' : ''}A friendly 3D cartoon robot mascot character named "${name}". ` +
+      `${role ? `${role} ` : ''}` +
+      `${inspNotes.join(' ')} ` +
+      `Give it one or two fitting accessories and one or two clear props that show what it does. ` +
+      `Plain solid white background, soft even studio lighting, the character centred and full-body. ` +
+      `Make this a distinctive, original character design. Polished, high-quality, sharp 3D cartoon mascot ` +
+      `render, crisp clean edges, no text, no watermark, no clutter.`
+    : ref
     ? `This is one specific robot mascot character. Keep it EXACTLY the same character as the ` +
       `reference image — identical body shape, proportions, colours, materials, markings and face. ` +
       `Do not restyle, recolour or redesign it. ${role ? `${role} ` : ''}` +
@@ -79,12 +125,15 @@ export default async function handler(req, res) {
       `own — avoid defaulting to blue. Make this a distinctive, original character design. Polished, ` +
       `high-quality, sharp 3D cartoon mascot render, crisp clean edges, no text, no watermark, no clutter.`;
 
-  const upstreamUrl = ref
+  // Any attached image (character reference or inspiration) goes through the chat shape,
+  // which is the only OpenRouter route that accepts image input.
+  const attached = ref ? [ref] : inspImages;
+  const upstreamUrl = attached.length
     ? 'https://openrouter.ai/api/v1/chat/completions'
     : 'https://openrouter.ai/api/v1/images';
-  const payload = ref
+  const payload = attached.length
     ? { model: MODEL, modalities: ['image', 'text'], messages: [{ role: 'user', content: [
-        { type: 'image_url', image_url: { url: ref } },
+        ...attached.map(url => ({ type: 'image_url', image_url: { url } })),
         { type: 'text', text: prompt }
       ] }] }
     : { model: MODEL, prompt, n: 1, aspect_ratio: '1:1', quality: 'high', output_format: 'png' };
