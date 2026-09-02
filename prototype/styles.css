@@ -976,3 +976,8 @@ h1{font-weight:800}h2{font-weight:700}
 /* team art: one 3D Hatchy set throughout; the two bust portraits fill their tile */
 .team-av img[src*="hatchy-av-"]{width:100%;height:100%;object-fit:cover;border-radius:inherit}
 .flow-step img[src*="hatchy-av-"]{object-fit:cover;padding:0}
+/* chats: the page stays put — the thread scrolls inside its own pane like a real chat */
+.app.is-chats{height:100vh;height:100dvh;min-height:0;overflow:hidden}
+.app.is-chats .chats3{min-height:0}
+.app.is-chats .chat-empty,.app.is-chats .chat-main{min-height:0}
+.app.is-chats .chat-thread{overflow-y:auto;overscroll-behavior:contain;scroll-behavior:smooth}

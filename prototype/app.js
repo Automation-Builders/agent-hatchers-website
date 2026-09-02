@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 29;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 30;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -456,7 +456,7 @@
   function marketScreen(){
     const tab=(k,label)=>`<button class="nav-tab ${state.tab===k?'active':''}" data-tab="${k}">${ic[k==='market'?'market':k]}<span>${label}</span></button>`;
     const body = state.tab==='chats'?chatsView():state.tab==='analytics'?analyticsView():state.tab==='config'?configView():state.tab==='market'?marketplaceView():state.tab==='merch'?merchView():profilesBoard();
-    return `<div class="app">
+    return `<div class="app${state.tab==='chats'?' is-chats':''}">
       <header class="app-nav">
         <div class="ws"><img class="ws-logo ${state.selectedImage?'ws-avatar-img':''}" src="${state.selectedImage||'/agent-hatchers-logo.png'}" alt=""><span>${escapeHtml(co())}</span><i class="ws-chev">${ic.chev}</i></div>
         <nav class="nav-tabs">${tab('profiles','Profiles')}${tab('chats','Chats')}${tab('analytics','Analytics')}${tab('config','Config')}${tab('market','Marketplace')}${tab('merch','Merch')}</nav>
@@ -830,6 +830,7 @@
     root.querySelectorAll('[data-mic]').forEach(btn=>btn.onclick=()=>startDictation(btn));
     root.querySelectorAll('[data-tab]').forEach(el=>el.onclick=()=>{state.tab=el.dataset.tab;render();});
     root.querySelectorAll('[data-chat]').forEach(el=>el.onclick=()=>{state.chatActive=+el.dataset.chat;render();});
+    const th=document.getElementById('chat-thread');if(th)th.scrollTop=th.scrollHeight;
     const cb=document.getElementById('chat-box');if(cb)cb.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();root.querySelector('[data-action="chat-send"]').click();}};
     const yours=root.querySelector('.p-card.is-yours');if(yours){yours.style.cursor='pointer';yours.onclick=()=>openEditLook();yours.tabIndex=0;yours.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openEditLook()}};}
     root.querySelectorAll('[data-agent]').forEach(el=>{el.onclick=()=>showAgent(el.dataset.agent);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();showAgent(el.dataset.agent)}};});
