@@ -940,10 +940,19 @@ h1{font-weight:800}h2{font-weight:700}
 .intro-label{display:block;margin:0 0 8px;font:700 .8rem 'Inter',system-ui;letter-spacing:.06em;text-transform:uppercase;color:var(--brand)}
 .intro-optional{font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted)}
 .intro-select-wrap{position:relative;max-width:520px;margin-bottom:18px}
-.intro-select{width:100%;appearance:none;-webkit-appearance:none;padding:15px 54px 15px 20px;cursor:pointer;font-family:"Baloo 2",'Inter',system-ui;font-size:1.05rem;font-weight:600}
-.intro-select option{font-family:"Baloo 2",'Inter',system-ui;font-size:1rem}
-.intro-select:invalid,.intro-select option[value=""]{color:#8a97a6}
-.intro-select-wrap:after{content:"";position:absolute;right:22px;top:50%;width:10px;height:10px;border-right:2.5px solid var(--brand);border-bottom:2.5px solid var(--brand);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.intro-select{display:block;width:100%;text-align:left;padding:15px 54px 15px 20px;cursor:pointer;font-family:"Baloo 2",'Inter',system-ui;font-size:1.05rem;font-weight:600;color:var(--ink)}
+.intro-select.is-empty{color:#8a97a6;font-weight:500}
+.intro-select[aria-expanded="true"]{border-color:var(--brand);box-shadow:0 0 0 4px rgba(33,107,172,.12)}
+.intro-select-wrap:after{content:"";position:absolute;right:22px;top:29px;width:10px;height:10px;border-right:2.5px solid var(--brand);border-bottom:2.5px solid var(--brand);transform:translateY(-70%) rotate(45deg);pointer-events:none;transition:transform .18s}
+.intro-select-wrap:has([aria-expanded="true"]):after{transform:translateY(-20%) rotate(225deg)}
+.intro-menu{position:absolute;left:0;right:0;top:calc(100% + 8px);z-index:6;margin:0;padding:8px;list-style:none;background:#fff;border:1.5px solid #e2e5ea;border-radius:18px;box-shadow:0 18px 44px rgba(37,83,120,.16);max-height:min(420px,60vh);overflow:auto;animation:fade .15s ease}
+/* The panel clips to its rounded corners; let the open list escape it (the progress bar keeps its own rounding). */
+.panel:has(.intro-menu:not([hidden])){overflow:visible}
+.panel:has(.intro-menu:not([hidden])) .progress{border-radius:32px 32px 0 0;overflow:hidden}
+.intro-option{padding:10px 14px;border-radius:12px;font-family:"Baloo 2",'Inter',system-ui;font-size:1rem;font-weight:600;color:var(--ink);cursor:pointer;outline:none}
+.intro-option:hover,.intro-option:focus{background:#eef5fc;color:var(--brand)}
+.intro-option.is-on{color:var(--brand)}
+.intro-option.is-on:after{content:"✓";float:right;font-weight:800}
 .welcome-grid.intro .intro-field{margin-top:0}
 .welcome-grid.intro .actions{margin-top:22px}
 .team-stage{padding-top:40px}

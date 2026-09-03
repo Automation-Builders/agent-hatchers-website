@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 35;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 36;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -262,10 +262,11 @@
   const industryOf=label=>INDUSTRIES.find(i=>i.label===label)||null;
   function welcome(){
     const ind=industryOf(state.industry);const other=ind&&ind.label===OTHER;
-    const options=`<option value=""${state.industry?'':' selected'} disabled>Choose your industry…</option>`+INDUSTRIES.map(i=>`<option value="${escapeHtml(i.label)}"${i.label===state.industry?' selected':''}>${escapeHtml(i.label)}</option>`).join('');
+    // A custom listbox (not a native <select>): the open list renders in the site font too.
+    const options=INDUSTRIES.map(i=>`<li class="intro-option${i.label===state.industry?' is-on':''}" role="option" tabindex="-1" aria-selected="${i.label===state.industry}" data-industry="${escapeHtml(i.label)}">${escapeHtml(i.label)}</li>`).join('');
     const fieldLabel=other?'What does your business do?':ind?'Anything more specific? <span class="intro-optional">(optional)</span>':'Or just tell us what you do';
     const placeholder=ind?ind.eg:'e.g. dental clinic, online clothing shop, plumber';
-    return `<div class="stage welcome-grid intro"><div><span class="eyebrow">Agent Hatchers</span><h1 class="welcome-title intro-title">What can our agents do for you?</h1><p class="intro-lead">Tell us what your business does and we’ll work out which agents would actually help.</p><label class="intro-label" for="biz-industry">Your industry</label><div class="intro-select-wrap"><select class="name-field intro-select" id="biz-industry" aria-label="Your industry" required>${options}</select></div><label class="intro-label" for="biz-intro">${fieldLabel}</label><div class="mic-field intro-field"><input class="name-field" id="biz-intro" maxlength="60" autocomplete="off" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(state.biz)}" aria-label="What your business does"><button type="button" class="mic-btn" data-mic="biz-intro" aria-label="Dictate what your business does">${micSvg}</button></div><div class="actions">${button('Show me →','team')}</div></div><div class="welcome-art" aria-hidden="true">${hatch5()}</div></div>`;
+    return `<div class="stage welcome-grid intro"><div><span class="eyebrow">Agent Hatchers</span><h1 class="welcome-title intro-title">What can our agents do for you?</h1><p class="intro-lead">Tell us what your business does and we’ll work out which agents would actually help.</p><span class="intro-label" id="biz-industry-label">Your industry</span><div class="intro-select-wrap" id="biz-industry"><button type="button" class="name-field intro-select${ind?'':' is-empty'}" id="biz-industry-btn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="biz-industry-label biz-industry-btn">${escapeHtml(ind?ind.label:'Choose your industry…')}</button><ul class="intro-menu" id="biz-industry-menu" role="listbox" aria-labelledby="biz-industry-label" hidden>${options}</ul></div><label class="intro-label" for="biz-intro">${fieldLabel}</label><div class="mic-field intro-field"><input class="name-field" id="biz-intro" maxlength="60" autocomplete="off" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(state.biz)}" aria-label="What your business does"><button type="button" class="mic-btn" data-mic="biz-intro" aria-label="Dictate what your business does">${micSvg}</button></div><div class="actions">${button('Show me →','team')}</div></div><div class="welcome-art" aria-hidden="true">${hatch5()}</div></div>`;
   }
   // Screen 2 — the agents for that business, what each does, and how they hand work on.
   function teamScreen(){
@@ -853,7 +854,23 @@
       el.onclick=pick;
       el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick()}};
     });
-    const bizIndustry=document.getElementById('biz-industry');if(bizIndustry)bizIndustry.onchange=()=>{const input=document.getElementById('biz-intro');if(input)state.biz=input.value.trim();state.industry=bizIndustry.value;render();if(state.industry===OTHER)document.getElementById('biz-intro')?.focus();};
+        const indBtn=document.getElementById('biz-industry-btn'),indMenu=document.getElementById('biz-industry-menu');
+    if(indBtn&&indMenu){
+      const opts=[...indMenu.querySelectorAll('[data-industry]')];
+      const setOpen=open=>{indMenu.hidden=!open;indBtn.setAttribute('aria-expanded',String(open));if(open)(opts.find(o=>o.classList.contains('is-on'))||opts[0]).focus();};
+      const choose=label=>{const input=document.getElementById('biz-intro');if(input)state.biz=input.value.trim();state.industry=label;render();(label===OTHER?document.getElementById('biz-intro'):document.getElementById('biz-industry-btn'))?.focus();};
+      indBtn.onclick=()=>setOpen(indMenu.hidden);
+      indBtn.onkeydown=e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();setOpen(true);}};
+      opts.forEach((o,i)=>{o.onclick=()=>choose(o.dataset.industry);o.onkeydown=e=>{
+        if(e.key==='ArrowDown'){e.preventDefault();opts[Math.min(i+1,opts.length-1)].focus();}
+        else if(e.key==='ArrowUp'){e.preventDefault();opts[Math.max(i-1,0)].focus();}
+        else if(e.key==='Enter'||e.key===' '){e.preventDefault();choose(o.dataset.industry);}
+        else if(e.key==='Escape'||e.key==='Tab'){setOpen(false);if(e.key==='Escape'){e.preventDefault();indBtn.focus();}}
+      };});
+      if(root._closeIndustry)document.removeEventListener('pointerdown',root._closeIndustry);   // one listener across re-renders
+      root._closeIndustry=e=>{if(!indMenu.hidden&&!e.target.closest('#biz-industry'))setOpen(false);};
+      document.addEventListener('pointerdown',root._closeIndustry);
+    }
     const bizIntro=document.getElementById('biz-intro');if(bizIntro)bizIntro.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();root.querySelector('[data-action="team"]')?.click()}};
     bindReference();
     root.querySelectorAll('[data-create]').forEach(el=>el.onclick=()=>{document.querySelectorAll('.create-pop').forEach(p=>p.remove());const pop=document.createElement('div');pop.className='create-pop';pop.innerHTML=`${ci.key}<span>Please pay for your agent to see what a new profile would look like.</span>`;document.body.appendChild(pop);setTimeout(()=>pop.classList.add('show'),10);setTimeout(()=>{pop.classList.remove('show');setTimeout(()=>pop.remove(),300)},4600);});
