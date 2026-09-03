@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 43;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 44;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -222,7 +222,7 @@
     clearTimeout(saveTimer);
     saveTimer=setTimeout(()=>{
       if(state.step<1){return;}
-      const snap={v:1,savedAt:Date.now(),step:state.step,name:state.name,company:state.company,biz:state.biz,industry:state.industry,look:state.look,team:state.team,axes:state.axes||null,refPhoto:state.refPhoto,brand:state.brand,
+      const snap={v:1,build:BUILD,savedAt:Date.now(),step:state.step,name:state.name,company:state.company,biz:state.biz,industry:state.industry,look:state.look,team:state.team,axes:state.axes||null,refPhoto:state.refPhoto,brand:state.brand,
         slots:state.slots.map(s=>s&&s.status==='ready'?{status:'ready',image:s.image||''}:null),variant:state.variant,selectedImage:state.selectedImage,done:state.done,
         marketImages:state.marketImages,tab:state.tab,chatActive:state.chatActive,chatExtra:state.chatExtra,editUses:state.editUses,
         profiles:state.profiles.filter(p=>p.status==='complete'||p.status==='deleted').map(p=>({id:p.id,name:p.name,desc:p.desc,img:p.img,step:p.step,status:p.status,profile:p.profile||null,dismissed:!!p.dismissed}))};
@@ -244,10 +244,22 @@
     if(snap.step===1&&!state.team)state.step=0;
     state.teamBusy=false;state.refBusy=false;state.refError='';
     state.marketStarted=false;
+    // Images hatched before the one-robot fix (or anything that isn't square) would be copied
+    // into every new portrait as the reference — drop them and let the prospect re-hatch.
+    if(state.step>=3&&await staleImages(snap)){
+      state.slots=[];state.variant=null;state.selectedImage='';state.marketImages={};state.done=false;state.tab='profiles';
+      state.profiles=state.profiles.filter(p=>p.status!=='complete');state.step=2;state.rehatch=true;
+    }
     return true;
   }
+  async function staleImages(snap){
+    if((snap.build||0)<44)return true;
+    const src=state.selectedImage||((state.slots.find(x=>x&&x.image)||{}).image)||'';
+    if(!src)return false;
+    try{const im=await loadImg(src);const r=im.naturalWidth/im.naturalHeight;return !(r>0.85&&r<1.18);}catch(e){return false;}
+  }
   function welcomeBack(){
-    const pop=document.createElement('div');pop.className='create-pop wb-pop';pop.innerHTML=`${ci.check}<span>Picked up where you left off${state.name?` with ${escapeHtml(state.name)}`:''}. <b>Start over</b> is in the footer if you want a fresh hatch.</span>`;
+    const pop=document.createElement('div');pop.className='create-pop wb-pop';pop.innerHTML=state.rehatch?`${ci.check}<span>Welcome back${state.name?`, ${escapeHtml(state.name)} is still here`:''}. Your earlier designs were made before a fix, so hatch them again — one press.</span>`:`${ci.check}<span>Picked up where you left off${state.name?` with ${escapeHtml(state.name)}`:''}. <b>Start over</b> is in the footer if you want a fresh hatch.</span>`;
     document.body.appendChild(pop);setTimeout(()=>pop.classList.add('show'),10);
     setTimeout(()=>{pop.classList.remove('show');setTimeout(()=>pop.remove(),300)},6000);
   }

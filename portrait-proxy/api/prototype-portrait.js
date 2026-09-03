@@ -118,11 +118,11 @@ export default async function handler(req, res) {
       `${photo ? '' : 'Make this a distinctive, original character design. '}Polished, high-quality, sharp 3D cartoon ` +
       `render, crisp clean edges, no text, no watermark, no clutter.`
     : ref
-    ? `This is one specific robot mascot character. Keep it EXACTLY the same character as the ` +
+    ? `ONE robot only — this exact character, alone; no other robots, people or figures anywhere, not even in the background. Keep it EXACTLY the same character as the ` +
       `reference image — identical body shape, proportions, colours, materials, markings and face. ` +
       `Do not restyle, recolour or redesign it. ${role ? `${role} ` : ''}` +
       `Re-dress the very same character for that job with one or two fitting accessories and clear ` +
-      `props/tools, and place it in a real setting that fits the work (a proper background scene). ` +
+      `props/tools, and place it in a real setting that fits the work (a proper background scene, empty of anyone else). ` +
       `Polished, high-quality, sharp 3D cartoon render, the same character throughout, no text, no watermark.`
     : `${brief}. A friendly 3D cartoon robot mascot character named "${name}". ` +
       `${role ? `${role} ` : ''}` +
