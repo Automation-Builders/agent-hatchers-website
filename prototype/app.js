@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 33;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 34;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -27,9 +27,23 @@
     style:['retro 1970s tin-toy robot styling','sleek near-future android styling','cute kitchen-appliance-inspired styling','sporty drone-inspired styling with fins']
   };
   const shuffle=a=>{const c=[...a];for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[c[i],c[j]]=[c[j],c[i]];}return c;};
-  function dealDesignAxes(){state.axes={build:shuffle(DESIGN_AXES.build),face:shuffle(DESIGN_AXES.face),finish:shuffle(DESIGN_AXES.finish),style:shuffle(DESIGN_AXES.style)};}
+  // With a reference photo the three designs must ALL be recognisably that person, so the
+  // body/face axes above (which would give them a hovering ball body or a single camera eye)
+  // are not used; only the robot styling varies between designs.
+  const PHOTO_STYLES=[
+    'a sleek humanoid android with human proportions, smooth panelled skin and glowing seams',
+    'a cute chibi robot caricature with a big head and small body, features exaggerated but still recognisable',
+    'a chunky retro tin-toy robot with boxy panels, rivets and a warm vintage finish'
+  ];
+  function dealDesignAxes(){state.axes={build:shuffle(DESIGN_AXES.build),face:shuffle(DESIGN_AXES.face),finish:shuffle(DESIGN_AXES.finish),style:shuffle(DESIGN_AXES.style),photoStyle:shuffle(PHOTO_STYLES)};}
   function designBrief(variant){
-    const ax=state.axes||{};const pick=k=>((ax[k]||DESIGN_AXES[k])[variant%4]);
+    const ax=state.axes||{};
+    if(state.refPhoto){
+      // Likeness first, the prospect's own words last: the proxy trims the brief at 600 chars.
+      const style=(ax.photoStyle||PHOTO_STYLES)[variant%3];
+      return `A robot version of the person in the reference photo. It must be instantly recognisable as them: same face shape and expression, same hairstyle and hair colour, same skin tone (as the face-plate tone), and the same clothing colours and style, all rebuilt from robot parts. Copy their glasses or facial hair only if the photo actually shows them; never add any. Render it as ${style}. ${state.look}`;
+    }
+    const pick=k=>((ax[k]||DESIGN_AXES[k])[variant%4]);
     return `${state.look}. This is design ${variant+1} of 3 and it must look clearly different from the other two: give it ${pick('build')}, ${pick('face')}, ${pick('finish')}, and ${pick('style')}.`;
   }
 
@@ -248,10 +262,10 @@
   const industryOf=label=>INDUSTRIES.find(i=>i.label===label)||null;
   function welcome(){
     const ind=industryOf(state.industry);const other=ind&&ind.label===OTHER;
-    const chips=INDUSTRIES.map(i=>`<button type="button" class="chip industry-chip${i.label===state.industry?' is-on':''}" data-industry="${escapeHtml(i.label)}" aria-pressed="${i.label===state.industry}">${escapeHtml(i.label)}</button>`).join('');
+    const options=`<option value=""${state.industry?'':' selected'} disabled>Choose your industry…</option>`+INDUSTRIES.map(i=>`<option value="${escapeHtml(i.label)}"${i.label===state.industry?' selected':''}>${escapeHtml(i.label)}</option>`).join('');
     const fieldLabel=other?'What does your business do?':ind?'Anything more specific? <span class="intro-optional">(optional)</span>':'Or just tell us what you do';
     const placeholder=ind?ind.eg:'e.g. dental clinic, online clothing shop, plumber';
-    return `<div class="stage welcome-grid intro"><div><span class="eyebrow">Agent Hatchers</span><h1 class="welcome-title intro-title">What can our agents do for you?</h1><p class="intro-lead">Tell us what your business does and we’ll work out which agents would actually help.</p><p class="intro-label">Pick your industry</p><div class="chips industry-chips" role="group" aria-label="Your industry">${chips}</div><label class="intro-label" for="biz-intro">${fieldLabel}</label><div class="mic-field intro-field"><input class="name-field" id="biz-intro" maxlength="60" autocomplete="off" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(state.biz)}" aria-label="What your business does"><button type="button" class="mic-btn" data-mic="biz-intro" aria-label="Dictate what your business does">${micSvg}</button></div><div class="actions">${button('Show me →','team')}</div></div><div class="welcome-art" aria-hidden="true">${hatch5()}</div></div>`;
+    return `<div class="stage welcome-grid intro"><div><span class="eyebrow">Agent Hatchers</span><h1 class="welcome-title intro-title">What can our agents do for you?</h1><p class="intro-lead">Tell us what your business does and we’ll work out which agents would actually help.</p><label class="intro-label" for="biz-industry">Your industry</label><div class="intro-select-wrap"><select class="name-field intro-select" id="biz-industry" aria-label="Your industry" required>${options}</select></div><label class="intro-label" for="biz-intro">${fieldLabel}</label><div class="mic-field intro-field"><input class="name-field" id="biz-intro" maxlength="60" autocomplete="off" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(state.biz)}" aria-label="What your business does"><button type="button" class="mic-btn" data-mic="biz-intro" aria-label="Dictate what your business does">${micSvg}</button></div><div class="actions">${button('Show me →','team')}</div></div><div class="welcome-art" aria-hidden="true">${hatch5()}</div></div>`;
   }
   // Screen 2 — the agents for that business, what each does, and how they hand work on.
   function teamScreen(){
@@ -839,7 +853,7 @@
       el.onclick=pick;
       el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick()}};
     });
-    root.querySelectorAll('[data-industry]').forEach(el=>el.onclick=()=>{const input=document.getElementById('biz-intro');if(input)state.biz=input.value.trim();state.industry=state.industry===el.dataset.industry?'':el.dataset.industry;render();if(state.industry===OTHER)document.getElementById('biz-intro')?.focus();});
+    const bizIndustry=document.getElementById('biz-industry');if(bizIndustry)bizIndustry.onchange=()=>{const input=document.getElementById('biz-intro');if(input)state.biz=input.value.trim();state.industry=bizIndustry.value;render();if(state.industry===OTHER)document.getElementById('biz-intro')?.focus();};
     const bizIntro=document.getElementById('biz-intro');if(bizIntro)bizIntro.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();root.querySelector('[data-action="team"]')?.click()}};
     bindReference();
     root.querySelectorAll('[data-create]').forEach(el=>el.onclick=()=>{document.querySelectorAll('.create-pop').forEach(p=>p.remove());const pop=document.createElement('div');pop.className='create-pop';pop.innerHTML=`${ci.key}<span>Please pay for your agent to see what a new profile would look like.</span>`;document.body.appendChild(pop);setTimeout(()=>pop.classList.add('show'),10);setTimeout(()=>{pop.classList.remove('show');setTimeout(()=>pop.remove(),300)},4600);});
