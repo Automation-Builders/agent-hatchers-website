@@ -978,3 +978,6 @@ h1{font-weight:800}h2{font-weight:700}
 .app.is-chats .chats3{min-height:0}
 .app.is-chats .chat-empty,.app.is-chats .chat-main{min-height:0}
 .app.is-chats .chat-thread{overflow-y:auto;overscroll-behavior:contain;scroll-behavior:smooth}
+/* team screen: agents aren't hatched yet, so each one is a "?" tile rather than a Hatchy */
+.team-av.team-q{background:#fff;border:1.5px dashed #b9cfe3;color:#216bac;font:800 1.45rem/1 'Inter',system-ui;display:grid;place-items:center}
+.flow-q{width:30px;height:30px;flex:0 0 30px;border-radius:50%;background:#fff;border:1.5px dashed #b9cfe3;color:#216bac;font:800 .95rem/1 'Inter',system-ui;font-style:normal;display:grid;place-items:center}
