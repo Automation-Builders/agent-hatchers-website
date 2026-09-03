@@ -92,3 +92,17 @@ description, company, business, roster, connectors}` → `{summary, outcomes[5],
 mates[2-3 catalog ids], team}`. Same model/escalation as `prototype-team.js`
 (`OPENROUTER_PROFILE_MODEL` overrides). The client (`researchProfile` in
 `prototype/app.js`) falls back to a keyword-built profile while this is undeployed.
+
+## `api/prototype-session.js` — saved prospect sessions (build 45, Sep 2026)
+
+Every prototype session (business, team, hatched look, marketplace portraits, created profiles,
+chat turns — as small JPEG thumbnails, never the person's reference photo) is posted here and
+kept in **Vercel Blob** under `sessions/<sid>.json`, with a summary in `sessions-index/`.
+`GET ?key=<SESSIONS_KEY>` lists the summaries for **agenthatchers.com/prototype/sessions.html**.
+
+Setup once: Vercel → Storage → Create **Blob** → connect it to this project (that injects
+`BLOB_READ_WRITE_TOKEN`), then set `SESSIONS_KEY` to any long secret and redeploy:
+
+```bash
+cd portrait-proxy && npx vercel env add SESSIONS_KEY production && npx vercel --prod
+```

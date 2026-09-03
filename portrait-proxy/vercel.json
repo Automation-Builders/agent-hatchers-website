@@ -12,6 +12,9 @@
     },
     "api/prototype-profile.js": {
       "maxDuration": 60
+    },
+    "api/prototype-session.js": {
+      "maxDuration": 30
     }
   }
 }

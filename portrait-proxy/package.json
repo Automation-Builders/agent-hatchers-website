@@ -3,5 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Vercel serverless proxy that turns a prototype brief into an OpenRouter-generated avatar, keeping the API key server-side."
+  "description": "Vercel serverless proxy that turns a prototype brief into an OpenRouter-generated avatar, keeping the API key server-side.",
+  "dependencies": {
+    "@vercel/blob": "^1.0.0"
+  }
 }

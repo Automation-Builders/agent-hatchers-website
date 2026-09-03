@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 44;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 45;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -17,7 +17,7 @@
     {id:'website',icon:'◇',name:'Website Agent',industries:['all'],keywords:['website','content','publish','webflow','wordpress','page','blog','copy','web','online'],summary:'Keeps website content accurate, on-brand and ready for approval before publishing.',portrait:'/hatchy-website.webp',team:'Marketing',scene:'It is a website agent wearing a comfy hoodie and headphones around its neck, at a dual-monitor desk in a loft studio at night editing a colourful online storefront, with sticky notes on the window and a small cactus by the keyboard.',mcps:['GitHub','Webflow','WordPress','Google Drive','Slack'],outcomes:['Draft new website pages','Update approved copy and details','Check pages for stale information','Prepare search-friendly metadata','Publish only after human approval']},
     {id:'operations',icon:'✓',name:'Operations Agent',industries:['professional-services','construction','healthcare','all'],keywords:['operations','workflow','project','task','deadline','schedule','coordination','process','compliance','ops','clinic','manufacturing'],summary:'Coordinates repeatable workflows and keeps teams informed when work changes state.',portrait:'/hatchy-routing.webp',team:'Operations',scene:'It is an operations agent wearing a project-manager lanyard and holding a marker, standing at a wall-sized kanban board covered in swim-lanes and sticky notes in a bright planning room, with interlocking gears drawn on a whiteboard behind it.',mcps:['Monday.com','Asana','Notion','Slack','Microsoft Teams'],outcomes:['Turn requests into structured work','Monitor deadlines and blockers','Prepare daily operating summaries','Chase missing information','Escalate exceptions to the right person']}
   ];
-  const state = {step:0,name:'',biz:'',industry:'',look:'',team:null,teamBusy:false,refPhoto:'',brand:null,refBusy:false,refError:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:0,chatExtra:{},chatTyping:{},company:'',editUses:0,profiles:[],merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
+  const state = {step:0,name:'',biz:'',industry:'',look:'',team:null,teamBusy:false,refPhoto:'',brand:null,refBusy:false,refError:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:0,chatExtra:{},chatTyping:{},company:'',editUses:0,profiles:[],sid:'',startedAt:0,merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
   const root = document.getElementById('prototype-app');
   const co = () => state.company || config.company || 'Your Company';
   const DESIGN_AXES={
@@ -209,6 +209,39 @@
   const stepNo = () => Math.max(1,state.step);
   const layout = content => `<main class="shell"><section class="panel"><div class="progress" aria-label="Prototype progress"><span style="--progress:${Math.min(100,stepNo()/5*100)}%"></span></div><header class="topbar"><div class="brand"><img src="/agent-hatchers-logo.png" alt=""><span>Agent Hatchers</span></div><div class="topbar-right">${chip()}<span class="step-label">Step ${stepNo()} of 5</span></div></header>${content}</section></main>`;
 
+  // ---------- Session capture: a small copy of each hatch goes to our store ----------
+  // So the team can see what prospects actually did: business, team, chosen look, marketplace
+  // portraits, created profiles and chat turns — all images as ~240–320px JPEG thumbnails, and
+  // never the person's reference photo. Throttled to one upload per 12s; failures are silent.
+  const sessionEndpoint = config.sessionEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-session');
+  const captureOn = config.saveSessions!==false && /^https?:/.test(sessionEndpoint);
+  const uid=()=>(crypto.randomUUID?crypto.randomUUID():'s-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10));
+  const thumbCache=new Map();
+  async function thumb(src,max=320){if(!src||!/^data:/.test(src))return '';const k=max+':'+src.slice(0,80)+src.length;if(thumbCache.has(k))return thumbCache.get(k);const t=await downscale(src,max,true);thumbCache.set(k,t);return t;}
+  let syncTimer=null,lastSync=0,syncing=false,syncDirty=false;
+  function syncSession(){
+    if(!captureOn||state.step<1||!state.sid)return;
+    syncDirty=true;clearTimeout(syncTimer);
+    syncTimer=setTimeout(pushSession,Math.max(0,12000-(Date.now()-lastSync)));
+  }
+  async function pushSession(){
+    if(syncing){syncDirty=true;return;}
+    syncing=true;syncDirty=false;lastSync=Date.now();
+    try{const payload=await buildCapture();await fetch(sessionEndpoint,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});}catch(e){}
+    syncing=false;if(syncDirty)syncSession();
+  }
+  async function buildCapture(){
+    const slots=await Promise.all(state.slots.map(s=>s&&s.image?thumb(s.image):Promise.resolve('')));
+    const market={};for(const [k,v] of Object.entries(state.marketImages||{})){const t=await thumb(v,240);if(t)market[k]=t;}
+    const profiles=await Promise.all(state.profiles.filter(p=>p.status==='complete'||p.status==='deleted').map(async p=>({name:p.name,desc:p.desc,status:p.status,img:await thumb(p.img,240),profile:p.profile||null})));
+    let chatNames=[];try{chatNames=chatProfiles().all.map(x=>x.name);}catch(e){}
+    return {sid:state.sid,v:1,build:BUILD,page:location.pathname,startedAt:state.startedAt,savedAt:Date.now(),ua:navigator.userAgent.slice(0,160),
+      company:co(),name:state.name,biz:state.biz,industry:state.industry,look:state.look,step:state.step,tab:state.tab,done:state.done,editUses:state.editUses,
+      brand:state.brand?{name:state.brand.name,url:state.brand.url,colors:state.brand.colors}:null,hadPhoto:!!state.refPhoto,
+      team:state.team?{ids:state.team.ids,intro:state.team.intro,source:state.team.source,lines:state.team.lines}:null,
+      variant:state.variant,selectedImage:await thumb(state.selectedImage),slots,market,profiles,chats:state.chatExtra||{},chatNames};
+  }
+
   // ---------- Session persistence: come back to the hatch you left ----------
   // Everything a prospect has hatched (designs, marketplace portraits, new profiles) is kept
   // in IndexedDB per page, so a click-away or refresh resumes where they were. "Start over"
@@ -222,18 +255,20 @@
     clearTimeout(saveTimer);
     saveTimer=setTimeout(()=>{
       if(state.step<1){return;}
-      const snap={v:1,build:BUILD,savedAt:Date.now(),step:state.step,name:state.name,company:state.company,biz:state.biz,industry:state.industry,look:state.look,team:state.team,axes:state.axes||null,refPhoto:state.refPhoto,brand:state.brand,
+      if(!state.sid){state.sid=uid();state.startedAt=Date.now();}
+      const snap={v:1,build:BUILD,sid:state.sid,startedAt:state.startedAt,savedAt:Date.now(),step:state.step,name:state.name,company:state.company,biz:state.biz,industry:state.industry,look:state.look,team:state.team,axes:state.axes||null,refPhoto:state.refPhoto,brand:state.brand,
         slots:state.slots.map(s=>s&&s.status==='ready'?{status:'ready',image:s.image||''}:null),variant:state.variant,selectedImage:state.selectedImage,done:state.done,
         marketImages:state.marketImages,tab:state.tab,chatActive:state.chatActive,chatExtra:state.chatExtra,editUses:state.editUses,
         profiles:state.profiles.filter(p=>p.status==='complete'||p.status==='deleted').map(p=>({id:p.id,name:p.name,desc:p.desc,img:p.img,step:p.step,status:p.status,profile:p.profile||null,dismissed:!!p.dismissed}))};
       writeSession(snap);
+      syncSession();
     },400);
   }
   function clearSession(){clearTimeout(saveTimer);writeSession(null);}
   async function restoreSession(){
     const snap=await loadSession();
     if(!snap||snap.v!==1||!(snap.step>=1))return false;
-    const fields=['name','company','biz','industry','look','team','axes','refPhoto','brand','variant','selectedImage','done','marketImages','tab','chatActive','chatExtra','editUses'];
+    const fields=['sid','startedAt','name','company','biz','industry','look','team','axes','refPhoto','brand','variant','selectedImage','done','marketImages','tab','chatActive','chatExtra','editUses'];
     fields.forEach(k=>{if(snap[k]!==undefined)state[k]=snap[k];});
     state.slots=(snap.slots||[]).map(s=>s&&s.status==='ready'?{status:'ready',image:s.image||''}:null);
     state.profiles=(snap.profiles||[]).map(p=>({...p,cancelled:false}));
@@ -1122,7 +1157,7 @@
         const s=state.slots[state.variant];
         state.selectedImage=(s&&s.image)||state.selectedImage||((state.slots.find(x=>x&&x.image)||{}).image)||'';
         document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=4;render();generateMarket()}
-      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.look='';state.team=null;state.teamBusy=false;stopThinking();state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.profiles=[];notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.look='';state.team=null;state.teamBusy=false;stopThinking();state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-egg]').forEach(el=>{
       // Select a design the moment it's hatched — direct DOM updates only, so picking
