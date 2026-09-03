@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 36;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 37;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -857,7 +857,11 @@
         const indBtn=document.getElementById('biz-industry-btn'),indMenu=document.getElementById('biz-industry-menu');
     if(indBtn&&indMenu){
       const opts=[...indMenu.querySelectorAll('[data-industry]')];
-      const setOpen=open=>{indMenu.hidden=!open;indBtn.setAttribute('aria-expanded',String(open));if(open)(opts.find(o=>o.classList.contains('is-on'))||opts[0]).focus();};
+      // Keep the open list inside the viewport: cap its height to the room below the field,
+      // or flip it above when there is more room up there.
+      const fitMenu=()=>{const r=indBtn.getBoundingClientRect();const pad=16,gap=8;const below=window.innerHeight-r.bottom-gap-pad,above=r.top-gap-pad;const up=below<240&&above>below;indMenu.classList.toggle('is-up',up);indMenu.style.maxHeight=Math.max(140,Math.min(420,up?above:below))+'px';};
+      const setOpen=open=>{indMenu.hidden=!open;indBtn.setAttribute('aria-expanded',String(open));if(open){fitMenu();(opts.find(o=>o.classList.contains('is-on'))||opts[0]).focus({preventScroll:true});}};
+      window.addEventListener('resize',()=>{if(!indMenu.hidden)fitMenu();});
       const choose=label=>{const input=document.getElementById('biz-intro');if(input)state.biz=input.value.trim();state.industry=label;render();(label===OTHER?document.getElementById('biz-intro'):document.getElementById('biz-industry-btn'))?.focus();};
       indBtn.onclick=()=>setOpen(indMenu.hidden);
       indBtn.onkeydown=e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();setOpen(true);}};
