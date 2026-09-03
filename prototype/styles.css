@@ -125,6 +125,9 @@
 .p-sub{display:flex;align-items:center;gap:8px;margin-top:7px;flex-wrap:wrap}
 .p-owner{font-size:.82rem;color:#7a828c}
 .p-tag{font:700 .72rem 'Inter',system-ui;color:#1a9d5f;background:#e7f7ee;border-radius:7px;padding:3px 8px}
+.p-tag.tag-run{display:inline-flex;align-items:center;gap:5px;color:#fff;background:#1a9d5f}
+.p-tag.tag-run i{width:6px;height:6px;border-radius:50%;background:#fff;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 .p-tag.tag-new{color:#216bac;background:#e4f0fb}
 .p-card.is-yours{border-color:#bcd6ec;box-shadow:0 0 0 2px rgba(33,107,172,.12)}
 .board-empty{padding:40px;text-align:center;color:#7a828c;font-weight:600}
@@ -791,6 +794,9 @@ h1{font-weight:800}h2{font-weight:700}
 /* agent profile: portrait beside the outcomes checklist */
 .profile-cols{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:22px;align-items:start}
 .profile-cols h3{margin-top:0}
+.tailored-note{font-size:.92rem;margin:-4px 0 14px;color:var(--muted)}
+.tailored-note b{color:var(--ink);font-weight:600}
+.tailored-pill{display:inline-block;margin-right:8px;padding:2px 8px;border-radius:999px;background:#eef5fc;color:var(--brand);font:700 .7rem 'Inter',system-ui;letter-spacing:.06em;text-transform:uppercase;vertical-align:1px}
 .profile-art{border-radius:18px;overflow:hidden;box-shadow:0 12px 28px rgba(33,107,172,.18);border:1px solid #dcebf3;background:#f2f8fc}
 .profile-art img{width:100%;height:100%;aspect-ratio:1/1;object-fit:cover;display:block}
 @media(max-width:640px){.profile-cols{grid-template-columns:1fr}.profile-art{max-width:220px}}

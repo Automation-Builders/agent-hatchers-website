@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 38;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 39;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -309,18 +309,23 @@
   function initials(str){return String(str||'AH').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();}
   const marketLoader='<div class="hatch-loader"><img class="loader-egg" src="/egg-closed.webp" alt=""><span class="loader-txt">Hatching…</span></div>';
   function willGenerate(agent){return (usePortraits&&config.marketPortraits!==false&&state.variant!==null)||!!(config.bakedMarket&&config.bakedMarket[agent.id]);}
-  function agentCard(agent){const gen=state.marketImages[agent.id];const loading=!gen&&willGenerate(agent);const inner=gen?`<img src="${escapeHtml(gen)}" alt="${escapeHtml(agent.name)}">`:(loading?marketLoader:`<img src="${agent.portrait}" alt="${escapeHtml(agent.name)}" loading="lazy">`);return `<article class="p-card" data-agent="${agent.id}" data-search="${escapeHtml((agent.name+' '+agent.team).toLowerCase())}" tabindex="0"><div class="p-thumb thumb-${agent.id} ${gen?'is-generated':''} ${loading?'is-loading':''}" data-thumb="${agent.id}">${inner}</div><div class="p-meta"><div class="p-name">${agent.name} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span><span class="p-tag">${agent.team}</span></div></div></article>`;}
+  function agentCard(agent,running=false){const gen=state.marketImages[agent.id];const loading=!gen&&willGenerate(agent);const inner=gen?`<img src="${escapeHtml(gen)}" alt="${escapeHtml(agent.name)}">`:(loading?marketLoader:`<img src="${agent.portrait}" alt="${escapeHtml(agent.name)}" loading="lazy">`);return `<article class="p-card" data-agent="${agent.id}" data-search="${escapeHtml((agent.name+' '+agent.team).toLowerCase())}" tabindex="0"><div class="p-thumb thumb-${agent.id} ${gen?'is-generated':''} ${loading?'is-loading':''}" data-thumb="${agent.id}">${inner}</div><div class="p-meta"><div class="p-name">${agent.name} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span><span class="p-tag">${agent.team}</span>${running?'<span class="p-tag tag-run"><i></i>Running</span>':''}</div></div></article>`;}
   function hatchedCard(){const vis=state.selectedImage?`<img src="${escapeHtml(state.selectedImage)}" alt="${escapeHtml(state.name)}">`:`<div class="thumb-bot">${bot('v'+(state.variant||0))}</div>`;return `<article class="p-card is-yours"><div class="p-thumb thumb-new ${state.selectedImage?'is-generated':''}">${vis}</div><div class="p-meta"><div class="p-name">${escapeHtml(state.name||'Your agent')} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span><span class="p-tag tag-new">Just hatched</span></div></div></article>`;}
+  // Two of the recommended agents are already switched on for the prospect's company, so the
+  // board shows what "running" looks like next to the freshly hatched one.
+  const RUNNING=['documents','sales'];
+  const runningAgents=()=>RUNNING.map(id=>catalog.find(a=>a.id===id)).filter(Boolean);
   function profilesBoard(){
-    const rec=topAgents();
+    const running=runningAgents();
+    const rec=topAgents().filter(a=>!RUNNING.includes(a.id));
     return `<div class="filter-bar">
         <div class="seg"><button class="seg-on">${ic.gallery}<span>Gallery</span></button><button data-noop="1">${ic.kanban}<span>Kanban</span></button></div>
         <button class="filter-pill" data-noop="1">Status: All ${ic.chev}</button><button class="filter-pill" data-noop="1">Team: All ${ic.chev}</button><button class="filter-pill" data-noop="1">Manager: All ${ic.chev}</button><button class="filter-pill sel" data-noop="1">Group by: Status ${ic.chev}</button>
         <div class="search-box">${ic.search}<input id="market-search" placeholder="Search profiles..." autocomplete="off"></div>
       </div>
       <div class="board" id="board">
-        <section class="board-group g-active"><div class="group-head"><h3>Active</h3><span class="count">1</span></div><div class="p-grid">${hatchedCard()}</div></section>
-        <section class="board-group g-rec"><div class="group-head"><h3>Recommended for ${escapeHtml(co())}</h3><span class="count">${rec.length}</span></div><div class="p-grid">${rec.map(agentCard).join('')}</div></section>
+        <section class="board-group g-active"><div class="group-head"><h3>Active</h3><span class="count">${1+running.length}</span></div><div class="p-grid">${hatchedCard()}${running.map(a=>agentCard(a,true)).join('')}</div></section>
+        <section class="board-group g-rec"><div class="group-head"><h3>Recommended for ${escapeHtml(co())}</h3><span class="count">${rec.length}</span></div><div class="p-grid">${rec.map(a=>agentCard(a)).join('')}</div></section>
         <div class="board-empty" id="board-empty" hidden>No profiles match your search.</div>
       </div>`;
   }
@@ -330,7 +335,7 @@
   // is workspace flavour using the stock Hatchy avatar art.
   function chatProfiles(){
     const you={name:state.name||'Your agent',img:state.selectedImage||'/hatchy-pop.webp'};
-    const team=topAgents().map(a=>({name:a.name,img:state.marketImages[a.id]||a.portrait}));
+    const team=[...runningAgents(),...topAgents().filter(a=>!RUNNING.includes(a.id))].map(a=>({name:a.name,img:state.marketImages[a.id]||a.portrait}));
     const live=usePortraits&&config.marketPortraits!==false&&state.variant!==null;
     const other=EXTRA_PROFILES.map(p=>{const gen=state.marketImages[p.id];return {id:p.id,name:p.name,img:gen||(live?'/egg-closed.webp':(state.selectedImage||p.portrait)),egg:!gen&&live};});
     const your=[you,...team];
@@ -412,20 +417,20 @@
   const cfgIcons={Communications:ic.chats,Integrations:'<svg viewBox="0 0 24 24"><path d="M9 2v6M15 2v6M7 8h10v4a5 5 0 01-10 0zM12 17v5"/></svg>',Models:'<svg viewBox="0 0 24 24"><path d="M12 3l9 5v8l-9 5-9-5V8z"/><path d="M3 8l9 5 9-5M12 13v9"/></svg>',Users:'<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0112 0M16 5a3.5 3.5 0 010 7M18 20a6 6 0 00-3-5"/></svg>',Permissions:'<svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6z"/></svg>',Media:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M4 18l5-4 4 3 3-3 4 4"/></svg>',Branding:'<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 100 18c1.5 0 2-1 2-2s-1-1.5-1-2.5.5-1.5 1.5-1.5H18a3 3 0 003-3c0-4-4-6-9-6z"/><circle cx="7.5" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16.5" cy="10.5" r="1"/></svg>',Connection:ci.link};
   function configView(){
     const side=['Communications','Integrations','Models','Users','Permissions','Media','Branding','Connection'];
-    const slackLogo='<svg viewBox="0 0 24 24" fill="none"><path d="M6 15a2 2 0 11-2-2h2zM7 15a2 2 0 014 0v5a2 2 0 01-4 0z" fill="#E01E5A"/><path d="M9 6a2 2 0 112 2H9zM9 7a2 2 0 010 4H4a2 2 0 010-4z" fill="#36C5F0"/><path d="M18 9a2 2 0 112 2h-2zM17 9a2 2 0 01-4 0V4a2 2 0 014 0z" fill="#2EB67D"/><path d="M15 18a2 2 0 11-2-2h2zM15 17a2 2 0 010-4h5a2 2 0 010 4z" fill="#ECB22E"/></svg>';
-    const teamsLogo='<svg viewBox="0 0 24 24"><rect x="3" y="6" width="12" height="12" rx="2" fill="#5059C9"/><text x="9" y="15" font-size="9" fill="#fff" text-anchor="middle" font-family="Inter">T</text><circle cx="18" cy="8" r="3" fill="#7B83EB"/></svg>';
+    const slackLogo='<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lg-slack"/></svg>';   // the real marks from the homepage sprite
+    const teamsLogo='<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lg-teams"/></svg>';
     const wsAv=state.selectedImage?`<img src="${escapeHtml(state.selectedImage)}">`:bot('v'+(state.variant||0));
-    const workspaces=[['Agent-Hatchers','T0A8CMQN1PH'],[escapeHtml(co()),'T0BJX6REVC2']];
-    const channels=[['Agent-Hatchers','7 / 23 Channels Assigned'],[escapeHtml(co()),'13 / 16 Channels Assigned']];
+    const workspaces=[[escapeHtml(co()),'T0BJX6REVC2']];
+    const channels=[[escapeHtml(co()),'13 / 16 Channels Assigned']];
     return `<div class="cfg-page">
       <aside class="cfg-side">${side.map((n,i)=>`<div class="cfg-side-item ${i===0?'on':''}" data-noop="1"><span class="cfg-side-ic">${cfgIcons[n]}</span>${n}</div>`).join('')}</aside>
       <div class="cfg-main">
         <div class="cfg-head"><span class="cfg-head-ic">${ic.chats}</span><h2>Communications</h2></div>
         <div class="cfg-label">Chat platform</div>
         <div class="platform-row"><button class="platform sel" data-noop="1"><span class="pf-ic">${slackLogo}</span> Slack <span class="pf-ok">${ci.check}</span></button><button class="platform" data-noop="1"><span class="pf-ic">${teamsLogo}</span> Microsoft Teams <span class="pf-ok">${ci.check}</span></button></div>
-        <div class="cfg-sub"><span><b>Workspaces</b> <span class="count">2</span></span><button class="btn cfg-connect" data-noop="1">${ic.plus}<span>Connect Workspace</span></button></div>
+        <div class="cfg-sub"><span><b>Workspaces</b> <span class="count">${workspaces.length}</span></span><button class="btn cfg-connect" data-noop="1">${ic.plus}<span>Connect Workspace</span></button></div>
         ${workspaces.map(([n,id])=>`<div class="ws-row"><span class="ws-av2">${wsAv}</span><div class="ws-row-main"><b>${n}</b><div class="ws-id">${id}</div></div><div class="ws-actions"><button data-noop="1" aria-label="Edit">✎</button><button data-noop="1" aria-label="Delete">🗑</button></div></div>`).join('')}
-        <div class="cfg-sub"><span><b>Channels</b> <span class="count">39</span></span></div>
+        <div class="cfg-sub"><span><b>Channels</b> <span class="count">16</span></span></div>
         <div class="chan-filters"><button class="filter-pill" data-noop="1">All channels ${ic.chev}</button><button class="filter-pill" data-noop="1">All assignments ${ic.chev}</button><div class="search-box">${ic.search}<input placeholder="Search channels or agents..."></div></div>
         ${channels.map(([n,c])=>`<div class="chan-row"><span class="ws-av2">${wsAv}</span><b>${n}</b><span class="chan-count">${c} ${ic.chev}</span></div>`).join('')}
       </div></div>`;
@@ -607,7 +612,22 @@
     document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc);}},{once:true});
     draw();
   }
-  function showAgent(id){const agent=catalog.find(a=>a.id===id);if(!agent)return;const backdrop=document.createElement('div');backdrop.className='modal-backdrop';backdrop.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-labelledby="agent-title"><div class="modal-top"><div><span class="eyebrow">Agent profile</span><h2 id="agent-title">${agent.name}</h2></div><button class="close" aria-label="Close agent profile">×</button></div><p>${agent.summary}</p><div class="profile-cols"><div><h3>What this agent can do for ${escapeHtml(co())}</h3><div class="checks">${agent.outcomes.map(o=>`<div class="check"><i>✓</i><span>${o}</span></div>`).join('')}</div></div><div class="profile-art"><img src="${escapeHtml(state.marketImages[agent.id]||agent.portrait)}" alt="${agent.name}"></div></div><h3>Available MCP connections</h3><p>These secure connectors let the agent work with your existing systems while respecting approvals and permissions.</p><div class="mcp-list">${agent.mcps.map(mcpChip).join('')}</div><h3>Works well with</h3><p>Agents that share hand-offs with ${agent.name} — hatch them together as a team.</p><div class="mate-row">${(WORKS_WITH[agent.id]||[]).map(mid=>{const m=catalog.find(a=>a.id===mid);if(!m)return '';const av=state.marketImages[m.id]||m.portrait;return `<button class="mate" data-mate="${m.id}"><span class="mate-ava"><img src="${escapeHtml(av)}" alt=""></span><span class="mate-meta"><b>${m.name}</b><i>${m.team}</i></span></button>`;}).join('')}</div></section>`;document.body.appendChild(backdrop);const close=()=>backdrop.remove();backdrop.querySelector('.close').onclick=close;backdrop.querySelectorAll('[data-mate]').forEach(b=>b.onclick=()=>{close();showAgent(b.dataset.mate);});backdrop.onclick=e=>{if(e.target===backdrop)close()};document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc)}},{once:true});}
+  // "What this agent can do for <company>" — the same five promises every agent makes, but
+  // written around the prospect's company name and the kind of business they told us about.
+  const TAILORED={
+    documents:(c,b)=>[`Draft ${c}'s proposals, quotes and contracts from your own templates`,`Turn long ${b} paperwork into a one-page brief before you have to read it`,`Prepare client-ready reports in ${c}'s tone and branding`,`Route every draft to the right person at ${c} for sign-off before it goes out`,`Keep one tidy, searchable library of everything ${c} has sent`],
+    sales:(c,b)=>[`Research every new lead that comes into ${c} before anyone picks up the phone`,`Score and prioritise ${b} opportunities so the hottest get called first`,`Draft outreach and follow-ups in ${c}'s voice, ready to send`,`Chase quotes ${c} hasn't heard back on, at the right moment`,`Keep ${c}'s CRM current without anyone retyping notes`],
+    marketing:(c,b)=>[`Plan and draft ${c}'s posts, emails and campaigns around what a ${b} actually sells`,`Keep a steady publishing rhythm without ${c} writing every word`,`Report which channels bring ${c} real customers`,`Flag anything off-brand before it goes live`,`Reuse ${c}'s best-performing content instead of starting from scratch`],
+    website:(c,b)=>[`Keep ${c}'s website current — hours, prices, services and team`,`Write and refresh the pages a ${b}'s customers actually search for`,`Spot broken links and stale content on ${c}'s site`,`Ask ${c} before anything goes live`,`Report what visitors do on ${c}'s site each week`],
+    operations:(c,b)=>[`Keep every ${b} job at ${c} on schedule`,`Chase anything running late before the customer notices`,`Give ${c} a morning rundown of what's due today`,`Hand work to the right person or agent at ${c}`,`Keep ${c}'s checklists and handovers up to date`],
+    inventory:(c,b)=>[`Watch ${c}'s stock levels and warn before you run out`,`Draft reorders for what a ${b} sells most`,`Reconcile deliveries against what ${c} ordered`,`Flag slow-moving stock tying up ${c}'s cash`,`Keep ${c}'s product list consistent everywhere it's sold`],
+    logistics:(c,b)=>[`Track every ${c} shipment and warn about delays early`,`Book couriers and prepare labels for ${c}'s orders`,`Answer "where's my order?" for ${c}'s customers`,`Compare carrier costs for a ${b} like ${c}`,`Log every delivery so ${c} never chases a courier twice`],
+    invoices:(c,b)=>[`Read ${c}'s incoming invoices and check them against what was ordered`,`Chase overdue ${b} invoices politely and on time`,`Get bills ready to pay with ${c}'s approval`,`Match payments to invoices so ${c}'s books stay tidy`,`Send ${c}'s accountant a clean month-end pack`],
+    returns:(c,b)=>[`Handle ${c}'s return and refund requests end to end`,`Apply ${c}'s returns policy the same way every time`,`Spot the products a ${b} gets sent back most`,`Keep customers updated so nobody has to chase ${c}`,`Turn returns into a short weekly report for ${c}`],
+    support:(c,b)=>[`Answer ${c}'s customers' common questions instantly, day or night`,`Know a ${b}'s hours, pricing and policies by heart`,`Escalate the tricky ones to a person at ${c} with full context`,`Follow up until each ${c} customer is actually sorted`,`Track what ${c}'s customers keep asking about`]
+  };
+  function tailoredOutcomes(agent){const fn=TAILORED[agent.id];return fn?fn(co(),state.biz||'your business'):agent.outcomes;}
+  function showAgent(id){const agent=catalog.find(a=>a.id===id);if(!agent)return;const tailoredLead=state.team?.lines?.[agent.id]?.does||'';const backdrop=document.createElement('div');backdrop.className='modal-backdrop';backdrop.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-labelledby="agent-title"><div class="modal-top"><div><span class="eyebrow">Agent profile</span><h2 id="agent-title">${agent.name}</h2></div><button class="close" aria-label="Close agent profile">×</button></div><p>${agent.summary}</p><div class="profile-cols"><div><h3>What this agent can do for ${escapeHtml(co())}</h3><p class="tailored-note"><span class="tailored-pill">Tailored</span>Written for a ${escapeHtml(state.biz||'business')}${state.industry&&state.industry!==OTHER?` in ${escapeHtml(state.industry.toLowerCase())}`:''}.${tailoredLead?` <b>${escapeHtml(tailoredLead)}</b>`:''}</p><div class="checks">${tailoredOutcomes(agent).map(o=>`<div class="check"><i>✓</i><span>${escapeHtml(o)}</span></div>`).join('')}</div></div><div class="profile-art"><img src="${escapeHtml(state.marketImages[agent.id]||agent.portrait)}" alt="${agent.name}"></div></div><h3>Available MCP connections</h3><p>These secure connectors let the agent work with your existing systems while respecting approvals and permissions.</p><div class="mcp-list">${agent.mcps.map(mcpChip).join('')}</div><h3>Works well with</h3><p>Agents that share hand-offs with ${agent.name} — hatch them together as a team.</p><div class="mate-row">${(WORKS_WITH[agent.id]||[]).map(mid=>{const m=catalog.find(a=>a.id===mid);if(!m)return '';const av=state.marketImages[m.id]||m.portrait;return `<button class="mate" data-mate="${m.id}"><span class="mate-ava"><img src="${escapeHtml(av)}" alt=""></span><span class="mate-meta"><b>${m.name}</b><i>${m.team}</i></span></button>`;}).join('')}</div></section>`;document.body.appendChild(backdrop);const close=()=>backdrop.remove();backdrop.querySelector('.close').onclick=close;backdrop.querySelectorAll('[data-mate]').forEach(b=>b.onclick=()=>{close();showAgent(b.dataset.mate);});backdrop.onclick=e=>{if(e.target===backdrop)close()};document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc)}},{once:true});}
   function celebrate(){const c=document.createElement('div');c.className='confetti';for(let i=0;i<38;i++){const s=document.createElement('span');s.style.left=`${Math.random()*100}%`;s.style.background=['#216bac','#c1dce8','#ffb36b','#59c6ad'][i%4];s.style.animationDelay=`${Math.random()*.5}s`;c.appendChild(s)}document.body.appendChild(c);setTimeout(()=>c.remove(),2400)}
 
   let activeRec=null;
