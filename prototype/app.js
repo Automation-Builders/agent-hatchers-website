@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 37;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 38;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -178,6 +178,7 @@
   const WORKS_WITH={logistics:['inventory','returns','support'],marketing:['website','sales','support'],support:['returns','logistics','sales'],returns:['logistics','invoices','support'],sales:['marketing','invoices','documents'],inventory:['logistics','invoices','operations'],invoices:['inventory','returns','operations'],documents:['sales','operations','invoices'],website:['marketing','support','sales'],operations:['inventory','documents','invoices']};
   // Hand-drawn brand marks for MCPs the homepage sprite doesn't carry.
   const MCP_SVGS={
+    'Microsoft 365':'<svg viewBox="0 0 24 24" class="mcp-lg"><rect x="2" y="2" width="9.3" height="9.3" fill="#F25022"/><rect x="12.7" y="2" width="9.3" height="9.3" fill="#7FBA00"/><rect x="2" y="12.7" width="9.3" height="9.3" fill="#00A4EF"/><rect x="12.7" y="12.7" width="9.3" height="9.3" fill="#FFB900"/></svg>',
     'Google Ads':'<svg viewBox="0 0 24 24" class="mcp-lg"><rect x="9.8" y="2.6" width="4.6" height="16" rx="2.3" transform="rotate(30 12 10.6)" fill="#FBBC04"/><rect x="9.8" y="2.6" width="4.6" height="16" rx="2.3" transform="rotate(-30 12 10.6)" fill="#4285F4"/><circle cx="5.6" cy="18.4" r="3.2" fill="#34A853"/></svg>',
     'Google Analytics':'<svg viewBox="0 0 24 24" class="mcp-lg"><rect x="15.6" y="3" width="5.2" height="18" rx="2.6" fill="#F9AB00"/><rect x="9.4" y="9.5" width="5.2" height="11.5" rx="2.6" fill="#E37400"/><circle cx="5.8" cy="18.4" r="2.6" fill="#E37400"/></svg>',
     'Google Drive':'<svg viewBox="0 0 24 24" class="mcp-lg"><path d="M8.7 3h6.6l7 12.2H15.7Z" fill="#FFBA00"/><path d="M8.7 3 1.7 15.2l3.3 5.8 7-12.2Z" fill="#00AC47"/><path d="M5 21h13.9l3.4-5.8H8.4Z" fill="#2684FC"/></svg>',
