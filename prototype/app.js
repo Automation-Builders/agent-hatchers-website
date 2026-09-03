@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 45;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 46;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -644,6 +644,12 @@
     tray:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"/><circle cx="12" cy="12" r="3"/></svg>'
   };
   let cpSeq=0, notifOpen=true, notifHidden=false;
+  // Each new profile costs a real image generation, so a browser gets three of them, ever —
+  // the count lives in localStorage so "Start over" (which wipes the IndexedDB session)
+  // doesn't hand out three more.
+  const FREE_PROFILES=3, PROFILES_KEY='ah-new-profiles';
+  const profilesUsed=()=>{try{return parseInt(localStorage.getItem(PROFILES_KEY),10)||0;}catch(e){return 0;}};
+  const noteProfileUsed=()=>{try{localStorage.setItem(PROFILES_KEY,String(profilesUsed()+1));}catch(e){}};
   const liveProfiles=()=>state.profiles.filter(p=>p.status==='running'||p.status==='complete');
   const runningJobs=()=>state.profiles.filter(p=>p.status==='running');
   function payPop(msg){
@@ -668,7 +674,7 @@
     const esc=e=>{if(e.key==='Escape')close();};
     document.addEventListener('mousedown',outside);document.addEventListener('keydown',esc);
     menu.querySelectorAll('[data-cm]').forEach(b=>b.onclick=()=>{const k=b.dataset.cm;close();
-      if(k==='profile')openCreateProfile();
+      if(k==='profile'){if(profilesUsed()>=FREE_PROFILES)payPop(`You’ve hatched your ${FREE_PROFILES} free profiles — please pay for your agent to add more.`);else openCreateProfile();}
       else if(k==='chat'){state.tab='chats';render();}
       else payPop(`Please pay for your agent to add a new ${k}.`);
     });
@@ -695,7 +701,7 @@
     name.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();if(name.value.trim())submit.click();}};
     submit.onclick=()=>{const n=name.value.trim();if(!n){name.focus();return;}
       const p={id:'np'+(++cpSeq),name:n,desc:desc.value.trim(),img:'',step:0,status:'running',cancelled:false};
-      state.profiles.push(p);close();
+      state.profiles.push(p);noteProfileUsed();close();
       notifHidden=false;notifOpen=true;drawNotifs();
       if(state.step===4&&state.tab==='profiles')render();
       runProfileJob(p);
