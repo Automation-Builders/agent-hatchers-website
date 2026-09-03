@@ -14,7 +14,7 @@
     header{background:#fff;border-bottom:1px solid var(--line);padding:12px clamp(14px,3vw,32px);display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:5}
     header img{width:26px;height:26px;border-radius:7px}header h1{font-size:1.05rem;margin:0;flex:1}
     .key{display:flex;gap:8px;align-items:center}.key input{border:1.5px solid var(--line);border-radius:10px;padding:8px 11px;font:inherit;width:220px}
-    .btn{border:0;border-radius:10px;padding:9px 14px;font:600 .88rem Inter,system-ui;cursor:pointer;background:var(--brand);color:#fff}.btn.sec{background:#eef0f3;color:#48505a}
+    .btn{border:0;border-radius:10px;padding:9px 14px;font:600 .88rem Inter,system-ui;cursor:pointer;background:var(--brand);color:#fff}.btn.sec{background:#eef0f3;color:#48505a}.btn.del{color:#a12a2a;background:#fdeeee;padding:6px 10px;font-size:.78rem}
     main{max-width:1240px;margin:0 auto;padding:20px clamp(14px,3vw,32px) 60px}
     .stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 16px;min-width:130px}.stat b{display:block;font-size:1.4rem}.stat span{color:var(--muted);font-size:.8rem}
     .tools{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}.tools input{border:1.5px solid var(--line);border-radius:10px;padding:8px 11px;font:inherit;width:260px}.tools .n{color:var(--muted);font-size:.85rem}
@@ -101,6 +101,9 @@
     try{
       let d=full.get(sid);if(!d){const r=await fetch(ENDPOINT+'?key='+encodeURIComponent($('key').value.trim())+'&sid='+encodeURIComponent(sid),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);d=await r.json();full.set(sid,d);}
       box.innerHTML=detail(d);
+      box.querySelector('[data-del]').onclick=async()=>{const s=all.find(x=>x.sid===sid);if(!confirm(`Delete the session for ${s?s.company:sid}? This can't be undone.`))return;
+        try{const r=await fetch(ENDPOINT+'?key='+encodeURIComponent($('key').value.trim())+'&sid='+encodeURIComponent(sid),{method:'DELETE'});if(!r.ok)throw new Error('HTTP '+r.status);all=all.filter(x=>x.sid!==sid);full.delete(sid);draw();}
+        catch(e){alert('Could not delete: '+e.message);}};
     }catch(e){box.textContent='Could not load this session: '+e.message;}
   }
   function detail(d){
@@ -116,7 +119,7 @@
       ${market?`<h4>Marketplace portraits</h4><div class="row">${market}</div>`:''}
       ${profiles?`<h4>Profiles they created</h4>${profiles}`:''}
       ${chats?`<h4>Chats</h4>${chats}`:''}
-      <p style="color:#6b7480;font-size:.8rem;margin-top:14px">Session ${esc(d.sid)} · started ${esc(fmt(d.startedAt))} · last saved ${esc(fmt(d.savedAt))}</p>`;
+      <p style="color:#6b7480;font-size:.8rem;margin-top:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span>Session ${esc(d.sid)} · started ${esc(fmt(d.startedAt))} · last saved ${esc(fmt(d.savedAt))}</span><button class="btn sec del" data-del="${esc(d.sid)}" type="button">Delete session</button></p>`;
   }
   if($('key').value)load();
 })();
