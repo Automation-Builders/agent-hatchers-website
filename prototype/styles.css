@@ -590,7 +590,7 @@ h1{font-weight:800}h2{font-weight:700}
 .platform-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:26px}
 .platform{display:flex;align-items:center;justify-content:center;gap:10px;border:1.5px solid #e2e5ea;background:#fff;border-radius:14px;padding:15px;font-weight:700;color:#16253f}
 .platform.sel{border-color:#bcd6ec;background:#eef5fc}
-.platform .pf-ic svg{width:22px;height:22px}
+.platform .pf-ic svg{width:22px;height:22px;stroke:none;fill:none}
 .platform .pf-ok svg{width:15px;height:15px;stroke:#1a9d5f;fill:none;stroke-width:2.4}
 .cfg-sub{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:22px 0 12px;border-top:1px solid #eef0f3;padding-top:20px}
 .cfg-sub b{font-size:1.05rem;color:#16253f}
