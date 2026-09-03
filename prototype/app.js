@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 40;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 41;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -57,6 +57,7 @@
   const chatEndpoint = config.chatEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-chat');
   const brandEndpoint = config.brandEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-brand');
   const teamEndpoint = config.teamEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-team');
+  const profileEndpoint = config.profileEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-profile');
   const recommended = new Set(config.recommendedAgents||[]);
   function rankAgents(){const text=`${state.name} ${state.biz} ${state.industry} ${state.look} ${industryLabel}`.toLowerCase();const boost=bizBoost(text);return catalog.map((agent,index)=>{let score=boost[agent.id]||0;agent.keywords.forEach(k=>{if(text.includes(k))score+=4});if(agent.industries.includes(industry))score+=2;if(recommended.has(agent.id))score+=1;return{agent,score,index};}).sort((a,b)=>b.score-a.score||a.index-b.index);}
   // The 6 best-matched agents for this business get generated portraits + the Recommended row.
@@ -564,7 +565,7 @@
     if(p.status==='running'){
       return `<article class="p-card p-new is-busy" data-profile="${p.id}"><div class="p-thumb thumb-new is-loading"><div class="hatch-loader"><img class="loader-egg" src="/egg-closed.webp" alt=""><span class="loader-txt" data-profile-txt="${p.id}">${CP_STEPS[p.step][0]}…</span></div></div><div class="p-meta"><div class="p-name">${escapeHtml(p.name)} <i class="dot dot-wait"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span><span class="p-tag tag-new">Hatching</span></div></div></article>`;
     }
-    return `<article class="p-card p-new" data-profile="${p.id}" tabindex="0"><div class="p-thumb thumb-new is-generated"><img src="${escapeHtml(p.img)}" alt="${escapeHtml(p.name)}"></div><div class="p-meta"><div class="p-name">${escapeHtml(p.name)} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span><span class="p-tag tag-new">New profile</span></div></div></article>`;
+    return `<article class="p-card p-new" data-profile="${p.id}" tabindex="0"><div class="p-thumb thumb-new is-generated"><img src="${escapeHtml(p.img)}" alt="${escapeHtml(p.name)}"></div><div class="p-meta"><div class="p-name">${escapeHtml(p.name)} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span><span class="p-tag">${escapeHtml(p.profile?.team||'Operations')}</span><span class="p-tag tag-new">New</span></div></div></article>`;
   }
   function openCreateMenu(btn){
     const old=document.querySelector('.create-menu');if(old){old.remove();return;}
@@ -644,17 +645,57 @@
     tray.querySelectorAll('[data-nc-open]').forEach(b=>b.onclick=()=>{const p=state.profiles.find(q=>q.id===b.dataset.ncOpen);if(p)showProfile(p);});
   }
   function cancelProfile(p){p.cancelled=true;p.status='cancelled';if(state.step===4&&state.tab==='profiles')render();}
+  // What a new profile can do, which connectors it needs and who it hands work to — a text
+  // model reasons about the description (prototype-profile), else a keyword-built profile.
+  const MCP_HINTS=[[/\b(e-?mail|inbox|gmail|newsletter)\b/,'Gmail'],[/\bslack\b/,'Slack'],[/\bteams?\b/,'Microsoft Teams'],[/\b(pdf|document|docs?|file|folder|drive|download|report)s?\b/,'Google Drive'],[/\b(sheet|spreadsheet|csv|excel|table|data)s?\b/,'Google Sheets'],[/\b(notion|notes?|wiki|knowledge)\b/,'Notion'],[/\b(invoice|xero|bookkeep|accounts?)\b/,'Xero'],[/\bquickbooks\b/,'QuickBooks'],[/\b(payment|stripe|subscription|billing)s?\b/,'Stripe'],[/\b(shopify|store|orders?|product|stock|inventory)\b/,'Shopify'],[/\b(crm|leads?|sales|pipeline|prospect)s?\b/,'HubSpot'],[/\b(support|ticket|complaint|customer service|helpdesk)s?\b/,'Zendesk'],[/\b(linkedin|social|post|followers?)\b/,'LinkedIn'],[/\b(ads?|advertis|campaign)/,'Google Ads'],[/\b(design|graphic|video|sing|song|music|creative|brand|logo|poster|art)/,'Canva'],[/\b(code|github|bug|deploy|repo)/,'GitHub'],[/\b(word|outlook|excel|powerpoint|office|microsoft)\b/,'Microsoft 365'],[/\b(dropbox)\b/,'Dropbox'],[/\b(analytics|traffic|website|seo)\b/,'Google Analytics'],[/\b(shipping|parcel|courier|delivery)\b/,'ShipStation']];
+  function fallbackProfile(p){
+    const text=`${p.name} ${p.desc}`.toLowerCase();
+    const scored=catalog.map((a,index)=>{let s=0;a.keywords.forEach(k=>{if(text.includes(k))s+=4});a.summary.toLowerCase().split(/\W+/).forEach(w=>{if(w.length>4&&text.includes(w))s+=1});return {a,s,index};}).sort((x,y)=>y.s-x.s||x.index-y.index);
+    let mates=scored.filter(x=>x.s>0).slice(0,3).map(x=>x.a);
+    if(!mates.length)mates=topAgents().slice(0,3);
+    const mcps=[];MCP_HINTS.forEach(([re,m])=>{if(re.test(text)&&!mcps.includes(m))mcps.push(m);});
+    mates.forEach(a=>a.mcps.forEach(m=>{if(mcps.length<5&&!mcps.includes(m))mcps.push(m);}));
+    if(!mcps.includes('Slack'))mcps.splice(Math.min(mcps.length,4),0,'Slack');
+    const c=co();const d=p.desc?p.desc.replace(/\.$/,''):'';const dl=d?d.charAt(0).toLowerCase()+d.slice(1):'';
+    const ask=dl.replace(/^(i want (this|the|an?) agent to|i want it to|it should|should|please|to)\s+/,'');const first=ask?`Does what you asked for: ${ask}`:`Handles the job you give it for ${c}`;
+    const outcomes=[first,`Runs it on a schedule or whenever someone at ${c} asks in Slack or Teams`,`Keeps ${c} posted with a short summary every time it finishes`,`Asks a person at ${c} before anything is sent, changed or paid`,`Hands work to ${mates.slice(0,2).map(a=>a.name).join(' and ')} when it crosses into their patch`];
+    const summary=`${p.name} is a new agent for ${c}, built around what you asked for below.`;
+    return {summary,outcomes,mcps:mcps.slice(0,6),mates:mates.map(a=>a.id),team:mates[0]?mates[0].team:'Operations',source:'fallback'};
+  }
+  async function researchProfile(p){
+    const roster=catalog.map(a=>({id:a.id,name:a.name,summary:a.summary}));
+    const connectors=[...new Set(catalog.flatMap(a=>a.mcps).concat(Object.keys(MCP_MONO)))];
+    for(let attempt=0;attempt<2;attempt++){
+      if(p.cancelled)return null;
+      if(attempt)await sleep(600);
+      try{
+        const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),25000);
+        const res=await fetch(profileEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:p.name,description:p.desc,company:co(),business:state.biz,roster,connectors}),signal:ctl.signal});
+        clearTimeout(t);
+        const body=await res.json().catch(()=>({}));
+        if(res.ok&&body&&Array.isArray(body.outcomes)&&body.outcomes.length>=4){
+          const mates=(body.mates||[]).filter(id=>catalog.some(a=>a.id===id)).slice(0,3);
+          if(!mates.length)mates.push(...fallbackProfile(p).mates);
+          return {summary:String(body.summary||''),outcomes:body.outcomes.map(String).slice(0,5),mcps:(body.mcps||[]).map(String).slice(0,6),mates,team:String(body.team||'Operations'),source:'ai'};
+        }
+        if(res.status===400||res.status===404)break;
+      }catch(e){/* retry then fall back */}
+    }
+    return null;
+  }
   async function runProfileJob(p){
     const ref=state.selectedImage||((state.slots.find(s=>s&&s.image)||{}).image)||'';
     const live=usePortraits&&config.marketPortraits!==false&&state.variant!==null&&!!ref;
     // The portrait starts drawing straight away so the Illustrating step rarely has to wait.
     const job=p.desc?`Its job: ${p.desc.slice(0,140)}. Shown mid-task with fitting outfit and props.`:`It is ${p.name}, shown mid-task with fitting outfit and props.`;
     const art=live?fetchImage({brief:state.look,name:p.name,role:job,image:ref,company:co(),industry:industryLabel,variant:state.variant||0}):Promise.resolve(null);
+    const research=researchProfile(p).catch(()=>null);
     for(let i=0;i<CP_STEPS.length;i++){
       if(p.cancelled)return;
       p.step=i;drawNotifs();
       const txt=root.querySelector(`[data-profile-txt="${p.id}"]`);if(txt)txt.textContent=CP_STEPS[i][0]+'…';
-      if(i<CP_STEPS.length-1)await sleep(1700+Math.random()*900);
+      if(i===3){const t0=Date.now();p.profile=(await research)||fallbackProfile(p);if(p.cancelled)return;const wait=Math.max(0,1900-(Date.now()-t0));if(wait)await sleep(wait);}
+      else if(i<CP_STEPS.length-1)await sleep(1700+Math.random()*900);
       else{const t0=Date.now();const img=await art.catch(()=>null);if(p.cancelled)return;p.img=img||state.selectedImage||'/hatchy-pop.webp';const wait=Math.max(0,2600-(Date.now()-t0));if(wait)await sleep(wait);}
     }
     if(p.cancelled)return;
@@ -673,14 +714,19 @@
     setTimeout(()=>{if(el.isConnected)go();},4200);
   }
   function showProfile(p){
+    const pr=p.profile||fallbackProfile(p);
     const backdrop=document.createElement('div');backdrop.className='modal-backdrop';
+    const mates=pr.mates.map(mid=>{const m=catalog.find(a=>a.id===mid);if(!m)return '';const av=state.marketImages[m.id]||m.portrait;return `<button class="mate" data-mate="${m.id}"><span class="mate-ava"><img src="${escapeHtml(av)}" alt=""></span><span class="mate-meta"><b>${m.name}</b><i>${m.team}</i></span></button>`;}).join('');
     backdrop.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-labelledby="np-title"><div class="modal-top"><div><span class="eyebrow">Agent profile</span><h2 id="np-title">${escapeHtml(p.name)}</h2></div><button class="close" aria-label="Close">×</button></div>
-      <p>${escapeHtml(p.desc||`A new agent for ${co()}, hatched from your dashboard.`)}</p>
-      <div class="profile-cols"><div><h3>Status</h3><div class="checks"><div class="check"><i>✓</i><span>Profile created and configured</span></div><div class="check"><i>✓</i><span>Portrait drawn in ${escapeHtml(state.name||'your agent')}’s style</span></div><div class="check"><i>✓</i><span>Ready to chat from the Chats tab</span></div></div></div><div class="profile-art"><img src="${escapeHtml(p.img)}" alt="${escapeHtml(p.name)}"></div></div>
+      <p>${escapeHtml(pr.summary)}</p>
+      <div class="profile-cols"><div><h3>What this agent can do for ${escapeHtml(co())}</h3><p class="tailored-note"><span class="tailored-pill">Tailored</span>Worked out from your description${pr.source==='ai'?' by a model that read it':''}.</p><div class="checks">${pr.outcomes.map(o=>`<div class="check"><i>✓</i><span>${escapeHtml(o)}</span></div>`).join('')}</div></div><div class="profile-art"><img src="${escapeHtml(p.img)}" alt="${escapeHtml(p.name)}"></div></div>
+      <h3>Available MCP connections</h3><p>These secure connectors let ${escapeHtml(p.name)} work with your existing systems while respecting approvals and permissions.</p><div class="mcp-list">${pr.mcps.map(mcpChip).join('')}</div>
+      <h3>Works well with</h3><p>Agents that share hand-offs with ${escapeHtml(p.name)} — hatch them together as a team.</p><div class="mate-row">${mates}</div>
       <div class="actions np-actions"><button type="button" class="btn btn-primary" data-np="chat">Open chat →</button><button type="button" class="btn btn-secondary" data-np="delete">Delete profile</button></div></section>`;
     document.body.appendChild(backdrop);
     const close=()=>backdrop.remove();
     backdrop.querySelector('.close').onclick=close;backdrop.onclick=e=>{if(e.target===backdrop)close()};
+    backdrop.querySelectorAll('[data-mate]').forEach(b=>b.onclick=()=>{close();showAgent(b.dataset.mate);});
     backdrop.querySelectorAll('[data-np]').forEach(b=>b.onclick=()=>{close();
       if(b.dataset.np==='chat'){state.tab='chats';state.chatActive=1+state.profiles.filter(q=>q.status==='complete').indexOf(p);render();}
       else{p.status='deleted';p.dismissed=false;notifHidden=false;drawNotifs();if(state.step===4)render();}

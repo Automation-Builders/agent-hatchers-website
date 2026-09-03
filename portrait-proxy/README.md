@@ -84,3 +84,11 @@ which re-dresses an existing character). No API key is needed for the lookup its
   it, but not raw `curl`. Since the prototype URLs are unlisted and low-traffic this is usually
   fine; if you ever see abuse, add Vercel rate limiting / a WAF rule, or set a spend cap on the
   OpenRouter key.
+
+## `api/prototype-profile.js` (build 41, Sep 2026)
+
+Turns a dashboard "Create a Profile" description into a real agent profile: `POST {name,
+description, company, business, roster, connectors}` → `{summary, outcomes[5], mcps[3-6],
+mates[2-3 catalog ids], team}`. Same model/escalation as `prototype-team.js`
+(`OPENROUTER_PROFILE_MODEL` overrides). The client (`researchProfile` in
+`prototype/app.js`) falls back to a keyword-built profile while this is undeployed.

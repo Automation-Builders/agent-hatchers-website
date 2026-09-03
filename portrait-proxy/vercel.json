@@ -9,6 +9,9 @@
     },
     "api/prototype-team.js": {
       "maxDuration": 60
+    },
+    "api/prototype-profile.js": {
+      "maxDuration": 60
     }
   }
 }
