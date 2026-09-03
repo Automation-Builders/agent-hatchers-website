@@ -14,7 +14,7 @@
     header{background:#fff;border-bottom:1px solid var(--line);padding:12px clamp(14px,3vw,32px);display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:5}
     header img{width:26px;height:26px;border-radius:7px}header h1{font-size:1.05rem;margin:0;flex:1}
     .key{display:flex;gap:8px;align-items:center}.key input{border:1.5px solid var(--line);border-radius:10px;padding:8px 11px;font:inherit;width:220px}
-    .btn{border:0;border-radius:10px;padding:9px 14px;font:600 .88rem Inter,system-ui;cursor:pointer;background:var(--brand);color:#fff}.btn.sec{background:#eef0f3;color:#48505a}.btn.del{color:#a12a2a;background:#fdeeee;padding:6px 10px;font-size:.78rem}
+    .btn{border:0;border-radius:10px;padding:9px 14px;font:600 .88rem Inter,system-ui;cursor:pointer;background:var(--brand);color:#fff}.btn.sec{background:#eef0f3;color:#48505a}.live{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:.8rem;white-space:nowrap}.live i{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(26,157,95,.18);animation:blink 2s ease-in-out infinite}@keyframes blink{50%{opacity:.35}}.card.fresh{animation:fresh 2.4s ease-out}@keyframes fresh{0%{background:#e8f6ee;border-color:#9ad7b5}100%{background:#fff;border-color:var(--line)}}.pill.new{background:var(--green);color:#fff}.btn.del{color:#a12a2a;background:#fdeeee;padding:6px 10px;font-size:.78rem}
     main{max-width:1240px;margin:0 auto;padding:20px clamp(14px,3vw,32px) 60px}
     .stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 16px;min-width:130px}.stat b{display:block;font-size:1.4rem}.stat span{color:var(--muted);font-size:.8rem}
     .tools{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}.tools input{border:1.5px solid var(--line);border-radius:10px;padding:8px 11px;font:inherit;width:260px}.tools .n{color:var(--muted);font-size:.85rem}
@@ -40,7 +40,7 @@
 </head>
 <body>
 <header><img src="/agent-hatchers-mark.png" alt=""><h1>Prototype sessions</h1>
-  <form class="key" id="keyform"><input id="key" type="password" placeholder="Sessions key" autocomplete="current-password"><button class="btn" type="submit">Load</button><button class="btn sec" type="button" id="refresh">Refresh</button></form>
+  <form class="key" id="keyform"><input id="key" type="password" placeholder="Sessions key" autocomplete="current-password"><button class="btn" type="submit">Load</button><button class="btn sec" type="button" id="refresh">Refresh</button><span class="live" id="live" hidden><i></i><span id="livetxt">Live</span></span></form>
 </header>
 <main>
   <div id="err" class="err" hidden></div>
@@ -56,24 +56,37 @@
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const STEPS=['Welcome','Team','Create','Hatching','Dashboard','Connect'];
   const AGENT_NAMES={logistics:'Logistics',sales:'Sales',documents:'Documents',invoices:'Invoices',support:'Support',website:'Website',operations:'Operations',marketing:'Marketing',returns:'Returns',inventory:'Inventory'};
-  let all=[];const full=new Map();
+  let all=[];const full=new Map();let seen=null,fresh=new Set(),lastLoad=0,timer=null;
+  const POLL=30000;
   const ago=t=>{if(!t)return '';const d=Date.now()-t,m=Math.round(d/60000);if(m<1)return 'just now';if(m<60)return m+' min ago';const h=Math.round(m/60);if(h<48)return h+' h ago';return Math.round(h/24)+' days ago';};
   const fmt=t=>t?new Date(t).toLocaleString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
   const dur=s=>{if(!s.startedAt||!s.savedAt)return '';const m=Math.round((s.savedAt-s.startedAt)/60000);return m<1?'under a minute':m+' min';};
   try{const k=localStorage.getItem('ah-sessions-key');if(k){$('key').value=k;}}catch(e){}
-  $('keyform').onsubmit=e=>{e.preventDefault();load();};$('refresh').onclick=load;
+  $('keyform').onsubmit=e=>{e.preventDefault();load();};$('refresh').onclick=()=>load();
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&all.length&&Date.now()-lastLoad>5000)load(true);});
+  setInterval(()=>{if($('live').hidden)return;const s=Math.round((Date.now()-lastLoad)/1000);$('livetxt').textContent=s<5?'Live · just updated':`Live · updated ${s<60?s+'s':Math.round(s/60)+' min'} ago`;},1000);
   $('q').oninput=draw;
-  async function load(){
+  async function load(quiet){
     const key=$('key').value.trim();if(!key){$('key').focus();return;}
     try{localStorage.setItem('ah-sessions-key',key);}catch(e){}
-    $('err').hidden=true;$('empty').textContent='Loading…';$('empty').hidden=false;$('list').innerHTML='';
+    if(!quiet){$('err').hidden=true;$('empty').textContent='Loading…';$('empty').hidden=false;$('list').innerHTML='';}
     try{
       const r=await fetch(ENDPOINT+'?key='+encodeURIComponent(key),{cache:'no-store'});
       const j=await r.json().catch(()=>({}));
       if(!r.ok){throw new Error(j.error||('HTTP '+r.status));}
-      all=j.sessions||[];draw();
-    }catch(e){$('err').textContent='Could not load sessions: '+e.message;$('err').hidden=false;$('empty').textContent='Nothing loaded.';}
+      const next=j.sessions||[];
+      // what changed since the last look → highlighted, and open cards stay open
+      fresh=new Set();
+      if(seen){next.forEach(s=>{const before=seen.get(s.sid);if(!before||before!==s.savedAt){fresh.add(s.sid);full.delete(s.sid);}});}
+      seen=new Map(next.map(s=>[s.sid,s.savedAt]));
+      const open=new Set([...document.querySelectorAll('.card.open')].map(el=>el.dataset.sid));
+      all=next;lastLoad=Date.now();$('err').hidden=true;draw();
+      open.forEach(sid=>{const el=document.querySelector(`.card[data-sid="${sid}"]`);if(el)toggle(el);});
+      if(fresh.size&&quiet&&document.title.indexOf('•')<0)document.title='• '+document.title;
+      $('live').hidden=false;clearTimeout(timer);timer=setTimeout(()=>load(true),POLL);
+    }catch(e){if(!quiet){$('err').textContent='Could not load sessions: '+e.message;$('err').hidden=false;$('empty').textContent='Nothing loaded.';}clearTimeout(timer);timer=setTimeout(()=>load(true),POLL);}
   }
+  window.addEventListener('focus',()=>{document.title=document.title.replace(/^• /,'');});
   function draw(){
     const q=$('q').value.trim().toLowerCase();
     const rows=all.filter(s=>!q||`${s.company} ${s.biz} ${s.name} ${s.industry} ${s.brand}`.toLowerCase().includes(q));
@@ -86,11 +99,11 @@
   }
   function card(s){
     const team=(s.teamIds||[]).map(id=>AGENT_NAMES[id]||id).join(', ');
-    return `<article class="card" data-sid="${esc(s.sid)}">
+    return `<article class="card${fresh.has(s.sid)?' fresh':''}" data-sid="${esc(s.sid)}">
       <div class="thumb">${s.thumb?`<img src="${esc(s.thumb)}" alt="">`:(s.step>=3?'hatching':'no hatch')}</div>
       <div><div class="title">${esc(s.company||'Unnamed company')}${s.name?`<small>· ${esc(s.name)}</small>`:''}</div>
         <div class="sub">${esc(s.biz||'no business typed')}${s.industry?` · ${esc(s.industry)}`:''}${s.brand?` · from ${esc(s.brand)}`:''}</div>
-        <div class="pills"><span class="pill ${s.step>=4?'ok':s.step>=3?'':'grey'}">${STEPS[s.step]||'Step '+s.step}${s.step===4&&s.tab?` · ${esc(s.tab)}`:''}</span>${s.done?'<span class="pill ok">Connected</span>':''}${team?`<span class="pill grey">Team: ${esc(team)}</span>`:''}${s.profileCount?`<span class="pill">${s.profileCount} profile${s.profileCount===1?'':'s'} created</span>`:''}${s.chatTurns?`<span class="pill">${s.chatTurns} chat message${s.chatTurns===1?'':'s'}</span>`:''}${s.hadPhoto?'<span class="pill warn">used a photo</span>':''}</div></div>
+        <div class="pills">${fresh.has(s.sid)?'<span class="pill new">updated</span>':''}<span class="pill ${s.step>=4?'ok':s.step>=3?'':'grey'}">${STEPS[s.step]||'Step '+s.step}${s.step===4&&s.tab?` · ${esc(s.tab)}`:''}</span>${s.done?'<span class="pill ok">Connected</span>':''}${team?`<span class="pill grey">Team: ${esc(team)}</span>`:''}${s.profileCount?`<span class="pill">${s.profileCount} profile${s.profileCount===1?'':'s'} created</span>`:''}${s.chatTurns?`<span class="pill">${s.chatTurns} chat message${s.chatTurns===1?'':'s'}</span>`:''}${s.hadPhoto?'<span class="pill warn">used a photo</span>':''}</div></div>
       <div class="when"><b>${esc(ago(s.savedAt))}</b>${esc(fmt(s.savedAt))}${dur(s)?`<br>${esc(dur(s))} on the page`:''}</div>
       <div class="detail" id="d-${esc(s.sid)}">Loading…</div></article>`;
   }
