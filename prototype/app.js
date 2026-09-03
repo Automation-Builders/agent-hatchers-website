@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 46;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 47;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -644,12 +644,17 @@
     tray:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"/><circle cx="12" cy="12" r="3"/></svg>'
   };
   let cpSeq=0, notifOpen=true, notifHidden=false;
-  // Each new profile costs a real image generation, so a browser gets three of them, ever —
-  // the count lives in localStorage so "Start over" (which wipes the IndexedDB session)
-  // doesn't hand out three more.
-  const FREE_PROFILES=3, PROFILES_KEY='ah-new-profiles';
-  const profilesUsed=()=>{try{return parseInt(localStorage.getItem(PROFILES_KEY),10)||0;}catch(e){return 0;}};
-  const noteProfileUsed=()=>{try{localStorage.setItem(PROFILES_KEY,String(profilesUsed()+1));}catch(e){}};
+  // Every hatch, look-redesign and new profile costs real image generations, so a browser
+  // gets three of each, ever — the counts live in localStorage so "Start over" (which wipes
+  // the IndexedDB session) doesn't hand out three more.
+  const FREE=3, FREE_PROFILES=FREE, PROFILES_KEY='ah-new-profiles', HATCH_KEY='ah-hatches', LOOK_KEY='ah-look-edits';
+  const usage=k=>{try{return parseInt(localStorage.getItem(k),10)||0;}catch(e){return 0;}};
+  const bumpUsage=k=>{try{localStorage.setItem(k,String(usage(k)+1));}catch(e){}};
+  const profilesUsed=()=>usage(PROFILES_KEY);
+  const noteProfileUsed=()=>bumpUsage(PROFILES_KEY);
+  const hatchesLeft=()=>Math.max(0,FREE-usage(HATCH_KEY));
+  const looksUsed=()=>Math.max(state.editUses,usage(LOOK_KEY));
+  const hatchPop=()=>payPop(`You’ve used your ${FREE} free hatches — please pay for your agent to keep designing.`);
   const liveProfiles=()=>state.profiles.filter(p=>p.status==='running'||p.status==='complete');
   const runningJobs=()=>state.profiles.filter(p=>p.status==='running');
   function payPop(msg){
@@ -838,7 +843,7 @@
     const close=()=>backdrop.remove();
     function draw(phase){
       const name=escapeHtml(state.name||'Your agent');
-      const left=Math.max(0,2-state.editUses);
+      const left=Math.max(0,FREE-looksUsed());
       const inner=phase==='form'
         ? `<div class="el-body"><div class="el-current"><img src="${escapeHtml(state.selectedImage)}" alt=""><span>Current look</span></div>
            <div class="el-form"><p>Tweak the current design, or describe something new and hatch it fresh. <b class="el-left">${left} redesign${left===1?'':'s'} left</b></p>
@@ -864,7 +869,7 @@
         close();render();generateMarket();return;
       }
       if(busy)return;
-      if(state.editUses>=2){draw('form');return;}
+      if(looksUsed()>=FREE){draw('form');return;}
       const ta=backdrop.querySelector('#el-text');const text=(ta?ta.value.trim():'');
       if(text.length<4){if(ta){ta.focus();ta.setAttribute('aria-invalid','true');}return;}
       lastText=text;busy=true;newImg=null;
@@ -875,7 +880,7 @@
       busy=false;
       if(!backdrop.isConnected)return;
       if(!img){draw('form');const err=backdrop.querySelector('.el-err');if(err)err.hidden=false;return;}
-      state.editUses++;   // a successful generation consumes one of the two redesigns
+      state.editUses++;bumpUsage(LOOK_KEY);   // a successful generation consumes one of the three redesigns
       newImg=img;
       const scene=backdrop.querySelector('.el-egg');const pop=scene&&scene.querySelector('.hx6-pop');
       if(pop){const arm=()=>{scene.classList.add('go');setTimeout(()=>{const r=backdrop.querySelector('.el-ready');const n=backdrop.querySelector('.el-note');if(r)r.style.display='flex';if(n)n.textContent='Hatched — keep it?';},5100);};
@@ -1115,6 +1120,8 @@
   // Exact homepage hero hatch (index.html): egg rocks, crack walks the seam, lid
   // shatters into shards, the design pops out. Runs when each design's image is ready.
   async function generateAgents(){
+    if(!hatchesLeft()){hatchPop();return;}
+    bumpUsage(HATCH_KEY);   // three images per hatch; three hatches per browser
     const lookTa=document.getElementById('agent-look');if(lookTa&&lookTa.value.trim())state.look=lookTa.value.trim();
     dealDesignAxes();
     state.slots=[null,null,null];state.variant=null;state.selectedImage='';state.step=3;render();
@@ -1144,7 +1151,7 @@
       if(a==='next'){state.step++;render()}
       if(a==='team'){const input=document.getElementById('biz-intro');const text=input?input.value.trim():'';const ind=industryOf(state.industry);const biz=text||(ind&&ind.noun)||'';if(!biz){input?.focus();input?.setAttribute('aria-invalid','true');return}state.biz=biz;state.step=1;researchTeam(biz,text&&ind&&ind.noun?`${text} (${ind.label.toLowerCase()})`:biz);render();startThinking()}
       if(a==='generate'){const input=document.getElementById('agent-name');const name=input.value.trim();if(!name){input.focus();input.setAttribute('aria-invalid','true');return}state.name=name;const coIn=document.getElementById('agent-co');if(coIn)state.company=coIn.value.trim();const bizIn=document.getElementById('agent-biz');state.biz=bizIn?bizIn.value.trim():'';const lookTa=document.getElementById('agent-look');state.look=(lookTa&&lookTa.value.trim())||(hasReference()?'a friendly robot mascot':'a friendly rounded robot in blue and white');generateAgents()}
-      if(a==='redesign'){state.step=2;render()}
+      if(a==='redesign'){if(hatchesLeft()){state.step=2;render()}else hatchPop()}
       if(a==='open-connect'){openConnectDialog()}
       if(a==='chat-send'){const box=document.getElementById('chat-box');const t=box?box.value.trim():'';if(!t)return;const i=state.chatActive??8;
         const FREE_TURNS=5;
