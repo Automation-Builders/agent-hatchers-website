@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 34;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 35;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
