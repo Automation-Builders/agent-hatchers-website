@@ -81,10 +81,15 @@ export default async function handler(req, res) {
   const inspNotes = [];
   if (photo) {
     inspImages.push(photo);
-    inspNotes.push(`Image ${inspImages.length} is a photo of a person. Design the robot as a robot version of them: ` +
-      `echo their hairstyle and hair colour, glasses, facial hair, clothing, accessories and overall vibe in robotic ` +
-      `form (e.g. hair as a moulded panel, glasses as a visor, their outfit as body panelling). It must stay a clearly ` +
-      `robotic cartoon character — do not draw the person, do not copy the photo.`);
+    // Likeness is the whole point of this feature: the prompt leads with it and never tells
+    // the model to move away from the photo (an earlier "do not copy the photo ... make an
+    // original design" wording produced generic robots that looked nothing like the person).
+    inspNotes.push(`Image ${inspImages.length} is a photo of a person. Turn THIS person into a robot: the result must be ` +
+      `instantly recognisable as them to anyone who knows them. Keep their face shape and expression, hairstyle and ` +
+      `hair colour (as moulded or fibre-optic hair), skin tone (as the face-plate tone) and the colours and style of ` +
+      `their clothing (as body panelling). Copy glasses or facial hair only if the photo actually shows them (glasses ` +
+      `as a visor of the same shape) — never add any the person doesn't have. Render them as a ` +
+      `stylised 3D cartoon robot or android rather than a photorealistic human, but likeness comes first.`);
   }
   if (brandLogo) {
     inspImages.push(brandLogo);
@@ -103,12 +108,12 @@ export default async function handler(req, res) {
   }
 
   const prompt = hasInsp && !ref
-    ? `${brief ? brief + '. ' : ''}A friendly 3D cartoon robot mascot character named "${name}". ` +
+    ? `${inspNotes.join(' ')} ` +
+      `${brief ? brief + '. ' : ''}A friendly 3D cartoon robot character named "${name}". ` +
       `${role ? `${role} ` : ''}` +
-      `${inspNotes.join(' ')} ` +
       `Give it one or two fitting accessories and one or two clear props that show what it does. ` +
-      `Plain solid white background, soft even studio lighting, the character centred and full-body. ` +
-      `Make this a distinctive, original character design. Polished, high-quality, sharp 3D cartoon mascot ` +
+      `Plain solid white background, soft even studio lighting, one character only, centred and full-body. ` +
+      `${photo ? '' : 'Make this a distinctive, original character design. '}Polished, high-quality, sharp 3D cartoon ` +
       `render, crisp clean edges, no text, no watermark, no clutter.`
     : ref
     ? `This is one specific robot mascot character. Keep it EXACTLY the same character as the ` +
