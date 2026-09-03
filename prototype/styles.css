@@ -1083,3 +1083,6 @@ h1{font-weight:800}h2{font-weight:700}
 .cp-reveal-card span:last-child{font-size:.86rem;color:#6b7480}
 @keyframes cpSwirl{to{transform:rotate(360deg)}}
 @media (max-width:640px){.notif{top:auto;bottom:12px;right:8px;width:calc(100vw - 16px)}.cp-modal{padding:28px 18px 20px}}
+.create-pop.wb-pop{border-color:#cfe3d6;border-left-color:#1a9d5f;color:#1f5a3a}
+.create-pop.wb-pop svg{stroke:#1a9d5f}
+.create-pop.wb-pop b{font-weight:800}

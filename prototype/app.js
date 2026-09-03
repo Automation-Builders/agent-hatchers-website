@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 42;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 43;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -44,7 +44,7 @@
       return `A robot version of the person in the reference photo. It must be instantly recognisable as them: same face shape and expression, same hairstyle and hair colour, same skin tone (as the face-plate tone), and the same clothing colours and style, all rebuilt from robot parts. Copy their glasses or facial hair only if the photo actually shows them; never add any. Render it as ${style}. ${state.look}`;
     }
     const pick=k=>((ax[k]||DESIGN_AXES[k])[variant%4]);
-    return `${state.look}. This is design ${variant+1} of 3 and it must look clearly different from the other two: give it ${pick('build')}, ${pick('face')}, ${pick('finish')}, and ${pick('style')}.`;
+    return `${state.look}. Show ONE robot only. Make this one distinctive: give it ${pick('build')}, ${pick('face')}, ${pick('finish')}, and ${pick('style')}.`;
   }
 
   const industry = config.industry || 'professional-services';
@@ -209,12 +209,56 @@
   const stepNo = () => Math.max(1,state.step);
   const layout = content => `<main class="shell"><section class="panel"><div class="progress" aria-label="Prototype progress"><span style="--progress:${Math.min(100,stepNo()/5*100)}%"></span></div><header class="topbar"><div class="brand"><img src="/agent-hatchers-logo.png" alt=""><span>Agent Hatchers</span></div><div class="topbar-right">${chip()}<span class="step-label">Step ${stepNo()} of 5</span></div></header>${content}</section></main>`;
 
+  // ---------- Session persistence: come back to the hatch you left ----------
+  // Everything a prospect has hatched (designs, marketplace portraits, new profiles) is kept
+  // in IndexedDB per page, so a click-away or refresh resumes where they were. "Start over"
+  // wipes it. Images are data URIs, which is why this is IndexedDB and not localStorage.
+  const SESSION_KEY=location.pathname;
+  function idb(){return new Promise((ok,bad)=>{if(!window.indexedDB)return bad(new Error('no idb'));const r=indexedDB.open('ah-prototype',1);r.onupgradeneeded=()=>r.result.createObjectStore('session');r.onsuccess=()=>ok(r.result);r.onerror=()=>bad(r.error);});}
+  async function loadSession(){try{const db=await idb();return await new Promise((ok,bad)=>{const q=db.transaction('session','readonly').objectStore('session').get(SESSION_KEY);q.onsuccess=()=>ok(q.result||null);q.onerror=()=>bad(q.error);});}catch(e){return null;}}
+  async function writeSession(v){try{const db=await idb();await new Promise((ok,bad)=>{const t=db.transaction('session','readwrite');if(v===null)t.objectStore('session').delete(SESSION_KEY);else t.objectStore('session').put(v,SESSION_KEY);t.oncomplete=ok;t.onerror=()=>bad(t.error);});}catch(e){}}
+  let saveTimer=null;
+  function saveSession(){
+    clearTimeout(saveTimer);
+    saveTimer=setTimeout(()=>{
+      if(state.step<1){return;}
+      const snap={v:1,savedAt:Date.now(),step:state.step,name:state.name,company:state.company,biz:state.biz,industry:state.industry,look:state.look,team:state.team,axes:state.axes||null,refPhoto:state.refPhoto,brand:state.brand,
+        slots:state.slots.map(s=>s&&s.status==='ready'?{status:'ready',image:s.image||''}:null),variant:state.variant,selectedImage:state.selectedImage,done:state.done,
+        marketImages:state.marketImages,tab:state.tab,chatActive:state.chatActive,chatExtra:state.chatExtra,editUses:state.editUses,
+        profiles:state.profiles.filter(p=>p.status==='complete'||p.status==='deleted').map(p=>({id:p.id,name:p.name,desc:p.desc,img:p.img,step:p.step,status:p.status,profile:p.profile||null,dismissed:!!p.dismissed}))};
+      writeSession(snap);
+    },400);
+  }
+  function clearSession(){clearTimeout(saveTimer);writeSession(null);}
+  async function restoreSession(){
+    const snap=await loadSession();
+    if(!snap||snap.v!==1||!(snap.step>=1))return false;
+    const fields=['name','company','biz','industry','look','team','axes','refPhoto','brand','variant','selectedImage','done','marketImages','tab','chatActive','chatExtra','editUses'];
+    fields.forEach(k=>{if(snap[k]!==undefined)state[k]=snap[k];});
+    state.slots=(snap.slots||[]).map(s=>s&&s.status==='ready'?{status:'ready',image:s.image||''}:null);
+    state.profiles=(snap.profiles||[]).map(p=>({...p,cancelled:false}));
+    cpSeq=state.profiles.reduce((m,p)=>Math.max(m,parseInt(String(p.id).replace('np',''),10)||0),0);
+    const ready=state.slots.some(Boolean);
+    // A hatch that was still running can't be resumed — back to the create screen with everything typed.
+    state.step=snap.step===3&&!ready?2:(snap.step>=3&&!ready?2:snap.step);
+    if(snap.step===1&&!state.team)state.step=0;
+    state.teamBusy=false;state.refBusy=false;state.refError='';
+    state.marketStarted=false;
+    return true;
+  }
+  function welcomeBack(){
+    const pop=document.createElement('div');pop.className='create-pop wb-pop';pop.innerHTML=`${ci.check}<span>Picked up where you left off${state.name?` with ${escapeHtml(state.name)}`:''}. <b>Start over</b> is in the footer if you want a fresh hatch.</span>`;
+    document.body.appendChild(pop);setTimeout(()=>pop.classList.add('show'),10);
+    setTimeout(()=>{pop.classList.remove('show');setTimeout(()=>pop.remove(),300)},6000);
+  }
+
   function render(){
     const screens = [welcome,teamScreen,nameScreen,hatchScreen,marketScreen,connectScreen];
     const inner = screens[state.step]();
     root.innerHTML = state.step>=4 ? inner : layout(inner);
     bind();
     if(typeof drawNotifs==='function')drawNotifs();
+    saveSession();
   }
   const ic = {
     profiles:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.6"/></svg>',
@@ -699,7 +743,7 @@
       else{const t0=Date.now();const img=await art.catch(()=>null);if(p.cancelled)return;p.img=img||state.selectedImage||'/hatchy-pop.webp';const wait=Math.max(0,2600-(Date.now()-t0));if(wait)await sleep(wait);}
     }
     if(p.cancelled)return;
-    p.status='complete';drawNotifs();
+    p.status='complete';drawNotifs();saveSession();
     if(state.step===4&&state.tab==='profiles')render();
     revealProfile(p);
   }
@@ -998,20 +1042,20 @@
     // reference, falling back to any hatched design rather than generating strangers.
     const ref = state.selectedImage || ((state.slots.find(s=>s&&s.image)||{}).image) || '';
     await Promise.all(agents.map(async (agent,idx)=>{
-      let img = baked[agent.id];
+      let img = state.marketImages[agent.id] || baked[agent.id];
       if(!img && useLive) img = await fetchImage({brief:state.look,name:agent.name,role:agent.scene,image:ref,company:co(),industry:industryLabel,variant:state.variant||0});
       const minMs=1100+idx*500;const wait=Math.max(0,minMs-(Date.now()-started));if(wait)await sleep(wait);  // let the loader show
       if(!img){const thumb=root.querySelector(`[data-thumb="${agent.id}"]`);if(thumb){thumb.innerHTML=`<img src="${agent.portrait}" alt="${escapeHtml(agent.name)}">`;thumb.classList.remove('is-loading');}return;}
-      state.marketImages[agent.id]=img;
+      state.marketImages[agent.id]=img;saveSession();
       const thumb = root.querySelector(`[data-thumb="${agent.id}"]`);
       if(thumb){thumb.innerHTML=`<img src="${escapeHtml(img)}" alt="${escapeHtml(agent.name)}">`;thumb.classList.remove('is-loading');thumb.classList.add('is-generated');}
     }));
     // Then the six "Other profiles" for the Chats sidebar, same character, each in its own
     // costume. A failed call settles on the prospect's own avatar — never a stranger.
     await Promise.all(EXTRA_PROFILES.map(async p=>{
-      let img=baked[p.id];
+      let img=state.marketImages[p.id]||baked[p.id];
       if(!img&&useLive) img=await fetchImage({brief:state.look,name:p.name,role:p.scene,image:ref,company:co(),industry:industryLabel,variant:state.variant||0});
-      state.marketImages[p.id]=img||state.selectedImage||p.portrait;
+      state.marketImages[p.id]=img||state.selectedImage||p.portrait;saveSession();
       root.querySelectorAll(`[data-xav="${p.id}"]`).forEach(el=>{el.src=state.marketImages[p.id];el.classList.remove('egg');});
     }));
   }
@@ -1024,7 +1068,7 @@
     const refreshBar=()=>{const bar=root.querySelector('.hatch-actions');if(bar){bar.innerHTML=hatchActionsBar();bind();}};
     await Promise.all([0,1,2].map(async i=>{
       const image=await fetchPortrait(i);
-      state.slots[i]={status:'ready',image};
+      state.slots[i]={status:'ready',image};saveSession();
       const scene=root.querySelector(`.hx6[data-i="${i}"]`);
       if(scene){const pop=scene.querySelector('.hx6-pop');if(pop){
         const arm=()=>scene.classList.add('go');
@@ -1066,7 +1110,7 @@
         const s=state.slots[state.variant];
         state.selectedImage=(s&&s.image)||state.selectedImage||((state.slots.find(x=>x&&x.image)||{}).image)||'';
         document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=4;render();generateMarket()}
-      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.look='';state.team=null;state.teamBusy=false;stopThinking();state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.profiles=[];notifHidden=false;drawNotifs();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.look='';state.team=null;state.teamBusy=false;stopThinking();state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.profiles=[];notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-egg]').forEach(el=>{
       // Select a design the moment it's hatched — direct DOM updates only, so picking
@@ -1122,5 +1166,5 @@
     const input=document.getElementById('agent-name');if(input)input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('agent-biz')?.focus()}};
   }
   root.dataset.build=BUILD;console.info('Agent Hatchers prototype · build '+BUILD);
-  render();
+  restoreSession().then(back=>{render();if(back){welcomeBack();if(state.step===4)generateMarket();}});
 })();

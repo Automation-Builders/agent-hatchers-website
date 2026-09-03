@@ -134,6 +134,10 @@ export default async function handler(req, res) {
 
   // Any attached image (character reference or inspiration) goes through the chat shape,
   // which is the only OpenRouter route that accepts image input.
+  // One character, one square frame: with a wide hero image or 'one of three designs' wording
+  // the model happily returned a panorama of three or four robots side by side.
+  const ONE = ' Show exactly ONE robot, once, centred, full body, in a single square image — no repeated views, no side-by-side variants, no panels, no other characters or people.';
+  const finalPrompt = prompt + ONE;
   const attached = ref ? [ref] : inspImages;
   const upstreamUrl = attached.length
     ? 'https://openrouter.ai/api/v1/chat/completions'
@@ -141,9 +145,9 @@ export default async function handler(req, res) {
   const payload = attached.length
     ? { model: MODEL, modalities: ['image', 'text'], messages: [{ role: 'user', content: [
         ...attached.map(url => ({ type: 'image_url', image_url: { url } })),
-        { type: 'text', text: prompt }
-      ] }] }
-    : { model: MODEL, prompt, n: 1, aspect_ratio: '1:1', quality: 'high', output_format: 'png' };
+        { type: 'text', text: finalPrompt }
+      ] }], image_config: { aspect_ratio: '1:1' } }
+    : { model: MODEL, prompt: finalPrompt, n: 1, aspect_ratio: '1:1', quality: 'high', output_format: 'png' };
 
   try {
     const upstream = await fetch(upstreamUrl, {
