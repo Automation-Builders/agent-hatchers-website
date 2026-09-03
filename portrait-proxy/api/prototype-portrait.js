@@ -102,9 +102,11 @@ export default async function handler(req, res) {
       `texture or styling cue from what they sell or do so the robot fits their business.`);
   }
   if (brandColors.length) {
-    inspNotes.push(`${brandName ? brandName + '’s' : 'The'} brand colours are ${brandColors.join(', ')} (most important ` +
-      `first). Paint the robot in this palette — make the first colour dominant with the others as accents — instead of ` +
-      `any colours the description doesn't explicitly ask for.`);
+    const roles = ['the main body and shell', 'the second-largest area — chest plate, limbs or visor surround', 'a clear accent — joints, trims and panel lines', 'a visible detail — antenna tip, eyes, buttons or lights', 'a small but visible touch — an emblem, badge or stripe'];
+    inspNotes.push(`${brandName ? brandName + '’s' : 'The'} brand palette is exactly these ${brandColors.length} colours: ` +
+      brandColors.map((c, i) => `${c} for ${roles[i]}`).join('; ') + `. EVERY one of these colours must be clearly ` +
+      `visible on the robot in a single glance — none may be dropped, and do not introduce other colours the ` +
+      `description doesn't explicitly ask for (white, black and grey are fine for small details).`);
   }
 
   const prompt = hasInsp && !ref
