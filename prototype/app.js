@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 39;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 40;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -17,7 +17,7 @@
     {id:'website',icon:'◇',name:'Website Agent',industries:['all'],keywords:['website','content','publish','webflow','wordpress','page','blog','copy','web','online'],summary:'Keeps website content accurate, on-brand and ready for approval before publishing.',portrait:'/hatchy-website.webp',team:'Marketing',scene:'It is a website agent wearing a comfy hoodie and headphones around its neck, at a dual-monitor desk in a loft studio at night editing a colourful online storefront, with sticky notes on the window and a small cactus by the keyboard.',mcps:['GitHub','Webflow','WordPress','Google Drive','Slack'],outcomes:['Draft new website pages','Update approved copy and details','Check pages for stale information','Prepare search-friendly metadata','Publish only after human approval']},
     {id:'operations',icon:'✓',name:'Operations Agent',industries:['professional-services','construction','healthcare','all'],keywords:['operations','workflow','project','task','deadline','schedule','coordination','process','compliance','ops','clinic','manufacturing'],summary:'Coordinates repeatable workflows and keeps teams informed when work changes state.',portrait:'/hatchy-routing.webp',team:'Operations',scene:'It is an operations agent wearing a project-manager lanyard and holding a marker, standing at a wall-sized kanban board covered in swim-lanes and sticky notes in a bright planning room, with interlocking gears drawn on a whiteboard behind it.',mcps:['Monday.com','Asana','Notion','Slack','Microsoft Teams'],outcomes:['Turn requests into structured work','Monitor deadlines and blockers','Prepare daily operating summaries','Chase missing information','Escalate exceptions to the right person']}
   ];
-  const state = {step:0,name:'',biz:'',industry:'',look:'',team:null,teamBusy:false,refPhoto:'',brand:null,refBusy:false,refError:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:0,chatExtra:{},chatTyping:{},company:'',editUses:0,merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
+  const state = {step:0,name:'',biz:'',industry:'',look:'',team:null,teamBusy:false,refPhoto:'',brand:null,refBusy:false,refError:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:0,chatExtra:{},chatTyping:{},company:'',editUses:0,profiles:[],merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
   const root = document.getElementById('prototype-app');
   const co = () => state.company || config.company || 'Your Company';
   const DESIGN_AXES={
@@ -213,6 +213,7 @@
     const inner = screens[state.step]();
     root.innerHTML = state.step>=4 ? inner : layout(inner);
     bind();
+    if(typeof drawNotifs==='function')drawNotifs();
   }
   const ic = {
     profiles:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.6"/></svg>',
@@ -324,7 +325,7 @@
         <div class="search-box">${ic.search}<input id="market-search" placeholder="Search profiles..." autocomplete="off"></div>
       </div>
       <div class="board" id="board">
-        <section class="board-group g-active"><div class="group-head"><h3>Active</h3><span class="count">${1+running.length}</span></div><div class="p-grid">${hatchedCard()}${running.map(a=>agentCard(a,true)).join('')}</div></section>
+        <section class="board-group g-active"><div class="group-head"><h3>Active</h3><span class="count">${1+running.length+liveProfiles().length}</span></div><div class="p-grid">${hatchedCard()}${liveProfiles().map(profileCard).join('')}${running.map(a=>agentCard(a,true)).join('')}</div></section>
         <section class="board-group g-rec"><div class="group-head"><h3>Recommended for ${escapeHtml(co())}</h3><span class="count">${rec.length}</span></div><div class="p-grid">${rec.map(a=>agentCard(a)).join('')}</div></section>
         <div class="board-empty" id="board-empty" hidden>No profiles match your search.</div>
       </div>`;
@@ -338,7 +339,8 @@
     const team=[...runningAgents(),...topAgents().filter(a=>!RUNNING.includes(a.id))].map(a=>({name:a.name,img:state.marketImages[a.id]||a.portrait}));
     const live=usePortraits&&config.marketPortraits!==false&&state.variant!==null;
     const other=EXTRA_PROFILES.map(p=>{const gen=state.marketImages[p.id];return {id:p.id,name:p.name,img:gen||(live?'/egg-closed.webp':(state.selectedImage||p.portrait)),egg:!gen&&live};});
-    const your=[you,...team];
+    const mine=state.profiles.filter(p=>p.status==='complete').map(p=>({name:p.name,img:p.img}));
+    const your=[you,...mine,...team];
     return {your,other,all:[...your,...other]};
   }
   // The prospect's FIRST message in a chat gets a real answer (their sales free taste);
@@ -530,6 +532,161 @@
     </main>`;
   }
   // Faithful port of the dashboard's AddInstanceDialog: Name it → Connect → Dashboard.
+
+  // ---------- Create ▾ → "Create a Profile" → Notifications tray → hatched reveal ----------
+  // Mirrors the real dashboard's create flow. A new profile walks five steps in the
+  // Notifications tray; the Illustrating step genuinely draws the hatched character doing the
+  // described job (same proxy call as the marketplace), then the finished profile pops into
+  // the middle of the screen with the purple swirl before settling into the Active group.
+  const CP_STEPS=[['Planning','Planning the agent…'],['Drafting','Drafting agent…'],['Equipping','Wiring up its tools…'],['Configuring','Configuring…'],['Illustrating','Drawing its portrait…']];
+  const cpi={
+    chat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M12 8v5M9.5 10.5h5"/></svg>',
+    profile:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2M3 12h18"/></svg>',
+    skill:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.4 2.4-2.6-2.6z"/></svg>',
+    integration:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v4M15 3v4M7 7h10v4a5 5 0 01-10 0zM12 16v5"/></svg>',
+    spark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg>',
+    open:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 13v6H5V6h6"/></svg>',
+    tick:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    chev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
+    x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    tray:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"/><circle cx="12" cy="12" r="3"/></svg>'
+  };
+  let cpSeq=0, notifOpen=true, notifHidden=false;
+  const liveProfiles=()=>state.profiles.filter(p=>p.status==='running'||p.status==='complete');
+  const runningJobs=()=>state.profiles.filter(p=>p.status==='running');
+  function payPop(msg){
+    document.querySelectorAll('.create-pop').forEach(p=>p.remove());
+    const pop=document.createElement('div');pop.className='create-pop';pop.innerHTML=`${ci.key}<span>${escapeHtml(msg)}</span>`;
+    document.body.appendChild(pop);setTimeout(()=>pop.classList.add('show'),10);
+    setTimeout(()=>{pop.classList.remove('show');setTimeout(()=>pop.remove(),300)},4600);
+  }
+  function profileCard(p){
+    if(p.status==='running'){
+      return `<article class="p-card p-new is-busy" data-profile="${p.id}"><div class="p-thumb thumb-new is-loading"><div class="hatch-loader"><img class="loader-egg" src="/egg-closed.webp" alt=""><span class="loader-txt" data-profile-txt="${p.id}">${CP_STEPS[p.step][0]}…</span></div></div><div class="p-meta"><div class="p-name">${escapeHtml(p.name)} <i class="dot dot-wait"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span><span class="p-tag tag-new">Hatching</span></div></div></article>`;
+    }
+    return `<article class="p-card p-new" data-profile="${p.id}" tabindex="0"><div class="p-thumb thumb-new is-generated"><img src="${escapeHtml(p.img)}" alt="${escapeHtml(p.name)}"></div><div class="p-meta"><div class="p-name">${escapeHtml(p.name)} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span><span class="p-tag tag-new">New profile</span></div></div></article>`;
+  }
+  function openCreateMenu(btn){
+    const old=document.querySelector('.create-menu');if(old){old.remove();return;}
+    const menu=document.createElement('div');menu.className='create-menu';menu.setAttribute('role','menu');
+    menu.innerHTML=[['chat','New Chat'],['profile','New Profile'],['skill','New Skill'],['integration','New Integration']].map(([k,l])=>`<button type="button" role="menuitem" data-cm="${k}">${cpi[k]}<span>${l}</span></button>`).join('');
+    btn.parentElement.appendChild(menu);
+    const close=()=>{menu.remove();document.removeEventListener('mousedown',outside);document.removeEventListener('keydown',esc);};
+    const outside=e=>{if(!menu.contains(e.target)&&e.target!==btn&&!btn.contains(e.target))close();};
+    const esc=e=>{if(e.key==='Escape')close();};
+    document.addEventListener('mousedown',outside);document.addEventListener('keydown',esc);
+    menu.querySelectorAll('[data-cm]').forEach(b=>b.onclick=()=>{const k=b.dataset.cm;close();
+      if(k==='profile')openCreateProfile();
+      else if(k==='chat'){state.tab='chats';render();}
+      else payPop(`Please pay for your agent to add a new ${k}.`);
+    });
+    menu.querySelector('button').focus();
+  }
+  function openCreateProfile(){
+    const backdrop=document.createElement('div');backdrop.className='modal-backdrop';
+    const ava=state.selectedImage||'/hatchy-pop.webp';
+    backdrop.innerHTML=`<section class="modal cp-modal" role="dialog" aria-modal="true" aria-labelledby="cp-title"><button class="close cp-close" aria-label="Close">×</button>
+      <div class="cp-ava"><img src="${escapeHtml(ava)}" alt=""></div>
+      <h2 id="cp-title">Create a Profile</h2>
+      <label class="cp-label" for="cp-name">What should we call this agent?</label>
+      <input class="name-field cp-field" id="cp-name" maxlength="40" autocomplete="off" placeholder="e.g. Research Assistant">
+      <label class="cp-label" for="cp-desc">What is this agent going to do?</label>
+      <div class="mic-field cp-mic"><textarea class="look-field cp-field cp-area" id="cp-desc" maxlength="500" placeholder="e.g. A research assistant that reads PDFs in my downloads folder and summarizes them into weekly briefings."></textarea><button type="button" class="mic-btn" data-mic="cp-desc" aria-label="Dictate what this agent will do">${micSvg}</button></div>
+      <button type="button" class="btn btn-primary cp-submit" id="cp-submit" disabled>Create Profile</button></section>`;
+    document.body.appendChild(backdrop);
+    const close=()=>backdrop.remove();
+    const name=backdrop.querySelector('#cp-name'),desc=backdrop.querySelector('#cp-desc'),submit=backdrop.querySelector('#cp-submit');
+    const check=()=>{submit.disabled=!name.value.trim();};name.oninput=check;desc.oninput=check;
+    backdrop.querySelector('.cp-close').onclick=close;backdrop.onclick=e=>{if(e.target===backdrop)close()};
+    backdrop.querySelectorAll('[data-mic]').forEach(b=>b.onclick=()=>startDictation(b));
+    document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc)}},{once:true});
+    name.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();if(name.value.trim())submit.click();}};
+    submit.onclick=()=>{const n=name.value.trim();if(!n){name.focus();return;}
+      const p={id:'np'+(++cpSeq),name:n,desc:desc.value.trim(),img:'',step:0,status:'running',cancelled:false};
+      state.profiles.push(p);close();
+      notifHidden=false;notifOpen=true;drawNotifs();
+      if(state.step===4&&state.tab==='profiles')render();
+      runProfileJob(p);
+    };
+    name.focus();
+  }
+  function notifCard(p){
+    const x=`<button class="nc-x" data-nc-x="${p.id}" aria-label="Dismiss">${cpi.x}</button>`;
+    if(p.status==='running'){
+      const rail=CP_STEPS.map((s,i)=>{const st=i<p.step?'done':i===p.step?'now':'todo';return `${i?`<i class="nc-line ${i<=p.step?'on':''}"></i>`:''}<span class="nc-dot ${st}">${st==='done'?cpi.tick:''}</span>${st==='now'?`<b class="nc-lbl">${s[0]}</b>`:''}`;}).join('');
+      const pct=Math.round(((p.step+.85)/CP_STEPS.length)*100);
+      return `<div class="nc nc-run" data-nc="${p.id}"><span class="nc-ic"><i class="nc-spin"></i></span><div class="nc-body"><b class="nc-name">${escapeHtml(p.name)}</b><span class="nc-status">${CP_STEPS[p.step][1]}</span><div class="nc-bar"><i style="width:${pct}%"></i></div><div class="nc-rail">${rail}</div><button class="nc-cancel" data-nc-cancel="${p.id}">Cancel</button></div>${x}</div>`;
+    }
+    if(p.status==='complete')return `<div class="nc nc-done" data-nc="${p.id}"><span class="nc-ic nc-spark">${cpi.spark}</span><div class="nc-body"><b class="nc-name">${escapeHtml(p.name)}</b><span class="nc-ok">Complete</span><button class="nc-open" data-nc-open="${p.id}">${cpi.open}<span>Click to open</span></button></div>${x}</div>`;
+    if(p.status==='deleted')return `<div class="nc nc-del" data-nc="${p.id}"><span class="nc-ic nc-okic">${cpi.tick}</span><div class="nc-body"><b class="nc-name">${escapeHtml(p.name)}</b><span class="nc-ok">Agent deleted</span></div>${x}</div>`;
+    return '';
+  }
+  function drawNotifs(){
+    let tray=document.getElementById('notif');
+    const cards=state.profiles.filter(p=>!p.dismissed&&p.status!=='cancelled');
+    if(notifHidden||!cards.length||state.step!==4){if(tray)tray.remove();return;}
+    if(!tray){tray=document.createElement('aside');tray.id='notif';tray.className='notif';document.body.appendChild(tray);}
+    const jobs=runningJobs();
+    if(!notifOpen){
+      const pct=jobs.length?Math.round(((jobs[0].step+.85)/CP_STEPS.length)*100):100;
+      tray.className='notif is-mini';
+      tray.innerHTML=`<div class="notif-mini"><button class="nm-x" data-nt="hide" aria-label="Hide notifications">${cpi.x}</button><b>${jobs.length?'Creating agent…':'Notifications'}</b><span class="nm-count">${cards.length}</span><button class="nm-tog" data-nt="open" aria-label="Open notifications">${cpi.chev}</button></div>${jobs.length?`<div class="nc-bar nm-bar"><i style="width:${pct}%"></i></div>`:''}`;
+    }else{
+      tray.className='notif';
+      tray.innerHTML=`<div class="notif-head"><span class="notif-ic">${cpi.tray}</span><b>Notifications</b><button class="notif-clear" data-nt="clear">Clear All</button><button class="notif-tog" data-nt="mini" aria-label="Collapse notifications">${cpi.chev}</button></div><div class="notif-list">${cards.map(notifCard).join('')}</div>`;
+    }
+    tray.querySelectorAll('[data-nt]').forEach(b=>b.onclick=()=>{const k=b.dataset.nt;
+      if(k==='mini')notifOpen=false;if(k==='open')notifOpen=true;if(k==='hide')notifHidden=true;
+      if(k==='clear')state.profiles.forEach(p=>{if(p.status!=='running')p.dismissed=true;});
+      drawNotifs();});
+    tray.querySelectorAll('[data-nc-x]').forEach(b=>b.onclick=()=>{const p=state.profiles.find(q=>q.id===b.dataset.ncX);if(!p)return;if(p.status==='running')cancelProfile(p);else p.dismissed=true;drawNotifs();});
+    tray.querySelectorAll('[data-nc-cancel]').forEach(b=>b.onclick=()=>{const p=state.profiles.find(q=>q.id===b.dataset.ncCancel);if(p)cancelProfile(p);drawNotifs();});
+    tray.querySelectorAll('[data-nc-open]').forEach(b=>b.onclick=()=>{const p=state.profiles.find(q=>q.id===b.dataset.ncOpen);if(p)showProfile(p);});
+  }
+  function cancelProfile(p){p.cancelled=true;p.status='cancelled';if(state.step===4&&state.tab==='profiles')render();}
+  async function runProfileJob(p){
+    const ref=state.selectedImage||((state.slots.find(s=>s&&s.image)||{}).image)||'';
+    const live=usePortraits&&config.marketPortraits!==false&&state.variant!==null&&!!ref;
+    // The portrait starts drawing straight away so the Illustrating step rarely has to wait.
+    const job=p.desc?`Its job: ${p.desc.slice(0,140)}. Shown mid-task with fitting outfit and props.`:`It is ${p.name}, shown mid-task with fitting outfit and props.`;
+    const art=live?fetchImage({brief:state.look,name:p.name,role:job,image:ref,company:co(),industry:industryLabel,variant:state.variant||0}):Promise.resolve(null);
+    for(let i=0;i<CP_STEPS.length;i++){
+      if(p.cancelled)return;
+      p.step=i;drawNotifs();
+      const txt=root.querySelector(`[data-profile-txt="${p.id}"]`);if(txt)txt.textContent=CP_STEPS[i][0]+'…';
+      if(i<CP_STEPS.length-1)await sleep(1700+Math.random()*900);
+      else{const t0=Date.now();const img=await art.catch(()=>null);if(p.cancelled)return;p.img=img||state.selectedImage||'/hatchy-pop.webp';const wait=Math.max(0,2600-(Date.now()-t0));if(wait)await sleep(wait);}
+    }
+    if(p.cancelled)return;
+    p.status='complete';drawNotifs();
+    if(state.step===4&&state.tab==='profiles')render();
+    revealProfile(p);
+  }
+  function revealProfile(p){
+    document.querySelectorAll('.cp-reveal').forEach(r=>r.remove());
+    const el=document.createElement('div');el.className='cp-reveal';
+    el.innerHTML=`<div class="cp-swirl"></div><div class="cp-swirl cp-swirl2"></div><div class="cp-reveal-art"><img src="${escapeHtml(p.img)}" alt=""></div><div class="cp-reveal-card"><span class="cp-reveal-eyebrow">New profile</span><b>${escapeHtml(p.name)}</b><span>Hatched and ready to work</span></div>`;
+    document.body.appendChild(el);
+    requestAnimationFrame(()=>el.classList.add('show'));
+    const go=()=>{el.classList.remove('show');el.classList.add('out');setTimeout(()=>el.remove(),500);};
+    el.onclick=()=>{go();showProfile(p);};
+    setTimeout(()=>{if(el.isConnected)go();},4200);
+  }
+  function showProfile(p){
+    const backdrop=document.createElement('div');backdrop.className='modal-backdrop';
+    backdrop.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-labelledby="np-title"><div class="modal-top"><div><span class="eyebrow">Agent profile</span><h2 id="np-title">${escapeHtml(p.name)}</h2></div><button class="close" aria-label="Close">×</button></div>
+      <p>${escapeHtml(p.desc||`A new agent for ${co()}, hatched from your dashboard.`)}</p>
+      <div class="profile-cols"><div><h3>Status</h3><div class="checks"><div class="check"><i>✓</i><span>Profile created and configured</span></div><div class="check"><i>✓</i><span>Portrait drawn in ${escapeHtml(state.name||'your agent')}’s style</span></div><div class="check"><i>✓</i><span>Ready to chat from the Chats tab</span></div></div></div><div class="profile-art"><img src="${escapeHtml(p.img)}" alt="${escapeHtml(p.name)}"></div></div>
+      <div class="actions np-actions"><button type="button" class="btn btn-primary" data-np="chat">Open chat →</button><button type="button" class="btn btn-secondary" data-np="delete">Delete profile</button></div></section>`;
+    document.body.appendChild(backdrop);
+    const close=()=>backdrop.remove();
+    backdrop.querySelector('.close').onclick=close;backdrop.onclick=e=>{if(e.target===backdrop)close()};
+    backdrop.querySelectorAll('[data-np]').forEach(b=>b.onclick=()=>{close();
+      if(b.dataset.np==='chat'){state.tab='chats';state.chatActive=1+state.profiles.filter(q=>q.status==='complete').indexOf(p);render();}
+      else{p.status='deleted';p.dismissed=false;notifHidden=false;drawNotifs();if(state.step===4)render();}
+    });
+    document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc)}},{once:true});
+  }
 
   function openEditLook(){
     if(!state.selectedImage) return;
@@ -863,7 +1020,7 @@
         const s=state.slots[state.variant];
         state.selectedImage=(s&&s.image)||state.selectedImage||((state.slots.find(x=>x&&x.image)||{}).image)||'';
         document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=4;render();generateMarket()}
-      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.look='';state.team=null;state.teamBusy=false;stopThinking();state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.look='';state.team=null;state.teamBusy=false;stopThinking();state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.profiles=[];notifHidden=false;drawNotifs();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-egg]').forEach(el=>{
       // Select a design the moment it's hatched — direct DOM updates only, so picking
@@ -898,7 +1055,8 @@
     }
     const bizIntro=document.getElementById('biz-intro');if(bizIntro)bizIntro.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();root.querySelector('[data-action="team"]')?.click()}};
     bindReference();
-    root.querySelectorAll('[data-create]').forEach(el=>el.onclick=()=>{document.querySelectorAll('.create-pop').forEach(p=>p.remove());const pop=document.createElement('div');pop.className='create-pop';pop.innerHTML=`${ci.key}<span>Please pay for your agent to see what a new profile would look like.</span>`;document.body.appendChild(pop);setTimeout(()=>pop.classList.add('show'),10);setTimeout(()=>{pop.classList.remove('show');setTimeout(()=>pop.remove(),300)},4600);});
+    root.querySelectorAll('[data-create]').forEach(el=>el.onclick=()=>openCreateMenu(el));
+    root.querySelectorAll('[data-profile]').forEach(el=>{const p=state.profiles.find(q=>q.id===el.dataset.profile);if(!p||p.status!=='complete')return;el.onclick=()=>showProfile(p);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();showProfile(p)}};});
     root.querySelectorAll('[data-merch-robot]').forEach(el=>el.onclick=()=>{state.merch.robot=el.dataset.merchRobot;render();});
     root.querySelectorAll('[data-merch-prod]').forEach(el=>el.onclick=()=>{state.merch.product=el.dataset.merchProd;state.merch.size=el.dataset.merchProd==='hat'?'One size':'S';render();});
     root.querySelectorAll('[data-merch-color]').forEach(el=>el.onclick=()=>{state.merch.color=+el.dataset.merchColor;render();});
