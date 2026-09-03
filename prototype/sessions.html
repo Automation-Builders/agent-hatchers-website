@@ -97,9 +97,9 @@
   async function toggle(el){
     const open=el.classList.toggle('open');if(!open)return;
     const sid=el.dataset.sid,box=el.querySelector('.detail');const meta=all.find(s=>s.sid===sid);
-    if(!meta||!meta.url){box.textContent='No detail stored for this session.';return;}
+    if(!meta){box.textContent='No detail stored for this session.';return;}
     try{
-      let d=full.get(sid);if(!d){const r=await fetch(meta.url,{cache:'no-store'});d=await r.json();full.set(sid,d);}
+      let d=full.get(sid);if(!d){const r=await fetch(ENDPOINT+'?key='+encodeURIComponent($('key').value.trim())+'&sid='+encodeURIComponent(sid),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);d=await r.json();full.set(sid,d);}
       box.innerHTML=detail(d);
     }catch(e){box.textContent='Could not load this session: '+e.message;}
   }
@@ -116,7 +116,7 @@
       ${market?`<h4>Marketplace portraits</h4><div class="row">${market}</div>`:''}
       ${profiles?`<h4>Profiles they created</h4>${profiles}`:''}
       ${chats?`<h4>Chats</h4>${chats}`:''}
-      ${d.url?'':''}<p style="color:#6b7480;font-size:.8rem;margin-top:14px">Session ${esc(d.sid)} · started ${esc(fmt(d.startedAt))} · last saved ${esc(fmt(d.savedAt))}</p>`;
+      <p style="color:#6b7480;font-size:.8rem;margin-top:14px">Session ${esc(d.sid)} · started ${esc(fmt(d.startedAt))} · last saved ${esc(fmt(d.savedAt))}</p>`;
   }
   if($('key').value)load();
 })();

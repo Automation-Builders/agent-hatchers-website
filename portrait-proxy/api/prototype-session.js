@@ -2,8 +2,10 @@
 // so the team can look at what people hatched, and list them for the sessions page.
 //   POST <snapshot JSON>            → stores sessions/<sid>.json + a small sessions-index/<sid>.json
 //   GET  ?key=<SESSIONS_KEY>        → { sessions:[index summaries…], count }
+//   GET  ?key=<SESSIONS_KEY>&sid=…  → the full session snapshot
+// The store is PRIVATE: nothing is readable by URL; every read goes through here and the key.
 // Needs a Blob store connected to the project (BLOB_READ_WRITE_TOKEN) and SESSIONS_KEY set.
-import { put, list } from '@vercel/blob';
+import { put, list, get } from '@vercel/blob';
 
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
   'https://agenthatchers.com,https://www.agenthatchers.com,http://localhost:8799')
@@ -18,6 +20,12 @@ function applyCors(res, origin) {
   res.setHeader('Access-Control-Allow-Headers', 'content-type,x-sessions-key');
 }
 const clean = (v, n) => String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
+async function readJson(pathname) {
+  const r = await get(pathname, { access: 'private', useCache: false });
+  if (!r || r.statusCode !== 200 || !r.stream) return null;
+  const text = await new Response(r.stream).text();
+  try { return JSON.parse(text); } catch { return null; }
+}
 
 export default async function handler(req, res) {
   applyCors(res, req.headers.origin || '');
@@ -28,6 +36,16 @@ export default async function handler(req, res) {
     const key = (req.query && req.query.key) || req.headers['x-sessions-key'] || '';
     if (!process.env.SESSIONS_KEY) { res.status(500).json({ error: 'SESSIONS_KEY is not set' }); return; }
     if (!key || key !== process.env.SESSIONS_KEY) { res.status(401).json({ error: 'Wrong key' }); return; }
+    const sid = clean(req.query && req.query.sid, 64);
+    if (sid) {
+      if (!/^[a-z0-9-]{8,64}$/i.test(sid)) { res.status(400).json({ error: 'Bad session id' }); return; }
+      try {
+        const full = await readJson(`sessions/${sid}.json`);
+        if (!full) { res.status(404).json({ error: 'No such session' }); return; }
+        res.setHeader('Cache-Control', 'no-store'); res.status(200).json(full);
+      } catch (e) { res.status(502).json({ error: 'Could not read session: ' + (e && e.message) }); }
+      return;
+    }
     try {
       const out = [];
       let cursor;
@@ -36,7 +54,7 @@ export default async function handler(req, res) {
         out.push(...page.blobs); cursor = page.hasMore ? page.cursor : undefined;
       } while (cursor);
       const sessions = (await Promise.all(out.map(async b => {
-        try { const r = await fetch(b.url, { cache: 'no-store' }); return r.ok ? await r.json() : null; } catch { return null; }
+        try { return await readJson(b.pathname); } catch { return null; }
       }))).filter(Boolean).sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
       res.setHeader('Cache-Control', 'no-store');
       res.status(200).json({ sessions, count: sessions.length });
@@ -66,13 +84,11 @@ export default async function handler(req, res) {
     teamIds: Array.isArray(body.team && body.team.ids) ? body.team.ids.slice(0, 10).map(s => clean(s, 30)) : [],
     teamSource: clean(body.team && body.team.source, 12), hadPhoto: !!body.hadPhoto, brand: body.brand ? clean(body.brand.name || body.brand.url, 80) : '',
     profileCount: profiles.length, marketCount: body.market && typeof body.market === 'object' ? Object.keys(body.market).length : 0,
-    chatTurns, thumb: typeof body.selectedImage === 'string' && body.selectedImage.startsWith('data:') ? body.selectedImage.slice(0, 120000) : '',
-    url: ''
+    chatTurns, thumb: typeof body.selectedImage === 'string' && body.selectedImage.startsWith('data:') ? body.selectedImage.slice(0, 120000) : ''
   };
   try {
-    const full = await put(`sessions/${sid}.json`, raw, { access: 'public', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });
-    index.url = full.url;
-    await put(`sessions-index/${sid}.json`, JSON.stringify(index), { access: 'public', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });
+    await put(`sessions/${sid}.json`, raw, { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });
+    await put(`sessions-index/${sid}.json`, JSON.stringify(index), { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });
     res.setHeader('Cache-Control', 'no-store');
     res.status(200).json({ ok: true, sid, bytes: raw.length });
   } catch (e) {

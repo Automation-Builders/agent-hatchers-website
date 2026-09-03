@@ -97,11 +97,13 @@ mates[2-3 catalog ids], team}`. Same model/escalation as `prototype-team.js`
 
 Every prototype session (business, team, hatched look, marketplace portraits, created profiles,
 chat turns — as small JPEG thumbnails, never the person's reference photo) is posted here and
-kept in **Vercel Blob** under `sessions/<sid>.json`, with a summary in `sessions-index/`.
-`GET ?key=<SESSIONS_KEY>` lists the summaries for **agenthatchers.com/prototype/sessions.html**.
+kept in a **private Vercel Blob** store under `sessions/<sid>.json`, with a summary in
+`sessions-index/`. Nothing is readable by URL: `GET ?key=<SESSIONS_KEY>` lists the summaries and
+`GET ?key=…&sid=…` returns one session, both for **agenthatchers.com/prototype/sessions.html**.
 
-Setup once: Vercel → Storage → Create **Blob** → connect it to this project (that injects
-`BLOB_READ_WRITE_TOKEN`), then set `SESSIONS_KEY` to any long secret and redeploy:
+Setup once: Vercel → Storage → Create **Blob** (access **Private**, tick "add a read-write
+token env var") → connect it to this project (that injects `BLOB_READ_WRITE_TOKEN`), then set
+`SESSIONS_KEY` to any long secret and redeploy:
 
 ```bash
 cd portrait-proxy && npx vercel env add SESSIONS_KEY production && npx vercel --prod
