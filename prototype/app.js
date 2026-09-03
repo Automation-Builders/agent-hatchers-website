@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 32;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 33;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -17,7 +17,7 @@
     {id:'website',icon:'◇',name:'Website Agent',industries:['all'],keywords:['website','content','publish','webflow','wordpress','page','blog','copy','web','online'],summary:'Keeps website content accurate, on-brand and ready for approval before publishing.',portrait:'/hatchy-website.webp',team:'Marketing',scene:'It is a website agent wearing a comfy hoodie and headphones around its neck, at a dual-monitor desk in a loft studio at night editing a colourful online storefront, with sticky notes on the window and a small cactus by the keyboard.',mcps:['GitHub','Webflow','WordPress','Google Drive','Slack'],outcomes:['Draft new website pages','Update approved copy and details','Check pages for stale information','Prepare search-friendly metadata','Publish only after human approval']},
     {id:'operations',icon:'✓',name:'Operations Agent',industries:['professional-services','construction','healthcare','all'],keywords:['operations','workflow','project','task','deadline','schedule','coordination','process','compliance','ops','clinic','manufacturing'],summary:'Coordinates repeatable workflows and keeps teams informed when work changes state.',portrait:'/hatchy-routing.webp',team:'Operations',scene:'It is an operations agent wearing a project-manager lanyard and holding a marker, standing at a wall-sized kanban board covered in swim-lanes and sticky notes in a bright planning room, with interlocking gears drawn on a whiteboard behind it.',mcps:['Monday.com','Asana','Notion','Slack','Microsoft Teams'],outcomes:['Turn requests into structured work','Monitor deadlines and blockers','Prepare daily operating summaries','Chase missing information','Escalate exceptions to the right person']}
   ];
-  const state = {step:0,name:'',biz:'',look:'',team:null,teamBusy:false,refPhoto:'',brand:null,refBusy:false,refError:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:0,chatExtra:{},chatTyping:{},company:'',editUses:0,merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
+  const state = {step:0,name:'',biz:'',industry:'',look:'',team:null,teamBusy:false,refPhoto:'',brand:null,refBusy:false,refError:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:0,chatExtra:{},chatTyping:{},company:'',editUses:0,merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
   const root = document.getElementById('prototype-app');
   const co = () => state.company || config.company || 'Your Company';
   const DESIGN_AXES={
@@ -44,7 +44,7 @@
   const brandEndpoint = config.brandEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-brand');
   const teamEndpoint = config.teamEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-team');
   const recommended = new Set(config.recommendedAgents||[]);
-  function rankAgents(){const text=`${state.name} ${state.biz} ${state.look} ${industryLabel}`.toLowerCase();const boost=bizBoost(text);return catalog.map((agent,index)=>{let score=boost[agent.id]||0;agent.keywords.forEach(k=>{if(text.includes(k))score+=4});if(agent.industries.includes(industry))score+=2;if(recommended.has(agent.id))score+=1;return{agent,score,index};}).sort((a,b)=>b.score-a.score||a.index-b.index);}
+  function rankAgents(){const text=`${state.name} ${state.biz} ${state.industry} ${state.look} ${industryLabel}`.toLowerCase();const boost=bizBoost(text);return catalog.map((agent,index)=>{let score=boost[agent.id]||0;agent.keywords.forEach(k=>{if(text.includes(k))score+=4});if(agent.industries.includes(industry))score+=2;if(recommended.has(agent.id))score+=1;return{agent,score,index};}).sort((a,b)=>b.score-a.score||a.index-b.index);}
   // The 6 best-matched agents for this business get generated portraits + the Recommended row.
   const topAgents = () => (state.team&&state.team.ids.length)
     ? state.team.ids.map(id=>catalog.find(a=>a.id===id)).filter(Boolean)
@@ -53,7 +53,7 @@
   const THINK_LINES=[b=>`Looking at what a ${b} actually does day to day…`,b=>`Working out where a ${b} loses hours…`,()=>`Checking which agents would pay off first…`,()=>`Writing it up in plain terms…`];
   let thinkTimer=null;
   function stopThinking(){if(thinkTimer){clearInterval(thinkTimer);thinkTimer=null;}}
-  async function researchTeam(biz){
+  async function researchTeam(biz,research=biz){
     stopThinking();state.team=null;state.teamBusy=true;
     const started=Date.now();const mine=biz;
     const roster=catalog.map(a=>({id:a.id,name:a.name,summary:a.summary}));
@@ -61,7 +61,7 @@
     for(let attempt=0;attempt<2&&!result;attempt++){
       if(attempt) await sleep(600);
       try{
-        const res=await fetch(teamEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({business:biz,roster})});
+        const res=await fetch(teamEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({business:research,roster})});
         const body=await res.json().catch(()=>({}));
         if(res.ok&&body&&Array.isArray(body.team)&&body.team.length>=4){
           const lines={};const ids=[];
@@ -227,8 +227,32 @@
     </div>
   </div>`;}
   // Screen 1 — for people who have never used an AI agent: one question, one box.
-  const BIZ_EXAMPLES=['Café','Online shop','Dental clinic','Plumber','Law firm','Real estate'];
-  function welcome(){return `<div class="stage welcome-grid intro"><div><span class="eyebrow">Agent Hatchers</span><h1 class="welcome-title intro-title">What can our agents do for you?</h1><p class="intro-lead">Tell us what your business does and we’ll work out which agents would actually help.</p><div class="mic-field intro-field"><input class="name-field" id="biz-intro" maxlength="60" autocomplete="off" placeholder="e.g. dental clinic, online clothing shop, plumber" value="${escapeHtml(state.biz)}" aria-label="What your business does"><button type="button" class="mic-btn" data-mic="biz-intro" aria-label="Dictate what your business does">${micSvg}</button></div><div class="chips">${BIZ_EXAMPLES.map(b=>`<button class="chip" data-biz="${escapeHtml(b)}">${escapeHtml(b)}</button>`).join('')}</div><div class="actions">${button('Show me →','team')}</div></div><div class="welcome-art" aria-hidden="true">${hatch5()}</div></div>`;}
+  // Step 1 asks for an industry first (so it reads as "we cater to everyone"), then for the
+  // specifics in the prospect's own words. `noun` is how the copy refers to the business when
+  // they pick an industry but skip the write-in; `eg` steers the write-in placeholder.
+  const OTHER='Something else';
+  const INDUSTRIES=[
+    {label:'Retail & e-commerce',noun:'retail business',eg:'e.g. online clothing shop, florist, gift store'},
+    {label:'Hospitality',noun:'hospitality business',eg:'e.g. café, restaurant, boutique hotel'},
+    {label:'Trades & construction',noun:'trades business',eg:'e.g. plumber, electrician, builder'},
+    {label:'Health & wellness',noun:'health practice',eg:'e.g. dental clinic, physio, gym'},
+    {label:'Financial services',noun:'financial services firm',eg:'e.g. mortgage broker, accountant, financial adviser'},
+    {label:'Legal & professional services',noun:'professional services firm',eg:'e.g. law firm, consultancy, recruitment agency'},
+    {label:'Real estate',noun:'real estate agency',eg:'e.g. sales agency, property management, strata'},
+    {label:'Education & training',noun:'education provider',eg:'e.g. tutoring centre, RTO, childcare'},
+    {label:'Technology & software',noun:'tech company',eg:'e.g. SaaS startup, IT support, app studio'},
+    {label:'Manufacturing & logistics',noun:'manufacturing business',eg:'e.g. wholesaler, freight company, factory'},
+    {label:'Marketing & creative',noun:'creative agency',eg:'e.g. design studio, ad agency, photographer'},
+    {label:OTHER,noun:'',eg:'Tell us what your business does'}
+  ];
+  const industryOf=label=>INDUSTRIES.find(i=>i.label===label)||null;
+  function welcome(){
+    const ind=industryOf(state.industry);const other=ind&&ind.label===OTHER;
+    const chips=INDUSTRIES.map(i=>`<button type="button" class="chip industry-chip${i.label===state.industry?' is-on':''}" data-industry="${escapeHtml(i.label)}" aria-pressed="${i.label===state.industry}">${escapeHtml(i.label)}</button>`).join('');
+    const fieldLabel=other?'What does your business do?':ind?'Anything more specific? <span class="intro-optional">(optional)</span>':'Or just tell us what you do';
+    const placeholder=ind?ind.eg:'e.g. dental clinic, online clothing shop, plumber';
+    return `<div class="stage welcome-grid intro"><div><span class="eyebrow">Agent Hatchers</span><h1 class="welcome-title intro-title">What can our agents do for you?</h1><p class="intro-lead">Tell us what your business does and we’ll work out which agents would actually help.</p><p class="intro-label">Pick your industry</p><div class="chips industry-chips" role="group" aria-label="Your industry">${chips}</div><label class="intro-label" for="biz-intro">${fieldLabel}</label><div class="mic-field intro-field"><input class="name-field" id="biz-intro" maxlength="60" autocomplete="off" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(state.biz)}" aria-label="What your business does"><button type="button" class="mic-btn" data-mic="biz-intro" aria-label="Dictate what your business does">${micSvg}</button></div><div class="actions">${button('Show me →','team')}</div></div><div class="welcome-art" aria-hidden="true">${hatch5()}</div></div>`;
+  }
   // Screen 2 — the agents for that business, what each does, and how they hand work on.
   function teamScreen(){
     if(!state.team) return thinkingScreen();
@@ -782,7 +806,7 @@
       const a=el.dataset.action;
       if(a==='back'){if(state.step===1)stopThinking();state.step=Math.max(0,state.step-1);render()}
       if(a==='next'){state.step++;render()}
-      if(a==='team'){const input=document.getElementById('biz-intro');const biz=input?input.value.trim():'';if(!biz){input?.focus();input?.setAttribute('aria-invalid','true');return}state.biz=biz;state.step=1;researchTeam(biz);render();startThinking()}
+      if(a==='team'){const input=document.getElementById('biz-intro');const text=input?input.value.trim():'';const ind=industryOf(state.industry);const biz=text||(ind&&ind.noun)||'';if(!biz){input?.focus();input?.setAttribute('aria-invalid','true');return}state.biz=biz;state.step=1;researchTeam(biz,text&&ind&&ind.noun?`${text} (${ind.label.toLowerCase()})`:biz);render();startThinking()}
       if(a==='generate'){const input=document.getElementById('agent-name');const name=input.value.trim();if(!name){input.focus();input.setAttribute('aria-invalid','true');return}state.name=name;const coIn=document.getElementById('agent-co');if(coIn)state.company=coIn.value.trim();const bizIn=document.getElementById('agent-biz');state.biz=bizIn?bizIn.value.trim():'';const lookTa=document.getElementById('agent-look');state.look=(lookTa&&lookTa.value.trim())||(hasReference()?'a friendly robot mascot':'a friendly rounded robot in blue and white');generateAgents()}
       if(a==='redesign'){state.step=2;render()}
       if(a==='open-connect'){openConnectDialog()}
@@ -803,7 +827,7 @@
         const s=state.slots[state.variant];
         state.selectedImage=(s&&s.image)||state.selectedImage||((state.slots.find(x=>x&&x.image)||{}).image)||'';
         document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=4;render();generateMarket()}
-      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.look='';state.team=null;state.teamBusy=false;stopThinking();state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.look='';state.team=null;state.teamBusy=false;stopThinking();state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-egg]').forEach(el=>{
       // Select a design the moment it's hatched — direct DOM updates only, so picking
@@ -815,7 +839,7 @@
       el.onclick=pick;
       el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick()}};
     });
-    root.querySelectorAll('[data-biz]').forEach(el=>el.onclick=()=>{state.biz=el.dataset.biz;state.step=1;researchTeam(state.biz);render();startThinking();});
+    root.querySelectorAll('[data-industry]').forEach(el=>el.onclick=()=>{const input=document.getElementById('biz-intro');if(input)state.biz=input.value.trim();state.industry=state.industry===el.dataset.industry?'':el.dataset.industry;render();if(state.industry===OTHER)document.getElementById('biz-intro')?.focus();});
     const bizIntro=document.getElementById('biz-intro');if(bizIntro)bizIntro.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();root.querySelector('[data-action="team"]')?.click()}};
     bindReference();
     root.querySelectorAll('[data-create]').forEach(el=>el.onclick=()=>{document.querySelectorAll('.create-pop').forEach(p=>p.remove());const pop=document.createElement('div');pop.className='create-pop';pop.innerHTML=`${ci.key}<span>Please pay for your agent to see what a new profile would look like.</span>`;document.body.appendChild(pop);setTimeout(()=>pop.classList.add('show'),10);setTimeout(()=>{pop.classList.remove('show');setTimeout(()=>pop.remove(),300)},4600);});

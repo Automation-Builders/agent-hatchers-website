@@ -936,7 +936,13 @@ h1{font-weight:800}h2{font-weight:700}
 .intro-field .name-field{width:100%;padding-right:54px}
 .intro-field .mic-btn{bottom:auto;top:50%;transform:translateY(-50%)}
 .name-field[aria-invalid="true"]{border-color:#d9534f}
-.welcome-grid.intro .chips{margin-top:12px;max-width:520px}
+.welcome-grid.intro .chips{margin-top:0;max-width:560px;margin-bottom:18px}
+.intro-label{display:block;margin:0 0 8px;font:700 .8rem 'Inter',system-ui;letter-spacing:.06em;text-transform:uppercase;color:var(--brand)}
+.intro-optional{font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted)}
+.industry-chip{border-radius:999px;padding:9px 15px;font-weight:700;color:var(--brand);border:1.5px solid #cbe0ec;background:#fff}
+.industry-chip:hover{border-color:var(--brand);background:#eef7fb}
+.industry-chip.is-on{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 8px 18px rgba(33,107,172,.25)}
+.welcome-grid.intro .intro-field{margin-top:0}
 .welcome-grid.intro .actions{margin-top:22px}
 .team-stage{padding-top:40px}
 .team-stage h2{margin-bottom:10px}
