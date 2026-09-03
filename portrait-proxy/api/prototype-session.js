@@ -6,6 +6,8 @@
 //   DELETE ?key=<SESSIONS_KEY>&sid=… → removes that session
 // The store is PRIVATE: nothing is readable by URL; every read goes through here and the key.
 // Needs a Blob store connected to the project (BLOB_READ_WRITE_TOKEN) and SESSIONS_KEY set.
+// Optional: SLACK_WEBHOOK_URL — a Slack incoming webhook that gets pinged the first time a
+// session reaches the dashboard (a finished hatch) and again if they connect an instance.
 import { put, list, get, del } from '@vercel/blob';
 
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
@@ -21,6 +23,32 @@ function applyCors(res, origin) {
   res.setHeader('Access-Control-Allow-Headers', 'content-type,x-sessions-key');
 }
 const clean = (v, n) => String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
+const AGENT_NAMES = { logistics: 'Logistics', sales: 'Sales', documents: 'Documents', invoices: 'Invoices', support: 'Support', website: 'Website', operations: 'Operations', marketing: 'Marketing', returns: 'Returns', inventory: 'Inventory' };
+const SESSIONS_PAGE = process.env.SESSIONS_PAGE || 'https://agenthatchers.com/prototype/sessions.html';
+async function slackPing(kind, index) {
+  const url = process.env.SLACK_WEBHOOK_URL;
+  if (!url) return;
+  const mins = index.startedAt ? Math.max(1, Math.round((index.savedAt - index.startedAt) / 60000)) : null;
+  const team = (index.teamIds || []).map(id => AGENT_NAMES[id] || id).join(', ');
+  const head = kind === 'connected'
+    ? `:electric_plug: *${index.company || 'Someone'}* just connected an instance in the prototype`
+    : `:hatching_chick: *${index.company || 'Someone'}* just hatched an agent in the prototype`;
+  const lines = [
+    index.name ? `*Agent:* ${index.name}` : '',
+    index.biz ? `*Business:* ${index.biz}${index.industry ? ` (${index.industry})` : ''}` : '',
+    team ? `*Team proposed:* ${team}` : '',
+    index.brand ? `*Website used:* ${index.brand}` : '',
+    mins ? `*Time on page:* ${mins} min` : ''
+  ].filter(Boolean).join('\n');
+  const body = {
+    text: `${head.replace(/[*:_]/g, '')}${index.name ? ` — ${index.name}` : ''}`,
+    blocks: [
+      { type: 'section', text: { type: 'mrkdwn', text: head + (lines ? '\n' + lines : '') } },
+      { type: 'context', elements: [{ type: 'mrkdwn', text: `<${SESSIONS_PAGE}|Open the sessions page> · ${index.page || ''}` }] }
+    ]
+  };
+  try { await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); } catch { /* a missed ping is not worth failing the save */ }
+}
 async function readJson(pathname) {
   const r = await get(pathname, { access: 'private', useCache: false });
   if (!r || r.statusCode !== 200 || !r.stream) return null;
@@ -97,8 +125,16 @@ export default async function handler(req, res) {
     chatTurns, thumb: typeof body.selectedImage === 'string' && body.selectedImage.startsWith('data:') ? body.selectedImage.slice(0, 120000) : ''
   };
   try {
+    // Milestone pings fire once per session: what was already pinged lives in the index.
+    let prev = null;
+    try { prev = await readJson(`sessions-index/${sid}.json`); } catch { prev = null; }
+    index.pinged = Object.assign({}, prev && prev.pinged);
+    const pings = [];
+    if (index.step >= 4 && !index.pinged.hatched) { index.pinged.hatched = true; pings.push('hatched'); }
+    if (index.done && !index.pinged.connected) { index.pinged.connected = true; pings.push('connected'); }
     await put(`sessions/${sid}.json`, raw, { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });
     await put(`sessions-index/${sid}.json`, JSON.stringify(index), { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });
+    for (const kind of pings) await slackPing(kind, index);
     res.setHeader('Cache-Control', 'no-store');
     res.status(200).json({ ok: true, sid, bytes: raw.length });
   } catch (e) {

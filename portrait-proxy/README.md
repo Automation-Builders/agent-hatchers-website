@@ -108,3 +108,9 @@ token env var") → connect it to this project (that injects `BLOB_READ_WRITE_TO
 ```bash
 cd portrait-proxy && npx vercel env add SESSIONS_KEY production && npx vercel --prod
 ```
+
+### Slack ping on a finished hatch
+
+Set `SLACK_WEBHOOK_URL` to a Slack *incoming webhook* URL and the session function posts to that
+channel the first time a session reaches the dashboard, and again if they connect an instance
+(once each per session — tracked in `sessions-index/`). `SESSIONS_PAGE` overrides the link.
