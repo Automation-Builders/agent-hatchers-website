@@ -10,6 +10,29 @@ class PrototypeContractTests(unittest.TestCase):
         cls.app = (ROOT / "app.js").read_text()
         cls.demo = (ROOT / "demo" / "index.html").read_text()
         cls.css = (ROOT / "styles.css").read_text()
+        cls.sessions = (ROOT / "sessions.html").read_text()
+        cls.session_fn = (ROOT.parent / "portrait-proxy" / "api" / "prototype-session.js").read_text()
+
+    def test_review_mode_is_read_only(self):
+        # sessions.html → /prototype/?session=<sid> pours a saved snapshot into the dashboard;
+        # it must never write back to the store, IndexedDB, or call the image/chat endpoints.
+        self.assertIn("get('session')", self.app)
+        self.assertIn("const captureOn = !REVIEW_SID &&", self.app)
+        self.assertIn("async function writeSession(v){if(REVIEW_SID)return;", self.app)
+        self.assertIn("if(!usePortraits||REVIEW_SID) return null;", self.app)
+        self.assertIn("if(REVIEW_SID)reviewSession();", self.app)
+        self.assertIn(".review-bar", self.css)
+
+    def test_sessions_page_menu_and_audit_trail(self):
+        self.assertIn("'?session='+encodeURIComponent(s.sid)", self.sessions)
+        self.assertIn('data-del>Delete session', self.sessions)
+        self.assertIn("'&by='+encodeURIComponent(by)", self.sessions)
+        self.assertIn("'&log=1'", self.sessions)
+        # the function refuses an anonymous delete and logs deletes + dashboard opens
+        self.assertIn("if (!by) { res.status(400)", self.session_fn)
+        self.assertIn("logAction('delete'", self.session_fn)
+        self.assertIn("logAction('open'", self.session_fn)
+        self.assertIn("sessions-log/", self.session_fn)
 
     def test_demo_is_unlisted_from_search_engines(self):
         self.assertIn('name="robots" content="noindex,nofollow,noarchive"', self.demo)
@@ -51,6 +74,22 @@ class PrototypeContractTests(unittest.TestCase):
         self.assertGreaterEqual(len(mcp_blocks), 5)
         for block in mcp_blocks:
             self.assertGreaterEqual(len(re.findall(r"'[^']+'", block)), 5, block)
+
+    def test_first_screen_asks_which_tools_and_profiles_lead_with_them(self):
+        # The intro asks for the company's tools; both agent modals split connections into
+        # "Your tools" then "Other connections available"; the answer is saved and captured.
+        self.assertIn("Which tools does your company use?", self.app)
+        self.assertIn("${toolPicker()}", self.app)
+        self.assertIn("Other connections available", self.app)
+        self.assertEqual(self.app.count("mcpSection("), 3)   # definition + both modals
+        self.assertEqual(self.app.count("tools:state.tools||[]"), 3)   # snapshot, capture, profile request
+        # Every tool the picker offers has a logo or a mono mark, and a known category.
+        tools = re.findall(r"\{n:'([^']+)',c:'([^']+)'\}", self.app)
+        self.assertGreaterEqual(len(tools), 30)
+        agent_cats = re.search(r"const AGENT_CATS=\{(.*?)\n  \};", self.app, re.S).group(1)
+        for name, cat in tools:
+            self.assertTrue(f"'{name}':" in self.app, name)
+            self.assertTrue(cat in ('email', 'chat', 'docs', 'sheets') or f"'{cat}'" in agent_cats, cat)
 
     def test_demo_uses_shared_assets_and_company_configuration(self):
         self.assertIn('window.PROTOTYPE_CONFIG', self.demo)

@@ -15,6 +15,12 @@
     header img{width:26px;height:26px;border-radius:7px}header h1{font-size:1.05rem;margin:0;flex:1}
     .key{display:flex;gap:8px;align-items:center}.key input{border:1.5px solid var(--line);border-radius:10px;padding:8px 11px;font:inherit;width:220px}
     .btn{border:0;border-radius:10px;padding:9px 14px;font:600 .88rem Inter,system-ui;cursor:pointer;background:var(--brand);color:#fff}.btn.sec{background:#eef0f3;color:#48505a}.live{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:.8rem;white-space:nowrap}.live i{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(26,157,95,.18);animation:blink 2s ease-in-out infinite}@keyframes blink{50%{opacity:.35}}.card.fresh{animation:fresh 2.4s ease-out}@keyframes fresh{0%{background:#e8f6ee;border-color:#9ad7b5}100%{background:#fff;border-color:var(--line)}}.pill.new{background:var(--green);color:#fff}.btn.del{color:#a12a2a;background:#fdeeee;padding:6px 10px;font-size:.78rem}
+    .key input#by{width:130px}
+    .side{display:flex;align-items:flex-start;gap:6px}.kebab{position:relative}.dots{border:0;background:transparent;border-radius:8px;width:30px;height:30px;font-size:1.2rem;line-height:1;color:var(--muted);cursor:pointer;letter-spacing:1px}.dots:hover,.kebab.open .dots{background:#eef0f3;color:var(--ink)}
+    .menu{position:absolute;right:0;top:34px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(20,40,70,.16);min-width:190px;padding:6px;z-index:8;display:none}.kebab.open .menu{display:block}
+    .menu a,.menu button{display:block;width:100%;text-align:left;border:0;background:transparent;font:500 .86rem Inter,system-ui;color:var(--ink);padding:8px 10px;border-radius:8px;cursor:pointer;text-decoration:none}.menu a:hover,.menu button:hover{background:#f0f4f9}.menu .danger{color:#a12a2a}.menu .danger:hover{background:#fdeeee}.menu hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+    .btn.open{padding:6px 10px;font-size:.78rem;text-decoration:none;display:inline-block}
+    .log{margin-top:28px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 16px}.log summary{cursor:pointer;font-weight:700;color:#48505a}.log table{width:100%;border-collapse:collapse;margin-top:10px;font-size:.84rem}.log td{padding:6px 8px;border-top:1px solid var(--line);vertical-align:top}.log td.who{font-weight:700;white-space:nowrap}.log td.act{white-space:nowrap}.log .del{color:#a12a2a}.log .mono{color:var(--muted);font-size:.76rem}
     main{max-width:1240px;margin:0 auto;padding:20px clamp(14px,3vw,32px) 60px}
     .stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 16px;min-width:130px}.stat b{display:block;font-size:1.4rem}.stat span{color:var(--muted);font-size:.8rem}
     .tools{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}.tools input{border:1.5px solid var(--line);border-radius:10px;padding:8px 11px;font:inherit;width:260px}.tools .n{color:var(--muted);font-size:.85rem}
@@ -35,12 +41,12 @@
     .prof{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px;display:grid;grid-template-columns:64px 1fr;gap:12px}.prof img{width:64px;height:64px;border-radius:10px;object-fit:cover}.prof ul{margin:6px 0 0;padding-left:18px;font-size:.86rem}
     .empty{padding:40px;text-align:center;color:var(--muted);background:#fff;border:1px dashed var(--line);border-radius:16px}
     .err{background:#fff0f0;border:1px solid #f3c2c2;color:#8a2323;border-radius:12px;padding:12px 14px;margin-bottom:14px}
-    @media(max-width:640px){.card{grid-template-columns:60px 1fr}.when{grid-column:2;text-align:left}.thumb{width:60px;height:60px}}
+    @media(max-width:640px){.card{grid-template-columns:60px 1fr}.side{grid-column:2;justify-content:space-between}.when{text-align:left}.thumb{width:60px;height:60px}}
   </style>
 </head>
 <body>
 <header><img src="/agent-hatchers-mark.png" alt=""><h1>Prototype sessions</h1>
-  <form class="key" id="keyform"><input id="key" type="password" placeholder="Sessions key" autocomplete="current-password"><button class="btn" type="submit">Load</button><button class="btn sec" type="button" id="refresh">Refresh</button><span class="live" id="live" hidden><i></i><span id="livetxt">Live</span></span></form>
+  <form class="key" id="keyform"><input id="by" placeholder="Your name" autocomplete="name" title="Deletes and dashboard opens are logged under this name"><input id="key" type="password" placeholder="Sessions key" autocomplete="current-password"><button class="btn" type="submit">Load</button><button class="btn sec" type="button" id="refresh">Refresh</button><span class="live" id="live" hidden><i></i><span id="livetxt">Live</span></span></form>
 </header>
 <main>
   <div id="err" class="err" hidden></div>
@@ -48,6 +54,7 @@
   <div class="tools" id="tools" hidden><input id="q" placeholder="Filter by company, business, agent name…"><span class="n" id="n"></span></div>
   <div class="list" id="list"></div>
   <div class="empty" id="empty">Enter the sessions key to load what prospects have hatched.</div>
+  <details class="log" id="log" hidden><summary>Activity — who opened or deleted what</summary><div id="logrows"></div></details>
 </main>
 <script>
 (()=>{
@@ -61,7 +68,26 @@
   const ago=t=>{if(!t)return '';const d=Date.now()-t,m=Math.round(d/60000);if(m<1)return 'just now';if(m<60)return m+' min ago';const h=Math.round(m/60);if(h<48)return h+' h ago';return Math.round(h/24)+' days ago';};
   const fmt=t=>t?new Date(t).toLocaleString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
   const dur=s=>{if(!s.startedAt||!s.savedAt)return '';const m=Math.round((s.savedAt-s.startedAt)/60000);return m<1?'under a minute':m+' min';};
-  try{const k=localStorage.getItem('ah-sessions-key');if(k){$('key').value=k;}}catch(e){}
+  try{const k=localStorage.getItem('ah-sessions-key');if(k){$('key').value=k;}const b=localStorage.getItem('ah-sessions-by');if(b)$('by').value=b;}catch(e){}
+  $('by').oninput=()=>{try{localStorage.setItem('ah-sessions-by',$('by').value.trim());}catch(e){}};
+  const who=()=>$('by').value.trim();
+  // The dashboard link: the page they used (per-prospect route or the generic one) in review mode.
+  const dashUrl=s=>{const pg=s.page&&/^\/prototype\/[a-z0-9_.\/-]*$/i.test(s.page)&&!/sessions/i.test(s.page)?s.page.replace(/index\.html$/,''):'/prototype/';return pg+'?session='+encodeURIComponent(s.sid);};
+  async function removeSession(sid){
+    const by=who();if(!by){alert('Put your name in the box at the top first — deletes are logged.');$('by').focus();return;}
+    const s=all.find(x=>x.sid===sid);
+    if(!confirm(`Delete the session for ${s?(s.company||'this unnamed company'):sid}? It's logged as ${by} and can't be undone.`))return;
+    try{const r=await fetch(ENDPOINT+'?key='+encodeURIComponent($('key').value.trim())+'&sid='+encodeURIComponent(sid)+'&by='+encodeURIComponent(by),{method:'DELETE'});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
+      all=all.filter(x=>x.sid!==sid);full.delete(sid);if(seen)seen.delete(sid);draw();loadLog();}
+    catch(e){alert('Could not delete: '+e.message);}
+  }
+  async function loadLog(){
+    try{const r=await fetch(ENDPOINT+'?key='+encodeURIComponent($('key').value.trim())+'&log=1',{cache:'no-store'});if(!r.ok)return;const j=await r.json();const log=j.log||[];
+      $('log').hidden=false;
+      $('logrows').innerHTML=log.length?`<table>${log.map(e=>`<tr><td class="who">${esc(e.by||'unknown')}</td><td class="act ${e.action==='delete'?'del':''}">${e.action==='delete'?'deleted':'opened the dashboard of'}</td><td>${esc(e.company||'an unnamed company')}${e.name?` · ${esc(e.name)}`:''}<div class="mono">${esc(e.sid)}</div></td><td class="mono">${esc(fmt(e.at))}<br>${esc(e.ip||'')}</td></tr>`).join('')}</table>`:'<p style="color:#6b7480;margin:10px 0 0">Nothing yet. Deletes and dashboard opens land here with the name typed at the top.</p>';}
+    catch(e){}
+  }
+  document.addEventListener('click',e=>{if(!e.target.closest('.kebab'))document.querySelectorAll('.kebab.open').forEach(k=>k.classList.remove('open'));});
   $('keyform').onsubmit=e=>{e.preventDefault();load();};$('refresh').onclick=()=>load();
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&all.length&&Date.now()-lastLoad>5000)load(true);});
   setInterval(()=>{if($('live').hidden)return;const s=Math.round((Date.now()-lastLoad)/1000);$('livetxt').textContent=s<5?'Live · just updated':`Live · updated ${s<60?s+'s':Math.round(s/60)+' min'} ago`;},1000);
@@ -84,27 +110,35 @@
       open.forEach(sid=>{const el=document.querySelector(`.card[data-sid="${sid}"]`);if(el)toggle(el);});
       if(fresh.size&&quiet&&document.title.indexOf('•')<0)document.title='• '+document.title;
       $('live').hidden=false;clearTimeout(timer);timer=setTimeout(()=>load(true),POLL);
+      if(!quiet)loadLog();
     }catch(e){if(!quiet){$('err').textContent='Could not load sessions: '+e.message;$('err').hidden=false;$('empty').textContent='Nothing loaded.';}clearTimeout(timer);timer=setTimeout(()=>load(true),POLL);}
   }
   window.addEventListener('focus',()=>{document.title=document.title.replace(/^• /,'');});
   function draw(){
     const q=$('q').value.trim().toLowerCase();
-    const rows=all.filter(s=>!q||`${s.company} ${s.biz} ${s.name} ${s.industry} ${s.brand}`.toLowerCase().includes(q));
+    const rows=all.filter(s=>!q||`${s.company} ${s.biz} ${s.name} ${s.industry} ${s.brand} ${(s.tools||[]).join(' ')}`.toLowerCase().includes(q));
     const hatched=all.filter(s=>s.step>=4).length,profiles=all.reduce((n,s)=>n+(s.profileCount||0),0),chats=all.reduce((n,s)=>n+(s.chatTurns||0),0);
     $('stats').innerHTML=[['Sessions',all.length],['Reached the dashboard',hatched],['Profiles created',profiles],['Chat messages',chats],['Last activity',all[0]?ago(all[0].savedAt):'—']].map(([l,v])=>`<div class="stat"><b>${esc(v)}</b><span>${l}</span></div>`).join('');
     $('stats').hidden=false;$('tools').hidden=false;$('n').textContent=rows.length+' shown';
     $('empty').hidden=rows.length>0;if(!rows.length)$('empty').textContent=all.length?'No sessions match.':'No sessions yet — they appear as soon as a prospect gets past the first screen.';
     $('list').innerHTML=rows.map(card).join('');
-    document.querySelectorAll('.card').forEach(el=>el.onclick=e=>{if(e.target.closest('.detail')||e.target.closest('a'))return;toggle(el);});
+    document.querySelectorAll('.card').forEach(el=>el.onclick=e=>{if(e.target.closest('.detail')||e.target.closest('a')||e.target.closest('.kebab'))return;toggle(el);});
+    document.querySelectorAll('.kebab').forEach(k=>{
+      k.querySelector('.dots').onclick=e=>{e.stopPropagation();const was=k.classList.contains('open');document.querySelectorAll('.kebab.open').forEach(x=>x.classList.remove('open'));if(!was)k.classList.add('open');};
+      k.querySelector('[data-copy]').onclick=e=>{e.stopPropagation();k.classList.remove('open');try{navigator.clipboard.writeText(k.dataset.sid);}catch(err){}};
+      k.querySelector('[data-del]').onclick=e=>{e.stopPropagation();k.classList.remove('open');removeSession(k.dataset.sid);};
+    });
   }
   function card(s){
     const team=(s.teamIds||[]).map(id=>AGENT_NAMES[id]||id).join(', ');
     return `<article class="card${fresh.has(s.sid)?' fresh':''}" data-sid="${esc(s.sid)}">
       <div class="thumb">${s.thumb?`<img src="${esc(s.thumb)}" alt="">`:(s.step>=3?'hatching':'no hatch')}</div>
       <div><div class="title">${esc(s.company||'Unnamed company')}${s.name?`<small>· ${esc(s.name)}</small>`:''}</div>
-        <div class="sub">${esc(s.biz||'no business typed')}${s.industry?` · ${esc(s.industry)}`:''}${s.brand?` · from ${esc(s.brand)}`:''}</div>
+        <div class="sub">${esc(s.biz||'no business typed')}${s.industry?` · ${esc(s.industry)}`:''}${s.brand?` · from ${esc(s.brand)}`:''}${s.tools&&s.tools.length?` · uses ${esc(s.tools.slice(0,4).join(', '))}${s.tools.length>4?` +${s.tools.length-4}`:''}`:''}</div>
         <div class="pills">${fresh.has(s.sid)?'<span class="pill new">updated</span>':''}<span class="pill ${s.step>=4?'ok':s.step>=3?'':'grey'}">${STEPS[s.step]||'Step '+s.step}${s.step===4&&s.tab?` · ${esc(s.tab)}`:''}</span>${s.done?'<span class="pill ok">Connected</span>':''}${team?`<span class="pill grey">Team: ${esc(team)}</span>`:''}${s.profileCount?`<span class="pill">${s.profileCount} profile${s.profileCount===1?'':'s'} created</span>`:''}${s.chatTurns?`<span class="pill">${s.chatTurns} chat message${s.chatTurns===1?'':'s'}</span>`:''}${s.hadPhoto?'<span class="pill warn">used a photo</span>':''}</div></div>
-      <div class="when"><b>${esc(ago(s.savedAt))}</b>${esc(fmt(s.savedAt))}${dur(s)?`<br>${esc(dur(s))} on the page`:''}</div>
+      <div class="side"><div class="when"><b>${esc(ago(s.savedAt))}</b>${esc(fmt(s.savedAt))}${dur(s)?`<br>${esc(dur(s))} on the page`:''}</div>
+        <div class="kebab" data-sid="${esc(s.sid)}"><button class="dots" type="button" aria-label="Session menu" title="More">&#8943;</button>
+          <div class="menu"><a href="${esc(dashUrl(s))}" target="_blank" rel="noopener">Open dashboard ↗</a><button type="button" data-copy>Copy session id</button><hr><button type="button" class="danger" data-del>Delete session…</button></div></div></div>
       <div class="detail" id="d-${esc(s.sid)}">Loading…</div></article>`;
   }
   async function toggle(el){
@@ -114,13 +148,11 @@
     try{
       let d=full.get(sid);if(!d){const r=await fetch(ENDPOINT+'?key='+encodeURIComponent($('key').value.trim())+'&sid='+encodeURIComponent(sid),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);d=await r.json();full.set(sid,d);}
       box.innerHTML=detail(d);
-      box.querySelector('[data-del]').onclick=async()=>{const s=all.find(x=>x.sid===sid);if(!confirm(`Delete the session for ${s?s.company:sid}? This can't be undone.`))return;
-        try{const r=await fetch(ENDPOINT+'?key='+encodeURIComponent($('key').value.trim())+'&sid='+encodeURIComponent(sid),{method:'DELETE'});if(!r.ok)throw new Error('HTTP '+r.status);all=all.filter(x=>x.sid!==sid);full.delete(sid);draw();}
-        catch(e){alert('Could not delete: '+e.message);}};
+      box.querySelector('[data-del]').onclick=()=>removeSession(sid);
     }catch(e){box.textContent='Could not load this session: '+e.message;}
   }
   function detail(d){
-    const kv=[['Company',d.company],['Agent name',d.name],['Business',d.biz],['Industry',d.industry],['Look described',d.look],['Website used',d.brand?`${d.brand.name||''} ${d.brand.url||''}`:''],['Reference photo',d.hadPhoto?'yes (not stored)':'no'],['Team intro',d.team&&d.team.intro],['Team source',d.team&&d.team.source],['Redesigns used',d.editUses],['Page',d.page],['Build',d.build],['Browser',d.ua]].filter(([,v])=>v!==undefined&&v!==null&&v!=='').map(([k,v])=>`<div>${esc(k)}</div><div>${esc(v)}</div>`).join('');
+    const kv=[['Company',d.company],['Agent name',d.name],['Business',d.biz],['Industry',d.industry],['Tools they use',(d.tools||[]).join(', ')],['Look described',d.look],['Website used',d.brand?`${d.brand.name||''} ${d.brand.url||''}`:''],['Reference photo',d.hadPhoto?'yes (not stored)':'no'],['Team intro',d.team&&d.team.intro],['Team source',d.team&&d.team.source],['Redesigns used',d.editUses],['Page',d.page],['Build',d.build],['Browser',d.ua]].filter(([,v])=>v!==undefined&&v!==null&&v!=='').map(([k,v])=>`<div>${esc(k)}</div><div>${esc(v)}</div>`).join('');
     const slots=(d.slots||[]).map((im,i)=>im?`<figure><img src="${esc(im)}" alt=""><figcaption>Design ${i+1}${d.variant===i?' · chosen':''}</figcaption></figure>`:'').join('');
     const market=Object.entries(d.market||{}).map(([id,im])=>`<figure><img src="${esc(im)}" alt=""><figcaption>${esc(AGENT_NAMES[id]||id)}</figcaption></figure>`).join('');
     const team=d.team&&d.team.lines?Object.entries(d.team.lines).map(([id,l])=>`<div class="msg"><i>${esc(AGENT_NAMES[id]||id)}</i>${esc(l.does||'')} <span style="color:#6b7480">— ${esc(l.job||'')}</span></div>`).join(''):'';
@@ -132,7 +164,7 @@
       ${market?`<h4>Marketplace portraits</h4><div class="row">${market}</div>`:''}
       ${profiles?`<h4>Profiles they created</h4>${profiles}`:''}
       ${chats?`<h4>Chats</h4>${chats}`:''}
-      <p style="color:#6b7480;font-size:.8rem;margin-top:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span>Session ${esc(d.sid)} · started ${esc(fmt(d.startedAt))} · last saved ${esc(fmt(d.savedAt))}</span><button class="btn sec del" data-del="${esc(d.sid)}" type="button">Delete session</button></p>`;
+      <p style="color:#6b7480;font-size:.8rem;margin-top:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span>Session ${esc(d.sid)} · started ${esc(fmt(d.startedAt))} · last saved ${esc(fmt(d.savedAt))}</span><a class="btn open" href="${esc(dashUrl(all.find(x=>x.sid===d.sid)||{sid:d.sid,page:d.page}))}" target="_blank" rel="noopener">Open dashboard ↗</a><button class="btn sec del" data-del="${esc(d.sid)}" type="button">Delete session</button></p>`;
   }
   if($('key').value)load();
 })();

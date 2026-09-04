@@ -114,3 +114,14 @@ cd portrait-proxy && npx vercel env add SESSIONS_KEY production && npx vercel --
 Set `SLACK_WEBHOOK_URL` to a Slack *incoming webhook* URL and the session function posts to that
 channel the first time a session reaches the dashboard, and again if they connect an instance
 (once each per session — tracked in `sessions-index/`). `SESSIONS_PAGE` overrides the link.
+
+### Opening a dashboard, deleting, and who did it (build 48)
+
+Each card on the sessions page has a `⋯` menu: **Open dashboard** loads that prospect's saved
+session into the prototype at `/prototype/?session=<sid>` (read-only review mode — nothing is
+saved back, generated or counted; the sessions key comes from the browser's localStorage), and
+**Delete session…** removes it. The key is shared, so the page asks for **your name** (top-left,
+remembered per browser): `DELETE ?key=…&sid=…&by=<name>` is refused without one. Every delete
+and every dashboard open is written to `sessions-log/<time>-<action>-<sid>.json` with the name,
+IP and browser, shown under **Activity** at the bottom of the sessions page (`GET ?key=…&log=1`),
+and deletes also post to the Slack webhook.

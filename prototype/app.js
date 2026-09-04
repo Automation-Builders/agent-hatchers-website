@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 48;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 51;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -17,7 +17,7 @@
     {id:'website',icon:'◇',name:'Website Agent',industries:['all'],keywords:['website','content','publish','webflow','wordpress','page','blog','copy','web','online'],summary:'Keeps website content accurate, on-brand and ready for approval before publishing.',portrait:'/hatchy-website.webp',team:'Marketing',scene:'It is a website agent wearing a comfy hoodie and headphones around its neck, at a dual-monitor desk in a loft studio at night editing a colourful online storefront, with sticky notes on the window and a small cactus by the keyboard.',mcps:['GitHub','Webflow','WordPress','Google Drive','Slack'],outcomes:['Draft new website pages','Update approved copy and details','Check pages for stale information','Prepare search-friendly metadata','Publish only after human approval']},
     {id:'operations',icon:'✓',name:'Operations Agent',industries:['professional-services','construction','healthcare','all'],keywords:['operations','workflow','project','task','deadline','schedule','coordination','process','compliance','ops','clinic','manufacturing'],summary:'Coordinates repeatable workflows and keeps teams informed when work changes state.',portrait:'/hatchy-routing.webp',team:'Operations',scene:'It is an operations agent wearing a project-manager lanyard and holding a marker, standing at a wall-sized kanban board covered in swim-lanes and sticky notes in a bright planning room, with interlocking gears drawn on a whiteboard behind it.',mcps:['Monday.com','Asana','Notion','Slack','Microsoft Teams'],outcomes:['Turn requests into structured work','Monitor deadlines and blockers','Prepare daily operating summaries','Chase missing information','Escalate exceptions to the right person']}
   ];
-  const state = {step:0,name:'',biz:'',industry:'',look:'',team:null,teamBusy:false,refPhoto:'',brand:null,refBusy:false,refError:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:0,chatExtra:{},chatTyping:{},company:'',editUses:0,profiles:[],sid:'',startedAt:0,merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
+  const state = {step:0,name:'',biz:'',industry:'',tools:[],toolsOpen:false,look:'',team:null,teamBusy:false,refPhoto:'',brand:null,refBusy:false,refError:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketStarted:false,tab:'profiles',chatActive:0,chatExtra:{},chatTyping:{},company:'',editUses:0,profiles:[],sid:'',startedAt:0,merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
   const root = document.getElementById('prototype-app');
   const co = () => state.company || config.company || 'Your Company';
   const DESIGN_AXES={
@@ -125,7 +125,7 @@
   document.body.insertAdjacentHTML('beforeend', MCP_SPRITE);
   // Real marks where the brand sprite has them; brand-coloured monograms for the rest.
   const MCP_ICONS={'Gmail':'lg-gmail','Slack':'lg-slack','Microsoft Teams':'lg-teams','HubSpot':'lg-hubspot','Xero':'lg-xero','QuickBooks':'lg-quickbooks','Stripe':'lg-stripe','Notion':'lg-notion','Zendesk':'lg-zendesk'};
-  const MCP_MONO={'AfterShip':['AS','#FF6B2C'],'Asana':['as','#F06A6A'],'Canva':['C','#00C4CC'],'Cin7':['C7','#0B2E4F'],'Dropbox':['D','#0061FF'],'GitHub':['GH','#181717'],'Google Ads':['GA','#4285F4'],'Google Analytics':['An','#E37400'],'Google Drive':['GD','#1FA463'],'Google Sheets':['GS','#188038'],'Intercom':['IC','#1F8DED'],'Klaviyo':['K','#16120F'],'LinkedIn':['in','#0A66C2'],'Loop Returns':['L','#3D3AF2'],'MYOB':['M','#6100A5'],'Meta Ads':['M','#0081FB'],'Microsoft 365':['MS','#D83B01'],'Monday.com':['mo','#FF3D57'],'Salesforce':['SF','#00A1E0'],'ShipStation':['SS','#2E7FC0'],'Shopify':['S','#96BF48'],'Webflow':['W','#4353FF'],'WordPress':['W','#21759B']};
+  const MCP_MONO={'AfterShip':['AS','#FF6B2C'],'Asana':['as','#F06A6A'],'Canva':['C','#00C4CC'],'Cin7':['C7','#0B2E4F'],'Dropbox':['D','#0061FF'],'GitHub':['GH','#181717'],'Google Ads':['GA','#4285F4'],'Google Analytics':['An','#E37400'],'Google Drive':['GD','#1FA463'],'Google Sheets':['GS','#188038'],'Intercom':['IC','#1F8DED'],'Klaviyo':['K','#16120F'],'LinkedIn':['in','#0A66C2'],'Loop Returns':['L','#3D3AF2'],'MYOB':['M','#6100A5'],'Meta Ads':['M','#0081FB'],'Microsoft 365':['MS','#D83B01'],'Monday.com':['mo','#FF3D57'],'Salesforce':['SF','#00A1E0'],'ShipStation':['SS','#2E7FC0'],'Shopify':['S','#96BF48'],'Webflow':['W','#4353FF'],'WordPress':['W','#21759B'],'Pipedrive':['P','#017737'],'Freshdesk':['F','#25C16F'],'Square':['Sq','#3E4348'],'WooCommerce':['Wo','#7F54B3'],'Mailchimp':['MC','#241C15'],'Trello':['T','#0052CC'],'Jira':['J','#0052CC'],'Calendly':['C','#006BFF'],'Google Calendar':['GC','#4285F4'],'DocuSign':['DS','#4C00FF'],'Xero Payroll':['XP','#13B5EA'],'Deputy':['D','#E7412B'],'Airtable':['At','#18BFFF'],'Zoom':['Z','#0B5CFF'],'Cliniko':['Cl','#2E8B57']};
   // Which agents naturally hand work to each other — shown as a suggested team.
   // Plain-English intro (welcome + team screens), written for people who have never used
   // an AI agent: one sentence of what it does for you, a short "job" for the hand-off flow,
@@ -197,11 +197,64 @@
     'Shopify':'<svg viewBox="0 0 24 24" class="mcp-lg"><path d="M7.6 7.4l.9-3c.2-.7.8-1.2 1.5-1.2h4c.7 0 1.3.5 1.5 1.2l.9 3h2.1c.6 0 1 .4 1.1 1l1 11c.1.8-.5 1.5-1.3 1.5H4.7c-.8 0-1.4-.7-1.3-1.5l1-11c.1-.6.5-1 1.1-1Z" fill="#96BF48"/><text x="12" y="17.2" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-style="italic" font-size="9.5" fill="#fff">S</text></svg>',
     'Intercom':'<svg viewBox="0 0 24 24" class="mcp-lg"><rect x="2.5" y="2.5" width="19" height="19" rx="4.5" fill="#1F8DED"/><rect x="6.1" y="7" width="1.7" height="7" rx=".85" fill="#fff"/><rect x="9.4" y="6.2" width="1.7" height="8.6" rx=".85" fill="#fff"/><rect x="12.7" y="6.2" width="1.7" height="8.6" rx=".85" fill="#fff"/><rect x="16" y="7" width="1.7" height="7" rx=".85" fill="#fff"/><path d="M6.5 17c3.6 2.4 7.4 2.4 11 0" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></svg>'
   };
-  function mcpChip(name){
+  function mcpIcon(name){
     const sym=MCP_ICONS[name];
-    const icon=sym?`<svg class="mcp-lg" aria-hidden="true"><use href="#${sym}"/></svg>`
-      :(MCP_SVGS[name]||(MCP_MONO[name]?`<span class="mcp-mono" style="background:${MCP_MONO[name][1]}">${MCP_MONO[name][0]}</span>`:''));
-    return `<span class="mcp">${icon}${escapeHtml(name)}</span>`;
+    if(sym)return `<svg class="mcp-lg" aria-hidden="true"><use href="#${sym}"/></svg>`;
+    if(MCP_SVGS[name])return MCP_SVGS[name];
+    // Anything typed in by the prospect gets a neutral two-letter mark.
+    const mono=MCP_MONO[name]||[name.replace(/[^A-Za-z0-9]/g,'').slice(0,2)||'?','#5b6b7a'];
+    return `<span class="mcp-mono" style="background:${mono[1]}">${escapeHtml(mono[0])}</span>`;
+  }
+  function mcpChip(name,mine){return `<span class="mcp${mine?' is-mine':''}">${mcpIcon(name)}${escapeHtml(name)}${mine?'<i class="mcp-tick" aria-hidden="true">✓</i>':''}</span>`;}
+
+  // ---------- "Which tools does your company use?" ----------
+  // Asked on the first screen, next to the industry. Every tool has a category and every
+  // catalog agent lists the categories it can genuinely use, so an agent's profile leads with
+  // the prospect's OWN tools that fit the job ("Your tools") and only then lists its usual
+  // connectors ("Other connections available"). Email, chat, docs and sheets fit every agent.
+  // Tools the prospect types in themselves are shown to every agent — we can't categorise them.
+  const TOOLS=[
+    {n:'Gmail',c:'email'},{n:'Microsoft 365',c:'email'},{n:'Slack',c:'chat'},{n:'Microsoft Teams',c:'chat'},{n:'Zoom',c:'chat'},
+    {n:'Google Drive',c:'docs'},{n:'Dropbox',c:'docs'},{n:'Notion',c:'docs'},{n:'DocuSign',c:'docs'},{n:'Google Sheets',c:'sheets'},{n:'Airtable',c:'sheets'},
+    {n:'HubSpot',c:'crm'},{n:'Salesforce',c:'crm'},{n:'Pipedrive',c:'crm'},{n:'Zendesk',c:'support'},{n:'Intercom',c:'support'},{n:'Freshdesk',c:'support'},
+    {n:'Xero',c:'accounting'},{n:'MYOB',c:'accounting'},{n:'QuickBooks',c:'accounting'},{n:'Stripe',c:'payments'},{n:'Square',c:'payments'},
+    {n:'Shopify',c:'ecommerce'},{n:'WooCommerce',c:'ecommerce'},{n:'Loop Returns',c:'ecommerce'},{n:'ShipStation',c:'shipping'},{n:'AfterShip',c:'shipping'},{n:'Cin7',c:'inventory'},
+    {n:'Google Ads',c:'ads'},{n:'Meta Ads',c:'ads'},{n:'Google Analytics',c:'analytics'},{n:'Klaviyo',c:'marketing'},{n:'Mailchimp',c:'marketing'},{n:'Canva',c:'design'},{n:'LinkedIn',c:'social'},
+    {n:'GitHub',c:'dev'},{n:'Webflow',c:'cms'},{n:'WordPress',c:'cms'},{n:'Monday.com',c:'projects'},{n:'Asana',c:'projects'},{n:'Trello',c:'projects'},{n:'Jira',c:'projects'},
+    {n:'Calendly',c:'calendar'},{n:'Google Calendar',c:'calendar'},{n:'Deputy',c:'people'},{n:'Xero Payroll',c:'people'},{n:'Cliniko',c:'bookings'}
+  ];
+  const TOOL_CAT=Object.fromEntries(TOOLS.map(t=>[t.n,t.c]));
+  // Shown before "More tools" is pressed — the ones a small business most often has.
+  const POPULAR_TOOLS=new Set(['Gmail','Microsoft 365','Slack','Microsoft Teams','Google Drive','Notion','Google Sheets','HubSpot','Xero','MYOB','Shopify','Zendesk','Stripe','Canva']);
+  const UNIVERSAL_CATS=new Set(['email','chat','docs','sheets']);
+  const AGENT_CATS={
+    logistics:['ecommerce','shipping','inventory','bookings'],
+    marketing:['ads','analytics','marketing','design','social','cms'],
+    support:['support','crm','ecommerce','bookings','calendar'],
+    returns:['ecommerce','payments','shipping','support'],
+    sales:['crm','calendar','social','marketing'],
+    inventory:['ecommerce','inventory','accounting','shipping'],
+    invoices:['accounting','payments','ecommerce'],
+    documents:['docs','projects','crm'],
+    website:['cms','dev','analytics','design'],
+    operations:['projects','calendar','people','bookings']
+  };
+  const toolCat=n=>TOOL_CAT[n]||'custom';
+  const hasTool=n=>(state.tools||[]).some(x=>x.toLowerCase()===String(n).toLowerCase());
+  function yourTools(cats){const c=new Set(cats||[]);return (state.tools||[]).filter(n=>{const k=toolCat(n);return k==='custom'||UNIVERSAL_CATS.has(k)||c.has(k);});}
+  const andList=a=>a.length<2?a.join(''):`${a.slice(0,-1).join(', ')} and ${a[a.length-1]}`;
+  function toolsBlurb(){const t=state.tools||[];if(!t.length)return 'the tools you already use';if(t.length<=3)return escapeHtml(andList(t));return `${escapeHtml(t.slice(0,3).join(', '))} and ${t.length-3} more`;}
+  function mcpSection(who,mcps,cats){
+    const yours=yourTools(cats);
+    const low=new Set(yours.map(n=>n.toLowerCase()));
+    const others=mcps.filter(m=>!low.has(m.toLowerCase()));
+    if(!yours.length)return `<h3>Available MCP connections</h3><p>These secure connectors let ${who} work with your existing systems while respecting approvals and permissions.</p><div class="mcp-list">${mcps.map(m=>mcpChip(m)).join('')}</div>`;
+    return `<h3>Available MCP connections</h3><p class="tailored-note"><span class="tailored-pill">Your tools</span>${who} plugs straight into what ${escapeHtml(co())} already uses, with approvals and permissions respected.</p><div class="mcp-list">${yours.map(n=>mcpChip(n,true)).join('')}</div>${others.length?`<h4 class="mcp-sub">Other connections available</h4><div class="mcp-list">${others.map(m=>mcpChip(m)).join('')}</div>`:''}`;
+  }
+  function toolPicker(){
+    const custom=(state.tools||[]).filter(n=>!TOOL_CAT[n]);
+    const chip=(n,extra)=>`<button type="button" class="tool-chip${hasTool(n)?' is-on':''}${extra?' tool-extra':''}" data-tool="${escapeHtml(n)}" aria-pressed="${hasTool(n)}">${mcpIcon(n)}<span>${escapeHtml(n)}</span></button>`;
+    return `<span class="intro-label" id="tool-label">Which tools does your company use? <span class="intro-optional">(optional)</span></span><p class="tool-hint">Pick any you use and your agents will show up already plugged into them.</p><div class="tool-pick${state.toolsOpen?' is-open':''}" id="tool-pick" role="group" aria-labelledby="tool-label">${TOOLS.map(t=>chip(t.n,!POPULAR_TOOLS.has(t.n))).join('')}${custom.map(n=>chip(n,false)).join('')}<button type="button" class="tool-more" data-tool-more aria-expanded="${!!state.toolsOpen}"><span>${state.toolsOpen?'Fewer tools':'More tools'}</span> ▾</button></div><div class="tool-other"><input class="name-field" id="tool-other" maxlength="30" autocomplete="off" placeholder="Something else? Type it and press Enter" aria-label="Another tool your company uses"><button type="button" class="btn btn-secondary tool-add" data-tool-add>Add</button></div>`;
   }
   function escapeHtml(value){return String(value).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
   function chip(){if(state.variant===null)return `<span class="private-pill">Private preview</span>`;const inner=state.selectedImage?`<img class="chip-img" src="${escapeHtml(state.selectedImage)}" alt="">`:bot('v'+state.variant+' chip');return `<span class="agent-chip">${inner}<span>${escapeHtml(state.name)}</span></span>`;}
@@ -214,7 +267,12 @@
   // portraits, created profiles and chat turns — all images as ~240–320px JPEG thumbnails, and
   // never the person's reference photo. Throttled to one upload per 12s; failures are silent.
   const sessionEndpoint = config.sessionEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-session');
-  const captureOn = config.saveSessions!==false && /^https?:/.test(sessionEndpoint);
+  // Review mode: the team opens a saved session from sessions.html as /prototype/?session=<sid>.
+  // The stored snapshot (thumbnails and all) is poured into the dashboard read-only — nothing
+  // is written back to the store or IndexedDB, and no image or chat call is made.
+  const REVIEW_SID=(()=>{try{const v=new URLSearchParams(location.search).get('session')||'';return /^[a-z0-9-]{8,64}$/i.test(v)?v:'';}catch(e){return '';}})();
+  const captureOn = !REVIEW_SID && config.saveSessions!==false && /^https?:/.test(sessionEndpoint);
+  const cleanTools=t=>Array.isArray(t)?[...new Set(t.map(x=>String(x).replace(/\s+/g,' ').trim().slice(0,30)).filter(Boolean))].slice(0,40):[];
   const uid=()=>(crypto.randomUUID?crypto.randomUUID():'s-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10));
   const thumbCache=new Map();
   async function thumb(src,max=320){if(!src||!/^data:/.test(src))return '';const k=max+':'+src.slice(0,80)+src.length;if(thumbCache.has(k))return thumbCache.get(k);const t=await downscale(src,max,true);thumbCache.set(k,t);return t;}
@@ -236,7 +294,7 @@
     const profiles=await Promise.all(state.profiles.filter(p=>p.status==='complete'||p.status==='deleted').map(async p=>({name:p.name,desc:p.desc,status:p.status,img:await thumb(p.img,240),profile:p.profile||null})));
     let chatNames=[];try{chatNames=chatProfiles().all.map(x=>x.name);}catch(e){}
     return {sid:state.sid,v:1,build:BUILD,page:location.pathname,startedAt:state.startedAt,savedAt:Date.now(),ua:navigator.userAgent.slice(0,160),
-      company:co(),name:state.name,biz:state.biz,industry:state.industry,look:state.look,step:state.step,tab:state.tab,done:state.done,editUses:state.editUses,
+      company:co(),name:state.name,biz:state.biz,industry:state.industry,tools:state.tools||[],look:state.look,step:state.step,tab:state.tab,done:state.done,editUses:state.editUses,
       brand:state.brand?{name:state.brand.name,url:state.brand.url,colors:state.brand.colors}:null,hadPhoto:!!state.refPhoto,
       team:state.team?{ids:state.team.ids,intro:state.team.intro,source:state.team.source,lines:state.team.lines}:null,
       variant:state.variant,selectedImage:await thumb(state.selectedImage),slots,market,profiles,chats:state.chatExtra||{},chatNames};
@@ -249,14 +307,14 @@
   const SESSION_KEY=location.pathname;
   function idb(){return new Promise((ok,bad)=>{if(!window.indexedDB)return bad(new Error('no idb'));const r=indexedDB.open('ah-prototype',1);r.onupgradeneeded=()=>r.result.createObjectStore('session');r.onsuccess=()=>ok(r.result);r.onerror=()=>bad(r.error);});}
   async function loadSession(){try{const db=await idb();return await new Promise((ok,bad)=>{const q=db.transaction('session','readonly').objectStore('session').get(SESSION_KEY);q.onsuccess=()=>ok(q.result||null);q.onerror=()=>bad(q.error);});}catch(e){return null;}}
-  async function writeSession(v){try{const db=await idb();await new Promise((ok,bad)=>{const t=db.transaction('session','readwrite');if(v===null)t.objectStore('session').delete(SESSION_KEY);else t.objectStore('session').put(v,SESSION_KEY);t.oncomplete=ok;t.onerror=()=>bad(t.error);});}catch(e){}}
+  async function writeSession(v){if(REVIEW_SID)return;try{const db=await idb();await new Promise((ok,bad)=>{const t=db.transaction('session','readwrite');if(v===null)t.objectStore('session').delete(SESSION_KEY);else t.objectStore('session').put(v,SESSION_KEY);t.oncomplete=ok;t.onerror=()=>bad(t.error);});}catch(e){}}
   let saveTimer=null;
   function saveSession(){
     clearTimeout(saveTimer);
     saveTimer=setTimeout(()=>{
       if(state.step<1){return;}
       if(!state.sid){state.sid=uid();state.startedAt=Date.now();}
-      const snap={v:1,build:BUILD,sid:state.sid,startedAt:state.startedAt,savedAt:Date.now(),step:state.step,name:state.name,company:state.company,biz:state.biz,industry:state.industry,look:state.look,team:state.team,axes:state.axes||null,refPhoto:state.refPhoto,brand:state.brand,
+      const snap={v:1,build:BUILD,sid:state.sid,startedAt:state.startedAt,savedAt:Date.now(),step:state.step,name:state.name,company:state.company,biz:state.biz,industry:state.industry,tools:state.tools||[],look:state.look,team:state.team,axes:state.axes||null,refPhoto:state.refPhoto,brand:state.brand,
         slots:state.slots.map(s=>s&&s.status==='ready'?{status:'ready',image:s.image||''}:null),variant:state.variant,selectedImage:state.selectedImage,done:state.done,
         marketImages:state.marketImages,tab:state.tab,chatActive:state.chatActive,chatExtra:state.chatExtra,editUses:state.editUses,
         profiles:state.profiles.filter(p=>p.status==='complete'||p.status==='deleted').map(p=>({id:p.id,name:p.name,desc:p.desc,img:p.img,step:p.step,status:p.status,profile:p.profile||null,dismissed:!!p.dismissed}))};
@@ -268,8 +326,9 @@
   async function restoreSession(){
     const snap=await loadSession();
     if(!snap||snap.v!==1||!(snap.step>=1))return false;
-    const fields=['sid','startedAt','name','company','biz','industry','look','team','axes','refPhoto','brand','variant','selectedImage','done','marketImages','tab','chatActive','chatExtra','editUses'];
+    const fields=['sid','startedAt','name','company','biz','industry','tools','look','team','axes','refPhoto','brand','variant','selectedImage','done','marketImages','tab','chatActive','chatExtra','editUses'];
     fields.forEach(k=>{if(snap[k]!==undefined)state[k]=snap[k];});
+    state.tools=cleanTools(state.tools);
     state.slots=(snap.slots||[]).map(s=>s&&s.status==='ready'?{status:'ready',image:s.image||''}:null);
     state.profiles=(snap.profiles||[]).map(p=>({...p,cancelled:false}));
     cpSeq=state.profiles.reduce((m,p)=>Math.max(m,parseInt(String(p.id).replace('np',''),10)||0),0);
@@ -293,6 +352,30 @@
     if(!src)return false;
     try{const im=await loadImg(src);const r=im.naturalWidth/im.naturalHeight;return !(r>0.85&&r<1.18);}catch(e){return false;}
   }
+  async function reviewSession(){
+    let key='',by='';try{key=localStorage.getItem('ah-sessions-key')||'';by=localStorage.getItem('ah-sessions-by')||'';}catch(e){}
+    if(!key){key=(prompt('Sessions key (the one you use on the sessions page)')||'').trim();try{if(key)localStorage.setItem('ah-sessions-key',key);}catch(e){}}
+    const bar=document.createElement('div');bar.className='review-bar';bar.innerHTML='<span>Loading the saved session…</span>';document.body.prepend(bar);
+    const fail=msg=>{bar.classList.add('bad');bar.innerHTML=`<span>${escapeHtml(msg)}</span><a href="/prototype/sessions.html">Back to sessions</a>`;render();};
+    if(!key)return fail('No sessions key — open the sessions page, enter the key, then come back.');
+    let d;
+    try{const r=await fetch(`${sessionEndpoint}?key=${encodeURIComponent(key)}&sid=${encodeURIComponent(REVIEW_SID)}&view=1&by=${encodeURIComponent(by)}`,{cache:'no-store'});if(!r.ok)throw new Error(r.status===401?'wrong sessions key':r.status===404?'it has been deleted':'HTTP '+r.status);d=await r.json();}
+    catch(e){return fail('Could not load this session: '+e.message);}
+    ['name','company','biz','industry','tools','look','team','brand','variant','selectedImage','editUses'].forEach(k=>{if(d[k]!==undefined&&d[k]!==null)state[k]=d[k];});
+    state.tools=cleanTools(state.tools);
+    state.sid=d.sid||REVIEW_SID;state.startedAt=Number(d.startedAt)||0;
+    state.slots=(d.slots||[]).map(im=>im?{status:'ready',image:im}:null);
+    state.marketImages=Object.assign({},d.market||{});state.marketStarted=true;   // never regenerate on the team's behalf
+    state.profiles=(d.profiles||[]).map((q,i)=>({id:'np'+(i+1),name:q.name||'',desc:q.desc||'',img:q.img||'',step:CP_STEPS.length-1,status:q.status||'complete',profile:q.profile||null,cancelled:false,dismissed:true}));
+    cpSeq=state.profiles.length;
+    state.chatExtra=d.chats&&typeof d.chats==='object'?d.chats:{};state.chatActive=0;state.chatTyping={};
+    state.tab=['profiles','chats','analytics','market'].includes(d.tab)?d.tab:'profiles';
+    state.done=false;   // the dashboard is what the team wants to see, even if they went on to connect
+    state.step=(d.step>=4||state.slots.some(Boolean))?4:Math.min(Number(d.step)||0,2);
+    if(state.step===1&&!state.team)state.step=0;
+    render();
+    bar.innerHTML=`<span>Reviewing <b>${escapeHtml(d.company||'an unnamed company')}</b>${d.name?` · ${escapeHtml(d.name)}`:''} — read-only: nothing here is saved, generated or counted</span><a href="/prototype/sessions.html">Back to sessions</a>`;
+  }
   function welcomeBack(){
     const pop=document.createElement('div');pop.className='create-pop wb-pop';pop.innerHTML=state.rehatch?`${ci.check}<span>Welcome back${state.name?`, ${escapeHtml(state.name)} is still here`:''}. Your earlier designs were made before a fix, so hatch them again — one press.</span>`:`${ci.check}<span>Picked up where you left off${state.name?` with ${escapeHtml(state.name)}`:''}. <b>Start over</b> is in the footer if you want a fresh hatch.</span>`;
     document.body.appendChild(pop);setTimeout(()=>pop.classList.add('show'),10);
@@ -305,6 +388,7 @@
     root.innerHTML = state.step>=4 ? inner : layout(inner);
     bind();
     if(typeof drawNotifs==='function')drawNotifs();
+    if(state.step===3)applyCutouts(root);
     saveSession();
   }
   const ic = {
@@ -360,7 +444,7 @@
     const options=INDUSTRIES.map(i=>`<li class="intro-option${i.label===state.industry?' is-on':''}" role="option" tabindex="-1" aria-selected="${i.label===state.industry}" data-industry="${escapeHtml(i.label)}">${escapeHtml(i.label)}</li>`).join('');
     const fieldLabel=other?'What does your business do?':ind?'Anything more specific? <span class="intro-optional">(optional)</span>':'Or just tell us what you do';
     const placeholder=ind?ind.eg:'e.g. dental clinic, online clothing shop, plumber';
-    return `<div class="stage welcome-grid intro"><div><span class="eyebrow">Agent Hatchers</span><h1 class="welcome-title intro-title">What can our agents do for you?</h1><p class="intro-lead">Tell us what your business does and we’ll work out which agents would actually help.</p><span class="intro-label" id="biz-industry-label">Your industry</span><div class="intro-select-wrap" id="biz-industry"><button type="button" class="name-field intro-select${ind?'':' is-empty'}" id="biz-industry-btn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="biz-industry-label biz-industry-btn">${escapeHtml(ind?ind.label:'Choose your industry…')}</button><ul class="intro-menu" id="biz-industry-menu" role="listbox" aria-labelledby="biz-industry-label" hidden>${options}</ul></div><label class="intro-label" for="biz-intro">${fieldLabel}</label><div class="mic-field intro-field"><input class="name-field" id="biz-intro" maxlength="60" autocomplete="off" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(state.biz)}" aria-label="What your business does"><button type="button" class="mic-btn" data-mic="biz-intro" aria-label="Dictate what your business does">${micSvg}</button></div><div class="actions">${button('Show me →','team')}</div></div><div class="welcome-art" aria-hidden="true">${hatch5()}</div></div>`;
+    return `<div class="stage welcome-grid intro"><div><span class="eyebrow">Agent Hatchers</span><h1 class="welcome-title intro-title">What can our agents do for you?</h1><p class="intro-lead">Tell us what your business does and we’ll work out which agents would actually help.</p><span class="intro-label" id="biz-industry-label">Your industry</span><div class="intro-select-wrap" id="biz-industry"><button type="button" class="name-field intro-select${ind?'':' is-empty'}" id="biz-industry-btn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="biz-industry-label biz-industry-btn">${escapeHtml(ind?ind.label:'Choose your industry…')}</button><ul class="intro-menu" id="biz-industry-menu" role="listbox" aria-labelledby="biz-industry-label" hidden>${options}</ul></div><label class="intro-label" for="biz-intro">${fieldLabel}</label><div class="mic-field intro-field"><input class="name-field" id="biz-intro" maxlength="60" autocomplete="off" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(state.biz)}" aria-label="What your business does"><button type="button" class="mic-btn" data-mic="biz-intro" aria-label="Dictate what your business does">${micSvg}</button></div>${toolPicker()}<div class="actions">${button('Show me →','team')}</div></div><div class="welcome-art" aria-hidden="true">${hatch5()}</div></div>`;
   }
   // Screen 2 — the agents for that business, what each does, and how they hand work on.
   function teamScreen(){
@@ -368,7 +452,7 @@
     const team=topAgents();const biz=state.biz||'your business';
     const line=id=>(state.team.lines[id]||PLAIN[id]);
     const flow=FLOW_ORDER.filter(id=>team.some(a=>a.id===id)).map(id=>catalog.find(a=>a.id===id));
-    return `<div class="stage team-stage"><span class="eyebrow">For a ${escapeHtml(biz)}</span><h2>Here’s the team we’d hatch for you.</h2>${state.team.intro?`<p class="team-intro">${escapeHtml(state.team.intro)}</p>`:''}<p class="team-what"><b>What’s an agent?</b> A helper that does one job for your business, all day, inside the tools you already use — like a new team member who never forgets.</p>
+    return `<div class="stage team-stage"><span class="eyebrow">For a ${escapeHtml(biz)}</span><h2>Here’s the team we’d hatch for you.</h2>${state.team.intro?`<p class="team-intro">${escapeHtml(state.team.intro)}</p>`:''}<p class="team-what"><b>What’s an agent?</b> A helper that does one job for your business, all day, inside ${toolsBlurb()} — like a new team member who never forgets.</p>
       <ol class="team-list">${team.map(a=>`<li class="team-row"><span class="team-av team-q" aria-hidden="true">?</span><span class="team-txt"><b>${a.name}</b><span>${escapeHtml(line(a.id).does)}</span></span></li>`).join('')}</ol>
       <h3 class="team-h">How they work together</h3>
       <div class="team-flow">${flow.map((a,i)=>`${i?'<span class="flow-arrow" aria-hidden="true">→</span>':''}<span class="flow-step"><i class="flow-q" aria-hidden="true">?</i><span><b>${a.name.replace(' Agent','')}</b> ${escapeHtml(line(a.id).job)}</span></span>`).join('')}</div>
@@ -380,16 +464,127 @@
   // Rendered stateful: a slot that already hatched shows its design (.done skips the
   // animation on re-renders instead of resetting to a closed egg), and each hatched
   // design is clickable to select right away — no separate "pick" step.
-  const HX6_CRACKS=`<svg class="hx6-cracks" viewBox="0 0 620 620"><path class="hx6-c1" d="M114,318 L146,302 L172,330 L200,296 L226,331 L245,301" fill="none" stroke="#1b1a40" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:198;stroke-dashoffset:198"/><path class="hx6-c2" d="M245,301 L272,336 L308,290 L338,332 L375,302" fill="none" stroke="#1b1a40" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:202;stroke-dashoffset:202"/><path class="hx6-c3" d="M375,302 L396,333 L420,298 L448,332 L474,300 L506,320" fill="none" stroke="#1b1a40" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:204;stroke-dashoffset:204"/></svg>`;
-  const hx6Shell=extra=>`<div class="hx6 ${extra||''}"><img class="hx6-pop" alt=""><div class="hx6-wrap" aria-hidden="true"><img class="hx6-bottom" src="/egg-closed.webp" alt="" style="clip-path:polygon(0 50.69%,${HX5_SEAM_UP},100% 51.01%,100% 100%,0 100%)"><img class="hx6-lid" src="/egg-closed.webp" alt="" style="clip-path:polygon(0 0,100% 0,100% 51.61%,${HX5_SEAM},0 51.29%)">${HX6_CRACKS}</div></div>`;
+  // The crack is ONE continuous path (the three legs of the homepage hero seam joined up)
+  // and, unlike the hero, it is not on a fixed clock: while a design is generating, JS
+  // creeps it along like a loading bar (crackStart/crackTick), and the moment the image is
+  // ready it rushes to the end (crackFinish) and the shell pops. `p` is 0..1 drawn so far.
+  const CRACK_D='M114,318 L146,302 L172,330 L200,296 L226,331 L245,301 L272,336 L308,290 L338,332 L375,302 L396,333 L420,298 L448,332 L474,300 L506,320';
+  const CRACK_LEN=604;   // path length (≈602) rounded up so p=0 hides every pixel of it
+  const hx6Cracks=p=>`<svg class="hx6-cracks" viewBox="0 0 620 620"><path class="hx6-glow" d="${CRACK_D}" fill="none" stroke="#3f8fd6" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:16 2000;stroke-dashoffset:${(16-CRACK_LEN*p).toFixed(1)};opacity:${p>0.01?1:0}"/><path class="hx6-crack" d="${CRACK_D}" fill="none" stroke="#1b1a40" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:${CRACK_LEN};stroke-dashoffset:${(CRACK_LEN*(1-p)).toFixed(1)}"/></svg>`;
+  // Crack progress per egg. Progress is an estimate — we don't know how long the model will
+  // take — so it eases towards ~90% (never "done" on its own) in small uneven steps, the way a
+  // real crack creeps, and only reaches the end when the image has actually arrived.
+  const cracks=new Map();
+  let crackRaf=0;
+  function crackDraw(el,p){if(!el)return;const c=el.querySelector('.hx6-crack'),g=el.querySelector('.hx6-glow');if(c)c.style.strokeDashoffset=(CRACK_LEN*(1-p)).toFixed(1);if(g){g.style.strokeDashoffset=(16-CRACK_LEN*p).toFixed(1);g.style.opacity=p>0.01?1:0;}}
+  function crackStart(key,getEl,reset){
+    if(reset||!cracks.has(key))cracks.set(key,{t0:performance.now(),T:9000+Math.random()*5000,shown:0,next:0,missing:0,getEl});
+    else cracks.get(key).getEl=getEl;
+    crackTick();
+  }
+  const crackShown=key=>{const c=cracks.get(key);return c?c.shown:0;};
+  function crackStop(key){cracks.delete(key);}
+  function crackTick(){
+    if(crackRaf)return;
+    crackRaf=requestAnimationFrame(()=>{
+      crackRaf=0;const now=performance.now();
+      cracks.forEach((c,key)=>{
+        const el=c.getEl();
+        if(!el){c.missing=c.missing||now;if(now-c.missing>4000)cracks.delete(key);return;}   // screen left — tidy up
+        c.missing=0;
+        const target=0.9*(1-Math.exp(-(now-c.t0)/c.T));
+        if(now>=c.next){c.shown=Math.min(target,c.shown+0.015+Math.random()*0.045);c.next=now+140+Math.random()*420;crackDraw(el,c.shown);}
+      });
+      if(cracks.size)crackTick();
+    });
+  }
+  // Image is here: run the crack to the end (.rush slows the stroke transition so it reads as
+  // one final split) and tell the caller how long to wait before popping the lid.
+  const RUSH_MS=650, HATCH_MS=2800;   // .go plays the last 2.8s of the 5s hx6 timeline (see styles.css)
+  function crackFinish(key,el){cracks.delete(key);if(el){el.classList.add('rush');crackDraw(el,1);}return RUSH_MS;}
+  // ---------- Background remover: the hatched design pops out as a cut-out, not a white card ----------
+  // Portraits are asked for on a plain studio backdrop, so a flood fill from the picture's edges
+  // through background-coloured pixels (and, on a light backdrop, the neutral grey floor
+  // shadow) finds the character. Edge pixels get a soft alpha and their backdrop tint removed
+  // so there's no halo. Anything that isn't a plain backdrop — a busy scene, a picture the
+  // fill would swallow whole — comes back untouched, so the original is always the fallback.
+  const cutDone=new Map(),cutPending=new Map();
+  function cutout(src){
+    if(!src||!/^data:image\//.test(src))return Promise.resolve(src);
+    if(cutDone.has(src))return Promise.resolve(cutDone.get(src));
+    if(cutPending.has(src))return cutPending.get(src);
+    const p=removeBackground(src).catch(()=>src).then(r=>{cutDone.set(src,r||src);cutPending.delete(src);return r||src;});
+    cutPending.set(src,p);return p;
+  }
+  async function removeBackground(src){
+    const im=await loadImg(src);const MAX=768;const k=Math.min(1,MAX/Math.max(im.naturalWidth,im.naturalHeight));
+    const w=Math.max(1,Math.round(im.naturalWidth*k)),h=Math.max(1,Math.round(im.naturalHeight*k));
+    const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(im,0,0,w,h);
+    const id=ctx.getImageData(0,0,w,h),d=id.data,N=w*h;
+    // backdrop colour = median of a two-pixel ring around the edge; a ring that isn't mostly
+    // one colour means a real scene, which we leave alone
+    const ring=[];const grab=(x,y)=>{const i=(y*w+x)*4;ring.push([d[i],d[i+1],d[i+2]]);};
+    for(let x=0;x<w;x+=2){grab(x,0);grab(x,1);grab(x,h-1);grab(x,h-2);}for(let y=2;y<h-2;y+=2){grab(0,y);grab(1,y);grab(w-1,y);grab(w-2,y);}
+    const med=ch=>{const a=ring.map(p=>p[ch]).sort((a,b)=>a-b);return a[a.length>>1];};
+    const B=[med(0),med(1),med(2)];const dist=(r,g,b)=>Math.sqrt((r-B[0])**2+(g-B[1])**2+(b-B[2])**2);
+    if(ring.filter(p=>dist(p[0],p[1],p[2])<40).length/ring.length<0.8)return src;
+    const lightBg=(B[0]*.299+B[1]*.587+B[2]*.114)>200;
+    // per-pixel "is backdrop" threshold: tight for anything with colour in it, loose for
+    // neutral light greys on a light backdrop (that's the character's soft floor shadow)
+    const limit=i=>{const r=d[i*4],g=d[i*4+1],b=d[i*4+2];const chroma=Math.max(r,g,b)-Math.min(r,g,b);return lightBg&&chroma<26?96:46;};
+    const dd=new Float32Array(N);for(let i=0;i<N;i++)dd[i]=dist(d[i*4],d[i*4+1],d[i*4+2]);
+    const gone=new Uint8Array(N);const stack=[];
+    const seed=i=>{if(!gone[i]&&dd[i]<limit(i)){gone[i]=1;stack.push(i);}};
+    for(let x=0;x<w;x++){seed(x);seed((h-1)*w+x);}for(let y=0;y<h;y++){seed(y*w);seed(y*w+w-1);}
+    let removed=0;
+    while(stack.length){const i=stack.pop();removed++;const x=i%w;if(x>0)seed(i-1);if(x<w-1)seed(i+1);if(i>=w)seed(i-w);if(i+w<N)seed(i+w);}
+    if(removed/N>0.97||removed/N<0.05)return src;   // ate everything, or there was nothing to take
+    // kept bounding box must still be a sensible character, not a sliver
+    let minX=w,maxX=0,minY=h,maxY=0;for(let i=0;i<N;i++){if(gone[i])continue;const x=i%w,y=(i-x)/w;if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;}
+    if(maxX-minX<w*0.15||maxY-minY<h*0.15)return src;
+    for(let i=0;i<N;i++){
+      if(gone[i]){d[i*4+3]=0;continue;}
+      const x=i%w;const edge=(x>0&&gone[i-1])||(x<w-1&&gone[i+1])||(i>=w&&gone[i-w])||(i+w<N&&gone[i+w]);
+      if(!edge)continue;
+      // anti-aliased rim: how far from the backdrop it is says how much character is in it;
+      // un-blend the backdrop tint so a dark robot doesn't wear a pale fringe
+      const a=Math.min(1,Math.max(0.12,dd[i]/150));
+      for(let ch=0;ch<3;ch++){const v=(d[i*4+ch]-B[ch]*(1-a))/a;d[i*4+ch]=Math.max(0,Math.min(255,Math.round(v)));}
+      d[i*4+3]=Math.round(a*255);
+    }
+    ctx.putImageData(id,0,0);
+    return c.toDataURL('image/png');
+  }
+  // Shared hatch arming: cut the backdrop off the image, load it into the egg, finish the crack,
+  // pop the lid. `getScene` is re-queried so a re-render in between can't strand a closed egg.
+  function armHatch(getScene,key,image,fallback,onHatched){
+    cutout(image).then(cut=>{
+      const scene=getScene();const pop=scene&&scene.querySelector('.hx6-pop');if(!pop)return;
+      let armed=false;
+      const go=()=>{if(armed)return;armed=true;const s=getScene();const wait=crackFinish(key,s);
+        setTimeout(()=>{const sc=getScene();if(!sc)return;sc.classList.add('go');if(onHatched)setTimeout(onHatched,HATCH_MS+150);},wait);};
+      const isCut=!!cut&&cut!==image;pop.classList.toggle('is-cut',isCut);
+      pop.onload=go;
+      pop.onerror=()=>{pop.onerror=null;pop.classList.remove('is-cut');pop.src=fallback;};   // never leave an egg stuck closed
+      pop.src=cut||image||fallback;
+      if(pop.complete&&pop.naturalWidth)go();
+    });
+  }
+  // Eggs that are already hatched (re-render, restored or reviewed session) show the cut-out
+  // too, swapped in once it's ready.
+  function applyCutouts(scope){
+    scope.querySelectorAll('.hx6.done .hx6-pop[data-orig]').forEach(pop=>{const orig=pop.dataset.orig;cutout(orig).then(cut=>{if(!pop.isConnected||cut===orig)return;pop.classList.add('is-cut');pop.src=cut;});});
+  }
+  const hx6Shell=(extra,p)=>`<div class="hx6 ${extra||''}"><img class="hx6-pop" alt=""><div class="hx6-wrap" aria-hidden="true"><img class="hx6-bottom" src="/egg-closed.webp" alt="" style="clip-path:polygon(0 50.69%,${HX5_SEAM_UP},100% 51.01%,100% 100%,0 100%)"><img class="hx6-lid" src="/egg-closed.webp" alt="" style="clip-path:polygon(0 0,100% 0,100% 51.61%,${HX5_SEAM},0 51.29%)">${hx6Cracks(p||0)}</div></div>`;
   function eggScene(i){
     const slot=state.slots[i];const ready=!!(slot&&slot.status==='ready');const img=ready?(slot.image||'/hatchy-pop.webp'):'';const sel=state.variant===i;
+    const cut=img&&cutDone.get(img);const shown=cut&&cut!==img?cut:img;
     return `<div class="egg-cell ${ready?'is-ready':''} ${sel?'selected':''}" data-egg="${i}" role="button" tabindex="0" aria-pressed="${sel}"><div class="hx6 ${ready?'done':''}" data-i="${i}">
-    <img class="hx6-pop" ${img?`src="${escapeHtml(img)}"`:''} alt="">
+    <img class="hx6-pop ${shown!==img?'is-cut':''}" ${img?`src="${escapeHtml(shown)}" data-orig="${escapeHtml(img)}"`:''} alt="">
     <div class="hx6-wrap" aria-hidden="true">
       <img class="hx6-bottom" src="/egg-closed.webp" alt="" style="clip-path:polygon(0 50.69%,${HX5_SEAM_UP},100% 51.01%,100% 100%,0 100%)">
       <img class="hx6-lid" src="/egg-closed.webp" alt="" style="clip-path:polygon(0 0,100% 0,100% 51.61%,${HX5_SEAM},0 51.29%)">
-      <svg class="hx6-cracks" viewBox="0 0 620 620"><path class="hx6-c1" d="M114,318 L146,302 L172,330 L200,296 L226,331 L245,301" fill="none" stroke="#1b1a40" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:198;stroke-dashoffset:198"/><path class="hx6-c2" d="M245,301 L272,336 L308,290 L338,332 L375,302" fill="none" stroke="#1b1a40" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:202;stroke-dashoffset:202"/><path class="hx6-c3" d="M375,302 L396,333 L420,298 L448,332 L474,300 L506,320" fill="none" stroke="#1b1a40" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:204;stroke-dashoffset:204"/></svg>
+      ${hx6Cracks(ready?1:crackShown('d'+i))}
     </div>
   </div><span class="hatch-number">Design ${i+1}</span><span class="egg-tick" aria-hidden="true">${ci.check}</span></div>`;}
   function hatchActionsBar(){
@@ -401,7 +596,8 @@
   function hatchScreen(){return `<div class="stage hatch-zone"><span class="eyebrow">Hatching</span><h2>Hatching ${escapeHtml(state.name||'your agent')}…</h2><p>Three takes on your description. Click your favourite — it becomes ${escapeHtml(state.name||'your agent')}’s avatar.</p><div class="hatch-row" aria-live="polite">${[0,1,2].map(eggScene).join('')}</div><div class="hatch-actions">${hatchActionsBar()}</div></div>`;}
   function initials(str){return String(str||'AH').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();}
   const marketLoader='<div class="hatch-loader"><img class="loader-egg" src="/egg-closed.webp" alt=""><span class="loader-txt">Hatching…</span></div>';
-  function willGenerate(agent){return (usePortraits&&config.marketPortraits!==false&&state.variant!==null)||!!(config.bakedMarket&&config.bakedMarket[agent.id]);}
+  function willGenerate(agent){if(REVIEW_SID)return false;   // review mode shows what was stored, no egg loaders
+    return (usePortraits&&config.marketPortraits!==false&&state.variant!==null)||!!(config.bakedMarket&&config.bakedMarket[agent.id]);}
   function agentCard(agent,running=false){const gen=state.marketImages[agent.id];const loading=!gen&&willGenerate(agent);const inner=gen?`<img src="${escapeHtml(gen)}" alt="${escapeHtml(agent.name)}">`:(loading?marketLoader:`<img src="${agent.portrait}" alt="${escapeHtml(agent.name)}" loading="lazy">`);return `<article class="p-card" data-agent="${agent.id}" data-search="${escapeHtml((agent.name+' '+agent.team).toLowerCase())}" tabindex="0"><div class="p-thumb thumb-${agent.id} ${gen?'is-generated':''} ${loading?'is-loading':''}" data-thumb="${agent.id}">${inner}</div><div class="p-meta"><div class="p-name">${agent.name} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span><span class="p-tag">${agent.team}</span>${running?'<span class="p-tag tag-run"><i></i>Running</span>':''}</div></div></article>`;}
   function hatchedCard(){const vis=state.selectedImage?`<img src="${escapeHtml(state.selectedImage)}" alt="${escapeHtml(state.name)}">`:`<div class="thumb-bot">${bot('v'+(state.variant||0))}</div>`;return `<article class="p-card is-yours"><div class="p-thumb thumb-new ${state.selectedImage?'is-generated':''}">${vis}</div><div class="p-meta"><div class="p-name">${escapeHtml(state.name||'Your agent')} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span><span class="p-tag tag-new">Just hatched</span></div></div></article>`;}
   // Two of the recommended agents are already switched on for the prospect's company, so the
@@ -427,7 +623,7 @@
   function chatProfiles(){
     const you={name:state.name||'Your agent',img:state.selectedImage||'/hatchy-pop.webp'};
     const team=[...runningAgents(),...topAgents().filter(a=>!RUNNING.includes(a.id))].map(a=>({name:a.name,img:state.marketImages[a.id]||a.portrait}));
-    const live=usePortraits&&config.marketPortraits!==false&&state.variant!==null;
+    const live=!REVIEW_SID&&usePortraits&&config.marketPortraits!==false&&state.variant!==null;
     const other=EXTRA_PROFILES.map(p=>{const gen=state.marketImages[p.id];return {id:p.id,name:p.name,img:gen||(live?'/egg-closed.webp':(state.selectedImage||p.portrait)),egg:!gen&&live};});
     const mine=state.profiles.filter(p=>p.status==='complete').map(p=>({name:p.name,img:p.img}));
     const your=[you,...mine,...team];
@@ -436,6 +632,7 @@
   // The prospect's FIRST message in a chat gets a real answer (their sales free taste);
   // every later message meets the paywall.
   async function fetchChatReply(question,agentName,history,turn){
+    if(REVIEW_SID)return 'This is a saved session in review — chat is switched off here.';
     const roster=catalog.map(a=>({name:a.name,summary:a.summary,mcps:a.mcps}));
     for(let attempt=0;attempt<2;attempt++){
       if(attempt) await sleep(700);
@@ -752,12 +949,13 @@
     const scored=catalog.map((a,index)=>{let s=0;a.keywords.forEach(k=>{if(text.includes(k))s+=4});a.summary.toLowerCase().split(/\W+/).forEach(w=>{if(w.length>4&&text.includes(w))s+=1});return {a,s,index};}).sort((x,y)=>y.s-x.s||x.index-y.index);
     let mates=scored.filter(x=>x.s>0).slice(0,3).map(x=>x.a);
     if(!mates.length)mates=topAgents().slice(0,3);
-    const mcps=[];MCP_HINTS.forEach(([re,m])=>{if(re.test(text)&&!mcps.includes(m))mcps.push(m);});
+    const mcps=yourTools(mates.flatMap(a=>AGENT_CATS[a.id]||[])).slice(0,4);MCP_HINTS.forEach(([re,m])=>{if(re.test(text)&&!hasTool(m)&&!mcps.includes(m))mcps.push(m);});
     mates.forEach(a=>a.mcps.forEach(m=>{if(mcps.length<5&&!mcps.includes(m))mcps.push(m);}));
-    if(!mcps.includes('Slack'))mcps.splice(Math.min(mcps.length,4),0,'Slack');
+    if(!mcps.includes('Slack')&&!mcps.includes('Microsoft Teams'))mcps.splice(Math.min(mcps.length,4),0,'Slack');
+    const chatTool=(state.tools||[]).find(n=>toolCat(n)==='chat')||'Slack or Teams';
     const c=co();const d=p.desc?p.desc.replace(/\.$/,''):'';const dl=d?d.charAt(0).toLowerCase()+d.slice(1):'';
     const ask=dl.replace(/^(i want (this|the|an?) agent to|i want it to|it should|should|please|to)\s+/,'');const first=ask?`Does what you asked for: ${ask}`:`Handles the job you give it for ${c}`;
-    const outcomes=[first,`Runs it on a schedule or whenever someone at ${c} asks in Slack or Teams`,`Keeps ${c} posted with a short summary every time it finishes`,`Asks a person at ${c} before anything is sent, changed or paid`,`Hands work to ${mates.slice(0,2).map(a=>a.name).join(' and ')} when it crosses into their patch`];
+    const outcomes=[first,`Runs it on a schedule or whenever someone at ${c} asks in ${chatTool}`,`Keeps ${c} posted with a short summary every time it finishes`,`Asks a person at ${c} before anything is sent, changed or paid`,`Hands work to ${mates.slice(0,2).map(a=>a.name).join(' and ')} when it crosses into their patch`];
     const summary=`${p.name} is a new agent for ${c}, built around what you asked for below.`;
     return {summary,outcomes,mcps:mcps.slice(0,6),mates:mates.map(a=>a.id),team:mates[0]?mates[0].team:'Operations',source:'fallback'};
   }
@@ -769,7 +967,7 @@
       if(attempt)await sleep(600);
       try{
         const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),25000);
-        const res=await fetch(profileEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:p.name,description:p.desc,company:co(),business:state.biz,roster,connectors}),signal:ctl.signal});
+        const res=await fetch(profileEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:p.name,description:p.desc,company:co(),business:state.biz,roster,connectors,tools:state.tools||[]}),signal:ctl.signal});
         clearTimeout(t);
         const body=await res.json().catch(()=>({}));
         if(res.ok&&body&&Array.isArray(body.outcomes)&&body.outcomes.length>=4){
@@ -819,7 +1017,7 @@
     backdrop.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-labelledby="np-title"><div class="modal-top"><div><span class="eyebrow">Agent profile</span><h2 id="np-title">${escapeHtml(p.name)}</h2></div><button class="close" aria-label="Close">×</button></div>
       <p>${escapeHtml(pr.summary)}</p>
       <div class="profile-cols"><div><h3>What this agent can do for ${escapeHtml(co())}</h3><p class="tailored-note"><span class="tailored-pill">Tailored</span>Worked out from your description${pr.source==='ai'?' by a model that read it':''}.</p><div class="checks">${pr.outcomes.map(o=>`<div class="check"><i>✓</i><span>${escapeHtml(o)}</span></div>`).join('')}</div></div><div class="profile-art"><img src="${escapeHtml(p.img)}" alt="${escapeHtml(p.name)}"></div></div>
-      <h3>Available MCP connections</h3><p>These secure connectors let ${escapeHtml(p.name)} work with your existing systems while respecting approvals and permissions.</p><div class="mcp-list">${pr.mcps.map(mcpChip).join('')}</div>
+      ${mcpSection(escapeHtml(p.name),pr.mcps,[...pr.mates.flatMap(id=>AGENT_CATS[id]||[]),...pr.mcps.map(toolCat)])}
       <h3>Works well with</h3><p>Agents that share hand-offs with ${escapeHtml(p.name)} — hatch them together as a team.</p><div class="mate-row">${mates}</div>
       <div class="actions np-actions"><button type="button" class="btn btn-primary" data-np="chat">Open chat →</button><button type="button" class="btn btn-secondary" data-np="delete">Delete profile</button></div></section>`;
     document.body.appendChild(backdrop);
@@ -848,7 +1046,7 @@
            <div class="el-err" hidden>That didn’t hatch — please try again.</div>
            ${left?`<div class="actions"><button class="btn btn-secondary" data-el="edit">✎ Edit this photo</button><button class="btn btn-primary" data-el="new">✦ Hatch a new look</button></div>`
                  :`<div class="merch-pay">${ci.key} Please pay for your agent to keep redesigning its look.</div>`}</div></div>`
-        : `<div class="el-hatch">${hx6Shell('el-egg')}<p class="el-note">Hatching the new look…</p>
+        : `<div class="el-hatch">${hx6Shell('el-egg',crackShown('el'))}<p class="el-note">Hatching the new look…</p>
            <div class="actions el-ready" style="display:none"><button class="btn btn-secondary" data-el="again">Try another</button><button class="btn btn-primary" data-el="apply">Use this look →</button></div></div>`;
       backdrop.innerHTML=`<section class="modal el-modal" role="dialog" aria-modal="true"><div class="modal-top"><div><span class="eyebrow">Your agent</span><h2>${name}’s look</h2></div><button class="close" aria-label="Close">×</button></div>${inner}</section>`;
       backdrop.querySelector('.close').onclick=close;backdrop.onclick=e=>{if(e.target===backdrop)close()};
@@ -856,7 +1054,7 @@
       const ta=backdrop.querySelector('#el-text');if(ta)ta.focus();
     }
     async function act(a){
-      if(a==='again'){draw('form');return;}
+      if(a==='again'){crackStop('el');draw('form');return;}
       if(a==='apply'){
         if(!newImg)return;
         state.selectedImage=newImg;
@@ -871,17 +1069,17 @@
       if(text.length<4){if(ta){ta.focus();ta.setAttribute('aria-invalid','true');}return;}
       lastText=text;busy=true;newImg=null;
       draw('hatch');
+      const elScene=()=>backdrop.querySelector('.el-egg');
+      crackStart('el',elScene,true);
       const img=a==='edit'
         ? await fetchImage({brief:text,role:`Apply this change while keeping everything else about the character the same: ${text}.`,image:state.selectedImage,name:state.name,company:co(),industry:industryLabel,variant:0})
         : await fetchImage({brief:`${text}. Give it ${DESIGN_AXES.build[Math.floor(Math.random()*4)]}, ${DESIGN_AXES.face[Math.floor(Math.random()*4)]} and ${DESIGN_AXES.style[Math.floor(Math.random()*4)]}.`,name:state.name,role:'',company:co(),industry:industryLabel,variant:0});
       busy=false;
       if(!backdrop.isConnected)return;
-      if(!img){draw('form');const err=backdrop.querySelector('.el-err');if(err)err.hidden=false;return;}
+      if(!img){crackStop('el');draw('form');const err=backdrop.querySelector('.el-err');if(err)err.hidden=false;return;}
       state.editUses++;bumpUsage(LOOK_KEY);   // a successful generation consumes one of the three redesigns
       newImg=img;
-      const scene=backdrop.querySelector('.el-egg');const pop=scene&&scene.querySelector('.hx6-pop');
-      if(pop){const arm=()=>{scene.classList.add('go');setTimeout(()=>{const r=backdrop.querySelector('.el-ready');const n=backdrop.querySelector('.el-note');if(r)r.style.display='flex';if(n)n.textContent='Hatched — keep it?';},5100);};
-        pop.onload=arm;pop.onerror=()=>{draw('form');};pop.src=img;if(pop.complete&&pop.naturalWidth)arm();}
+      armHatch(elScene,'el',img,state.selectedImage||'/hatchy-pop.webp',()=>{const r=backdrop.querySelector('.el-ready');const n=backdrop.querySelector('.el-note');if(r)r.style.display='flex';if(n)n.textContent='Hatched — keep it?';});
     }
     document.body.appendChild(backdrop);draw('form');
     document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc)}},{once:true});
@@ -929,7 +1127,7 @@
     support:(c,b)=>[`Answer ${c}'s customers' common questions instantly, day or night`,`Know a ${b}'s hours, pricing and policies by heart`,`Escalate the tricky ones to a person at ${c} with full context`,`Follow up until each ${c} customer is actually sorted`,`Track what ${c}'s customers keep asking about`]
   };
   function tailoredOutcomes(agent){const fn=TAILORED[agent.id];return fn?fn(co(),state.biz||'your business'):agent.outcomes;}
-  function showAgent(id){const agent=catalog.find(a=>a.id===id);if(!agent)return;const tailoredLead=state.team?.lines?.[agent.id]?.does||'';const backdrop=document.createElement('div');backdrop.className='modal-backdrop';backdrop.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-labelledby="agent-title"><div class="modal-top"><div><span class="eyebrow">Agent profile</span><h2 id="agent-title">${agent.name}</h2></div><button class="close" aria-label="Close agent profile">×</button></div><p>${agent.summary}</p><div class="profile-cols"><div><h3>What this agent can do for ${escapeHtml(co())}</h3><p class="tailored-note"><span class="tailored-pill">Tailored</span>Written for a ${escapeHtml(state.biz||'business')}${state.industry&&state.industry!==OTHER?` in ${escapeHtml(state.industry.toLowerCase())}`:''}.${tailoredLead?` <b>${escapeHtml(tailoredLead)}</b>`:''}</p><div class="checks">${tailoredOutcomes(agent).map(o=>`<div class="check"><i>✓</i><span>${escapeHtml(o)}</span></div>`).join('')}</div></div><div class="profile-art"><img src="${escapeHtml(state.marketImages[agent.id]||agent.portrait)}" alt="${agent.name}"></div></div><h3>Available MCP connections</h3><p>These secure connectors let the agent work with your existing systems while respecting approvals and permissions.</p><div class="mcp-list">${agent.mcps.map(mcpChip).join('')}</div><h3>Works well with</h3><p>Agents that share hand-offs with ${agent.name} — hatch them together as a team.</p><div class="mate-row">${(WORKS_WITH[agent.id]||[]).map(mid=>{const m=catalog.find(a=>a.id===mid);if(!m)return '';const av=state.marketImages[m.id]||m.portrait;return `<button class="mate" data-mate="${m.id}"><span class="mate-ava"><img src="${escapeHtml(av)}" alt=""></span><span class="mate-meta"><b>${m.name}</b><i>${m.team}</i></span></button>`;}).join('')}</div></section>`;document.body.appendChild(backdrop);const close=()=>backdrop.remove();backdrop.querySelector('.close').onclick=close;backdrop.querySelectorAll('[data-mate]').forEach(b=>b.onclick=()=>{close();showAgent(b.dataset.mate);});backdrop.onclick=e=>{if(e.target===backdrop)close()};document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc)}},{once:true});}
+  function showAgent(id){const agent=catalog.find(a=>a.id===id);if(!agent)return;const tailoredLead=state.team?.lines?.[agent.id]?.does||'';const backdrop=document.createElement('div');backdrop.className='modal-backdrop';backdrop.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-labelledby="agent-title"><div class="modal-top"><div><span class="eyebrow">Agent profile</span><h2 id="agent-title">${agent.name}</h2></div><button class="close" aria-label="Close agent profile">×</button></div><p>${agent.summary}</p><div class="profile-cols"><div><h3>What this agent can do for ${escapeHtml(co())}</h3><p class="tailored-note"><span class="tailored-pill">Tailored</span>Written for a ${escapeHtml(state.biz||'business')}${state.industry&&state.industry!==OTHER?` in ${escapeHtml(state.industry.toLowerCase())}`:''}.${tailoredLead?` <b>${escapeHtml(tailoredLead)}</b>`:''}</p><div class="checks">${tailoredOutcomes(agent).map(o=>`<div class="check"><i>✓</i><span>${escapeHtml(o)}</span></div>`).join('')}</div></div><div class="profile-art"><img src="${escapeHtml(state.marketImages[agent.id]||agent.portrait)}" alt="${agent.name}"></div></div>${mcpSection(escapeHtml(agent.name),agent.mcps,AGENT_CATS[agent.id])}<h3>Works well with</h3><p>Agents that share hand-offs with ${agent.name} — hatch them together as a team.</p><div class="mate-row">${(WORKS_WITH[agent.id]||[]).map(mid=>{const m=catalog.find(a=>a.id===mid);if(!m)return '';const av=state.marketImages[m.id]||m.portrait;return `<button class="mate" data-mate="${m.id}"><span class="mate-ava"><img src="${escapeHtml(av)}" alt=""></span><span class="mate-meta"><b>${m.name}</b><i>${m.team}</i></span></button>`;}).join('')}</div></section>`;document.body.appendChild(backdrop);const close=()=>backdrop.remove();backdrop.querySelector('.close').onclick=close;backdrop.querySelectorAll('[data-mate]').forEach(b=>b.onclick=()=>{close();showAgent(b.dataset.mate);});backdrop.onclick=e=>{if(e.target===backdrop)close()};document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc)}},{once:true});}
   function celebrate(){const c=document.createElement('div');c.className='confetti';for(let i=0;i<38;i++){const s=document.createElement('span');s.style.left=`${Math.random()*100}%`;s.style.background=['#216bac','#c1dce8','#ffb36b','#59c6ad'][i%4];s.style.animationDelay=`${Math.random()*.5}s`;c.appendChild(s)}document.body.appendChild(c);setTimeout(()=>c.remove(),2400)}
 
   let activeRec=null;
@@ -1060,7 +1258,7 @@
   }
   const sleep = ms => new Promise(r=>setTimeout(r,ms));
   async function fetchImage(params){
-    if(!usePortraits) return null;
+    if(!usePortraits||REVIEW_SID) return null;
     // Up to 3 attempts: a single cold start / provider hiccup must not cost a prospect
     // their design (a failed hero portrait cascades into blob avatars + mismatched market).
     for(let attempt=0;attempt<3;attempt++){
@@ -1123,20 +1321,16 @@
     dealDesignAxes();
     state.slots=[null,null,null];state.variant=null;state.selectedImage='';state.step=3;render();
     const refreshBar=()=>{const bar=root.querySelector('.hatch-actions');if(bar){bar.innerHTML=hatchActionsBar();bind();}};
+    const sceneOf=i=>()=>root.querySelector(`.hx6[data-i="${i}"]`);
+    [0,1,2].forEach(i=>crackStart('d'+i,sceneOf(i),true));   // the crack creeps while the model draws
     await Promise.all([0,1,2].map(async i=>{
       const image=await fetchPortrait(i);
       state.slots[i]={status:'ready',image};saveSession();
-      const scene=root.querySelector(`.hx6[data-i="${i}"]`);
-      if(scene){const pop=scene.querySelector('.hx6-pop');if(pop){
-        const arm=()=>scene.classList.add('go');
-        pop.onload=arm;
-        pop.onerror=()=>{pop.onerror=null;pop.src='/hatchy-pop.webp';};  // never leave an egg stuck closed
-        pop.src=image||'/hatchy-pop.webp';
-        if(pop.complete&&pop.naturalWidth)arm();
-      }}
+      let hatched=false;const done=()=>{hatched=true;};
+      armHatch(sceneOf(i),'d'+i,image||'/hatchy-pop.webp','/hatchy-pop.webp',done);
       const cell=root.querySelector(`.egg-cell[data-egg="${i}"]`);if(cell)cell.classList.add('is-ready');
       refreshBar();               // selectable the moment the first design is out
-      await sleep(5000);
+      for(let t=0;t<40&&!hatched;t++)await sleep(150);   // cut-out + rush + pop, whichever comes first
     }));
     celebrate();
     refreshBar();
@@ -1167,7 +1361,7 @@
         const s=state.slots[state.variant];
         state.selectedImage=(s&&s.image)||state.selectedImage||((state.slots.find(x=>x&&x.image)||{}).image)||'';
         document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=4;render();generateMarket()}
-      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.look='';state.team=null;state.teamBusy=false;stopThinking();state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.tools=[];state.toolsOpen=false;state.look='';state.team=null;state.teamBusy=false;stopThinking();state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-egg]').forEach(el=>{
       // Select a design the moment it's hatched — direct DOM updates only, so picking
@@ -1201,6 +1395,16 @@
       document.addEventListener('pointerdown',root._closeIndustry);
     }
     const bizIntro=document.getElementById('biz-intro');if(bizIntro)bizIntro.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();root.querySelector('[data-action="team"]')?.click()}};
+    const pick=document.getElementById('tool-pick');
+    if(pick){
+      // Toggles update the chip in place — a re-render here would drop the caret from the business box.
+      pick.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{const n=b.dataset.tool;const on=!b.classList.contains('is-on');b.classList.toggle('is-on',on);b.setAttribute('aria-pressed',String(on));const rest=(state.tools||[]).filter(x=>x!==n);state.tools=on?[...rest,n]:rest;});
+      const more=pick.querySelector('[data-tool-more]');more.onclick=()=>{state.toolsOpen=!state.toolsOpen;pick.classList.toggle('is-open',state.toolsOpen);more.setAttribute('aria-expanded',String(state.toolsOpen));more.querySelector('span').textContent=state.toolsOpen?'Fewer tools':'More tools';};
+      const other=document.getElementById('tool-other');
+      const add=()=>{const raw=other.value.replace(/\s+/g,' ').trim().slice(0,30);if(!raw){other.focus();return;}const known=TOOLS.find(t=>t.n.toLowerCase()===raw.toLowerCase());const n=known?known.n:raw;if(!hasTool(n))state.tools=[...(state.tools||[]),n];const biz=document.getElementById('biz-intro');if(biz)state.biz=biz.value.trim();render();document.getElementById('tool-other')?.focus();};
+      other.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();add();}};
+      document.querySelector('[data-tool-add]').onclick=add;
+    }
     bindReference();
     root.querySelectorAll('[data-create]').forEach(el=>el.onclick=()=>openCreateMenu(el));
     root.querySelectorAll('[data-profile]').forEach(el=>{const p=state.profiles.find(q=>q.id===el.dataset.profile);if(!p||p.status!=='complete')return;el.onclick=()=>showProfile(p);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();showProfile(p)}};});
@@ -1223,5 +1427,6 @@
     const input=document.getElementById('agent-name');if(input)input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('agent-biz')?.focus()}};
   }
   root.dataset.build=BUILD;console.info('Agent Hatchers prototype · build '+BUILD);
-  restoreSession().then(back=>{render();if(back){welcomeBack();if(state.step===4)generateMarket();}});
+  if(REVIEW_SID)reviewSession();
+  else restoreSession().then(back=>{render();if(back){welcomeBack();if(state.step===4)generateMarket();}});
 })();

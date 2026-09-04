@@ -1,6 +1,7 @@
 // Vercel serverless function: turn a prospect's "what should this agent do?" description
 // into a real agent profile — the same shape the catalog agents show in the dashboard.
-//   POST { name, description, company, business, roster:[{id,name,summary}], connectors:[...] }
+//   POST { name, description, company, business, roster:[{id,name,summary}], connectors:[...], tools:[...] }
+//   `tools` is what the prospect said their company already uses — those come first in `mcps`.
 //   → { summary, outcomes:[5], mcps:[3-6], mates:[2-3 catalog ids], team, v:1 }
 // The client falls back to a keyword-built profile if this is unreachable.
 
@@ -44,6 +45,7 @@ export default async function handler(req, res) {
     id: String(a.id || '').slice(0, 30), name: String(a.name || '').slice(0, 40), summary: String(a.summary || '').slice(0, 200)
   })).filter(a => a.id && a.name);
   const connectors = (Array.isArray(body.connectors) ? body.connectors : []).slice(0, 60).map(s => String(s).slice(0, 30)).filter(Boolean);
+  const tools = (Array.isArray(body.tools) ? body.tools : []).slice(0, 40).map(s => String(s).replace(/\s+/g, ' ').trim().slice(0, 30)).filter(Boolean);
   if (!name) { res.status(400).json({ error: 'name missing' }); return; }
   if (roster.length < 3) { res.status(400).json({ error: 'roster missing' }); return; }
   const ids = new Set(roster.map(a => a.id));
@@ -58,6 +60,8 @@ export default async function handler(req, res) {
     `Agent catalog (use the exact id):\n` + roster.map(a => `- id "${a.id}" — ${a.name}: ${a.summary}`).join('\n') +
     `\n\nConnectors with logos available (prefer these exact names; you may add one or two well-known others if the job clearly needs them):\n` +
     connectors.join(', ') +
+    (tools.length ? `\n\n${company} already uses these tools day to day: ${tools.join(', ')}. When one of them does the job, ` +
+      `name it first in "mcps" and prefer it over a rival product (their CRM over another CRM, their chat tool over another).` : '') +
     `\n\nReturn ONLY a JSON object, no prose, no markdown, shaped exactly like:\n` +
     `{"summary":"...","outcomes":["...","...","...","...","..."],"mcps":["..."],"mates":["id","id"],"team":"..."}\n` +
     `Rules:\n` +
@@ -95,7 +99,7 @@ export default async function handler(req, res) {
     const outcomes = (Array.isArray(obj.outcomes) ? obj.outcomes : []).map(o => clean(o).slice(0, 140)).filter(o => o.length > 8).slice(0, 5);
     const seenM = new Set();
     const mcps = (Array.isArray(obj.mcps) ? obj.mcps : []).map(m => clean(m).slice(0, 30)).filter(m => m && !seenM.has(m.toLowerCase()) && seenM.add(m.toLowerCase()))
-      .map(m => { const k = connectors.find(c => c.toLowerCase() === m.toLowerCase()); return k || m; }).slice(0, 6);
+      .map(m => { const k = connectors.concat(tools).find(c => c.toLowerCase() === m.toLowerCase()); return k || m; }).slice(0, 6);
     const seenA = new Set();
     const mates = (Array.isArray(obj.mates) ? obj.mates : []).map(m => clean(m)).filter(m => ids.has(m) && !seenA.has(m) && seenA.add(m)).slice(0, 3);
     const team = TEAMS.find(t => t.toLowerCase() === clean(obj.team).toLowerCase()) || 'Operations';

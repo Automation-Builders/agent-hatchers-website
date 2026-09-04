@@ -677,20 +677,28 @@ h1{font-weight:800}h2{font-weight:700}
 .hx6-wrap img,.hx6-cracks{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
 .hx6-lid{transform-origin:50% 42%}
 .hx6-pop{position:absolute;left:13%;bottom:12%;width:74%;aspect-ratio:1/1;object-fit:cover;border-radius:14px;box-shadow:0 10px 22px rgba(22,21,70,.18);background:#fff;pointer-events:none;transform-origin:50% 100%;transform:translateY(4%) scale(.45)}
+.hx6-pop.is-cut{left:8%;width:84%;object-fit:contain;object-position:50% 100%;border-radius:0;box-shadow:none;background:transparent;filter:drop-shadow(0 12px 16px rgba(22,21,70,.24))}
 .hx6:not(.go):not(.done) .hx6-wrap{transform-origin:50% 90%;animation:hx6Idle 2.6s ease-in-out infinite}
 @keyframes hx6Idle{0%,100%{transform:rotate(0)}25%{transform:rotate(-3deg)}75%{transform:rotate(3deg)}}
-.hx6.go .hx6-wrap{transform-origin:50% 90%;animation:hx6Egg 5s ease both}
+/* Sep 2026: the crack is a loading bar. While the image generates, app.js creeps one
+   continuous crack along the seam (stroke-dashoffset, eased by the transition below) with a
+   glowing tip; when the image lands it rushes to the end (.rush) and .go plays only the LAST
+   2.8s of the 5s timeline (animation-delay:-2.2s) — the urgent tremble, the lid, the pop —
+   because the slow build-up already happened while waiting. */
+.hx6-crack{transition:stroke-dashoffset .38s cubic-bezier(.25,.8,.3,1)}
+.hx6-glow{transition:stroke-dashoffset .38s cubic-bezier(.25,.8,.3,1),opacity .3s;filter:blur(2px);mix-blend-mode:multiply;animation:hx6GlowPulse 1.1s ease-in-out infinite}
+@keyframes hx6GlowPulse{0%,100%{stroke-width:11}50%{stroke-width:15}}
+.hx6.rush .hx6-crack{transition-duration:.6s;transition-timing-function:cubic-bezier(.3,.6,.15,1)}
+.hx6.rush .hx6-glow,.hx6.go .hx6-glow{opacity:0!important;animation:none}
+.hx6.go .hx6-wrap{transform-origin:50% 90%;animation:hx6Egg 5s ease -2.2s both}
 @keyframes hx6Egg{
   0%,12%{transform:rotate(0)}14%{transform:rotate(-3deg)}16%{transform:rotate(2.5deg)}18%{transform:rotate(-1.5deg)}20%{transform:rotate(0)}
   28%{transform:rotate(0)}30%{transform:rotate(-5deg) translateY(-1.2%)}32%{transform:rotate(4.5deg)}34%{transform:rotate(-3deg) translateY(-.6%)}36%{transform:rotate(0) translateY(0)}
   44%{transform:rotate(0)}45.5%{transform:rotate(-6deg) translateY(-1.6%)}47%{transform:rotate(5.5deg)}48.5%{transform:rotate(-4deg) translateY(-1%)}50%{transform:rotate(3deg)}51.5%{transform:rotate(-1.5deg)}53%{transform:rotate(1.5deg)}54.5%{transform:rotate(-1deg)}56%{transform:rotate(.8deg)}57.5%,100%{transform:rotate(0)}
 }
-.hx6.go .hx6-cracks{animation:hx5CrackFade 5s linear both}
-.hx6.go .hx6-c1{animation:hx5C1 5s linear both}
-.hx6.go .hx6-c2{animation:hx5C2 5s linear both}
-.hx6.go .hx6-c3{animation:hx5C3 5s linear both}
-.hx6.go .hx6-lid{animation:hx6Lid 5s linear both}
-.hx6.go .hx6-bottom{animation:hxBottom 5s ease both}
+.hx6.go .hx6-cracks{animation:hx5CrackFade 5s linear -2.2s both}
+.hx6.go .hx6-lid{animation:hx6Lid 5s linear -2.2s both}
+.hx6.go .hx6-bottom{animation:hxBottom 5s ease -2.2s both}
 @keyframes hx6Lid{
   0%,58%{transform:none;opacity:1}
   62%{transform:translate(3%,-10%) rotate(8deg)}
@@ -699,7 +707,7 @@ h1{font-weight:800}h2{font-weight:700}
   84%{transform:translate(23%,-24%) rotate(64deg);opacity:.35}
   90%,100%{transform:translate(28%,-10%) rotate(76deg);opacity:0}
 }
-.hx6.go .hx6-pop{animation:hx6Pop 5s both;animation-timing-function:cubic-bezier(.3,1.2,.45,1)}
+.hx6.go .hx6-pop{animation:hx6Pop 5s -2.2s both;animation-timing-function:cubic-bezier(.3,1.2,.45,1)}
 @keyframes hx6Pop{
   0%,59%{transform:translateY(4%) scale(.45)}
   73%{transform:translateY(-4%) scale(1.04)}
@@ -710,6 +718,7 @@ h1{font-weight:800}h2{font-weight:700}
 .hx6.done .hx6-lid,.hx6.done .hx6-bottom,.hx6.done .hx6-cracks{animation:none;opacity:0}
 @media(prefers-reduced-motion:reduce){
   .hx6 .hx6-wrap,.hx6 .hx6-lid,.hx6 .hx6-bottom,.hx6 .hx6-pop,.hx6 .hx6-cracks,.hx6 .hx6-cracks path{animation:none!important}
+  .hx6 .hx6-crack,.hx6 .hx6-glow{transition:none}
   .hx6.go .hx6-lid,.hx6.go .hx6-bottom,.hx6.go .hx6-cracks{opacity:0}
   .hx6.go .hx6-pop{transform:none}
 }
@@ -1086,3 +1095,30 @@ h1{font-weight:800}h2{font-weight:700}
 .create-pop.wb-pop{border-color:#cfe3d6;border-left-color:#1a9d5f;color:#1f5a3a}
 .create-pop.wb-pop svg{stroke:#1a9d5f}
 .create-pop.wb-pop b{font-weight:800}
+
+/* Review mode: the team looking at a saved session (app.js reviewSession) */
+.review-bar{position:sticky;top:0;z-index:70;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;background:#1a1d21;color:#fff;font:600 .84rem 'Inter',system-ui,sans-serif;padding:9px 16px;text-align:center}
+.review-bar b{color:#ffd166}
+.review-bar a{color:#fff;background:rgba(255,255,255,.14);border-radius:999px;padding:5px 12px;text-decoration:none;white-space:nowrap}
+.review-bar a:hover{background:rgba(255,255,255,.26)}
+.review-bar.bad{background:#8a2323}
+/* "Which tools does your company use?" — first-screen picker and the Your-tools chips in agent profiles */
+.tool-hint{max-width:520px;margin:-2px 0 12px;font-size:.95rem;color:var(--muted)}
+.tool-pick{display:flex;flex-wrap:wrap;gap:8px;max-width:560px;margin-bottom:12px}
+.tool-chip{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1.5px solid #cee2ed;border-radius:12px;background:#f7fbfd;color:var(--ink);font:700 .84rem 'Inter',system-ui;cursor:pointer;transition:border-color .15s,background .15s,transform .15s}
+.tool-chip:hover{border-color:var(--brand);background:#eef5fc}
+.tool-chip:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.tool-chip.is-on{border-color:var(--brand);background:var(--brand);color:#fff;box-shadow:0 6px 16px rgba(37,83,120,.18)}
+.tool-chip.is-on .mcp-mono{outline:1.5px solid #fff6}
+.tool-chip .mcp-lg,.tool-chip .mcp-mono{width:15px;height:15px}
+.tool-pick:not(.is-open) .tool-extra:not(.is-on){display:none}
+.tool-more{padding:8px 12px;border:1.5px dashed #bdd8e7;border-radius:12px;background:transparent;color:var(--brand);font:700 .84rem 'Inter',system-ui;cursor:pointer}
+.tool-more:hover{background:#eef5fc}
+.tool-pick.is-open .tool-more{border-style:solid}
+.tool-other{display:flex;gap:8px;align-items:center;max-width:520px;margin-bottom:6px}
+.tool-other .name-field{flex:1;padding:11px 16px;font-size:1rem;border-radius:14px}
+.tool-add{padding:11px 18px;white-space:nowrap}
+.mcp.is-mine{border-color:var(--brand);background:#eef5fc;color:var(--brand)}
+.mcp-tick{margin-left:2px;font-style:normal;font-weight:800;font-size:.8rem}
+.mcp-sub{margin:18px 0 8px;font:700 .8rem 'Inter',system-ui;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.tool-chip{transition:none}}
