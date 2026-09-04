@@ -665,6 +665,10 @@ h1{font-weight:800}h2{font-weight:700}
 .mkt-tags{display:flex;align-items:center;gap:10px}
 .mkt-skills{font-size:.8rem;color:#9aa3ad;font-weight:600}
 .mkt-thumb .hatch-loader{position:absolute;inset:0}
+/* Installed agents: green ring round the whole card, not just the badge in the corner */
+.mkt-card.is-installed{border-color:#1a9d5f;box-shadow:0 0 0 2px rgba(26,157,95,.35),0 8px 22px rgba(26,157,95,.14)}
+.mkt-card.is-installed:hover,.mkt-card.is-installed:focus-visible{border-color:#1a9d5f;box-shadow:0 0 0 2px rgba(26,157,95,.5),0 16px 34px rgba(20,25,35,.12)}
+.p-tag.tag-team{white-space:nowrap}
 /* ============ Design hatch (.hx6) — the same continuous split-egg animation ============
    One per design, identical choreography to the welcome hatch: the egg is two clip-path
    halves of egg-closed.webp split along the crack seam, so the lid that tumbles off IS the
@@ -790,6 +794,7 @@ h1{font-weight:800}h2{font-weight:700}
 /* ============ Agent profile: MCP logos + suggested team ============ */
 .mcp{display:inline-flex;align-items:center;gap:7px}
 .mcp-lg{width:16px;height:16px;flex:0 0 auto}
+.mcp-img{border-radius:4px;object-fit:contain}
 .mcp-mono{width:16px;height:16px;flex:0 0 auto;border-radius:5px;color:#fff;font:800 .52rem 'Inter',system-ui;display:inline-grid;place-items:center;letter-spacing:0}
 .mate-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
 .mate{display:flex;align-items:center;gap:10px;border:1px solid #dcebf3;background:#f7fbfd;border-radius:14px;padding:9px 12px;cursor:pointer;text-align:left;transition:border-color .15s,transform .15s,box-shadow .15s}
@@ -969,7 +974,7 @@ h1{font-weight:800}h2{font-weight:700}
 .intro-option:hover,.intro-option:focus{background:#eef5fc;color:var(--brand)}
 .intro-option.is-on{color:var(--brand)}
 .intro-option.is-on:after{content:"✓";float:right;font-weight:800}
-.welcome-grid.intro .intro-field{margin-top:0}
+.welcome-grid.intro .intro-field{margin:0 0 18px}
 .welcome-grid.intro .actions{margin-top:22px}
 .team-stage{padding-top:40px}
 .team-stage h2{margin-bottom:10px}
@@ -1103,7 +1108,7 @@ h1{font-weight:800}h2{font-weight:700}
 .review-bar a:hover{background:rgba(255,255,255,.26)}
 .review-bar.bad{background:#8a2323}
 /* "Which tools does your company use?" — first-screen picker and the Your-tools chips in agent profiles */
-.tool-hint{max-width:520px;margin:-2px 0 12px;font-size:.95rem;color:var(--muted)}
+.tool-hint{max-width:520px;margin:0 0 12px;font-size:.95rem;color:var(--muted)}
 .tool-pick{display:flex;flex-wrap:wrap;gap:8px;max-width:560px;margin-bottom:12px}
 .tool-chip{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1.5px solid #cee2ed;border-radius:12px;background:#f7fbfd;color:var(--ink);font:700 .84rem 'Inter',system-ui;cursor:pointer;transition:border-color .15s,background .15s,transform .15s}
 .tool-chip:hover{border-color:var(--brand);background:#eef5fc}
@@ -1115,7 +1120,7 @@ h1{font-weight:800}h2{font-weight:700}
 .tool-more{padding:8px 12px;border:1.5px dashed #bdd8e7;border-radius:12px;background:transparent;color:var(--brand);font:700 .84rem 'Inter',system-ui;cursor:pointer}
 .tool-more:hover{background:#eef5fc}
 .tool-pick.is-open .tool-more{border-style:solid}
-.tool-other{display:flex;gap:8px;align-items:center;max-width:520px;margin-bottom:6px}
+.tool-other{display:flex;gap:8px;align-items:center;max-width:520px;margin-bottom:0}
 .tool-other .name-field{flex:1;padding:11px 16px;font-size:1rem;border-radius:14px}
 .tool-add{padding:11px 18px;white-space:nowrap}
 .mcp.is-mine{border-color:var(--brand);background:#eef5fc;color:var(--brand)}

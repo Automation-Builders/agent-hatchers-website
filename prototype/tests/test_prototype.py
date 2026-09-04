@@ -83,12 +83,18 @@ class PrototypeContractTests(unittest.TestCase):
         self.assertIn("Other connections available", self.app)
         self.assertEqual(self.app.count("mcpSection("), 3)   # definition + both modals
         self.assertEqual(self.app.count("tools:state.tools||[]"), 3)   # snapshot, capture, profile request
-        # Every tool the picker offers has a logo or a mono mark, and a known category.
+        # Every tool the picker offers has a REAL logo (sprite symbol, inline SVG or a vendored
+        # site icon) — never a two-letter monogram — and a known category.
         tools = re.findall(r"\{n:'([^']+)',c:'([^']+)'\}", self.app)
         self.assertGreaterEqual(len(tools), 30)
         agent_cats = re.search(r"const AGENT_CATS=\{(.*?)\n  \};", self.app, re.S).group(1)
+        icons = re.search(r"const MCP_ICONS=\{(.*?)\};", self.app).group(1)
+        svgs = re.search(r"const MCP_SVGS=\{(.*?)\n  \};", self.app, re.S).group(1)
+        imgs = dict(re.findall(r"'([^']+)':'([^']+)'", re.search(r"const MCP_IMGS=\{(.*?)\};", self.app).group(1)))
         for name, cat in tools:
-            self.assertTrue(f"'{name}':" in self.app, name)
+            self.assertTrue(f"'{name}':" in icons or f"'{name}':" in svgs or name in imgs, f"{name} has no real logo")
+            if name in imgs:
+                self.assertTrue((ROOT / "assets" / "tools" / imgs[name]).is_file(), imgs[name])
             self.assertTrue(cat in ('email', 'chat', 'docs', 'sheets') or f"'{cat}'" in agent_cats, cat)
 
     def test_demo_uses_shared_assets_and_company_configuration(self):
@@ -102,6 +108,15 @@ class PrototypeContractTests(unittest.TestCase):
         self.assertIn("--brand:#216bac", self.css.lower())
         self.assertIn("--brand-soft:#c1dce8", self.css.lower())
         self.assertIn("prefers-reduced-motion", self.css)
+
+    def test_rehatch_or_new_design_drops_the_old_characters_portraits(self):
+        # Profile portraits are re-dressings of one hatched character. Hatching again, or going
+        # back and picking a different design, must not keep cards wearing the previous robot.
+        self.assertIn("state.selectedImage='';state.marketImages={};state.marketStarted=false;state.marketRefKey='';state.step=3", self.app)
+        self.assertIn("if(state.marketRefKey&&state.marketRefKey!==refKey){state.marketImages={};}", self.app)
+        self.assertIn("'marketImages','marketRefKey'", self.app)   # survives a saved session
+        # Vendored tool icons are cache-busted by build so a redeploy never shows an old logo.
+        self.assertIn("/prototype/assets/tools/${MCP_IMGS[name]}?v=${BUILD}", self.app)
 
 if __name__ == "__main__":
     unittest.main()
