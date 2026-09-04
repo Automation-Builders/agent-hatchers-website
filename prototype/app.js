@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 58;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 59;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -1204,32 +1204,30 @@
   // Every team pill (Operations, Sales, Marketing…) gets its own tint, but all of them are
   // drawn from the hatched character's own colours (sampled from the chosen design, falling
   // back to the pasted website's brand colours) so the dashboard reads as one palette.
-  // Up to three sampled colours act as anchors. Each team claims its own hue in TEAM_ORDER:
-  // the anchors themselves first, then the nearest free hue fanning out from each anchor —
-  // never within 32° of a hue another team already holds, so a red-orange character gives
-  // Finance, Documents and Marketing plainly different pills instead of three near-identical
-  // reds. No palette yet → the stock green pill.
-  const TEAM_ORDER=['Operations','Sales','Marketing','Support','Finance','Logistics','Documents'];
-  const TEAM_HUE_GAP=32;
+  // Up to three sampled colours act as anchors. Teams fall into five colour groups (Documents
+  // sits with Finance, Logistics with Operations) and each group claims its own hue: the
+  // main sampled colour first, the others snapping to the nearest of five slots spaced 72°
+  // around the wheel, so five pale pill tints read as five plainly different colours rather
+  // than a pink next to a pinker pink. No palette yet → the stock green pill.
+  const TEAM_GROUPS=[['Operations','Logistics'],['Sales'],['Marketing'],['Support'],['Finance','Documents']];
+  const TEAM_HUE_GAP=360/TEAM_GROUPS.length;                   // 72° — five slots fill the wheel
   let teamPalette={key:'',colors:[]};
   let teamHueCache={key:'',hues:null};
   function hexToHsl(h){const [r,g,b]=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2;if(mx===mn)return [0,0,l];const d=mx-mn,s=l>.5?d/(2-mx-mn):d/(mx+mn);const hh=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;return [hh*60,s,l];}
   const hslCss=(h,s,l)=>`hsl(${Math.round(((h%360)+360)%360)} ${Math.round(s*100)}% ${Math.round(l*100)}%)`;
   const hueDist=(a,b)=>{const d=Math.abs(((a%360)+360)%360-((b%360)+360)%360);return Math.min(d,360-d);};
-  // One [hue, saturation] per team for the given anchors — deterministic, so pills never shuffle.
+  // One [hue, saturation] per colour group — deterministic, so pills never shuffle. Five slots
+  // 72° apart starting at the main anchor fill the wheel exactly; the other sampled colours
+  // claim whichever free slot sits nearest their own hue, remaining groups take what's left.
   function assignTeamHues(anchors){
-    const n=Math.min(anchors.length,3),taken=[],out=[];
-    TEAM_ORDER.forEach((_,i)=>{
-      const [base,s]=anchors[i%n];let pick=null;
-      // try the anchor itself, then ±1 gap, ±2 gaps… — the first hue nobody else holds wins
-      for(let k=0;k<Math.ceil(360/TEAM_HUE_GAP)&&pick===null;k++){
-        const h=base+(k===0?0:(k%2?1:-1)*Math.ceil(k/2)*TEAM_HUE_GAP);
-        if(!taken.some(t=>hueDist(t,h)<TEAM_HUE_GAP))pick=h;
-      }
-      if(pick===null)pick=base+i*(360/TEAM_ORDER.length);          // can't happen with 7 teams, but never collide
-      taken.push(pick);out.push([pick,s]);
+    const [h0,s0]=anchors[0];
+    const slots=TEAM_GROUPS.map((_,i)=>({h:h0+i*TEAM_HUE_GAP,s:s0,claimed:false}));
+    anchors.slice(1,3).forEach(([h,s])=>{
+      const free=slots.slice(1).filter(x=>!x.claimed);if(!free.length)return;
+      const best=free.reduce((a,b)=>hueDist(b.h,h)<hueDist(a.h,h)?b:a);best.s=s;best.claimed=true;
     });
-    return out;
+    const claimed=slots.slice(1).filter(x=>x.claimed),rest=slots.slice(1).filter(x=>!x.claimed);
+    return TEAM_GROUPS.map((_,i)=>{const sl=i===0?slots[0]:(claimed.shift()||rest.shift());return [sl.h,sl.s];});
   }
   function teamColors(team){
     const raw=teamPalette.colors.length?teamPalette.colors:((state.brand&&state.brand.colors)||[]);
@@ -1240,7 +1238,7 @@
       const anchors=[];raw.map(hexToHsl).forEach(c=>{if(!anchors.some(o=>hueDist(o[0],c[0])<25))anchors.push(c);});
       teamHueCache={key,hues:assignTeamHues(anchors)};
     }
-    const i=Math.max(0,TEAM_ORDER.indexOf(team));
+    const i=Math.max(0,TEAM_GROUPS.findIndex(g=>g.includes(team)));
     const [h,s]=teamHueCache.hues[i];
     const sat=Math.min(.72,Math.max(.42,s));
     return {fg:hslCss(h,sat,.34),bg:hslCss(h,Math.min(.9,sat+.15),.93)};
