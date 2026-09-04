@@ -277,11 +277,16 @@
     if(!yours.length)return `<h3>Available MCP connections</h3><p>These secure connectors let ${who} work with your existing systems while respecting approvals and permissions.</p><div class="mcp-list">${mcps.map(m=>mcpChip(m)).join('')}</div>`;
     return `<h3>Available MCP connections</h3><p class="tailored-note"><span class="tailored-pill">Your tools</span>${who} plugs straight into what ${escapeHtml(co())} already uses, with approvals and permissions respected.</p><div class="mcp-list">${yours.map(n=>mcpChip(n,true)).join('')}</div>${others.length?`<h4 class="mcp-sub">Other connections available</h4><div class="mcp-list">${others.map(m=>mcpChip(m)).join('')}</div>`:''}`;
   }
+  // One dropdown instead of a wall of chips: a selector with search + logos, chosen tools
+  // shown as small removable chips underneath. Typing a tool we don't list and pressing
+  // Enter adds it as a custom one.
   function toolPicker(){
-    const custom=(state.tools||[]).filter(n=>!TOOL_CAT[n]);
-    const chip=(n,extra)=>`<button type="button" class="tool-chip${hasTool(n)?' is-on':''}${extra?' tool-extra':''}" data-tool="${escapeHtml(n)}" aria-pressed="${hasTool(n)}">${mcpIcon(n)}<span>${escapeHtml(n)}</span></button>`;
-    return `<span class="intro-label" id="tool-label">Which tools does your company use? <span class="intro-optional">(optional)</span></span><p class="tool-hint">Pick any you use and your agents will show up already plugged into them.</p><div class="tool-pick${state.toolsOpen?' is-open':''}" id="tool-pick" role="group" aria-labelledby="tool-label">${TOOLS.map(t=>chip(t.n,!POPULAR_TOOLS.has(t.n))).join('')}${custom.map(n=>chip(n,false)).join('')}<button type="button" class="tool-more" data-tool-more aria-expanded="${!!state.toolsOpen}"><span>${state.toolsOpen?'Fewer tools':'More tools'}</span> ▾</button></div><div class="tool-other"><input class="name-field" id="tool-other" maxlength="30" autocomplete="off" placeholder="Something else? Type it and press Enter" aria-label="Another tool your company uses"><button type="button" class="btn btn-secondary tool-add" data-tool-add>Add</button></div>`;
+    const tools=state.tools||[];
+    const custom=tools.filter(n=>!TOOL_CAT[n]);
+    const opt=n=>`<li class="intro-option tool-option${hasTool(n)?' is-on':''}" role="option" tabindex="-1" aria-selected="${hasTool(n)}" data-tool="${escapeHtml(n)}">${mcpIcon(n)}<span>${escapeHtml(n)}</span></li>`;
+    return `<span class="intro-label" id="tool-label">Which tools does your company use? <span class="intro-optional">(optional)</span></span><div class="intro-select-wrap tool-wrap" id="tool-pick"><button type="button" class="name-field intro-select${tools.length?'':' is-empty'}" id="tool-btn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="tool-label tool-btn">${tools.length?`${tools.length} tool${tools.length===1?'':'s'} selected`:'Choose your tools…'}</button><div class="intro-menu tool-menu" id="tool-menu" hidden><input class="tool-search" id="tool-search" maxlength="30" autocomplete="off" placeholder="Search, or type another and press Enter" aria-label="Search tools"><ul class="tool-list" role="listbox" aria-labelledby="tool-label" aria-multiselectable="true">${TOOLS.map(t=>opt(t.n)).join('')}${custom.map(opt).join('')}</ul></div></div><div class="tool-chosen" id="tool-chosen">${toolChips()}</div>`;
   }
+  const toolChips=()=>(state.tools||[]).map(n=>`<span class="tool-chip is-on tool-sel">${mcpIcon(n)}<span>${escapeHtml(n)}</span><button type="button" data-tool-remove="${escapeHtml(n)}" aria-label="Remove ${escapeHtml(n)}">×</button></span>`).join('');
   function escapeHtml(value){return String(value).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
   function chip(){if(state.variant===null)return `<span class="private-pill">Private preview</span>`;const inner=state.selectedImage?`<img class="chip-img" src="${escapeHtml(state.selectedImage)}" alt="">`:bot('v'+state.variant+' chip');return `<span class="agent-chip">${inner}<span>${escapeHtml(state.name)}</span></span>`;}
   // Both intro screens (ask + team) count as step 1; create is 2, hatch is 3.
@@ -1469,13 +1474,32 @@
     const bizIntro=document.getElementById('biz-intro');if(bizIntro)bizIntro.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();root.querySelector('[data-action="team"]')?.click()}};
     const pick=document.getElementById('tool-pick');
     if(pick){
-      // Toggles update the chip in place — a re-render here would drop the caret from the business box.
-      pick.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{const n=b.dataset.tool;const on=!b.classList.contains('is-on');b.classList.toggle('is-on',on);b.setAttribute('aria-pressed',String(on));const rest=(state.tools||[]).filter(x=>x!==n);state.tools=on?[...rest,n]:rest;});
-      const more=pick.querySelector('[data-tool-more]');more.onclick=()=>{state.toolsOpen=!state.toolsOpen;pick.classList.toggle('is-open',state.toolsOpen);more.setAttribute('aria-expanded',String(state.toolsOpen));more.querySelector('span').textContent=state.toolsOpen?'Fewer tools':'More tools';};
-      const other=document.getElementById('tool-other');
-      const add=()=>{const raw=other.value.replace(/\s+/g,' ').trim().slice(0,30);if(!raw){other.focus();return;}const known=TOOLS.find(t=>t.n.toLowerCase()===raw.toLowerCase());const n=known?known.n:raw;if(!hasTool(n))state.tools=[...(state.tools||[]),n];const biz=document.getElementById('biz-intro');if(biz)state.biz=biz.value.trim();render();document.getElementById('tool-other')?.focus();};
-      other.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();add();}};
-      document.querySelector('[data-tool-add]').onclick=add;
+      const btn=document.getElementById('tool-btn'),menu=document.getElementById('tool-menu'),search=document.getElementById('tool-search'),list=menu.querySelector('.tool-list');
+      // Updates happen in place — a re-render would drop the caret from the business box.
+      const sync=()=>{const n=(state.tools||[]).length;btn.textContent=n?`${n} tool${n===1?'':'s'} selected`:'Choose your tools…';btn.classList.toggle('is-empty',!n);document.getElementById('tool-chosen').innerHTML=toolChips();bindRemove();};
+      const setTool=(n,on)=>{const rest=(state.tools||[]).filter(x=>x!==n);state.tools=on?[...rest,n]:rest;const o=list.querySelector(`[data-tool="${CSS.escape(n)}"]`);if(o){o.classList.toggle('is-on',on);o.setAttribute('aria-selected',String(on));}sync();};
+      const bindRemove=()=>document.querySelectorAll('[data-tool-remove]').forEach(x=>x.onclick=()=>setTool(x.dataset.toolRemove,false));
+      bindRemove();
+      const fitMenu=()=>{const r=btn.getBoundingClientRect();const pad=16,gap=8;const below=window.innerHeight-r.bottom-gap-pad,above=r.top-gap-pad;const up=below<260&&above>below;menu.classList.toggle('is-up',up);menu.style.maxHeight=Math.max(180,Math.min(400,up?above:below))+'px';};
+      const setOpen=open=>{menu.hidden=!open;btn.setAttribute('aria-expanded',String(open));if(open){fitMenu();search.value='';filter();search.focus({preventScroll:true});}};
+      const filter=()=>{const q=search.value.trim().toLowerCase();list.querySelectorAll('[data-tool]').forEach(o=>{o.hidden=!!q&&!o.dataset.tool.toLowerCase().includes(q);});};
+      btn.onclick=()=>setOpen(menu.hidden);
+      list.querySelectorAll('[data-tool]').forEach(o=>o.onclick=()=>setTool(o.dataset.tool,!o.classList.contains('is-on')));
+      search.oninput=filter;
+      search.onkeydown=e=>{
+        if(e.key==='Escape'){e.preventDefault();setOpen(false);btn.focus();return;}
+        if(e.key!=='Enter')return;e.preventDefault();
+        const raw=search.value.replace(/\s+/g,' ').trim().slice(0,30);if(!raw)return;
+        const known=TOOLS.find(t=>t.n.toLowerCase()===raw.toLowerCase())||(state.tools||[]).map(n=>({n})).find(t=>t.n.toLowerCase()===raw.toLowerCase());
+        const visible=[...list.querySelectorAll('[data-tool]')].filter(o=>!o.hidden);
+        const n=known?known.n:(visible.length===1?visible[0].dataset.tool:raw);
+        if(!list.querySelector(`[data-tool="${CSS.escape(n)}"]`)){const li=document.createElement('li');li.className='intro-option tool-option';li.setAttribute('role','option');li.dataset.tool=n;li.innerHTML=`${mcpIcon(n)}<span>${escapeHtml(n)}</span>`;li.onclick=()=>setTool(n,!li.classList.contains('is-on'));list.appendChild(li);}
+        setTool(n,true);search.value='';filter();
+      };
+      window.addEventListener('resize',()=>{if(!menu.hidden)fitMenu();});
+      if(root._closeTools)document.removeEventListener('pointerdown',root._closeTools);
+      root._closeTools=e=>{if(!menu.hidden&&!e.target.closest('#tool-pick'))setOpen(false);};
+      document.addEventListener('pointerdown',root._closeTools);
     }
     bindReference();
     root.querySelectorAll('[data-create]').forEach(el=>el.onclick=()=>openCreateMenu(el));
