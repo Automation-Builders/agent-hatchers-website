@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 47;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 48;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -412,8 +412,6 @@
     const running=runningAgents();
     const rec=topAgents().filter(a=>!RUNNING.includes(a.id));
     return `<div class="filter-bar">
-        <div class="seg"><button class="seg-on">${ic.gallery}<span>Gallery</span></button><button data-noop="1">${ic.kanban}<span>Kanban</span></button></div>
-        <button class="filter-pill" data-noop="1">Status: All ${ic.chev}</button><button class="filter-pill" data-noop="1">Team: All ${ic.chev}</button><button class="filter-pill" data-noop="1">Manager: All ${ic.chev}</button><button class="filter-pill sel" data-noop="1">Group by: Status ${ic.chev}</button>
         <div class="search-box">${ic.search}<input id="market-search" placeholder="Search profiles..." autocomplete="off"></div>
       </div>
       <div class="board" id="board">
@@ -500,7 +498,6 @@
     return `<div class="an-page">
       <aside class="an-side"><div class="an-side-h">On this page</div>${nav.map(([sec,items],si)=>`<div class="an-sec"><div class="an-sec-h ${si===0?'on':''}">${sec}</div>${items.map((it,i)=>`<div class="an-sub ${si===0&&i===0?'on':''}">${it}</div>`).join('')}</div>`).join('')}</aside>
       <div class="an-main">
-        <div class="filter-bar an-filters">${['Status: All','Team: All','Manager: All','By day','Last 30 days'].map((l,i)=>`<button class="filter-pill ${i>2?'':''}" data-noop="1">${i===4?ci.cal:''}${l} ${ic.chev}</button>`).join('')}</div>
         <h2 class="an-h">Usage</h2>
         <div class="an-eyebrow">Overview</div>
         <div class="an-tiles">${tiles.map(([l,v,s])=>`<div class="an-tile"><div class="an-tile-l">${l}</div><div class="an-tile-v">${v}</div><div class="an-tile-s">${s}</div></div>`).join('')}</div>
@@ -598,7 +595,7 @@
     return `<div class="app${state.tab==='chats'?' is-chats':''}">
       <header class="app-nav">
         <div class="ws"><img class="ws-logo ${state.selectedImage?'ws-avatar-img':''}" src="${state.selectedImage||'/agent-hatchers-logo.png'}" alt=""><span>${escapeHtml(co())}</span><i class="ws-chev">${ic.chev}</i></div>
-        <nav class="nav-tabs">${tab('profiles','Profiles')}${tab('chats','Chats')}${tab('analytics','Analytics')}${tab('config','Config')}${tab('market','Marketplace')}${tab('merch','Merch')}</nav>
+        <nav class="nav-tabs">${tab('profiles','Profiles')}${tab('chats','Chats')}${tab('analytics','Analytics')}${tab('market','Marketplace')}</nav>
         <div class="nav-right"><button class="create-btn" data-create="1">${ic.plus}<span>Create</span></button><span class="nav-avatar">${initials(co())}</span></div>
       </header>
       ${body}
