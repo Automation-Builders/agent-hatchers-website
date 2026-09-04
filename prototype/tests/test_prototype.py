@@ -49,21 +49,20 @@ class PrototypeContractTests(unittest.TestCase):
     def test_flow_contains_every_required_stage(self):
         # revealScreen was merged into hatchScreen (Aug 2026): designs are selected in
         # place as soon as they hatch, so the flow is 5 steps, not 6.
-        # Sep 2026: two plain-English intro screens (welcome asks what the business does,
-        # teamScreen answers) sit in front of the create step.
-        for stage in ("welcome", "teamScreen", "nameScreen", "designScreen", "hatchScreen", "marketScreen", "connectScreen"):
+        # Sep 2026: the welcome intro asks what the business does, then goes straight to the
+        # create step; the "team we'd hatch" screen was removed (Noah) — index 1 is unused.
+        for stage in ("welcome", "nameScreen", "designScreen", "hatchScreen", "marketScreen", "connectScreen"):
             self.assertRegex(self.app, rf"function {stage}\(")
         self.assertNotIn("function revealScreen(", self.app)
-        self.assertIn("[welcome,teamScreen,nameScreen,hatchScreen,marketScreen,connectScreen]", self.app)
+        self.assertNotIn("function teamScreen(", self.app)
+        self.assertIn("[welcome,welcome,nameScreen,hatchScreen,marketScreen,connectScreen]", self.app)
 
     def test_every_catalog_agent_has_plain_english_copy(self):
         ids = re.findall(r"\{id:'([a-z]+)',icon:", self.app)
         self.assertGreaterEqual(len(ids), 10)
         plain = re.search(r"const PLAIN=\{(.*?)\n  \};", self.app, re.S).group(1)
-        flow = re.search(r"const FLOW_ORDER=\[(.*?)\]", self.app).group(1)
         for agent_id in ids:
             self.assertRegex(plain, rf"\n    {agent_id}:\{{does:'[^']+',job:'[^']+',art:'/[^']+\.webp'\}}")
-            self.assertIn(f"'{agent_id}'", flow)
 
     def test_other_chat_profiles_wear_the_hatched_character(self):
         # The Chats sidebar's "Other profiles" must never show stock art of a different

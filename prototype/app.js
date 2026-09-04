@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 56;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 57;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -77,11 +77,8 @@
     document.body.appendChild(pop);setTimeout(()=>pop.classList.add('show'),10);setTimeout(()=>{pop.classList.remove('show');setTimeout(()=>pop.remove(),300)},4600);
   }
   // ---------- Team research: a model reasons about THIS business before we show a team ----------
-  const THINK_LINES=[b=>`Looking at what a ${b} actually does day to day…`,b=>`Working out where a ${b} loses hours…`,()=>`Checking which agents would pay off first…`,()=>`Writing it up in plain terms…`];
-  let thinkTimer=null;
-  function stopThinking(){if(thinkTimer){clearInterval(thinkTimer);thinkTimer=null;}}
   async function researchTeam(biz,research=biz){
-    stopThinking();state.team=null;state.teamBusy=true;
+    state.team=null;state.teamBusy=true;
     const started=Date.now();const mine=biz;
     const roster=catalog.map(a=>({id:a.id,name:a.name,summary:a.summary}));
     let result=null;
@@ -106,18 +103,7 @@
     // Let the research read as research — never flash the answer in under two seconds.
     const wait=Math.max(0,2400-(Date.now()-started));if(wait) await sleep(wait);
     if(state.biz!==mine) return;   // they changed their mind mid-think
-    state.team=result;state.teamBusy=false;stopThinking();
-    if(state.step===1) render();
-  }
-  function thinkingScreen(){
-    const biz=state.biz||'your business';
-    return `<div class="stage team-stage think-stage"><span class="eyebrow">For a ${escapeHtml(biz)}</span><h2>Working out your team…</h2>
-      <div class="think-box"><span class="think-egg" aria-hidden="true"><img src="/egg-closed.webp" alt=""></span><div class="think-copy"><p class="think-line" id="think-line">${escapeHtml(THINK_LINES[0](biz))}</p><span class="think-dots" aria-hidden="true"><i></i><i></i><i></i></span></div></div>
-      <div class="actions">${button('Try another business','back',true)}</div></div>`;
-  }
-  function startThinking(){
-    stopThinking();const biz=state.biz||'your business';let i=0;
-    thinkTimer=setInterval(()=>{const el=document.getElementById('think-line');if(!el){stopThinking();return;}i=(i+1)%THINK_LINES.length;el.classList.remove('swap');void el.offsetWidth;el.textContent=THINK_LINES[i](biz);el.classList.add('swap');},1500);
+    state.team=result;state.teamBusy=false;
   }
 
   const button = (label, action, secondary=false) => `<button class="btn ${secondary?'btn-secondary':'btn-primary'}" data-action="${action}">${label}</button>`;
@@ -157,7 +143,6 @@
     operations:{does:'Keeps every job on schedule and chases anything running late.',job:'keeps the job on track',art:'/hatchy-sec-training.webp'}
   };
   // The order agents hand work to each other across a typical business day.
-  const FLOW_ORDER=['marketing','website','sales','documents','operations','inventory','logistics','invoices','returns','support'];
   // Everyday business words → the agents that matter most for that kind of business. The
   // catalog keywords are tool-ish ("crm", "sku"); a dentist or a café types neither.
   const BIZ_HINTS=[
@@ -366,7 +351,7 @@
     const ready=state.slots.some(Boolean);
     // A hatch that was still running can't be resumed — back to the create screen with everything typed.
     state.step=snap.step===3&&!ready?2:(snap.step>=3&&!ready?2:snap.step);
-    if(snap.step===1&&!state.team)state.step=0;
+    if(state.step===1)state.step=0;
     state.teamBusy=false;state.refBusy=false;state.refError='';
     state.marketStarted=false;
     // Images hatched before the one-robot fix (or anything that isn't square) would be copied
@@ -403,7 +388,7 @@
     state.tab=['profiles','chats','analytics','market'].includes(d.tab)?d.tab:'profiles';
     state.done=false;   // the dashboard is what the team wants to see, even if they went on to connect
     state.step=(d.step>=4||state.slots.some(Boolean))?4:Math.min(Number(d.step)||0,2);
-    if(state.step===1&&!state.team)state.step=0;
+    if(state.step===1)state.step=0;
     render();
     bar.innerHTML=`<span>Reviewing <b>${escapeHtml(d.company||'an unnamed company')}</b>${d.name?` · ${escapeHtml(d.name)}`:''} — read-only: nothing here is saved, generated or counted</span><a href="/prototype/sessions.html">Back to sessions</a>`;
   }
@@ -414,7 +399,9 @@
   }
 
   function render(){
-    const screens = [welcome,teamScreen,nameScreen,hatchScreen,marketScreen,connectScreen];
+    // Index 1 was the "team we'd hatch" screen — removed (Sep 2026, Noah). The research still
+    // runs behind the create step so the dashboard team fits the business; step 1 is never shown.
+    const screens = [welcome,welcome,nameScreen,hatchScreen,marketScreen,connectScreen];
     const inner = screens[state.step]();
     root.innerHTML = state.step>=4 ? inner : layout(inner);
     bind();
@@ -476,20 +463,9 @@
     const options=INDUSTRIES.map(i=>`<li class="intro-option${i.label===state.industry?' is-on':''}" role="option" tabindex="-1" aria-selected="${i.label===state.industry}" data-industry="${escapeHtml(i.label)}">${escapeHtml(i.label)}</li>`).join('');
     const fieldLabel=other?'What does your business do?':ind?'Anything more specific? <span class="intro-optional">(optional)</span>':'Or just tell us what you do';
     const placeholder=ind?ind.eg:'e.g. dental clinic, online clothing shop, plumber';
-    return `<div class="stage welcome-grid intro"><div><span class="eyebrow">Agent Hatchers</span><h1 class="welcome-title intro-title">What can our agents do for you?</h1><p class="intro-lead">Tell us what your business does and we’ll work out which agents would actually help.</p><span class="intro-label" id="biz-industry-label">Your industry</span><div class="intro-select-wrap" id="biz-industry"><button type="button" class="name-field intro-select${ind?'':' is-empty'}" id="biz-industry-btn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="biz-industry-label biz-industry-btn">${escapeHtml(ind?ind.label:'Choose your industry…')}</button><ul class="intro-menu" id="biz-industry-menu" role="listbox" aria-labelledby="biz-industry-label" hidden>${options}</ul></div><label class="intro-label" for="biz-intro">${fieldLabel}</label><div class="mic-field intro-field"><input class="name-field" id="biz-intro" maxlength="60" autocomplete="off" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(state.biz)}" aria-label="What your business does"><button type="button" class="mic-btn" data-mic="biz-intro" aria-label="Dictate what your business does">${micSvg}</button></div>${toolPicker()}<div class="actions">${button('Show me →','team')}</div></div><div class="welcome-art" aria-hidden="true">${hatch5()}</div></div>`;
+    return `<div class="stage welcome-grid intro"><div><span class="eyebrow">Agent Hatchers</span><h1 class="welcome-title intro-title">What can our agents do for you?</h1><p class="intro-lead">Tell us what your business does and we’ll work out which agents would actually help.</p><span class="intro-label" id="biz-industry-label">Your industry</span><div class="intro-select-wrap" id="biz-industry"><button type="button" class="name-field intro-select${ind?'':' is-empty'}" id="biz-industry-btn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="biz-industry-label biz-industry-btn">${escapeHtml(ind?ind.label:'Choose your industry…')}</button><ul class="intro-menu" id="biz-industry-menu" role="listbox" aria-labelledby="biz-industry-label" hidden>${options}</ul></div><label class="intro-label" for="biz-intro">${fieldLabel}</label><div class="mic-field intro-field"><input class="name-field" id="biz-intro" maxlength="60" autocomplete="off" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(state.biz)}" aria-label="What your business does"><button type="button" class="mic-btn" data-mic="biz-intro" aria-label="Dictate what your business does">${micSvg}</button></div>${toolPicker()}<div class="actions">${button('Next →','team')}</div></div><div class="welcome-art" aria-hidden="true">${hatch5()}</div></div>`;
   }
   // Screen 2 — the agents for that business, what each does, and how they hand work on.
-  function teamScreen(){
-    if(!state.team) return thinkingScreen();
-    const team=topAgents();const biz=state.biz||'your business';
-    const line=id=>(state.team.lines[id]||PLAIN[id]);
-    const flow=FLOW_ORDER.filter(id=>team.some(a=>a.id===id)).map(id=>catalog.find(a=>a.id===id));
-    return `<div class="stage team-stage"><span class="eyebrow">For a ${escapeHtml(biz)}</span><h2>Here’s the team we’d hatch for you.</h2>${state.team.intro?`<p class="team-intro">${escapeHtml(state.team.intro)}</p>`:''}<p class="team-what"><b>What’s an agent?</b> A helper that does one job for your business, all day, inside ${toolsBlurb()} — like a new team member who never forgets.</p>
-      <ol class="team-list">${team.map(a=>`<li class="team-row"><span class="team-av team-q" aria-hidden="true">?</span><span class="team-txt"><b>${a.name}</b><span>${escapeHtml(line(a.id).does)}</span></span></li>`).join('')}</ol>
-      <h3 class="team-h">How they work together</h3>
-      <div class="team-flow">${flow.map((a,i)=>`${i?'<span class="flow-arrow" aria-hidden="true">→</span>':''}<span class="flow-step"><i class="flow-q" aria-hidden="true">?</i><span><b>${a.name.replace(' Agent','')}</b> ${escapeHtml(line(a.id).job)}</span></span>`).join('')}</div>
-      <div class="actions">${button('See what your agent could look like →','next')}${button('Try another business','back',true)}</div></div>`;
-  }
   function nameScreen(){return `<div class="stage"><span class="eyebrow">Create a profile</span><h2>Create your agent</h2><p>Give it a name, tell us your type of company, and describe how it should look. You’ll pick specialist agents (sales, invoices, support…) from the marketplace next.</p><label class="field-label" for="agent-co">Company name</label><input class="name-field" id="agent-co" maxlength="40" autocomplete="off" placeholder="Company name — e.g. Tanssu" value="${escapeHtml(state.company||config.company||'')}" aria-label="Company name"><label class="field-label" for="agent-name">Agent name</label><input class="name-field" id="agent-name" maxlength="28" autocomplete="off" placeholder="Agent name — e.g. Pip, Scout or Atlas" value="${escapeHtml(state.name)}" aria-label="Agent name"><label class="field-label" for="agent-biz">Type of company</label><input class="name-field" id="agent-biz" maxlength="60" autocomplete="off" placeholder="e.g. dental clinic, online clothing shop, plumber" value="${escapeHtml(state.biz)}" aria-label="Type of company"><label class="field-label" for="agent-look">Image description</label><div class="mic-field"><textarea class="look-field" id="agent-look" placeholder="e.g. a friendly rounded robot holding a suitcase — or leave it to the photo / website below" aria-label="Image description">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div>${referenceBlock()}<div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
   function designScreen(){return `<div class="stage"><span class="eyebrow">Design the look</span><h2>Describe how ${escapeHtml(state.name)} should look</h2><p>Write a short, practical description and we’ll hatch three designs for you to choose from.</p><div class="mic-field"><textarea class="look-field" id="agent-look" maxlength="600" placeholder="e.g. a friendly rounded robot medic in blue and white, holding a checklist" aria-label="Describe the avatar">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div>${referenceBlock()}<div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
   // The same continuous split-egg hatch as the welcome screen, one per design.
@@ -876,12 +852,20 @@
   // gets three of each, ever — the counts live in localStorage so "Start over" (which wipes
   // the IndexedDB session) doesn't hand out three more.
   const FREE=3, FREE_PROFILES=FREE, PROFILES_KEY='ah-new-profiles', HATCH_KEY='ah-hatches', LOOK_KEY='ah-look-edits';
-  const usage=k=>{try{return parseInt(localStorage.getItem(k),10)||0;}catch(e){return 0;}};
+  // Team bypass: open /prototype/?unlimited=1 once and THIS browser keeps no free-use caps
+  // (hatches, redesigns, new profiles, chat turns); ?unlimited=0 puts them back. Prospects
+  // never see the flag, so the paywall still gates token spend for everyone else.
+  const UNLIMITED_KEY='ah-unlimited';
+  (()=>{try{const v=new URLSearchParams(location.search).get('unlimited');if(v==null)return;const on=!(v==='0'||v==='off');if(on)localStorage.setItem(UNLIMITED_KEY,'1');else localStorage.removeItem(UNLIMITED_KEY);
+    setTimeout(()=>{document.querySelectorAll('.create-pop').forEach(p=>p.remove());const pop=document.createElement('div');pop.className='create-pop wb-pop';pop.innerHTML=`${ci.check}<span><b>Free-use limits ${on?'off':'back on'}</b> in this browser${on?' — hatch, redesign, add profiles and chat without caps.':'.'}</span>`;document.body.appendChild(pop);setTimeout(()=>pop.classList.add('show'),10);setTimeout(()=>{pop.classList.remove('show');setTimeout(()=>pop.remove(),300)},5200);},900);
+  }catch(e){}})();
+  const unlimited=()=>{try{return localStorage.getItem(UNLIMITED_KEY)==='1';}catch(e){return false;}};
+  const usage=k=>{if(unlimited())return 0;try{return parseInt(localStorage.getItem(k),10)||0;}catch(e){return 0;}};
   const bumpUsage=k=>{try{localStorage.setItem(k,String(usage(k)+1));}catch(e){}};
   const profilesUsed=()=>usage(PROFILES_KEY);
   const noteProfileUsed=()=>bumpUsage(PROFILES_KEY);
   const hatchesLeft=()=>Math.max(0,FREE-usage(HATCH_KEY));
-  const looksUsed=()=>Math.max(state.editUses,usage(LOOK_KEY));
+  const looksUsed=()=>unlimited()?0:Math.max(state.editUses,usage(LOOK_KEY));
   const hatchPop=()=>payPop(`You’ve used your ${FREE} free hatches — please pay for your agent to keep designing.`);
   const liveProfiles=()=>state.profiles.filter(p=>p.status==='running'||p.status==='complete');
   const runningJobs=()=>state.profiles.filter(p=>p.status==='running');
@@ -1414,9 +1398,9 @@
   function bind(){
     root.querySelectorAll('[data-action]').forEach(el=>el.onclick=()=>{
       const a=el.dataset.action;
-      if(a==='back'){if(state.step===1)stopThinking();state.step=Math.max(0,state.step-1);render()}
+      if(a==='back'){state.step=state.step===2?0:Math.max(0,state.step-1);render()}
       if(a==='next'){state.step++;render()}
-      if(a==='team'){const input=document.getElementById('biz-intro');const text=input?input.value.trim():'';const ind=industryOf(state.industry);const biz=text||(ind&&ind.noun)||'';if(!biz){input?.focus();input?.setAttribute('aria-invalid','true');return}state.biz=biz;state.step=1;researchTeam(biz,text&&ind&&ind.noun?`${text} (${ind.label.toLowerCase()})`:biz);render();startThinking()}
+      if(a==='team'){const input=document.getElementById('biz-intro');const text=input?input.value.trim():'';const ind=industryOf(state.industry);const biz=text||(ind&&ind.noun)||'';if(!biz){input?.focus();input?.setAttribute('aria-invalid','true');return}state.biz=biz;state.step=2;researchTeam(biz,text&&ind&&ind.noun?`${text} (${ind.label.toLowerCase()})`:biz);render()}
       if(a==='generate'){const input=document.getElementById('agent-name');const name=input.value.trim();if(!name){input.focus();input.setAttribute('aria-invalid','true');return}state.name=name;const coIn=document.getElementById('agent-co');if(coIn)state.company=coIn.value.trim();const bizIn=document.getElementById('agent-biz');state.biz=bizIn?bizIn.value.trim():'';const lookTa=document.getElementById('agent-look');state.look=(lookTa&&lookTa.value.trim())||(hasReference()?'a friendly robot mascot':'a friendly rounded robot in blue and white');generateAgents()}
       if(a==='redesign'){if(hatchesLeft()){state.step=2;render()}else hatchPop()}
       if(a==='edit-look'){openEditLook()}
@@ -1425,7 +1409,7 @@
         const FREE_TURNS=5;
         const prior=(state.chatExtra[i]||[]).filter(m=>m[0]==='me').length;
         const scrollFocus=()=>{const th=document.getElementById('chat-thread');if(th)th.scrollTop=th.scrollHeight;document.getElementById('chat-box')?.focus()};
-        if(prior>=FREE_TURNS){state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['me',t],['pay','Please pay for your agent in order to continue talking.']]);render();scrollFocus();return;}
+        if(!unlimited()&&prior>=FREE_TURNS){state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['me',t],['pay','Please pay for your agent in order to continue talking.']]);render();scrollFocus();return;}
         const history=(state.chatExtra[i]||[]).filter(m=>m[0]==='me'||m[0]==='them').map(m=>({role:m[0]==='me'?'user':'assistant',content:m[1]}));
         state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['me',t]]);state.chatTyping[i]=true;render();scrollFocus();
         const agentName=(chatProfiles().all[i]||{}).name||state.name||'your agent';
@@ -1438,7 +1422,7 @@
         const s=state.slots[state.variant];
         state.selectedImage=(s&&s.image)||state.selectedImage||((state.slots.find(x=>x&&x.image)||{}).image)||'';
         document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=4;render();generateMarket()}
-      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.tools=[];state.toolsOpen=false;state.look='';state.team=null;state.teamBusy=false;stopThinking();state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.added=[];state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.tools=[];state.toolsOpen=false;state.look='';state.team=null;state.teamBusy=false;state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.added=[];state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-egg]').forEach(el=>{
       // Select a design the moment it's hatched — direct DOM updates only, so picking
