@@ -34,6 +34,15 @@ class PrototypeContractTests(unittest.TestCase):
         self.assertIn("logAction('open'", self.session_fn)
         self.assertIn("sessions-log/", self.session_fn)
 
+    def test_deletes_are_soft_and_restorable(self):
+        self.assertIn("sessions-trash/", self.session_fn)
+        self.assertIn("if (req.method === 'PUT')", self.session_fn)
+        self.assertIn("logAction('restore'", self.session_fn)
+        self.assertIn("'GET,POST,PUT,DELETE,OPTIONS'", self.session_fn)
+        self.assertIn("{method:'PUT'}", self.sessions)
+        self.assertIn("'&trash=1'", self.sessions)
+        self.assertIn("'Undo'", self.sessions)
+
     def test_demo_is_unlisted_from_search_engines(self):
         self.assertIn('name="robots" content="noindex,nofollow,noarchive"', self.demo)
 

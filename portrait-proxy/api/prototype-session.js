@@ -5,7 +5,9 @@
 //   GET  ?key=<SESSIONS_KEY>&sid=…  → the full session snapshot
 //   GET  ?key=…&sid=…&view=1&by=<name> → same, and logs that <name> opened that dashboard
 //   GET  ?key=…&log=1              → { log:[…] } who deleted / opened what (newest first)
-//   DELETE ?key=…&sid=…&by=<name>  → removes that session; refused without a name; logged + Slack
+//   DELETE ?key=…&sid=…&by=<name>  → moves that session to the trash; refused without a name; logged + Slack
+//   PUT  ?key=…&sid=…&by=<name>    → restores it from the trash (logged + Slack)
+//   GET  ?key=…&trash=1            → { trash:[…] } what can still be restored (kept TRASH_DAYS, then purged)
 // Every delete and dashboard open is written to sessions-log/<time>-<action>-<sid>.json with
 // the name typed on the sessions page, the caller's IP and browser — the key is shared, so the
 // name is what tells the team apart.
@@ -24,7 +26,7 @@ function applyCors(res, origin) {
   const allow = ALLOWED_ORIGINS.includes('*') ? '*' : (ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]);
   res.setHeader('Access-Control-Allow-Origin', allow);
   res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'content-type,x-sessions-key');
 }
 const clean = (v, n) => String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
@@ -55,6 +57,8 @@ async function slackPing(kind, index) {
   };
   try { await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); } catch { /* a missed ping is not worth failing the save */ }
 }
+const TRASH_DAYS = Number(process.env.TRASH_DAYS) || 30;
+const putJson = (pathname, obj) => put(pathname, JSON.stringify(obj), { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });
 async function slackNote(text) {
   const url = process.env.SLACK_WEBHOOK_URL;
   if (!url) return;
@@ -97,6 +101,18 @@ export default async function handler(req, res) {
     const key = (req.query && req.query.key) || req.headers['x-sessions-key'] || '';
     if (!process.env.SESSIONS_KEY) { res.status(500).json({ error: 'SESSIONS_KEY is not set' }); return; }
     if (!key || key !== process.env.SESSIONS_KEY) { res.status(401).json({ error: 'Wrong key' }); return; }
+    if (req.query && req.query.trash) {
+      try {
+        const blobs = await listAll('sessions-trash-index/');
+        const cutoff = Date.now() - TRASH_DAYS * 86400000;
+        const trash = (await Promise.all(blobs.map(async b => { try { return await readJson(b.pathname); } catch { return null; } }))).filter(Boolean);
+        const expired = trash.filter(t => (t.deletedAt || 0) < cutoff);
+        if (expired.length) { try { await del(expired.flatMap(t => [`sessions-trash/${t.sid}.json`, `sessions-trash-index/${t.sid}.json`])); } catch { /* next listing tries again */ } }
+        const kept = trash.filter(t => (t.deletedAt || 0) >= cutoff).sort((a, b) => (b.deletedAt || 0) - (a.deletedAt || 0));
+        res.setHeader('Cache-Control', 'no-store'); res.status(200).json({ trash: kept, count: kept.length, days: TRASH_DAYS });
+      } catch (e) { res.status(502).json({ error: 'Could not read the trash: ' + (e && e.message) }); }
+      return;
+    }
     if (req.query && req.query.log) {
       try {
         const blobs = (await listAll('sessions-log/')).sort((a, b) => (a.pathname < b.pathname ? 1 : -1)).slice(0, 200);
@@ -138,13 +154,41 @@ export default async function handler(req, res) {
     const { by, ip } = actor(req);
     if (!by) { res.status(400).json({ error: 'Say who you are first — deletes are logged (by=<your name>)' }); return; }
     try {
-      let index = null;
+      // Soft delete: both blobs move to the trash first, so a slip can be undone for TRASH_DAYS.
+      let index = null, full = null;
       try { index = await readJson(`sessions-index/${sid}.json`); } catch { index = null; }
+      try { full = await readJson(`sessions/${sid}.json`); } catch { full = null; }
+      if (!index && !full) { res.status(404).json({ error: 'No such session' }); return; }
+      const deletedAt = Date.now();
+      if (full) await putJson(`sessions-trash/${sid}.json`, full);
+      await putJson(`sessions-trash-index/${sid}.json`, Object.assign({}, index || { sid }, { sid, deletedAt, deletedBy: by }));
       await del([`sessions/${sid}.json`, `sessions-index/${sid}.json`]);
       const entry = await logAction('delete', sid, req, index);
-      await slackNote(`:wastebasket: ${by} deleted the prototype session for *${(index && index.company) || 'an unnamed company'}*${index && index.name ? ` (${index.name})` : ''}${ip ? ` · from ${ip}` : ''}`);
-      res.status(200).json({ ok: true, sid, logged: entry });
+      await slackNote(`:wastebasket: ${by} deleted the prototype session for *${(index && index.company) || 'an unnamed company'}*${index && index.name ? ` (${index.name})` : ''}${ip ? ` · from ${ip}` : ''} — restorable from the sessions page for ${TRASH_DAYS} days`);
+      res.status(200).json({ ok: true, sid, trashed: true, days: TRASH_DAYS, logged: entry });
     } catch (e) { res.status(502).json({ error: 'Could not delete: ' + (e && e.message) }); }
+    return;
+  }
+  if (req.method === 'PUT') {
+    const key = (req.query && req.query.key) || req.headers['x-sessions-key'] || '';
+    if (!process.env.SESSIONS_KEY || key !== process.env.SESSIONS_KEY) { res.status(401).json({ error: 'Wrong key' }); return; }
+    const sid = clean(req.query && req.query.sid, 64);
+    if (!/^[a-z0-9-]{8,64}$/i.test(sid)) { res.status(400).json({ error: 'Bad session id' }); return; }
+    const { by } = actor(req);
+    if (!by) { res.status(400).json({ error: 'Say who you are first — restores are logged (by=<your name>)' }); return; }
+    try {
+      let tindex = null, full = null;
+      try { tindex = await readJson(`sessions-trash-index/${sid}.json`); } catch { tindex = null; }
+      try { full = await readJson(`sessions-trash/${sid}.json`); } catch { full = null; }
+      if (!tindex && !full) { res.status(404).json({ error: 'Nothing in the trash with that id' }); return; }
+      const index = Object.assign({}, tindex || {}); delete index.deletedAt; delete index.deletedBy;
+      if (full) await putJson(`sessions/${sid}.json`, full);
+      if (tindex) await putJson(`sessions-index/${sid}.json`, index);
+      await del([`sessions-trash/${sid}.json`, `sessions-trash-index/${sid}.json`]);
+      const entry = await logAction('restore', sid, req, index);
+      await slackNote(`:leftwards_arrow_with_hook: ${by} restored the prototype session for *${index.company || 'an unnamed company'}*${index.name ? ` (${index.name})` : ''}`);
+      res.status(200).json({ ok: true, sid, restored: true, logged: entry });
+    } catch (e) { res.status(502).json({ error: 'Could not restore: ' + (e && e.message) }); }
     return;
   }
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }

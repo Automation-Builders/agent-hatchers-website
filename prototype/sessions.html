@@ -20,7 +20,9 @@
     .menu{position:absolute;right:0;top:34px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(20,40,70,.16);min-width:190px;padding:6px;z-index:8;display:none}.kebab.open .menu{display:block}
     .menu a,.menu button{display:block;width:100%;text-align:left;border:0;background:transparent;font:500 .86rem Inter,system-ui;color:var(--ink);padding:8px 10px;border-radius:8px;cursor:pointer;text-decoration:none}.menu a:hover,.menu button:hover{background:#f0f4f9}.menu .danger{color:#a12a2a}.menu .danger:hover{background:#fdeeee}.menu hr{border:0;border-top:1px solid var(--line);margin:4px 0}
     .btn.open{padding:6px 10px;font-size:.78rem;text-decoration:none;display:inline-block}
-    .log{margin-top:28px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 16px}.log summary{cursor:pointer;font-weight:700;color:#48505a}.log table{width:100%;border-collapse:collapse;margin-top:10px;font-size:.84rem}.log td{padding:6px 8px;border-top:1px solid var(--line);vertical-align:top}.log td.who{font-weight:700;white-space:nowrap}.log td.act{white-space:nowrap}.log .del{color:#a12a2a}.log .mono{color:var(--muted);font-size:.76rem}
+    .log{margin-top:28px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 16px}.log summary{cursor:pointer;font-weight:700;color:#48505a}.log table{width:100%;border-collapse:collapse;margin-top:10px;font-size:.84rem}.log td{padding:6px 8px;border-top:1px solid var(--line);vertical-align:top}.log td.who{font-weight:700;white-space:nowrap}.log td.act{white-space:nowrap}.log .del{color:#a12a2a}.log .mono{color:var(--muted);font-size:.76rem}.log .res{color:var(--green)}
+    .log .btn.restore{padding:5px 10px;font-size:.76rem;background:#e8f6ee;color:var(--green)}
+    .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1a1d21;color:#fff;border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:14px;z-index:20;box-shadow:0 14px 40px rgba(0,0,0,.28);font-size:.9rem;max-width:92vw}.toast button{border:0;border-radius:999px;background:#fff;color:#1a1d21;font:700 .82rem Inter,system-ui;padding:6px 14px;cursor:pointer}.toast button.x{background:transparent;color:#aab2bd;padding:6px 4px}
     main{max-width:1240px;margin:0 auto;padding:20px clamp(14px,3vw,32px) 60px}
     .stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 16px;min-width:130px}.stat b{display:block;font-size:1.4rem}.stat span{color:var(--muted);font-size:.8rem}
     .tools{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}.tools input{border:1.5px solid var(--line);border-radius:10px;padding:8px 11px;font:inherit;width:260px}.tools .n{color:var(--muted);font-size:.85rem}
@@ -54,7 +56,8 @@
   <div class="tools" id="tools" hidden><input id="q" placeholder="Filter by company, business, agent name…"><span class="n" id="n"></span></div>
   <div class="list" id="list"></div>
   <div class="empty" id="empty">Enter the sessions key to load what prospects have hatched.</div>
-  <details class="log" id="log" hidden><summary>Activity — who opened or deleted what</summary><div id="logrows"></div></details>
+  <details class="log" id="trash" hidden><summary id="trashsum">Trash</summary><div id="trashrows"></div></details>
+  <details class="log" id="log" hidden><summary>Activity — who opened, deleted or restored what</summary><div id="logrows"></div></details>
 </main>
 <script>
 (()=>{
@@ -76,15 +79,39 @@
   async function removeSession(sid){
     const by=who();if(!by){alert('Put your name in the box at the top first — deletes are logged.');$('by').focus();return;}
     const s=all.find(x=>x.sid===sid);
-    if(!confirm(`Delete the session for ${s?(s.company||'this unnamed company'):sid}? It's logged as ${by} and can't be undone.`))return;
+    if(!confirm(`Delete the session for ${s?(s.company||'this unnamed company'):sid}? It's logged as ${by}. It sits in the trash for 30 days, so it can be restored.`))return;
     try{const r=await fetch(ENDPOINT+'?key='+encodeURIComponent($('key').value.trim())+'&sid='+encodeURIComponent(sid)+'&by='+encodeURIComponent(by),{method:'DELETE'});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
-      all=all.filter(x=>x.sid!==sid);full.delete(sid);if(seen)seen.delete(sid);draw();loadLog();}
+      all=all.filter(x=>x.sid!==sid);full.delete(sid);if(seen)seen.delete(sid);draw();loadLog();
+      toast(`Deleted ${s?(s.company||'an unnamed company'):sid}'s session.`,'Undo',()=>restoreSession(sid));}
     catch(e){alert('Could not delete: '+e.message);}
   }
+  async function restoreSession(sid){
+    const by=who();if(!by){alert('Put your name in the box at the top first — restores are logged.');$('by').focus();return;}
+    try{const r=await fetch(ENDPOINT+'?key='+encodeURIComponent($('key').value.trim())+'&sid='+encodeURIComponent(sid)+'&by='+encodeURIComponent(by),{method:'PUT'});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
+      toast('Session restored.');await load(true);loadLog();}
+    catch(e){alert('Could not restore: '+e.message);}
+  }
+  let toastTimer=null;
+  function toast(msg,action,fn){
+    document.querySelectorAll('.toast').forEach(t=>t.remove());clearTimeout(toastTimer);
+    const t=document.createElement('div');t.className='toast';t.innerHTML=`<span>${esc(msg)}</span>${action?`<button type="button" data-act>${esc(action)}</button>`:''}<button type="button" class="x" aria-label="Dismiss">✕</button>`;
+    document.body.appendChild(t);
+    if(action)t.querySelector('[data-act]').onclick=()=>{t.remove();fn();};
+    t.querySelector('.x').onclick=()=>t.remove();
+    toastTimer=setTimeout(()=>t.remove(),action?12000:4000);
+  }
   async function loadLog(){
+    loadTrash();
     try{const r=await fetch(ENDPOINT+'?key='+encodeURIComponent($('key').value.trim())+'&log=1',{cache:'no-store'});if(!r.ok)return;const j=await r.json();const log=j.log||[];
       $('log').hidden=false;
-      $('logrows').innerHTML=log.length?`<table>${log.map(e=>`<tr><td class="who">${esc(e.by||'unknown')}</td><td class="act ${e.action==='delete'?'del':''}">${e.action==='delete'?'deleted':'opened the dashboard of'}</td><td>${esc(e.company||'an unnamed company')}${e.name?` · ${esc(e.name)}`:''}<div class="mono">${esc(e.sid)}</div></td><td class="mono">${esc(fmt(e.at))}<br>${esc(e.ip||'')}</td></tr>`).join('')}</table>`:'<p style="color:#6b7480;margin:10px 0 0">Nothing yet. Deletes and dashboard opens land here with the name typed at the top.</p>';}
+      $('logrows').innerHTML=log.length?`<table>${log.map(e=>`<tr><td class="who">${esc(e.by||'unknown')}</td><td class="act ${e.action==='delete'?'del':e.action==='restore'?'res':''}">${e.action==='delete'?'deleted':e.action==='restore'?'restored':'opened the dashboard of'}</td><td>${esc(e.company||'an unnamed company')}${e.name?` · ${esc(e.name)}`:''}<div class="mono">${esc(e.sid)}</div></td><td class="mono">${esc(fmt(e.at))}<br>${esc(e.ip||'')}</td></tr>`).join('')}</table>`:'<p style="color:#6b7480;margin:10px 0 0">Nothing yet. Deletes and dashboard opens land here with the name typed at the top.</p>';}
+    catch(e){}
+  }
+  async function loadTrash(){
+    try{const r=await fetch(ENDPOINT+'?key='+encodeURIComponent($('key').value.trim())+'&trash=1',{cache:'no-store'});if(!r.ok)return;const j=await r.json();const trash=j.trash||[];
+      $('trash').hidden=false;$('trashsum').textContent=`Trash — ${trash.length} session${trash.length===1?'':'s'} you can still restore (kept ${j.days||30} days)`;
+      $('trashrows').innerHTML=trash.length?`<table>${trash.map(t=>`<tr><td><b>${esc(t.company||'an unnamed company')}</b>${t.name?` · ${esc(t.name)}`:''}<div class="mono">${esc(t.biz||'')}${t.biz?' · ':''}${esc(t.sid)}</div></td><td class="mono">deleted by <b>${esc(t.deletedBy||'unknown')}</b><br>${esc(fmt(t.deletedAt))}</td><td style="text-align:right"><button class="btn restore" type="button" data-restore="${esc(t.sid)}">Restore</button></td></tr>`).join('')}</table>`:'<p style="color:#6b7480;margin:10px 0 0">Empty. Deleted sessions wait here for 30 days before they go for good.</p>';
+      $('trashrows').querySelectorAll('[data-restore]').forEach(b=>b.onclick=()=>restoreSession(b.dataset.restore));}
     catch(e){}
   }
   document.addEventListener('click',e=>{if(!e.target.closest('.kebab'))document.querySelectorAll('.kebab.open').forEach(k=>k.classList.remove('open'));});

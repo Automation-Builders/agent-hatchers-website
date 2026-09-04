@@ -125,3 +125,9 @@ remembered per browser): `DELETE ?key=…&sid=…&by=<name>` is refused without 
 and every dashboard open is written to `sessions-log/<time>-<action>-<sid>.json` with the name,
 IP and browser, shown under **Activity** at the bottom of the sessions page (`GET ?key=…&log=1`),
 and deletes also post to the Slack webhook.
+
+Deletes are soft: the two blobs move to `sessions-trash/` and `sessions-trash-index/` (with
+`deletedAt`/`deletedBy`), an **Undo** toast appears on the page, and the **Trash** panel lists
+what's recoverable with a Restore button (`PUT ?key=…&sid=…&by=<name>`, also logged and pinged).
+Anything older than `TRASH_DAYS` (default 30) is purged the next time the trash is listed
+(`GET ?key=…&trash=1`).
