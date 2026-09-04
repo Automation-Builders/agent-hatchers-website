@@ -52,7 +52,7 @@
 .hatchling img{width:150px;height:150px;object-fit:contain;border-radius:24px;background:#fff;box-shadow:0 16px 34px rgba(33,107,172,.22)}
 .hatchling .bot{width:130px;height:130px;margin:0}
 .hatch-number{font:800 .7rem 'Inter',system-ui;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.hatch-actions{margin-top:14px;min-height:52px;display:flex;justify-content:center;align-items:center}
+.hatch-actions{margin-top:14px;min-height:52px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center}
 .hatch-status{color:var(--muted);font-family:'Inter',system-ui;margin:0}
 .choice-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:26px}
 .generated-choice{position:relative;border:2px solid transparent;background:#edf6fa;border-radius:24px;padding:22px 16px 18px;display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center;transition:.2s}
@@ -669,6 +669,16 @@ h1{font-weight:800}h2{font-weight:700}
 .mkt-card.is-installed{border-color:#1a9d5f;box-shadow:0 0 0 2px rgba(26,157,95,.35),0 8px 22px rgba(26,157,95,.14)}
 .mkt-card.is-installed:hover,.mkt-card.is-installed:focus-visible{border-color:#1a9d5f;box-shadow:0 0 0 2px rgba(26,157,95,.5),0 16px 34px rgba(20,25,35,.12)}
 .p-tag.tag-team{white-space:nowrap}
+/* Not-yet-installed agents should look worth adding: a "Free to add" pill on the portrait,
+   a navy Add button that fills on hover, a navy ring on the card and a slow zoom on the art */
+.mkt-free{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.94);color:#1f2a4d;font:800 .66rem 'Inter',system-ui;letter-spacing:.05em;text-transform:uppercase;padding:5px 9px;border-radius:999px;box-shadow:0 2px 8px rgba(20,25,35,.14)}
+.mkt-add{margin-top:12px;width:100%;display:flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid #1f2a4d;background:#fff;color:#1f2a4d;border-radius:12px;padding:9px 12px;font:800 .84rem 'Inter',system-ui;cursor:pointer;transition:background .15s,color .15s,box-shadow .15s,transform .15s}
+.mkt-add b{font-size:1.1rem;line-height:1;font-weight:800}
+.mkt-card:not(.is-installed):hover,.mkt-card:not(.is-installed):focus-visible{border-color:#1f2a4d;box-shadow:0 0 0 2px rgba(31,42,77,.16),0 16px 34px rgba(20,25,35,.14)}
+.mkt-card:not(.is-installed):hover .mkt-add,.mkt-add:hover,.mkt-add:focus-visible{background:#1f2a4d;color:#fff;box-shadow:0 6px 14px rgba(31,42,77,.28);outline:none}
+.mkt-add:active{transform:scale(.98)}
+.mkt-thumb img{transition:transform .4s ease}
+.mkt-card:hover .mkt-thumb img{transform:scale(1.04)}
 /* ============ Design hatch (.hx6) — the same continuous split-egg animation ============
    One per design, identical choreography to the welcome hatch: the egg is two clip-path
    halves of egg-closed.webp split along the crack seam, so the lid that tumbles off IS the

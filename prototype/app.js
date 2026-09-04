@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 54;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 56;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -17,7 +17,7 @@
     {id:'website',icon:'◇',name:'Website Agent',industries:['all'],keywords:['website','content','publish','webflow','wordpress','page','blog','copy','web','online'],summary:'Keeps website content accurate, on-brand and ready for approval before publishing.',portrait:'/hatchy-website.webp',team:'Marketing',scene:'It is a website agent wearing a comfy hoodie and headphones around its neck, at a dual-monitor desk in a loft studio at night editing a colourful online storefront, with sticky notes on the window and a small cactus by the keyboard.',mcps:['GitHub','Webflow','WordPress','Google Drive','Slack'],outcomes:['Draft new website pages','Update approved copy and details','Check pages for stale information','Prepare search-friendly metadata','Publish only after human approval']},
     {id:'operations',icon:'✓',name:'Operations Agent',industries:['professional-services','construction','healthcare','all'],keywords:['operations','workflow','project','task','deadline','schedule','coordination','process','compliance','ops','clinic','manufacturing'],summary:'Coordinates repeatable workflows and keeps teams informed when work changes state.',portrait:'/hatchy-routing.webp',team:'Operations',scene:'It is an operations agent wearing a project-manager lanyard and holding a marker, standing at a wall-sized kanban board covered in swim-lanes and sticky notes in a bright planning room, with interlocking gears drawn on a whiteboard behind it.',mcps:['Monday.com','Asana','Notion','Slack','Microsoft Teams'],outcomes:['Turn requests into structured work','Monitor deadlines and blockers','Prepare daily operating summaries','Chase missing information','Escalate exceptions to the right person']}
   ];
-  const state = {step:0,name:'',biz:'',industry:'',tools:[],toolsOpen:false,look:'',team:null,teamBusy:false,refPhoto:'',brand:null,refBusy:false,refError:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketRefKey:'',marketStarted:false,tab:'profiles',chatActive:0,chatExtra:{},chatTyping:{},company:'',editUses:0,profiles:[],sid:'',startedAt:0,merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
+  const state = {step:0,name:'',biz:'',industry:'',tools:[],toolsOpen:false,look:'',team:null,teamBusy:false,refPhoto:'',brand:null,refBusy:false,refError:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketRefKey:'',marketStarted:false,added:[],tab:'profiles',chatActive:0,chatExtra:{},chatTyping:{},company:'',editUses:0,profiles:[],sid:'',startedAt:0,merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
   const root = document.getElementById('prototype-app');
   const co = () => state.company || config.company || 'Your Company';
   const DESIGN_AXES={
@@ -61,9 +61,21 @@
   const recommended = new Set(config.recommendedAgents||[]);
   function rankAgents(){const text=`${state.name} ${state.biz} ${state.industry} ${state.look} ${industryLabel}`.toLowerCase();const boost=bizBoost(text);return catalog.map((agent,index)=>{let score=boost[agent.id]||0;agent.keywords.forEach(k=>{if(text.includes(k))score+=4});if(agent.industries.includes(industry))score+=2;if(recommended.has(agent.id))score+=1;return{agent,score,index};}).sort((a,b)=>b.score-a.score||a.index-b.index);}
   // The 6 best-matched agents for this business get generated portraits + the Recommended row.
-  const topAgents = () => (state.team&&state.team.ids.length)
-    ? state.team.ids.map(id=>catalog.find(a=>a.id===id)).filter(Boolean)
-    : rankAgents().slice(0,6).map(r=>r.agent);
+  // The researched/ranked six, plus anything the prospect added from the Marketplace.
+  const topAgents = () => {
+    const base=(state.team&&state.team.ids.length)?state.team.ids.map(id=>catalog.find(a=>a.id===id)).filter(Boolean):rankAgents().slice(0,6).map(r=>r.agent);
+    (state.added||[]).forEach(id=>{const a=catalog.find(x=>x.id===id);if(a&&!base.includes(a))base.push(a);});
+    return base;
+  };
+  // "Add to your team" on a Marketplace card: the portrait is already drawn, so joining is
+  // free and instant — the card turns green and the agent shows up under Profiles and Chats.
+  function addAgent(id){
+    const agent=catalog.find(a=>a.id===id);if(!agent||topAgents().includes(agent))return;
+    state.added=[...(state.added||[]),id];celebrate();render();
+    document.querySelectorAll('.create-pop').forEach(p=>p.remove());
+    const pop=document.createElement('div');pop.className='create-pop wb-pop';pop.innerHTML=`${ci.check}<span><b>${escapeHtml(agent.name)}</b> joined your team — it’s now under Profiles and Chats.</span>`;
+    document.body.appendChild(pop);setTimeout(()=>pop.classList.add('show'),10);setTimeout(()=>{pop.classList.remove('show');setTimeout(()=>pop.remove(),300)},4600);
+  }
   // ---------- Team research: a model reasons about THIS business before we show a team ----------
   const THINK_LINES=[b=>`Looking at what a ${b} actually does day to day…`,b=>`Working out where a ${b} loses hours…`,()=>`Checking which agents would pay off first…`,()=>`Writing it up in plain terms…`];
   let thinkTimer=null;
@@ -330,7 +342,7 @@
       if(!state.sid){state.sid=uid();state.startedAt=Date.now();}
       const snap={v:1,build:BUILD,sid:state.sid,startedAt:state.startedAt,savedAt:Date.now(),step:state.step,name:state.name,company:state.company,biz:state.biz,industry:state.industry,tools:state.tools||[],look:state.look,team:state.team,axes:state.axes||null,refPhoto:state.refPhoto,brand:state.brand,
         slots:state.slots.map(s=>s&&s.status==='ready'?{status:'ready',image:s.image||''}:null),variant:state.variant,selectedImage:state.selectedImage,done:state.done,
-        marketImages:state.marketImages,marketRefKey:state.marketRefKey,tab:state.tab,chatActive:state.chatActive,chatExtra:state.chatExtra,editUses:state.editUses,
+        marketImages:state.marketImages,marketRefKey:state.marketRefKey,added:state.added||[],tab:state.tab,chatActive:state.chatActive,chatExtra:state.chatExtra,editUses:state.editUses,
         profiles:state.profiles.filter(p=>p.status==='complete'||p.status==='deleted').map(p=>({id:p.id,name:p.name,desc:p.desc,img:p.img,step:p.step,status:p.status,profile:p.profile||null,dismissed:!!p.dismissed}))};
       writeSession(snap);
       syncSession();
@@ -340,7 +352,7 @@
   async function restoreSession(){
     const snap=await loadSession();
     if(!snap||snap.v!==1||!(snap.step>=1))return false;
-    const fields=['sid','startedAt','name','company','biz','industry','tools','look','team','axes','refPhoto','brand','variant','selectedImage','done','marketImages','marketRefKey','tab','chatActive','chatExtra','editUses'];
+    const fields=['sid','startedAt','name','company','biz','industry','tools','look','team','axes','refPhoto','brand','variant','selectedImage','done','marketImages','marketRefKey','added','tab','chatActive','chatExtra','editUses'];
     fields.forEach(k=>{if(snap[k]!==undefined)state[k]=snap[k];});
     state.tools=cleanTools(state.tools);
     state.slots=(snap.slots||[]).map(s=>s&&s.status==='ready'?{status:'ready',image:s.image||''}:null);
@@ -606,7 +618,9 @@
     const settled=state.slots.length&&state.slots.every(Boolean);
     const anyReady=state.slots.some(s=>s&&s.status==='ready');
     if(!anyReady) return `<p class="hatch-status">Hatching your designs… click your favourite as soon as it pops out.</p>`;
-    return `${settled?button('Redesign','redesign',true):''}${button('Use this avatar →','market')}`;
+    // A picked design can be tweaked right here ("nearly there, but…") before it becomes the avatar.
+    const picked=state.variant!==null&&state.slots[state.variant]&&state.slots[state.variant].status==='ready';
+    return `${settled?button('Redesign','redesign',true):''}${picked?button('✎ Tweak this design','edit-look',true):''}${button('Use this avatar →','market')}`;
   }
   function hatchScreen(){return `<div class="stage hatch-zone"><span class="eyebrow">Hatching</span><h2>Hatching ${escapeHtml(state.name||'your agent')}…</h2><p>Three takes on your description. Click your favourite — it becomes ${escapeHtml(state.name||'your agent')}’s avatar.</p><div class="hatch-row" aria-live="polite">${[0,1,2].map(eggScene).join('')}</div><div class="hatch-actions">${hatchActionsBar()}</div></div>`;}
   function initials(str){return String(str||'AH').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();}
@@ -742,7 +756,7 @@
     const ranked=rankAgents().map(r=>r.agent);
     return `<div class="mkt-page">
       <div class="mkt-head"><h2><span class="mkt-head-ic">${ic.market}</span>Marketplace</h2><div class="mkt-head-r"><button class="filter-pill" data-noop="1">All categories ${ic.chev}</button><div class="search-box">${ic.search}<input placeholder="Search agents..."></div></div></div>
-      <div class="mkt-grid">${ranked.map((a,i)=>{const img=state.marketImages[a.id];const installed=topAgents().some(t=>t.id===a.id);const inner=img?`<img src="${escapeHtml(img)}" alt="${escapeHtml(a.name)}">`:(willGenerate(a)?marketLoader:`<img src="${a.portrait}" alt="${escapeHtml(a.name)}" loading="lazy">`);return `<article class="mkt-card${installed?' is-installed':''}" data-agent="${a.id}" data-search="${escapeHtml((a.name+' '+a.team).toLowerCase())}" tabindex="0"><div class="mkt-thumb thumb-${a.id}">${inner}${installed?`<span class="mkt-installed">${ci.check}<span>Installed</span></span>`:''}</div><div class="mkt-body"><h3>${a.name}</h3><p>${a.summary}</p><div class="mkt-tags">${teamTag(a.team)}<span class="mkt-skills">${a.outcomes.length} skills</span></div></div></article>`;}).join('')}</div>
+      <div class="mkt-grid">${ranked.map((a,i)=>{const img=state.marketImages[a.id];const installed=topAgents().some(t=>t.id===a.id)||RUNNING.includes(a.id);const inner=img?`<img src="${escapeHtml(img)}" alt="${escapeHtml(a.name)}">`:(willGenerate(a)?marketLoader:`<img src="${a.portrait}" alt="${escapeHtml(a.name)}" loading="lazy">`);return `<article class="mkt-card${installed?' is-installed':''}" data-agent="${a.id}" data-search="${escapeHtml((a.name+' '+a.team).toLowerCase())}" tabindex="0"><div class="mkt-thumb thumb-${a.id}">${inner}${installed?`<span class="mkt-installed">${ci.check}<span>Installed</span></span>`:`<span class="mkt-free">Free to add</span>`}</div><div class="mkt-body"><h3>${a.name}</h3><p>${a.summary}</p><div class="mkt-tags">${teamTag(a.team)}<span class="mkt-skills">${a.outcomes.length} skills</span></div>${installed?'':`<button type="button" class="mkt-add" data-add="${a.id}"><b>+</b>Add to your team</button>`}</div></article>`;}).join('')}</div>
     </div>`;
   }
 
@@ -1056,7 +1070,7 @@
       const left=Math.max(0,FREE-looksUsed());
       const inner=phase==='form'
         ? `<div class="el-body"><div class="el-current"><img src="${escapeHtml(state.selectedImage)}" alt=""><span>Current look</span></div>
-           <div class="el-form"><p>Tweak the current design, or describe something new and hatch it fresh. <b class="el-left">${left} redesign${left===1?'':'s'} left</b></p>
+           <div class="el-form"><p>${state.step===3?'Nearly there? Say what to change and it’s re-hatched in place — or describe something new.':'Tweak the current design, or describe something new and hatch it fresh.'} <b class="el-left">${left} redesign${left===1?'':'s'} left</b></p>
            <textarea class="look-field" id="el-text" maxlength="400" placeholder="e.g. give it a red scarf and a captain’s hat — or describe a whole new look" ${left?'':'disabled'}>${escapeHtml(lastText)}</textarea>
            <div class="el-err" hidden>That didn’t hatch — please try again.</div>
            ${left?`<div class="actions"><button class="btn btn-secondary" data-el="edit">✎ Edit this photo</button><button class="btn btn-primary" data-el="new">✦ Hatch a new look</button></div>`
@@ -1074,9 +1088,10 @@
         if(!newImg)return;
         state.selectedImage=newImg;
         if(state.variant!==null&&state.slots[state.variant])state.slots[state.variant].image=newImg;
-        // the whole marketplace re-dresses around the new character
-        state.marketImages={};state.marketStarted=false;
-        close();render();generateMarket();return;
+        // the whole marketplace re-dresses around the new character — on the hatch page that
+        // happens when "Use this avatar" is pressed; here the egg just shows the tweaked design
+        state.marketImages={};state.marketStarted=false;state.marketRefKey='';
+        close();render();if(state.step===4)generateMarket();return;
       }
       if(busy)return;
       if(looksUsed()>=FREE){draw('form');return;}
@@ -1399,6 +1414,7 @@
       if(a==='team'){const input=document.getElementById('biz-intro');const text=input?input.value.trim():'';const ind=industryOf(state.industry);const biz=text||(ind&&ind.noun)||'';if(!biz){input?.focus();input?.setAttribute('aria-invalid','true');return}state.biz=biz;state.step=1;researchTeam(biz,text&&ind&&ind.noun?`${text} (${ind.label.toLowerCase()})`:biz);render();startThinking()}
       if(a==='generate'){const input=document.getElementById('agent-name');const name=input.value.trim();if(!name){input.focus();input.setAttribute('aria-invalid','true');return}state.name=name;const coIn=document.getElementById('agent-co');if(coIn)state.company=coIn.value.trim();const bizIn=document.getElementById('agent-biz');state.biz=bizIn?bizIn.value.trim():'';const lookTa=document.getElementById('agent-look');state.look=(lookTa&&lookTa.value.trim())||(hasReference()?'a friendly robot mascot':'a friendly rounded robot in blue and white');generateAgents()}
       if(a==='redesign'){if(hatchesLeft()){state.step=2;render()}else hatchPop()}
+      if(a==='edit-look'){openEditLook()}
       if(a==='open-connect'){openConnectDialog()}
       if(a==='chat-send'){const box=document.getElementById('chat-box');const t=box?box.value.trim():'';if(!t)return;const i=state.chatActive??8;
         const FREE_TURNS=5;
@@ -1417,7 +1433,7 @@
         const s=state.slots[state.variant];
         state.selectedImage=(s&&s.image)||state.selectedImage||((state.slots.find(x=>x&&x.image)||{}).image)||'';
         document.querySelectorAll('.confetti').forEach(c=>c.remove());state.step=4;render();generateMarket()}
-      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.tools=[];state.toolsOpen=false;state.look='';state.team=null;state.teamBusy=false;stopThinking();state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.tools=[];state.toolsOpen=false;state.look='';state.team=null;state.teamBusy=false;stopThinking();state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.added=[];state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-egg]').forEach(el=>{
       // Select a design the moment it's hatched — direct DOM updates only, so picking
@@ -1478,6 +1494,7 @@
     const th=document.getElementById('chat-thread');if(th)th.scrollTop=th.scrollHeight;
     const cb=document.getElementById('chat-box');if(cb)cb.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();root.querySelector('[data-action="chat-send"]').click();}};
     const yours=root.querySelector('.p-card.is-yours');if(yours){yours.style.cursor='pointer';yours.onclick=()=>openEditLook();yours.tabIndex=0;yours.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openEditLook()}};}
+    root.querySelectorAll('[data-add]').forEach(b=>{b.onclick=e=>{e.stopPropagation();addAgent(b.dataset.add);};b.onkeydown=e=>e.stopPropagation();});
     root.querySelectorAll('[data-agent]').forEach(el=>{el.onclick=()=>showAgent(el.dataset.agent);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();showAgent(el.dataset.agent)}};});
     const search=document.getElementById('market-search');if(search)search.oninput=()=>{const q=search.value.trim().toLowerCase();let visible=0;root.querySelectorAll('.p-card[data-search]').forEach(c=>{const show=!q||c.dataset.search.includes(q);c.hidden=!show;if(show)visible++;});const yours=root.querySelector('.p-card.is-yours');if(yours)yours.hidden=!!q;root.querySelectorAll('.board-group').forEach(g=>{g.hidden=![...g.querySelectorAll('.p-card')].some(c=>!c.hidden);});const empty=document.getElementById('board-empty');if(empty)empty.hidden=visible>0;};
     const input=document.getElementById('agent-name');if(input)input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('agent-biz')?.focus()}};
