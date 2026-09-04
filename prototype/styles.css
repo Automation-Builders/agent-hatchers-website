@@ -653,15 +653,15 @@ h1{font-weight:800}h2{font-weight:700}
 .mkt-head-ic svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2}
 .mkt-head-r{display:flex;align-items:center;gap:10px}
 .mkt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
-.mkt-card{background:#fff;border:1px solid #e7e9ee;border-radius:18px;overflow:hidden;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;outline:none}
+.mkt-card{display:flex;flex-direction:column;background:#fff;border:1px solid #e7e9ee;border-radius:18px;overflow:hidden;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;outline:none}
 .mkt-card:hover,.mkt-card:focus-visible{transform:translateY(-3px);box-shadow:0 16px 34px rgba(20,25,35,.12);border-color:#d7dbe2}
-.mkt-thumb{position:relative;aspect-ratio:1/1;overflow:hidden;background:#eef2f6}
+.mkt-thumb{position:relative;aspect-ratio:1/1;flex:0 0 auto;overflow:hidden;background:#eef2f6}
 .mkt-thumb img{width:100%;height:100%;object-fit:cover}
 .mkt-installed{position:absolute;left:10px;bottom:10px;display:flex;align-items:center;gap:5px;background:rgba(26,157,95,.95);color:#fff;font:700 .72rem 'Inter';padding:4px 9px;border-radius:8px}
 .mkt-installed svg{width:12px;height:12px;stroke:#fff;fill:none;stroke-width:3}
-.mkt-body{padding:14px 15px 16px}
+.mkt-body{display:flex;flex-direction:column;flex:1;padding:14px 15px 16px}   /* tag row pinned to the bottom so it lines up across the row */
 .mkt-body h3{margin:0 0 5px;font-size:1.02rem;font-weight:800;color:#16253f}
-.mkt-body p{font-size:.86rem;color:#7a828c;line-height:1.45;margin:0 0 12px;min-height:2.5em}
+.mkt-body p{font-size:.86rem;color:#7a828c;line-height:1.45;margin:0 0 12px;min-height:2.5em;flex:1}
 .mkt-tags{display:flex;align-items:center;gap:10px}
 .mkt-skills{font-size:.8rem;color:#9aa3ad;font-weight:600}
 .mkt-thumb .hatch-loader{position:absolute;inset:0}

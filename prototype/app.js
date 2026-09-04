@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 53;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 54;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -1207,10 +1207,12 @@
   function hexToHsl(h){const [r,g,b]=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2;if(mx===mn)return [0,0,l];const d=mx-mn,s=l>.5?d/(2-mx-mn):d/(mx+mn);const hh=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;return [hh*60,s,l];}
   const hslCss=(h,s,l)=>`hsl(${Math.round(((h%360)+360)%360)} ${Math.round(s*100)}% ${Math.round(l*100)}%)`;
   function teamColors(team){
-    const anchors=teamPalette.colors.length?teamPalette.colors:((state.brand&&state.brand.colors)||[]);
+    const raw=teamPalette.colors.length?teamPalette.colors:((state.brand&&state.brand.colors)||[]);
+    // two shades of the same orange are one anchor, not two — keep hues at least 25° apart
+    const anchors=[];raw.map(hexToHsl).forEach(c=>{if(!anchors.some(o=>Math.min(Math.abs(o[0]-c[0]),360-Math.abs(o[0]-c[0]))<25))anchors.push(c);});
     if(!anchors.length)return null;
     const i=Math.max(0,TEAM_ORDER.indexOf(team)),n=Math.min(anchors.length,3);
-    const [h,s]=hexToHsl(anchors[i%n]);
+    const [h,s]=anchors[i%n];
     const round=Math.floor(i/n);                                   // 2nd/3rd team on the same anchor
     const shift=(round===0?0:(round%2?1:-1))*Math.ceil(round/2)*(n===1?11:16);
     const sat=Math.min(.72,Math.max(.42,s));
