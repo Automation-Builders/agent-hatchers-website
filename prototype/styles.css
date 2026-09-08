@@ -81,6 +81,13 @@
 .nav-tab:hover{color:#1a1d21}
 .nav-tab.active{background:#fff;color:#1a1d21;box-shadow:0 1px 3px rgba(20,25,35,.1);border:1px solid #e7e9ee}
 .nav-tab.active svg{color:#216bac}
+.nav-tab{position:relative}
+.nav-tab.is-locked{color:#a3aab4;cursor:not-allowed}
+.nav-tab.is-locked:hover{color:#8b929c}
+.nav-tab .tab-lock{width:13px;height:13px;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round;margin-left:-1px;flex:none}
+.lock-note{position:absolute;left:50%;top:calc(100% + 9px);transform:translateX(-50%);white-space:nowrap;font:600 .76rem 'Inter',system-ui;font-style:normal;color:#fff;background:#1a1d21;padding:7px 11px;border-radius:9px;box-shadow:0 6px 18px rgba(20,25,35,.18);z-index:5;animation:fade .18s ease}
+.lock-note:before{content:"";position:absolute;left:50%;top:-5px;width:10px;height:10px;background:#1a1d21;transform:translateX(-50%) rotate(45deg);border-radius:2px}
+@media(max-width:900px){.nav-tab .tab-lock{display:block}}
 .nav-right{display:flex;align-items:center;gap:12px}
 .create-btn{display:flex;align-items:center;gap:7px;background:#1f2a4d;color:#fff;border:0;border-radius:12px;padding:10px 16px;font-weight:700;font-size:.9rem;box-shadow:0 4px 12px rgba(31,42,77,.25);transition:.15s}
 .create-btn:hover{transform:translateY(-1px);background:#243257}

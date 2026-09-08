@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 59;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 60;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -385,7 +385,7 @@
     state.profiles=(d.profiles||[]).map((q,i)=>({id:'np'+(i+1),name:q.name||'',desc:q.desc||'',img:q.img||'',step:CP_STEPS.length-1,status:q.status||'complete',profile:q.profile||null,cancelled:false,dismissed:true}));
     cpSeq=state.profiles.length;
     state.chatExtra=d.chats&&typeof d.chats==='object'?d.chats:{};state.chatActive=0;state.chatTyping={};
-    state.tab=['profiles','chats','analytics','market'].includes(d.tab)?d.tab:'profiles';
+    state.tab=['profiles','chats','market'].includes(d.tab)?d.tab:'profiles';   // analytics is locked
     state.done=false;   // the dashboard is what the team wants to see, even if they went on to connect
     state.step=(d.step>=4||state.slots.some(Boolean))?4:Math.min(Number(d.step)||0,2);
     if(state.step===1)state.step=0;
@@ -410,7 +410,11 @@
     ensureTeamPalette();
     saveSession();
   }
+  // Tabs the prospect can see but not open yet — the padlock is the point.
+  const LOCKED_TABS={analytics:'Analytics unlocks once your agent is live'};
+  let lockNoteTimer=0;
   const ic = {
+    lock:'<svg class="tab-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke-width="2"/><path d="M8 11V7a4 4 0 018 0v4" fill="none" stroke-width="2"/></svg>',
     profiles:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.6"/></svg>',
     chats:'<svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 3z" fill="none" stroke-width="2"/></svg>',
     analytics:'<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke-width="2"/></svg>',
@@ -797,7 +801,7 @@
     </div>`;
   }
   function marketScreen(){
-    const tab=(k,label)=>`<button class="nav-tab ${state.tab===k?'active':''}" data-tab="${k}">${ic[k==='market'?'market':k]}<span>${label}</span></button>`;
+    const tab=(k,label)=>{const locked=LOCKED_TABS[k];return `<button class="nav-tab ${state.tab===k?'active':''}${locked?' is-locked':''}" data-tab="${k}"${locked?` aria-disabled="true" title="${escapeHtml(locked)}"`:''}>${ic[k==='market'?'market':k]}<span>${label}</span>${locked?ic.lock:''}${locked&&state.lockNote===k?`<i class="lock-note">${escapeHtml(locked)}</i>`:''}</button>`;};
     const body = state.tab==='chats'?chatsView():state.tab==='analytics'?analyticsView():state.tab==='config'?configView():state.tab==='market'?marketplaceView():state.tab==='merch'?merchView():profilesBoard();
     return `<div class="app${state.tab==='chats'?' is-chats':''}">
       <header class="app-nav">
@@ -1518,7 +1522,11 @@
     root.querySelectorAll('[data-merch-checkout]').forEach(el=>el.onclick=()=>{state.merch.note=true;render();});
     root.querySelectorAll('[data-hatch5]').forEach(el=>el.onclick=()=>{el.classList.remove('run');void el.offsetWidth;el.classList.add('run');});
     root.querySelectorAll('[data-mic]').forEach(btn=>btn.onclick=()=>startDictation(btn));
-    root.querySelectorAll('[data-tab]').forEach(el=>el.onclick=()=>{state.tab=el.dataset.tab;render();});
+    root.querySelectorAll('[data-tab]').forEach(el=>el.onclick=()=>{
+      const k=el.dataset.tab;
+      if(LOCKED_TABS[k]){state.lockNote=k;render();clearTimeout(lockNoteTimer);lockNoteTimer=setTimeout(()=>{state.lockNote='';render();},2600);return;}
+      state.tab=k;render();
+    });
     root.querySelectorAll('[data-chat]').forEach(el=>el.onclick=()=>{state.chatActive=+el.dataset.chat;render();});
     const th=document.getElementById('chat-thread');if(th)th.scrollTop=th.scrollHeight;
     const cb=document.getElementById('chat-box');if(cb)cb.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();root.querySelector('[data-action="chat-send"]').click();}};
