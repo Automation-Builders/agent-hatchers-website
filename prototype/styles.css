@@ -1096,6 +1096,13 @@ h1{font-weight:800}h2{font-weight:700}
 .review-bar a{color:#fff;background:rgba(255,255,255,.14);border-radius:999px;padding:5px 12px;text-decoration:none;white-space:nowrap}
 .review-bar a:hover{background:rgba(255,255,255,.26)}
 .review-bar.bad{background:#8a2323}
+/* Share mode — the prospect's copy of the review bar: brand blue, friendlier, same layout */
+.review-bar.share-bar{background:linear-gradient(90deg,#216bac,#2f8ad0);font-weight:500}
+.review-bar.share-bar b{color:#fff;font-weight:800}
+.review-bar.share-bar.bad{background:#8a2323}
+.board-foot.share-foot{justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.share-foot-txt{font:600 .92rem 'Inter',system-ui;color:#48505a}
+.board-foot a.btn{text-decoration:none;display:inline-block}
 /* "Which tools does your company use?" — first-screen picker and the Your-tools chips in agent profiles */
 .tool-wrap{margin-bottom:12px}
 .tool-menu{padding:8px;overflow:hidden;display:flex;flex-direction:column}

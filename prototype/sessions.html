@@ -33,6 +33,9 @@
     .title{font-weight:800;font-size:1.02rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.title small{font-weight:600;color:var(--muted)}
     .sub{color:var(--muted);margin-top:3px}.pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
     .pill{background:#eef5fc;color:var(--brand);border-radius:999px;padding:3px 9px;font-size:.74rem;font-weight:700}.pill.ok{background:#e8f6ee;color:var(--green)}.pill.grey{background:#f0f2f5;color:#5b6572}.pill.warn{background:#fff4e0;color:#9a6200}
+    .sharebox{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 0;padding:10px 12px;background:#f3f8fd;border:1px solid #d6e6f5;border-radius:12px;font-size:.82rem;color:#48505a}
+    .sharebox input{flex:1;min-width:240px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:inherit;font-family:ui-monospace,Menlo,monospace;font-size:.78rem;color:var(--ink);background:#fff}
+    .sharebox.muted{background:#f7f8fa;border-color:#e6e9ee;color:#6b7480}
     .when{text-align:right;color:var(--muted);font-size:.82rem;white-space:nowrap}.when b{display:block;color:var(--ink)}
     .detail{grid-column:1/-1;border-top:1px solid var(--line);padding-top:14px;margin-top:4px;display:none;cursor:default}
     .card.open .detail{display:block}
@@ -75,7 +78,28 @@
   $('by').oninput=()=>{try{localStorage.setItem('ah-sessions-by',$('by').value.trim());}catch(e){}};
   const who=()=>$('by').value.trim();
   // The dashboard link: the page they used (per-prospect route or the generic one) in review mode.
-  const dashUrl=s=>{const pg=s.page&&/^\/prototype\/[a-z0-9_.\/-]*$/i.test(s.page)&&!/sessions/i.test(s.page)?s.page.replace(/index\.html$/,''):'/prototype/';return pg+'?session='+encodeURIComponent(s.sid);};
+  const pageOf=s=>s.page&&/^\/prototype\/[a-z0-9_.\/-]*$/i.test(s.page)&&!/sessions/i.test(s.page)?s.page.replace(/index\.html$/,''):'/prototype/';
+  const dashUrl=s=>pageOf(s)+'?session='+encodeURIComponent(s.sid);
+  // The public link for the prospect: same page, the share token instead of the key-gated sid.
+  const shareUrl=s=>s.share&&s.share.token?location.origin+pageOf(s)+'?share='+encodeURIComponent(s.share.token):'';
+  const copyText=async txt=>{try{await navigator.clipboard.writeText(txt);return true;}catch(e){try{const i=document.createElement('input');i.value=txt;document.body.appendChild(i);i.select();document.execCommand('copy');i.remove();return true;}catch(err){return false;}}};
+  async function shareSession(sid){
+    const by=who();if(!by){alert('Put your name in the box at the top first — share links are logged.');$('by').focus();return;}
+    const s=all.find(x=>x.sid===sid);
+    try{const r=await fetch(ENDPOINT+'?key='+encodeURIComponent($('key').value.trim())+'&sid='+encodeURIComponent(sid)+'&by='+encodeURIComponent(by)+'&share=1',{method:'PATCH'});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
+      if(s)s.share=j.share;full.delete(sid);draw();
+      const url=shareUrl(s||{sid,share:j.share});const ok=await copyText(url);
+      toast(ok?`Share link copied — anyone with it can open ${s?(s.company||'this'):'this'} dashboard, no key needed.`:`Share link: ${url}`,'Open it',()=>window.open(url,'_blank','noopener'));loadLog();}
+    catch(e){alert('Could not create the share link: '+e.message);}
+  }
+  async function unshareSession(sid){
+    const by=who();if(!by){alert('Put your name in the box at the top first — this is logged.');$('by').focus();return;}
+    const s=all.find(x=>x.sid===sid);
+    if(!confirm(`Stop sharing ${s?(s.company||'this unnamed company'):sid}'s dashboard? The link you sent will stop working.`))return;
+    try{const r=await fetch(ENDPOINT+'?key='+encodeURIComponent($('key').value.trim())+'&sid='+encodeURIComponent(sid)+'&by='+encodeURIComponent(by)+'&share=0',{method:'PATCH'});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
+      if(s)delete s.share;full.delete(sid);draw();toast('Sharing stopped — that link is dead now.');loadLog();}
+    catch(e){alert('Could not stop sharing: '+e.message);}
+  }
   const gone=new Map();
   async function removeSession(sid){
     const by=who();if(!by){alert('Put your name in the box at the top first — deletes are logged.');$('by').focus();return;}
@@ -106,7 +130,7 @@
   async function loadLog(){
     try{const r=await fetch(ENDPOINT+'?key='+encodeURIComponent($('key').value.trim())+'&log=1',{cache:'no-store'});if(!r.ok)return;const j=await r.json();const log=j.log||[];
       $('log').hidden=false;
-      $('logrows').innerHTML=log.length?`<table>${log.map(e=>`<tr><td class="who">${esc(e.by||'unknown')}</td><td class="act ${e.action==='delete'?'del':e.action==='restore'?'res':''}">${e.action==='delete'?'deleted':e.action==='restore'?'restored':'opened the dashboard of'}</td><td>${esc(e.company||'an unnamed company')}${e.name?` · ${esc(e.name)}`:''}<div class="mono">${esc(e.sid)}</div></td><td class="mono">${esc(fmt(e.at))}<br>${esc(e.ip||'')}</td></tr>`).join('')}</table>`:'<p style="color:#6b7480;margin:10px 0 0">Nothing yet. Deletes and dashboard opens land here with the name typed at the top.</p>';}
+      $('logrows').innerHTML=log.length?`<table>${log.map(e=>`<tr><td class="who">${esc(e.by||'unknown')}</td><td class="act ${e.action==='delete'?'del':e.action==='restore'?'res':''}">${({delete:'deleted',restore:'restored',share:'made a share link for',unshare:'stopped sharing',view:'opened the shared preview of'})[e.action]||'opened the dashboard of'}</td><td>${esc(e.company||'an unnamed company')}${e.name?` · ${esc(e.name)}`:''}<div class="mono">${esc(e.sid)}</div></td><td class="mono">${esc(fmt(e.at))}<br>${esc(e.ip||'')}</td></tr>`).join('')}</table>`:'<p style="color:#6b7480;margin:10px 0 0">Nothing yet. Deletes and dashboard opens land here with the name typed at the top.</p>';}
     catch(e){}
   }
   async function loadTrash(expect,tries=0){
@@ -159,6 +183,8 @@
       k.querySelector('.dots').onclick=e=>{e.stopPropagation();const was=k.classList.contains('open');document.querySelectorAll('.kebab.open').forEach(x=>x.classList.remove('open'));if(!was)k.classList.add('open');};
       k.querySelector('[data-copy]').onclick=e=>{e.stopPropagation();k.classList.remove('open');try{navigator.clipboard.writeText(k.dataset.sid);}catch(err){}};
       k.querySelector('[data-del]').onclick=e=>{e.stopPropagation();k.classList.remove('open');removeSession(k.dataset.sid);};
+      k.querySelector('[data-share]').onclick=e=>{e.stopPropagation();k.classList.remove('open');const s=all.find(x=>x.sid===k.dataset.sid);if(s&&s.share){copyText(shareUrl(s)).then(ok=>toast(ok?'Share link copied.':shareUrl(s)));}else shareSession(k.dataset.sid);};
+      const un=k.querySelector('[data-unshare]');if(un)un.onclick=e=>{e.stopPropagation();k.classList.remove('open');unshareSession(k.dataset.sid);};
     });
   }
   function card(s){
@@ -167,10 +193,10 @@
       <div class="thumb">${s.thumb?`<img src="${esc(s.thumb)}" alt="">`:(s.step>=3?'hatching':'no hatch')}</div>
       <div><div class="title">${esc(s.company||'Unnamed company')}${s.name?`<small>· ${esc(s.name)}</small>`:''}</div>
         <div class="sub">${esc(s.biz||'no business typed')}${s.industry?` · ${esc(s.industry)}`:''}${s.brand?` · from ${esc(s.brand)}`:''}${s.tools&&s.tools.length?` · uses ${esc(s.tools.slice(0,4).join(', '))}${s.tools.length>4?` +${s.tools.length-4}`:''}`:''}</div>
-        <div class="pills">${fresh.has(s.sid)?'<span class="pill new">updated</span>':''}<span class="pill ${s.step>=4?'ok':s.step>=3?'':'grey'}">${STEPS[s.step]||'Step '+s.step}${s.step===4&&s.tab?` · ${esc(s.tab)}`:''}</span>${s.done?'<span class="pill ok">Connected</span>':''}${team?`<span class="pill grey">Team: ${esc(team)}</span>`:''}${s.profileCount?`<span class="pill">${s.profileCount} profile${s.profileCount===1?'':'s'} created</span>`:''}${s.chatTurns?`<span class="pill">${s.chatTurns} chat message${s.chatTurns===1?'':'s'}</span>`:''}${s.hadPhoto?'<span class="pill warn">used a photo</span>':''}</div></div>
+        <div class="pills">${fresh.has(s.sid)?'<span class="pill new">updated</span>':''}<span class="pill ${s.step>=4?'ok':s.step>=3?'':'grey'}">${STEPS[s.step]||'Step '+s.step}${s.step===4&&s.tab?` · ${esc(s.tab)}`:''}</span>${s.share?`<span class="pill warn" title="Shared by ${esc(s.share.by||'?')} ${esc(ago(s.share.createdAt))}">shared · ${s.share.views||0} view${s.share.views===1?'':'s'}${s.share.lastViewAt?`, last ${esc(ago(s.share.lastViewAt))}`:''}</span>`:''}${s.done?'<span class="pill ok">Connected</span>':''}${team?`<span class="pill grey">Team: ${esc(team)}</span>`:''}${s.profileCount?`<span class="pill">${s.profileCount} profile${s.profileCount===1?'':'s'} created</span>`:''}${s.chatTurns?`<span class="pill">${s.chatTurns} chat message${s.chatTurns===1?'':'s'}</span>`:''}${s.hadPhoto?'<span class="pill warn">used a photo</span>':''}</div></div>
       <div class="side"><div class="when"><b>${esc(ago(s.savedAt))}</b>${esc(fmt(s.savedAt))}${dur(s)?`<br>${esc(dur(s))} on the page`:''}</div>
         <div class="kebab" data-sid="${esc(s.sid)}"><button class="dots" type="button" aria-label="Session menu" title="More">&#8943;</button>
-          <div class="menu"><a href="${esc(dashUrl(s))}" target="_blank" rel="noopener">Open dashboard ↗</a><button type="button" data-copy>Copy session id</button><hr><button type="button" class="danger" data-del>Delete session…</button></div></div></div>
+          <div class="menu"><a href="${esc(dashUrl(s))}" target="_blank" rel="noopener">Open dashboard ↗</a><button type="button" data-share>${s.share?'Copy share link':'Share with the prospect…'}</button>${s.share?'<button type="button" data-unshare>Stop sharing</button>':''}<button type="button" data-copy>Copy session id</button><hr><button type="button" class="danger" data-del>Delete session…</button></div></div></div>
       <div class="detail" id="d-${esc(s.sid)}">Loading…</div></article>`;
   }
   async function toggle(el){
@@ -181,6 +207,7 @@
       let d=full.get(sid);if(!d){const r=await fetch(ENDPOINT+'?key='+encodeURIComponent($('key').value.trim())+'&sid='+encodeURIComponent(sid),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);d=await r.json();full.set(sid,d);}
       box.innerHTML=detail(d);
       box.querySelector('[data-del]').onclick=()=>removeSession(sid);
+      const cs=box.querySelector('[data-copyshare]');if(cs)cs.onclick=()=>copyText(cs.dataset.copyshare).then(ok=>toast(ok?'Share link copied.':cs.dataset.copyshare));
     }catch(e){box.textContent='Could not load this session: '+e.message;}
   }
   function detail(d){
@@ -196,7 +223,8 @@
       ${market?`<h4>Marketplace portraits</h4><div class="row">${market}</div>`:''}
       ${profiles?`<h4>Profiles they created</h4>${profiles}`:''}
       ${chats?`<h4>Chats</h4>${chats}`:''}
-      <p style="color:#6b7480;font-size:.8rem;margin-top:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span>Session ${esc(d.sid)} · started ${esc(fmt(d.startedAt))} · last saved ${esc(fmt(d.savedAt))}</span><a class="btn open" href="${esc(dashUrl(all.find(x=>x.sid===d.sid)||{sid:d.sid,page:d.page}))}" target="_blank" rel="noopener">Open dashboard ↗</a><button class="btn sec del" data-del="${esc(d.sid)}" type="button">Delete session</button></p>`;
+      <p style="color:#6b7480;font-size:.8rem;margin-top:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span>Session ${esc(d.sid)} · started ${esc(fmt(d.startedAt))} · last saved ${esc(fmt(d.savedAt))}</span><a class="btn open" href="${esc(dashUrl(all.find(x=>x.sid===d.sid)||{sid:d.sid,page:d.page}))}" target="_blank" rel="noopener">Open dashboard ↗</a><button class="btn sec del" data-del="${esc(d.sid)}" type="button">Delete session</button></p>
+      ${(()=>{const m=all.find(x=>x.sid===d.sid);const u=m?shareUrl(m):'';return u?`<p class="sharebox"><b>Prospect link</b> <input readonly value="${esc(u)}" onclick="this.select()"> <button class="btn sec" type="button" data-copyshare="${esc(u)}">Copy</button><span>${m.share.views||0} view${m.share.views===1?'':'s'}${m.share.lastViewAt?` · last opened ${esc(ago(m.share.lastViewAt))}`:''} · made by ${esc(m.share.by||'?')} ${esc(ago(m.share.createdAt))}</span></p>`:`<p class="sharebox muted">Not shared yet — use <b>Share with the prospect…</b> in the ⋯ menu to get a public link (no key needed).</p>`;})()}`;
   }
   if($('key').value)load();
 })();

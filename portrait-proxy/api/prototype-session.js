@@ -8,14 +8,23 @@
 //   DELETE ?key=…&sid=…&by=<name>  → moves that session to the trash; refused without a name; logged + Slack
 //   PUT  ?key=…&sid=…&by=<name>    → restores it from the trash (logged + Slack)
 //   GET  ?key=…&trash=1            → { trash:[…] } what can still be restored (kept TRASH_DAYS, then purged)
+//   PATCH ?key=…&sid=…&by=<name>&share=1 → mints (or returns) that session's share token; logged
+//   PATCH ?key=…&sid=…&by=<name>&share=0 → revokes it (the link stops working); logged
+//   GET  ?share=<token>             → PUBLIC, no key: the full snapshot for /prototype/?share=<token>,
+//                                    counted + logged as a view, Slack-pinged at most once an hour
+// Share links are how the team sends a hatched dashboard to the prospect: the token is 18 random
+// bytes (unguessable), lives in sessions-share/<token>.json → { sid } and on the session's index,
+// and only the session it points at is readable — never the list, the log or any other session.
 // Every delete and dashboard open is written to sessions-log/<time>-<action>-<sid>.json with
 // the name typed on the sessions page, the caller's IP and browser — the key is shared, so the
 // name is what tells the team apart.
-// The store is PRIVATE: nothing is readable by URL; every read goes through here and the key.
+// The store is PRIVATE: nothing is readable by URL; every read goes through here and the key
+// (or, for one explicitly shared session, its share token).
 // Needs a Blob store connected to the project (BLOB_READ_WRITE_TOKEN) and SESSIONS_KEY set.
 // Optional: SLACK_WEBHOOK_URL — a Slack incoming webhook that gets pinged the first time a
 // session reaches the dashboard (a finished hatch) and again if they connect an instance.
 import { put, list, get, del } from '@vercel/blob';
+import { randomBytes } from 'node:crypto';
 
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
   'https://agenthatchers.com,https://www.agenthatchers.com,http://localhost:8799')
@@ -26,7 +35,7 @@ function applyCors(res, origin) {
   const allow = ALLOWED_ORIGINS.includes('*') ? '*' : (ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]);
   res.setHeader('Access-Control-Allow-Origin', allow);
   res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'content-type,x-sessions-key');
 }
 const clean = (v, n) => String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
@@ -58,6 +67,9 @@ async function slackPing(kind, index) {
   try { await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); } catch { /* a missed ping is not worth failing the save */ }
 }
 const TRASH_DAYS = Number(process.env.TRASH_DAYS) || 30;
+const SHARE_RE = /^[A-Za-z0-9_-]{16,64}$/;
+const newToken = () => randomBytes(18).toString('base64url');   // 24 url-safe chars, 144 bits
+const VIEW_PING_GAP = 60 * 60 * 1000;                            // one Slack ping per shared link per hour
 const putJson = (pathname, obj) => put(pathname, JSON.stringify(obj), { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });
 async function slackNote(text) {
   const url = process.env.SLACK_WEBHOOK_URL;
@@ -98,6 +110,32 @@ export default async function handler(req, res) {
   if (!process.env.BLOB_READ_WRITE_TOKEN) { res.status(500).json({ error: 'No Blob store is connected to this project' }); return; }
 
   if (req.method === 'GET') {
+    const shareTok = clean(req.query && req.query.share, 64);
+    if (shareTok) {
+      // Public read: the token is the only credential, and it opens exactly one session.
+      if (!SHARE_RE.test(shareTok)) { res.status(400).json({ error: 'Bad share link' }); return; }
+      try {
+        const link = await readJson(`sessions-share/${shareTok}.json`);
+        const full = link && link.sid ? await readJson(`sessions/${link.sid}.json`) : null;
+        if (!full) { res.status(404).json({ error: 'This preview link is not active any more' }); return; }
+        const sid = link.sid;
+        let index = null;
+        try { index = await readJson(`sessions-index/${sid}.json`); } catch { index = null; }
+        const { ip } = actor(req);
+        let ping = false;
+        if (index && index.share && index.share.token === shareTok) {
+          const now = Date.now();
+          index.share.views = (index.share.views || 0) + 1; index.share.lastViewAt = now;
+          if (!index.share.lastPingAt || now - index.share.lastPingAt > VIEW_PING_GAP) { index.share.lastPingAt = now; ping = true; }
+          try { await putJson(`sessions-index/${sid}.json`, index); } catch { /* the view still happened */ }
+        }
+        req.query.by = 'visitor';
+        await logAction('view', sid, req, index || { company: clean(full.company, 80), name: clean(full.name, 40), step: Number(full.step) || 0 });
+        if (ping) await slackNote(`:eyes: Someone opened the shared prototype for *${(index && index.company) || clean(full.company, 80) || 'an unnamed company'}*${index && index.name ? ` (${index.name})` : ''}${ip ? ` · from ${ip}` : ''}`);
+        res.setHeader('Cache-Control', 'no-store'); res.status(200).json(full);
+      } catch (e) { res.status(502).json({ error: 'Could not read this preview: ' + (e && e.message) }); }
+      return;
+    }
     const key = (req.query && req.query.key) || req.headers['x-sessions-key'] || '';
     if (!process.env.SESSIONS_KEY) { res.status(500).json({ error: 'SESSIONS_KEY is not set' }); return; }
     if (!key || key !== process.env.SESSIONS_KEY) { res.status(401).json({ error: 'Wrong key' }); return; }
@@ -162,11 +200,44 @@ export default async function handler(req, res) {
       const deletedAt = Date.now();
       if (full) await putJson(`sessions-trash/${sid}.json`, full);
       await putJson(`sessions-trash-index/${sid}.json`, Object.assign({}, index || { sid }, { sid, deletedAt, deletedBy: by }));
-      await del([`sessions/${sid}.json`, `sessions-index/${sid}.json`]);
+      const gone = [`sessions/${sid}.json`, `sessions-index/${sid}.json`];
+      if (index && index.share && index.share.token) gone.push(`sessions-share/${index.share.token}.json`);   // the link dies with it
+      await del(gone);
       const entry = await logAction('delete', sid, req, index);
       await slackNote(`:wastebasket: ${by} deleted the prototype session for *${(index && index.company) || 'an unnamed company'}*${index && index.name ? ` (${index.name})` : ''}${ip ? ` · from ${ip}` : ''} — restorable from the sessions page for ${TRASH_DAYS} days`);
       res.status(200).json({ ok: true, sid, trashed: true, days: TRASH_DAYS, logged: entry });
     } catch (e) { res.status(502).json({ error: 'Could not delete: ' + (e && e.message) }); }
+    return;
+  }
+  if (req.method === 'PATCH') {
+    const key = (req.query && req.query.key) || req.headers['x-sessions-key'] || '';
+    if (!process.env.SESSIONS_KEY || key !== process.env.SESSIONS_KEY) { res.status(401).json({ error: 'Wrong key' }); return; }
+    const sid = clean(req.query && req.query.sid, 64);
+    if (!/^[a-z0-9-]{8,64}$/i.test(sid)) { res.status(400).json({ error: 'Bad session id' }); return; }
+    const { by } = actor(req);
+    if (!by) { res.status(400).json({ error: 'Say who you are first — share links are logged (by=<your name>)' }); return; }
+    const want = String((req.query && req.query.share) ?? '1');
+    try {
+      let index = null;
+      try { index = await readJson(`sessions-index/${sid}.json`); } catch { index = null; }
+      if (!index) { res.status(404).json({ error: 'No such session' }); return; }
+      if (want === '0') {
+        if (index.share && index.share.token) { try { await del([`sessions-share/${index.share.token}.json`]); } catch { /* the index is what the page trusts */ } }
+        delete index.share;
+        await putJson(`sessions-index/${sid}.json`, index);
+        const entry = await logAction('unshare', sid, req, index);
+        res.status(200).json({ ok: true, sid, shared: false, logged: entry });
+        return;
+      }
+      if (!(index.share && index.share.token)) {
+        // One token per session: sharing twice hands back the same link.
+        index.share = { token: newToken(), createdAt: Date.now(), by, views: 0 };
+        await putJson(`sessions-share/${index.share.token}.json`, { sid, createdAt: index.share.createdAt, by });
+        await putJson(`sessions-index/${sid}.json`, index);
+        await logAction('share', sid, req, index);
+      }
+      res.status(200).json({ ok: true, sid, shared: true, share: index.share });
+    } catch (e) { res.status(502).json({ error: 'Could not update sharing: ' + (e && e.message) }); }
     return;
   }
   if (req.method === 'PUT') {
@@ -184,6 +255,7 @@ export default async function handler(req, res) {
       const index = Object.assign({}, tindex || {}); delete index.deletedAt; delete index.deletedBy;
       if (full) await putJson(`sessions/${sid}.json`, full);
       if (tindex) await putJson(`sessions-index/${sid}.json`, index);
+      if (index.share && index.share.token) await putJson(`sessions-share/${index.share.token}.json`, { sid, createdAt: index.share.createdAt, by: index.share.by });
       await del([`sessions-trash/${sid}.json`, `sessions-trash-index/${sid}.json`]);
       const entry = await logAction('restore', sid, req, index);
       await slackNote(`:leftwards_arrow_with_hook: ${by} restored the prototype session for *${index.company || 'an unnamed company'}*${index.name ? ` (${index.name})` : ''}`);
@@ -218,6 +290,7 @@ export default async function handler(req, res) {
     let prev = null;
     try { prev = await readJson(`sessions-index/${sid}.json`); } catch { prev = null; }
     index.pinged = Object.assign({}, prev && prev.pinged);
+    if (prev && prev.share) index.share = prev.share;             // a saved-again session stays shared
     const pings = [];
     if (index.step >= 4 && !index.pinged.hatched) { index.pinged.hatched = true; pings.push('hatched'); }
     if (index.done && !index.pinged.connected) { index.pinged.connected = true; pings.push('connected'); }

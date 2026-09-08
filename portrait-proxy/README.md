@@ -126,6 +126,19 @@ and every dashboard open is written to `sessions-log/<time>-<action>-<sid>.json`
 IP and browser, shown under **Activity** at the bottom of the sessions page (`GET ?key=…&log=1`),
 and deletes also post to the Slack webhook.
 
+### Share links — sending a hatched dashboard to the prospect (build 62, Sep 2026)
+
+The sessions page's `⋯` menu has **Share with the prospect…**: it `PATCH`es
+`?key=…&sid=…&by=<name>&share=1`, the function mints an 18-byte random token
+(`sessions-share/<token>.json → { sid }`, also stored on the session's index) and the page
+copies `https://agenthatchers.com/prototype/?share=<token>` to the clipboard. That link is
+**public** — no key, no prompt — and opens exactly that one saved dashboard read-only (same
+guards as review mode; the bar reads "A preview hatched for <company> by Agent Hatchers").
+Every open is counted on the index (`share.views`, shown on the card), logged as `view`, and
+Slack-pinged at most once an hour per link. **Stop sharing** (`share=0`) deletes the token so the
+link dies; sharing again mints a fresh one. Deleting a session kills its link; restoring brings it
+back. A token can only ever read the session it points at — never the list, log or trash.
+
 Deletes are soft: the two blobs move to `sessions-trash/` and `sessions-trash-index/` (with
 `deletedAt`/`deletedBy`), an **Undo** toast appears on the page, and the **Trash** panel lists
 what's recoverable with a Restore button (`PUT ?key=…&sid=…&by=<name>`, also logged and pinged).

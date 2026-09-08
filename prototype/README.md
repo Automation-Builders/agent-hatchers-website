@@ -21,6 +21,14 @@ Ranking uses the catalog keyword sets plus `BIZ_HINTS` (everyday words like "den
 (Bug Destroyer, Data Scientist, …) are generated in the hatched character's look right after
 the marketplace batch, so no stock robot ever appears next to the prospect's agent.
 
+## Sending a prospect their hatched dashboard
+
+Hatch the agent for them yourself (or find their own session), open
+`/prototype/sessions.html`, enter the sessions key, and pick **Share with the prospect…** in the
+card's `⋯` menu. The page copies a public link — `/prototype/?share=<random token>` — that opens
+that one dashboard read-only with no key or prompt. The card shows how many times it has been
+opened; **Stop sharing** kills the link. The sessions page itself stays behind the key.
+
 ## Adding a prospect
 
 1. Copy `prototype/demo/index.html` to `prototype/<company-slug>/index.html`.

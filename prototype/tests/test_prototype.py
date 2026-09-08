@@ -16,12 +16,33 @@ class PrototypeContractTests(unittest.TestCase):
     def test_review_mode_is_read_only(self):
         # sessions.html → /prototype/?session=<sid> pours a saved snapshot into the dashboard;
         # it must never write back to the store, IndexedDB, or call the image/chat endpoints.
+        # Share mode (/prototype/?share=<token>) rides the same read-only guards via VIEW_ONLY.
         self.assertIn("get('session')", self.app)
-        self.assertIn("const captureOn = !REVIEW_SID &&", self.app)
-        self.assertIn("async function writeSession(v){if(REVIEW_SID)return;", self.app)
-        self.assertIn("if(!usePortraits||REVIEW_SID) return null;", self.app)
-        self.assertIn("if(REVIEW_SID)reviewSession();", self.app)
+        self.assertIn("const VIEW_ONLY=!!(REVIEW_SID||SHARE_TOKEN);", self.app)
+        self.assertIn("const captureOn = !VIEW_ONLY &&", self.app)
+        self.assertIn("async function writeSession(v){if(VIEW_ONLY)return;", self.app)
+        self.assertIn("if(!usePortraits||VIEW_ONLY) return null;", self.app)
+        self.assertIn("if(VIEW_ONLY)reviewSession();", self.app)
         self.assertIn(".review-bar", self.css)
+
+    def test_share_links_open_one_session_without_the_key(self):
+        # The team mints a token on sessions.html; the prospect's link carries only that token.
+        # The public read must never touch the key-gated list/log, and the token must be minted
+        # server-side from real randomness.
+        self.assertIn("get('share')", self.app)
+        self.assertIn("?share=${encodeURIComponent(SHARE_TOKEN)}", self.app)
+        self.assertNotIn("ah-sessions-key", self.app.split("if(!share){")[0].split("async function reviewSession(){")[-1])
+        self.assertIn("randomBytes(18).toString('base64url')", self.session_fn)
+        self.assertIn("const shareTok = clean(req.query && req.query.share, 64);", self.session_fn)
+        self.assertIn("if (req.method === 'PATCH')", self.session_fn)
+        self.assertIn("logAction('share'", self.session_fn)
+        self.assertIn("logAction('view'", self.session_fn)
+        self.assertIn("if (prev && prev.share) index.share = prev.share;", self.session_fn)
+        self.assertIn("'?share='+encodeURIComponent(s.share.token)", self.sessions)
+        self.assertIn("{method:'PATCH'}", self.sessions)
+        self.assertIn("data-unshare", self.sessions)
+        # the prospect never sees the team's sessions page from a preview
+        self.assertNotIn("sessions.html", self.app.split("bar.innerHTML=share")[1].split(":`<span>Reviewing")[0])
 
     def test_sessions_page_menu_and_audit_trail(self):
         self.assertIn("'?session='+encodeURIComponent(s.sid)", self.sessions)
@@ -38,7 +59,7 @@ class PrototypeContractTests(unittest.TestCase):
         self.assertIn("sessions-trash/", self.session_fn)
         self.assertIn("if (req.method === 'PUT')", self.session_fn)
         self.assertIn("logAction('restore'", self.session_fn)
-        self.assertIn("'GET,POST,PUT,DELETE,OPTIONS'", self.session_fn)
+        self.assertIn("'GET,POST,PUT,PATCH,DELETE,OPTIONS'", self.session_fn)
         self.assertIn("{method:'PUT'}", self.sessions)
         self.assertIn("'&trash=1'", self.sessions)
         self.assertIn("'Undo'", self.sessions)

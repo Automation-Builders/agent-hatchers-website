@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 61;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 62;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -287,7 +287,12 @@
   // The stored snapshot (thumbnails and all) is poured into the dashboard read-only — nothing
   // is written back to the store or IndexedDB, and no image or chat call is made.
   const REVIEW_SID=(()=>{try{const v=new URLSearchParams(location.search).get('session')||'';return /^[a-z0-9-]{8,64}$/i.test(v)?v:'';}catch(e){return '';}})();
-  const captureOn = !REVIEW_SID && config.saveSessions!==false && /^https?:/.test(sessionEndpoint);
+  // Share mode: the team mints a share link on sessions.html and sends /prototype/?share=<token>
+  // to the prospect. No key, no prompt — the token alone opens that one saved dashboard,
+  // read-only like review mode, dressed as "a preview hatched for you" rather than "reviewing".
+  const SHARE_TOKEN=(()=>{try{const v=new URLSearchParams(location.search).get('share')||'';return /^[A-Za-z0-9_-]{16,64}$/.test(v)?v:'';}catch(e){return '';}})();
+  const VIEW_ONLY=!!(REVIEW_SID||SHARE_TOKEN);
+  const captureOn = !VIEW_ONLY && config.saveSessions!==false && /^https?:/.test(sessionEndpoint);
   const cleanTools=t=>Array.isArray(t)?[...new Set(t.map(x=>String(x).replace(/\s+/g,' ').trim().slice(0,30)).filter(Boolean))].slice(0,40):[];
   const uid=()=>(crypto.randomUUID?crypto.randomUUID():'s-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10));
   const thumbCache=new Map();
@@ -323,7 +328,7 @@
   const SESSION_KEY=location.pathname;
   function idb(){return new Promise((ok,bad)=>{if(!window.indexedDB)return bad(new Error('no idb'));const r=indexedDB.open('ah-prototype',1);r.onupgradeneeded=()=>r.result.createObjectStore('session');r.onsuccess=()=>ok(r.result);r.onerror=()=>bad(r.error);});}
   async function loadSession(){try{const db=await idb();return await new Promise((ok,bad)=>{const q=db.transaction('session','readonly').objectStore('session').get(SESSION_KEY);q.onsuccess=()=>ok(q.result||null);q.onerror=()=>bad(q.error);});}catch(e){return null;}}
-  async function writeSession(v){if(REVIEW_SID)return;try{const db=await idb();await new Promise((ok,bad)=>{const t=db.transaction('session','readwrite');if(v===null)t.objectStore('session').delete(SESSION_KEY);else t.objectStore('session').put(v,SESSION_KEY);t.oncomplete=ok;t.onerror=()=>bad(t.error);});}catch(e){}}
+  async function writeSession(v){if(VIEW_ONLY)return;try{const db=await idb();await new Promise((ok,bad)=>{const t=db.transaction('session','readwrite');if(v===null)t.objectStore('session').delete(SESSION_KEY);else t.objectStore('session').put(v,SESSION_KEY);t.oncomplete=ok;t.onerror=()=>bad(t.error);});}catch(e){}}
   let saveTimer=null;
   function saveSession(){
     clearTimeout(saveTimer);
@@ -369,14 +374,23 @@
     try{const im=await loadImg(src);const r=im.naturalWidth/im.naturalHeight;return !(r>0.85&&r<1.18);}catch(e){return false;}
   }
   async function reviewSession(){
-    let key='',by='';try{key=localStorage.getItem('ah-sessions-key')||'';by=localStorage.getItem('ah-sessions-by')||'';}catch(e){}
-    if(!key){key=(prompt('Sessions key (the one you use on the sessions page)')||'').trim();try{if(key)localStorage.setItem('ah-sessions-key',key);}catch(e){}}
-    const bar=document.createElement('div');bar.className='review-bar';bar.innerHTML='<span>Loading the saved session…</span>';document.body.prepend(bar);
-    const fail=msg=>{bar.classList.add('bad');bar.innerHTML=`<span>${escapeHtml(msg)}</span><a href="/prototype/sessions.html">Back to sessions</a>`;render();};
-    if(!key)return fail('No sessions key — open the sessions page, enter the key, then come back.');
+    const share=!!SHARE_TOKEN;
+    let key='',by='';
+    if(!share){
+      try{key=localStorage.getItem('ah-sessions-key')||'';by=localStorage.getItem('ah-sessions-by')||'';}catch(e){}
+      if(!key){key=(prompt('Sessions key (the one you use on the sessions page)')||'').trim();try{if(key)localStorage.setItem('ah-sessions-key',key);}catch(e){}}
+    }
+    const bar=document.createElement('div');bar.className=share?'review-bar share-bar':'review-bar';bar.innerHTML=share?'<span>Opening your preview…</span>':'<span>Loading the saved session…</span>';document.body.prepend(bar);
+    const fail=msg=>{bar.classList.add('bad');bar.innerHTML=share?`<span>${escapeHtml(msg)}</span><a href="${escapeHtml(location.pathname)}">Hatch your own instead →</a>`:`<span>${escapeHtml(msg)}</span><a href="/prototype/sessions.html">Back to sessions</a>`;render();};
+    if(!share&&!key)return fail('No sessions key — open the sessions page, enter the key, then come back.');
     let d;
-    try{const r=await fetch(`${sessionEndpoint}?key=${encodeURIComponent(key)}&sid=${encodeURIComponent(REVIEW_SID)}&view=1&by=${encodeURIComponent(by)}`,{cache:'no-store'});if(!r.ok)throw new Error(r.status===401?'wrong sessions key':r.status===404?'it has been deleted':'HTTP '+r.status);d=await r.json();}
-    catch(e){return fail('Could not load this session: '+e.message);}
+    try{
+      const url=share?`${sessionEndpoint}?share=${encodeURIComponent(SHARE_TOKEN)}`:`${sessionEndpoint}?key=${encodeURIComponent(key)}&sid=${encodeURIComponent(REVIEW_SID)}&view=1&by=${encodeURIComponent(by)}`;
+      const r=await fetch(url,{cache:'no-store'});
+      if(!r.ok){if(share)throw new Error(r.status===404||r.status===400?'This preview link isn’t active any more — ask Agent Hatchers for a fresh one.':'We couldn’t open this preview right now (HTTP '+r.status+'). Try again in a moment.');throw new Error(r.status===401?'wrong sessions key':r.status===404?'it has been deleted':'HTTP '+r.status);}
+      d=await r.json();
+    }
+    catch(e){return fail(share?(e.message||'We couldn’t open this preview.'):'Could not load this session: '+e.message);}
     ['name','company','biz','industry','tools','look','team','brand','variant','selectedImage','editUses'].forEach(k=>{if(d[k]!==undefined&&d[k]!==null)state[k]=d[k];});
     state.tools=cleanTools(state.tools);
     state.sid=d.sid||REVIEW_SID;state.startedAt=Number(d.startedAt)||0;
@@ -390,7 +404,9 @@
     state.step=(d.step>=4||state.slots.some(Boolean))?4:Math.min(Number(d.step)||0,2);
     if(state.step===1)state.step=0;
     render();
-    bar.innerHTML=`<span>Reviewing <b>${escapeHtml(d.company||'an unnamed company')}</b>${d.name?` · ${escapeHtml(d.name)}`:''} — read-only: nothing here is saved, generated or counted</span><a href="/prototype/sessions.html">Back to sessions</a>`;
+    bar.innerHTML=share
+      ?`<span>A preview hatched for <b>${escapeHtml(d.company||'you')}</b> by Agent Hatchers${d.name?` — meet ${escapeHtml(d.name)}`:''}</span><a href="${escapeHtml(location.pathname)}">Hatch your own →</a>`
+      :`<span>Reviewing <b>${escapeHtml(d.company||'an unnamed company')}</b>${d.name?` · ${escapeHtml(d.name)}`:''} — read-only: nothing here is saved, generated or counted</span><a href="/prototype/sessions.html">Back to sessions</a>`;
   }
   function welcomeBack(){
     const pop=document.createElement('div');pop.className='create-pop wb-pop';pop.innerHTML=state.rehatch?`${ci.check}<span>Welcome back${state.name?`, ${escapeHtml(state.name)} is still here`:''}. Your earlier designs were made before a fix, so hatch them again — one press.</span>`:`${ci.check}<span>Picked up where you left off${state.name?` with ${escapeHtml(state.name)}`:''}. <b>Start over</b> is in the footer if you want a fresh hatch.</span>`;
@@ -610,7 +626,7 @@
   function hatchScreen(){return `<div class="stage hatch-zone"><span class="eyebrow">Hatching</span><h2>Hatching ${escapeHtml(state.name||'your agent')}…</h2><p>Three takes on your description. Click your favourite — it becomes ${escapeHtml(state.name||'your agent')}’s avatar.</p><div class="hatch-row" aria-live="polite">${[0,1,2].map(eggScene).join('')}</div><div class="hatch-actions">${hatchActionsBar()}</div></div>`;}
   function initials(str){return String(str||'AH').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();}
   const marketLoader='<div class="hatch-loader"><img class="loader-egg" src="/egg-closed.webp" alt=""><span class="loader-txt">Hatching…</span></div>';
-  function willGenerate(agent){if(REVIEW_SID)return false;   // review mode shows what was stored, no egg loaders
+  function willGenerate(agent){if(VIEW_ONLY)return false;   // review mode shows what was stored, no egg loaders
     return (usePortraits&&config.marketPortraits!==false&&state.variant!==null)||!!(config.bakedMarket&&config.bakedMarket[agent.id]);}
   function agentCard(agent,running=false){const gen=state.marketImages[agent.id];const loading=!gen&&willGenerate(agent);const inner=gen?`<img src="${escapeHtml(gen)}" alt="${escapeHtml(agent.name)}">`:(loading?marketLoader:`<img src="${agent.portrait}" alt="${escapeHtml(agent.name)}" loading="lazy">`);return `<article class="p-card" data-agent="${agent.id}" data-search="${escapeHtml((agent.name+' '+agent.team).toLowerCase())}" tabindex="0"><div class="p-thumb thumb-${agent.id} ${gen?'is-generated':''} ${loading?'is-loading':''}" data-thumb="${agent.id}">${inner}</div><div class="p-meta"><div class="p-name">${agent.name} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span>${teamTag(agent.team)}${running?'<span class="p-tag tag-run"><i></i>Running</span>':''}</div></div></article>`;}
   function hatchedCard(){const vis=state.selectedImage?`<img src="${escapeHtml(state.selectedImage)}" alt="${escapeHtml(state.name)}">`:`<div class="thumb-bot">${bot('v'+(state.variant||0))}</div>`;return `<article class="p-card is-yours"><div class="p-thumb thumb-new ${state.selectedImage?'is-generated':''}">${vis}</div><div class="p-meta"><div class="p-name">${escapeHtml(state.name||'Your agent')} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span><span class="p-tag tag-new">Just hatched</span></div></div></article>`;}
@@ -637,7 +653,7 @@
   function chatProfiles(){
     const you={name:state.name||'Your agent',img:state.selectedImage||'/hatchy-pop.webp'};
     const team=[...runningAgents(),...topAgents().filter(a=>!RUNNING.includes(a.id))].map(a=>({name:a.name,img:state.marketImages[a.id]||a.portrait}));
-    const live=!REVIEW_SID&&usePortraits&&config.marketPortraits!==false&&state.variant!==null;
+    const live=!VIEW_ONLY&&usePortraits&&config.marketPortraits!==false&&state.variant!==null;
     const other=EXTRA_PROFILES.map(p=>{const gen=state.marketImages[p.id];return {id:p.id,name:p.name,img:gen||(live?'/egg-closed.webp':(state.selectedImage||p.portrait)),egg:!gen&&live};});
     const mine=state.profiles.filter(p=>p.status==='complete').map(p=>({name:p.name,img:p.img}));
     const your=[you,...mine,...team];
@@ -646,6 +662,7 @@
   // The prospect's FIRST message in a chat gets a real answer (their sales free taste);
   // every later message meets the paywall.
   async function fetchChatReply(question,agentName,history,turn){
+    if(SHARE_TOKEN)return `This is a preview of ${agentName||'your agent'} — chat comes alive once we hatch it for real. Ask Agent Hatchers and we'll set it up.`;
     if(REVIEW_SID)return 'This is a saved session in review — chat is switched off here.';
     const roster=catalog.map(a=>({name:a.name,summary:a.summary,mcps:a.mcps}));
     for(let attempt=0;attempt<2;attempt++){
@@ -810,7 +827,9 @@
         <div class="nav-right"><button class="create-btn" data-create="1">${ic.plus}<span>Create</span></button><span class="nav-avatar">${initials(co())}</span></div>
       </header>
       ${body}
-      <div class="board-foot"><div class="foot-nav">${button('← Back','back',true)}${button('Start over','reset',true)}</div>${button('Connect your agent →','next')}</div>
+      ${SHARE_TOKEN
+        ?`<div class="board-foot share-foot"><span class="share-foot-txt">Like what you see? This is what your team could look like.</span><a class="btn btn-primary" href="${escapeHtml(location.pathname)}">Hatch your own agent →</a></div>`
+        :`<div class="board-foot"><div class="foot-nav">${button('← Back','back',true)}${button('Start over','reset',true)}</div>${button('Connect your agent →','next')}</div>`}
     </div>`;
   }
   function connectScreen(){
@@ -982,6 +1001,7 @@
     return {summary,outcomes,mcps:mcps.slice(0,6),mates:mates.map(a=>a.id),team:mates[0]?mates[0].team:'Operations',source:'fallback'};
   }
   async function researchProfile(p){
+    if(VIEW_ONLY)return null;                                      // previews spend nothing
     const roster=catalog.map(a=>({id:a.id,name:a.name,summary:a.summary}));
     const connectors=[...new Set(catalog.flatMap(a=>a.mcps).concat(Object.keys(MCP_MONO)))];
     for(let attempt=0;attempt<2;attempt++){
@@ -1335,7 +1355,7 @@
   }
   const sleep = ms => new Promise(r=>setTimeout(r,ms));
   async function fetchImage(params){
-    if(!usePortraits||REVIEW_SID) return null;
+    if(!usePortraits||VIEW_ONLY) return null;
     // Up to 3 attempts: a single cold start / provider hiccup must not cost a prospect
     // their design (a failed hero portrait cascades into blob avatars + mismatched market).
     for(let attempt=0;attempt<3;attempt++){
@@ -1537,6 +1557,6 @@
     const input=document.getElementById('agent-name');if(input)input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('agent-biz')?.focus()}};
   }
   root.dataset.build=BUILD;console.info('Agent Hatchers prototype · build '+BUILD);
-  if(REVIEW_SID)reviewSession();
+  if(VIEW_ONLY)reviewSession();
   else restoreSession().then(back=>{render();if(back){welcomeBack();if(state.step===4)generateMarket();}});
 })();
