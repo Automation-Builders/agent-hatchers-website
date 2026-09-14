@@ -20,6 +20,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script>document.documentElement.classList.add('js');</script>
 <script src="/assets/analytics.js" defer></script>
+<!-- Meta Pixel — base code + event helper live in /assets/meta-pixel.js (dataset "Agent Hatchers Website") -->
+<script src="/assets/meta-pixel.js"></script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1806418700537742&ev=PageView&noscript=1"
+/></noscript>
 <style>
 /* ════════════════════════════════════════════════════════════════════════
    AGENT HATCHERS — v4 "the hatchery"
@@ -1312,18 +1317,21 @@ document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListen
 var bookingModal=$('bookingModal'),bookingForm=$('bookingForm'),bookingCalendly=$('bookingCalendly'),calendlyFrame=$('calendlyFrame'),bookingSource='nav';
 function resetBookingModal(){bookingForm.reset();bookingForm.hidden=false;bookingCalendly.hidden=true;calendlyFrame.src='';var l=$('calendlyLoader');if(l)l.classList.remove('is-hidden');$('bookingTitle').textContent='30 minutes. Same week.';$('bookingSub').textContent='A quick name + email so we can prep before we meet.';}
 function startBookingFlow(s){bookingSource=s||'nav';resetBookingModal();openModal(bookingModal);setTimeout(function(){$('bName').focus();},120);}
-document.querySelectorAll('[data-open-book]').forEach(function(el){el.addEventListener('click',function(e){e.preventDefault();closeAllModals();startBookingFlow(el.dataset.source||'nav');});});
+document.querySelectorAll('[data-open-book]').forEach(function(el){el.addEventListener('click',function(e){e.preventDefault();closeAllModals();if(window.ahTrack)ahTrack('BookCallClick',{source:el.dataset.source||'nav'});startBookingFlow(el.dataset.source||'nav');});});
 $('bookingClose').addEventListener('click',function(){closeModal(bookingModal);});
 bookingForm.addEventListener('submit',async function(e){e.preventDefault();
  var data={name:$('bName').value.trim(),email:$('bEmail').value.trim(),urgency:$('bUrgency').value,source:bookingSource};
  postLead('booking',data);
+ if(window.ahTrack)ahTrack('Lead',{source:bookingSource}); /* meta pixel: name/email step done — name and email are never sent */
  var p=new URLSearchParams();if(data.name)p.set('name',data.name);if(data.email)p.set('email',data.email);
- p.set('hide_event_type_details','1');p.set('hide_gdpr_banner','1');p.set('background_color','f4f1ea');p.set('text_color','16150f');p.set('primary_color','216bac');
+ p.set('hide_event_type_details','1');p.set('hide_gdpr_banner','1');p.set('background_color','f4f1ea');p.set('text_color','16150f');p.set('primary_color','216bac');p.set('embed_domain',location.hostname);p.set('embed_type','Inline'); /* so Calendly posts calendly.* events to this page */
  var url=CALENDLY_URL+'?'+p.toString();
  bookingForm.classList.add('is-leaving');await new Promise(function(r){setTimeout(r,220);});bookingForm.hidden=true;bookingForm.classList.remove('is-leaving');
  $('bookingTitle').textContent='Pick a time.';$('bookingSub').textContent='Pre-filled with what you sent. Change anything you like.';
  var l=$('calendlyLoader');if(l)l.classList.remove('is-hidden');calendlyFrame.src=url;bookingCalendly.hidden=false;
  calendlyFrame.addEventListener('load',function(){if(l)l.classList.add('is-hidden');},{once:true});});
+/* meta pixel: confirmed bookings — only Calendly's own event_scheduled message counts as Schedule; clicks (BookCallClick) and the name/email step (Lead) are reported separately */
+addEventListener('message',function(e){if(e.origin!=='https://calendly.com'||!e.data||typeof e.data.event!=='string')return;if(e.data.event==='calendly.event_scheduled'&&window.ahTrack)ahTrack('Schedule',{source:bookingSource});});
 /* smooth scroll (optional) */
 (function(){if(typeof Lenis==='undefined')return;if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
  var lenis=new Lenis({duration:0.95,easing:function(t){return Math.min(1,1.001-Math.pow(2,-10*t));},smoothWheel:true});

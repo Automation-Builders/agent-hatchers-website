@@ -163,6 +163,11 @@
 <!-- progressive-enhancement flag for reveal CSS (set synchronously to avoid flash) -->
 <script>document.documentElement.classList.add('js');</script>
 <script src="/assets/analytics.js" defer></script>
+<!-- Meta Pixel — base code + event helper live in /assets/meta-pixel.js (dataset "Agent Hatchers Website") -->
+<script src="/assets/meta-pixel.js"></script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1806418700537742&ev=PageView&noscript=1"
+/></noscript>
 
 <style>
 /* ════════════════════════════════════════════════════════════════════════
@@ -3301,6 +3306,7 @@ document.querySelectorAll('[data-open-book]').forEach(el => {
   el.addEventListener('click', e => {
     e.preventDefault();
     closeAllModals();
+    if (window.ahTrack) ahTrack('BookCallClick', { source: el.dataset.source || 'nav' }); // Meta: button click only, not a booking
     startBookingFlow(el.dataset.source || 'nav');
   });
 });
@@ -3315,6 +3321,7 @@ bookingForm.addEventListener('submit', async e => {
     source:  bookingSource
   };
   postLead('booking', data); // fire-and-forget — never block the calendar on the webhook
+  if (window.ahTrack) ahTrack('Lead', { source: bookingSource }); // Meta: name/email step done — the name and email are never sent
 
   // Build Calendly URL with prefill + theme params so the iframe matches the site.
   const params = new URLSearchParams();
@@ -3325,6 +3332,8 @@ bookingForm.addEventListener('submit', async e => {
   params.set('background_color', 'f4f1ea');
   params.set('text_color', '16150f');
   params.set('primary_color', '216bac');
+  params.set('embed_domain', location.hostname); // makes Calendly post calendly.* events to this page
+  params.set('embed_type', 'Inline');
   const url = CALENDLY_URL + '?' + params.toString();
 
   bookingForm.classList.add('is-leaving');
@@ -3343,6 +3352,16 @@ bookingForm.addEventListener('submit', async e => {
   calendlyFrame.addEventListener('load', () => {
     if (loader) loader.classList.add('is-hidden');
   }, { once: true });
+});
+
+/* ── META PIXEL: confirmed bookings ──
+   Calendly posts calendly.* messages to the parent page when the iframe URL carries
+   embed_domain. Only calendly.event_scheduled counts as a booking — button clicks
+   (BookCallClick) and the name/email step (Lead) are reported separately and never as
+   Schedule. The payload's URIs are not forwarded; only the source label is. ── */
+window.addEventListener('message', e => {
+  if (e.origin !== 'https://calendly.com' || !e.data || typeof e.data.event !== 'string') return;
+  if (e.data.event === 'calendly.event_scheduled' && window.ahTrack) ahTrack('Schedule', { source: bookingSource });
 });
 
 /* ── LENIS SMOOTH SCROLL ── */
