@@ -1143,3 +1143,27 @@ h1{font-weight:800}h2{font-weight:700}
 .book-alt a:hover{text-decoration:underline}
 .cta-book.btn:hover{transform:translateY(-1px)}
 @media (max-width:640px){.book-modal{padding:20px 12px 14px}.book-frame{height:560px}.book-frame-wrap{min-height:360px}}
+
+/* ---------- Phone layout (build 66): dashboard header, chats rail, hatch row ---------- */
+@media (max-width:640px){
+  .app-nav{gap:8px;padding:9px 10px}
+  .ws{padding:6px 8px;gap:6px}
+  .nav-tabs{padding:3px}
+  .nav-tab{padding:8px 9px}
+  .nav-right{gap:8px}
+  .create-btn{padding:9px 11px}
+  .create-btn span{display:none}
+  .nav-avatar{display:none}
+  .create-menu{right:0}
+  .board-foot{flex-wrap:wrap}
+  /* chats: the profile rail becomes a horizontal strip above the thread */
+  .chats3{flex-direction:column}
+  .pf-side{width:100%;flex:0 0 auto;flex-direction:row;align-items:center;gap:4px;padding:8px 10px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+  .pf-side::-webkit-scrollbar{display:none}
+  .pf-side-h,.pf-search,.pf-sec{display:none}
+  .pf-item{width:auto;flex:0 0 auto;white-space:nowrap;padding:6px 10px 6px 6px;gap:8px}
+  .chat-input.big{margin:0 10px 12px;padding:6px 6px 6px 12px}
+  /* hatch: three eggs fit side by side on a phone */
+  .egg-row{gap:6px}
+  .egg-cell .hx6{width:clamp(88px,27vw,130px)}
+}

@@ -1200,6 +1200,23 @@ html.lenis,html.lenis body{height:auto;}
 .lenis.lenis-smooth{scroll-behavior:auto !important;}
 .lenis.lenis-smooth [data-lenis-prevent]{overscroll-behavior:contain;}
 .lenis.lenis-stopped{overflow:hidden;}
+
+/* Mobile menu: below 920px the nav links fold into a burger; below 560px the header's
+   Book a call is hidden too, so the menu carries one. */
+.nav-burger{display:none;width:42px;height:42px;flex:0 0 auto;border:1.5px solid var(--ink);border-radius:999px;background:transparent;color:var(--ink);padding:0;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer}
+.nav-burger span{display:block;width:18px;height:2px;background:currentColor;border-radius:2px;transition:transform .2s ease,opacity .2s ease}
+.nav-burger[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.nav-burger[aria-expanded="true"] span:nth-child(2){opacity:0}
+.nav-burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.nav-links-book{display:none}
+@media(max-width:920px){
+  .nav-burger{display:flex}
+  .nav-links.is-open{display:flex;flex-direction:column;align-items:stretch;gap:0;position:absolute;left:0;right:0;top:100%;margin:0;padding:8px var(--gutter) 14px;background:var(--paper);border-bottom:1px solid var(--line);box-shadow:0 18px 40px -24px rgba(22,21,15,.35)}
+  .nav-links.is-open li{list-style:none}
+  .nav-links.is-open a{display:block;padding:13px 6px;font-size:15px;border-bottom:1px solid var(--line)}
+  .nav-links.is-open li:last-child a{border-bottom:0}
+}
+@media(max-width:560px){.nav-links.is-open .nav-links-book{display:block}}
 </style>
 </head>
 <body>
@@ -1209,17 +1226,19 @@ html.lenis,html.lenis body{height:auto;}
       <img src="agent-hatchers-mark.png" alt="" width="30" height="30" />
       <span>Agent&nbsp;Hatchers</span>
     </a>
-    <ul class="nav-links">
+    <ul class="nav-links" id="navLinks">
       <li><a href="prototype/">Demo</a></li>
       <li><a href="index.html#agents">Agents</a></li>
       <li><a href="index.html#compare">Compare</a></li>
       <li><a href="pricing.html">Pricing</a></li>
       <li><a href="team.html" aria-current="page" style="color:var(--accent)">Team</a></li>
       <li><a href="index.html#faq">FAQ</a></li>
+      <li class="nav-links-book"><a href="index.html#book">Book a call →</a></li>
     </ul>
     <div class="nav-cta">
       <a href="https://agenthatchers.ai" class="btn btn-secondary login-link">Login</a>
       <a href="index.html#book" class="btn btn-primary book-call">Book a call <span class="arrow">&rarr;</span></a>
+      <button class="nav-burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks"><span></span><span></span><span></span></button>
     </div>
   </div>
 </nav>
@@ -1292,6 +1311,16 @@ html.lenis,html.lenis body{height:auto;}
   document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
   document.querySelectorAll('.founders').forEach(function(p){Array.from(p.children).forEach(function(c,i){c.style.transitionDelay=(i*0.08).toFixed(2)+'s';});});
 })();
+</script>
+<script>
+/* Mobile menu toggle */
+(function(){var b=document.querySelector('.nav-burger'),l=document.getElementById('navLinks');if(!b||!l)return;
+function set(o){b.setAttribute('aria-expanded',o?'true':'false');b.setAttribute('aria-label',o?'Close menu':'Open menu');l.classList.toggle('is-open',!!o);}
+b.addEventListener('click',function(){set(b.getAttribute('aria-expanded')!=='true');});
+l.addEventListener('click',function(e){if(e.target.closest('a'))set(false);});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')set(false);});
+document.addEventListener('click',function(e){if(l.classList.contains('is-open')&&!e.target.closest('nav'))set(false);});
+window.addEventListener('resize',function(){if(window.innerWidth>920)set(false);});})();
 </script>
 </body>
 </html>
