@@ -1318,7 +1318,7 @@ html.lenis,html.lenis body{height:auto;}
   <div class="legal-header">
     <div class="eyebrow">Legal</div>
     <h1>Privacy <span class="grad-text">Policy</span></h1>
-    <p>Last updated: 14 September 2026 &nbsp;·&nbsp; Agent Hatchers Pty Ltd ACN 690 308 242</p>
+    <p>Draft revision: 15 September 2026 — review only; not published &nbsp;·&nbsp; Agent Hatchers Pty Ltd ACN 690 308 242</p>
   </div>
 
   <div class="legal-body">
@@ -1327,7 +1327,7 @@ html.lenis,html.lenis body{height:auto;}
       <h2>1. About this Policy</h2>
       <p>This policy outlines how Agent Hatchers Pty Ltd (ACN 690 308 242) handles personal information collection, usage, storage, and disclosure.</p>
       <p>The organisation commits to complying with the Privacy Act 1988 (Cth), the Australian Privacy Principles, and related privacy legislation.</p>
-      <p>By using our services, you consent to the information collection practices described in this policy.</p>
+      <p>This review draft describes confirmed installation data flows. It is not a published replacement policy or blanket consent to processing.</p>
     </section>
 
     <section>
@@ -1341,9 +1341,9 @@ html.lenis,html.lenis body{height:auto;}
         <li><strong>Usage metrics</strong> — automation logs, reports, analytical data</li>
         <li><strong>System data</strong> — IP addresses, browser specifications, operating systems, device identifiers</li>
         <li><strong>User-submitted content</strong> — form entries, communications, file uploads</li>
-        <li><strong>Business system access</strong> — temporary viewing of client systems (CRMs, ERPs, databases) during service delivery — not permanently retained</li>
+        <li><strong>Business system access</strong> — information accessed or transferred through customer-authorised connections; disconnecting does not delete prior transfers</li>
       </ul>
-      <p>The organisation avoids collecting sensitive information unless legally mandated or explicitly consented to.</p>
+      <p>Conversations, memory, files, logs, images and avatars may contain personal information supplied through your installation or authorised apps.</p>
     </section>
 
     <section>
@@ -1382,39 +1382,28 @@ html.lenis,html.lenis body{height:auto;}
     <section>
       <h2>5. Data Logging, Storage, and Maintenance Records</h2>
       <h3>5.1 Data Logging and Storage</h3>
-      <p>The organisation does not permanently store customer, client, or end-user operational information on internal systems.</p>
-      <p>Operational data stays within customer-authorised platforms (Make, Zapier, n8n, HubSpot, CRMs, ERPs). Temporary access occurs only for configuration and maintenance — no copying or external retention happens.</p>
-      <p>Internal records limited to administration (billing, accounts, projects) exclude operational customer data.</p>
+      <p>Conversations, memory, files and logs are stored on the server allocated to the installation. This does not mean that the customer owns the server. Images and avatars are stored in an Agent Hatchers-owned Google Cloud Platform project, using a per-installation bucket and a bucket-scoped service account.</p>
+      <p>The dashboard proxies traffic between the browser and the installation server.</p>
       <h3>5.2 Internal Maintenance Records</h3>
-      <p>Technical incident records contain only metadata: error types, affected integrations, timestamps, and corrective actions.</p>
-      <p>These records exclude personal customer information, raw system data, or payment details. Secure storage in project management tools restricts access to authorised personnel.</p>
-      <p>Retention supports accountability, improvement, and compliance — not external sharing without legal requirement or explicit customer agreement.</p>
+      <p>The “Request an app” feature sends the app name, intended-use description and your email address to our internal Slack.</p>
     </section>
 
     <section>
       <h2>6. Disclosure of Information</h2>
-      <p>Information may be shared with:</p>
-      <ul>
-        <li>Employees, contractors, and service providers involved in delivery</li>
-        <li>Third-party automation platforms and cloud services where automations operate</li>
-        <li>Regulators, law enforcement, and government bodies (when legally required)</li>
-        <li>Professional advisors (legal, accounting services)</li>
-        <li>Parties involved in merger, sale, or acquisition scenarios</li>
-      </ul>
-      <blockquote>We never sell your personal information.</blockquote>
+      <p>The current model service is OpenAI via Codex. OpenRouter is used as a fallback for image generation. Content needed for a model request may be transferred to the relevant provider; this policy does not promise that providers do not retain, copy or use data for training.</p>
+      <p>No apps are connected by default. Customers may connect Slack, Google Workspace or MCP services using authorised permissions. Data transfers depend on the connected service and requested actions.</p>
+      <p>You can disconnect an app per agent in the dashboard or revoke access through the provider. Disconnection or revocation does not delete information already transferred.</p>
+      <p>Disclosure may also be necessary to meet applicable legal obligations.</p>
     </section>
 
     <section>
       <h2>7. Security and Compliance</h2>
-      <p>The company applies reasonable technical and organisational measures to protect information from misuse, loss, or unauthorised access.</p>
-      <p>Security depends in part on third-party platform safeguards (Make, Zapier, HubSpot). Customers must review those platforms' privacy and security documentation independently.</p>
-      <p>Industry-standard protections including encryption, access controls, and audit logs are employed where platforms support them.</p>
+      <p>The reported image-storage configuration uses a per-installation bucket and bucket-scoped service account. This is not a guarantee of absolute security. Permissions and connected-provider settings affect how information is accessed and processed.</p>
     </section>
 
     <section>
       <h2>8. International Data Transfers</h2>
-      <p>Automations may involve overseas servers or processors. Service use constitutes consent to international transfers, acknowledging that foreign laws may offer less protection than Australian legislation.</p>
-      <p>Contractual or platform-based transfer protections are used where available.</p>
+      <p>Processing is not guaranteed to occur only in Australia. Server location depends on the installation, and model, cloud and connected-app providers may process information in other countries. An installation hosted in Sydney does not establish Australian residency for all installations or all processing.</p>
     </section>
 
     <section>
@@ -1431,7 +1420,7 @@ html.lenis,html.lenis body{height:auto;}
 
     <section>
       <h2>10. Retention</h2>
-      <p>Personal information is retained only as long as necessary for service provision and legal/contractual compliance. Unnecessary information is deleted or de-identified.</p>
+      <p>Disconnecting an app does not erase prior transfers, stored conversations, files or provider records. You may contact us about retention, export or deletion; this draft does not promise automatic deletion, a fixed retention period or an implemented export/deletion process.</p>
     </section>
 
     <section>
