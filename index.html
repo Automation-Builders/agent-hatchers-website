@@ -1088,7 +1088,7 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   .lib-illo{height:clamp(150px,40vw,205px);}
 }
 
-/* ── COMPARE — us vs Viktor vs the chatbots, one honest table ── */
+/* ── COMPARE — us vs the chatbots, one honest table ── */
 .compare-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .compare{
   width:100%;min-width:780px;border-collapse:separate;border-spacing:0;
@@ -1116,7 +1116,7 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
   font-weight:600;color:var(--ink);width:22%;
   font-family:var(--font-d);letter-spacing:-.01em;
 }
-.compare td{color:var(--ink-70);width:26%;}
+.compare td{color:var(--ink-70);width:39%;}
 .compare td.co-us{
   background:linear-gradient(150deg,#E7F1FA 0%,#DDEBF7 100%);
   color:var(--ink);font-weight:600;
@@ -1135,7 +1135,6 @@ nav.is-scrolled{background:rgba(244,241,234,.98);border-bottom-color:var(--line)
 .compare .mark-yes{background:var(--accent);color:#fff;border:1.5px solid var(--ink);}
 .compare .mark-no{background:var(--paper-2);color:var(--ink-50);border:1.5px solid var(--line);}
 .compare .mark-mid{background:var(--accent-2);color:var(--ink);border:1.5px solid var(--line);}
-.compare thead .co-head img.lg-viktor{width:24px;height:24px;border-radius:6px;}
 /* ticks stamp themselves in as the table scrolls into view */
 .js .compare .mark{transform:scale(0);}
 .compare.is-visible .mark{
@@ -1955,7 +1954,6 @@ html.lenis,html.lenis body{height:auto;}
           <tr>
             <th scope="col"><span class="sr-only">What we're comparing</span></th>
             <th scope="col" class="co-us-h"><span class="co-head"><img src="hatchy-avatar.webp" alt="" width="30" height="30" />Your hatched agent</span></th>
-            <th scope="col"><span class="co-head"><img class="lg-viktor" src="viktor-logo.png" alt="" width="24" height="24" />Viktor</span></th>
             <th scope="col"><span class="co-head co-head-vs"><svg class="lg"><use href="#lg-openai"/></svg>ChatGPT<span class="vs-slash">/</span><svg class="lg"><use href="#lg-claude"/></svg>Claude</span></th>
           </tr>
         </thead>
@@ -1963,37 +1961,31 @@ html.lenis,html.lenis body{height:auto;}
           <tr>
             <th scope="row">In your Slack &amp; Teams?</th>
             <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:0">✓</span>Yes — it works where your team already talks</span></td>
-            <td><span class="cwrap"><span class="mark mark-yes" style="--d:0">✓</span>Yes — Slack &amp; Teams too</span></td>
             <td><span class="cwrap"><span class="mark mark-no" style="--d:0">–</span>No — its own separate app</span></td>
           </tr>
           <tr>
             <th scope="row">Whose brand?</th>
             <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:1">✓</span>Yours — your agent, your name, your voice</span></td>
-            <td><span class="cwrap"><span class="mark mark-no" style="--d:1">–</span>Theirs — it's Viktor in your channels</span></td>
             <td><span class="cwrap"><span class="mark mark-no" style="--d:1">–</span>Theirs — everyone knows that logo</span></td>
           </tr>
           <tr>
             <th scope="row">One agent or a team?</th>
             <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:2">✓</span>A team — one specialist agent per job</span></td>
-            <td><span class="cwrap"><span class="mark mark-mid" style="--d:2">~</span>One agent, wearing different hats</span></td>
             <td><span class="cwrap"><span class="mark mark-no" style="--d:2">–</span>One chat window for everything</span></td>
           </tr>
           <tr>
             <th scope="row">Who gets to talk to it?</th>
             <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:3">✓</span>You decide — per team, per person, per agent</span></td>
-            <td><span class="cwrap"><span class="mark mark-mid" style="--d:3">~</span>As much control as their settings give you</span></td>
             <td><span class="cwrap"><span class="mark mark-no" style="--d:3">–</span>A seat is a seat — everyone gets the same</span></td>
           </tr>
           <tr>
             <th scope="row">The harness</th>
             <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:4">✓</span>Skills, memory &amp; approvals around the model — that's what makes it an agent</span></td>
-            <td><span class="cwrap"><span class="mark mark-mid" style="--d:4">~</span>Fixed — take it as it ships</span></td>
             <td><span class="cwrap"><span class="mark mark-no" style="--d:4">–</span>None — just the raw model</span></td>
           </tr>
           <tr>
             <th scope="row">Open source?</th>
             <td class="co-us"><span class="cwrap"><span class="mark mark-yes" style="--d:5">✓</span>Yes — you can see exactly how it works</span></td>
-            <td><span class="cwrap"><span class="mark mark-no" style="--d:5">–</span>No — you can't look inside</span></td>
             <td><span class="cwrap"><span class="mark mark-no" style="--d:5">–</span>No — you can't look inside</span></td>
           </tr>
         </tbody>
