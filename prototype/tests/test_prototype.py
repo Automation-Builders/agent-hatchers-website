@@ -68,7 +68,7 @@ class PrototypeContractTests(unittest.TestCase):
         # After meeting their agent the prospect's next step is a real Calendly booking: no
         # dead "Book a call" buttons anywhere in the prototype.
         self.assertNotIn('cta-book" data-noop', self.app)
-        self.assertIn("const CALENDLY_URL='https://calendly.com/noah-automationbuilders/30min';", self.app)
+        self.assertIn("const CALENDLY_URL='https://calendly.com/noah-agenthatchers/30min';", self.app)
         self.assertIn("if(a==='book'){openBooking(el.dataset.source||'prototype')}", self.app)
         for source in ('dashboard', 'share', 'connect', 'connected'):
             self.assertIn(f'data-action="book" data-source="{source}"', self.app)
