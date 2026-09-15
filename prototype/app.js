@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 66;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 67;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -854,7 +854,7 @@
   // The one real next step once a prospect has met their agent. Every "Book a call" in the
   // prototype opens the same Calendly event the homepage uses, inline in a modal, so nobody is
   // bounced back to the marketing site. UTM fields tell Calendly which demo the booking came from.
-  const CALENDLY_URL='https://calendly.com/noah-automationbuilders/30min';
+  const CALENDLY_URL='https://calendly.com/noah-agenthatchers/30min';
   function bookingUrl(){
     const p=new URLSearchParams({hide_event_type_details:'1',hide_gdpr_banner:'1',background_color:'f4f1ea',text_color:'16150f',primary_color:'216bac',embed_domain:location.hostname,embed_type:'Inline',utm_source:'agenthatchers',utm_medium:'prototype',utm_campaign:'demo'});
     const who=[state.company,state.name].filter(Boolean).join(' / ');if(who)p.set('utm_content',who.slice(0,80));
