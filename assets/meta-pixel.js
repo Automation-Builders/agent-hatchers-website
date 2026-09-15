@@ -19,9 +19,9 @@
  *   PageView        every public page load                      (standard, fired here)
  *   DemoStart       prospect submits the prototype's first screen (custom, prototype/app.js)
  *   DemoComplete    prospect reaches the hatched dashboard        (custom, prototype/app.js)
- *   BookCallClick   any "Book a call" button                      (custom, index/pricing)
+ *   BookCallClick   any "Book a call" button                      (custom, index/pricing/prototype)
  *   Lead            name + email step of the booking modal        (standard, index/pricing)
- *   Schedule        Calendly confirms the booking (event_scheduled) (standard, index/pricing)
+ *   Schedule        Calendly confirms the booking (event_scheduled) (standard, index/pricing/prototype)
  * Params carry only a short source label ("hero", "nav", …). No names, emails, business
  * descriptions, chat text or form contents — ever.
  */

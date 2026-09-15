@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 63;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 64;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -828,12 +828,12 @@
       </header>
       ${body}
       ${SHARE_TOKEN
-        ?`<div class="board-foot share-foot"><span class="share-foot-txt">Like what you see? This is what your team could look like.</span><a class="btn btn-primary" href="${escapeHtml(location.pathname)}">Hatch your own agent →</a></div>`
-        :`<div class="board-foot"><div class="foot-nav">${button('← Back','back',true)}${button('Start over','reset',true)}</div>${button('Connect your agent →','next')}</div>`}
+        ?`<div class="board-foot share-foot"><span class="share-foot-txt">Like what you see? This is what your team could look like.</span><div class="foot-nav"><a class="btn btn-secondary" href="${escapeHtml(location.pathname)}">Hatch your own agent →</a><button class="btn btn-primary" data-action="book" data-source="share">Book a call →</button></div></div>`
+        :`<div class="board-foot"><div class="foot-nav">${button('← Back','back',true)}${button('Start over','reset',true)}${button('Connect your agent →','next',true)}</div><button class="btn btn-primary" data-action="book" data-source="dashboard">Book a call →</button></div>`}
     </div>`;
   }
   function connectScreen(){
-    if(state.done){return `<main class="connect-shell"><section class="onboard-card"><div class="onboard-head"><span class="onboard-ic ok">${ci.check}</span><h2>Instance created</h2></div><p class="onboard-lead">Thanks, ${escapeHtml(co())}. Your dashboard is connected — we’ll be in touch to bring ${escapeHtml(state.name||'your agent')} online.</p><nav class="connect-nav center"><button class="btn cta-book" data-noop="1">Book a call</button>${button('Start over','reset',true)}</nav></section></main>`;}
+    if(state.done){return `<main class="connect-shell"><section class="onboard-card"><div class="onboard-head"><span class="onboard-ic ok">${ci.check}</span><h2>Instance created</h2></div><p class="onboard-lead">Thanks, ${escapeHtml(co())}. Your dashboard is connected — book a call and we’ll bring ${escapeHtml(state.name||'your agent')} online.</p><nav class="connect-nav center"><button class="btn btn-primary" data-action="book" data-source="connected">Book a call →</button>${button('Start over','reset',true)}</nav></section></main>`;}
     return `<main class="connect-shell">
       <section class="onboard-card">
         <div class="onboard-head"><span class="onboard-ic">${ci.server}</span><h2>Connect your Hermes instance</h2></div>
@@ -846,10 +846,37 @@
         </ul>
         <button class="btn onboard-btn" data-action="open-connect">Connect this instance ${ci.arrow}</button>
       </section>
-      <div class="connect-cta"><span class="cta-left">${ci.cal} No agent yet? Let Agent Hatchers hatch one for you.</span><button class="btn cta-book" data-noop="1">Book Call</button></div>
+      <div class="connect-cta"><span class="cta-left">${ci.cal} No agent yet? Let Agent Hatchers hatch one for you.</span><button class="btn cta-book" data-action="book" data-source="connect">Book a call</button></div>
       <nav class="connect-nav">${button('← Back','back',true)}</nav>
     </main>`;
   }
+  // ---------- Book a call (Calendly) ----------
+  // The one real next step once a prospect has met their agent. Every "Book a call" in the
+  // prototype opens the same Calendly event the homepage uses, inline in a modal, so nobody is
+  // bounced back to the marketing site. UTM fields tell Calendly which demo the booking came from.
+  const CALENDLY_URL='https://calendly.com/noah-automationbuilders/30min';
+  function bookingUrl(){
+    const p=new URLSearchParams({hide_event_type_details:'1',hide_gdpr_banner:'1',background_color:'f4f1ea',text_color:'16150f',primary_color:'216bac',embed_domain:location.hostname,embed_type:'Inline',utm_source:'agenthatchers',utm_medium:'prototype',utm_campaign:'demo'});
+    const who=[state.company,state.name].filter(Boolean).join(' / ');if(who)p.set('utm_content',who.slice(0,80));
+    return CALENDLY_URL+'?'+p.toString();
+  }
+  function openBooking(source){
+    if(window.ahTrack)ahTrack('BookCallClick',{source:source||'prototype'});   // Meta: the click only, not a booking
+    const url=bookingUrl();
+    const backdrop=document.createElement('div');backdrop.className='modal-backdrop';
+    backdrop.innerHTML=`<section class="modal book-modal" role="dialog" aria-modal="true" aria-labelledby="book-title"><button class="close cp-close" aria-label="Close">×</button><div class="book-head"><span class="eyebrow">Book a call</span><h2 id="book-title">Bring ${escapeHtml(state.name||'your agent')} online</h2><p>30 minutes with the team. Same week.</p></div><div class="book-frame-wrap"><div class="book-loader" aria-hidden="true"><i class="book-spinner"></i></div><iframe class="book-frame" title="Pick a time" src="${escapeHtml(url)}"></iframe></div><p class="book-alt">Calendar not loading? <a href="${escapeHtml(url)}" target="_blank" rel="noopener">Open it in a new tab →</a></p></section>`;
+    document.body.appendChild(backdrop);
+    const onKey=e=>{if(e.key==='Escape')close();};
+    const close=()=>{backdrop.remove();document.removeEventListener('keydown',onKey);};
+    document.addEventListener('keydown',onKey);
+    backdrop.querySelector('.cp-close').onclick=close;backdrop.onclick=e=>{if(e.target===backdrop)close();};
+    const frame=backdrop.querySelector('.book-frame'),loader=backdrop.querySelector('.book-loader');
+    frame.addEventListener('load',()=>loader.classList.add('is-hidden'),{once:true});
+    backdrop.querySelector('.cp-close').focus();
+  }
+  // Only Calendly's own event_scheduled message counts as a booking (same rule as index.html).
+  addEventListener('message',e=>{if(e.origin!=='https://calendly.com'||!e.data||typeof e.data.event!=='string')return;if(e.data.event==='calendly.event_scheduled'&&window.ahTrack)ahTrack('Schedule',{source:'prototype'});});
+
   // Faithful port of the dashboard's AddInstanceDialog: Name it → Connect → Dashboard.
 
   // ---------- Create ▾ → "Create a Profile" → Notifications tray → hatched reveal ----------
@@ -1450,6 +1477,7 @@
       if(a==='redesign'){if(hatchesLeft()){state.step=2;render()}else hatchPop()}
       if(a==='edit-look'){openEditLook()}
       if(a==='open-connect'){openConnectDialog()}
+      if(a==='book'){openBooking(el.dataset.source||'prototype')}
       if(a==='chat-send'){const box=document.getElementById('chat-box');const t=box?box.value.trim():'';if(!t)return;const i=state.chatActive??8;
         const FREE_TURNS=5;
         const prior=(state.chatExtra[i]||[]).filter(m=>m[0]==='me').length;
