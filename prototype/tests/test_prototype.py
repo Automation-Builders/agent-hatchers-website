@@ -64,6 +64,18 @@ class PrototypeContractTests(unittest.TestCase):
         self.assertIn("'&trash=1'", self.sessions)
         self.assertIn("'Undo'", self.sessions)
 
+    def test_every_book_a_call_opens_calendly(self):
+        # After meeting their agent the prospect's next step is a real Calendly booking: no
+        # dead "Book a call" buttons anywhere in the prototype.
+        self.assertNotIn('cta-book" data-noop', self.app)
+        self.assertIn("const CALENDLY_URL='https://calendly.com/noah-automationbuilders/30min';", self.app)
+        self.assertIn("if(a==='book'){openBooking(el.dataset.source||'prototype')}", self.app)
+        for source in ('dashboard', 'share', 'connect', 'connected'):
+            self.assertIn(f'data-action="book" data-source="{source}"', self.app)
+        self.assertIn("ahTrack('BookCallClick',{source:source||'prototype'})", self.app)
+        self.assertIn("e.data.event==='calendly.event_scheduled'", self.app)
+        self.assertIn(".book-frame{", self.css)
+
     def test_demo_is_unlisted_from_search_engines(self):
         self.assertIn('name="robots" content="noindex,nofollow,noarchive"', self.demo)
 
