@@ -1755,9 +1755,12 @@ html.lenis,html.lenis body{height:auto;}
               <div class="model-pill">
                 <label for="modelSelect">Model</label>
                 <select id="modelSelect" aria-label="Swap the AI model powering this agent">
-                  <option value="Opus 4.8">Opus 4.8</option>
-                  <option value="GPT-5.5">GPT-5.5</option>
-                  <option value="Gemini 3.5 Pro">Gemini 3.5 Pro</option>
+                  <!-- latest-models:start — the newest flagship from Anthropic, OpenAI and Google, in that order.
+                       Checked every morning by the "latest-models-check" scheduled task; keep exactly three options here. -->
+                  <option value="Fable 5.1">Fable 5.1</option>
+                  <option value="GPT-6 Astra">GPT-6 Astra</option>
+                  <option value="Gemini 3.8 Flash">Gemini 3.8 Flash</option>
+                  <!-- latest-models:end -->
                   <option value="a cheaper model">Something cheaper</option>
                 </select>
               </div>
