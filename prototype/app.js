@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 67;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 68;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -59,18 +59,41 @@
   const teamEndpoint = config.teamEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-team');
   const profileEndpoint = config.profileEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-profile');
   const recommended = new Set(config.recommendedAgents||[]);
-  function rankAgents(){const text=`${state.name} ${state.biz} ${state.industry} ${state.look} ${industryLabel}`.toLowerCase();const boost=bizBoost(text);return catalog.map((agent,index)=>{let score=boost[agent.id]||0;agent.keywords.forEach(k=>{if(text.includes(k))score+=4});if(agent.industries.includes(industry))score+=2;if(recommended.has(agent.id))score+=1;return{agent,score,index};}).sort((a,b)=>b.score-a.score||a.index-b.index);}
+  // Eligibility is a business rule, not a ranking score. Names, robot styling,
+  // tools and AI/config recommendations must never unlock a physical-goods role.
+  // Live/saved business input takes precedence over the prospect template defaults.
+  function businessText(){return (state.biz||state.industry ? `${state.biz} ${state.industry}` : `${config.industry||''} ${config.industryLabel||''}`).toLowerCase();}
+  function eligibleAgents(){
+    const text=businessText().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\b(?:no|not|without|don't|doesn't|do not|does not)\b[^.;\n]*/g,'');
+    // Generic commerce words alone are ambiguous for digital products and services.
+    const service=/\b(travel|tourism|flights?|holidays?|bookings?|software|saas|digital|downloads?|courses?|training|consultancy|consulting)\b/.test(text);
+    const goodsPattern='physical (?:goods|products)|clothing|apparel|footwear|furniture|luggage|jewellery|jewelry|florist|hardware store|gift (?:shop|store)|pet supplies';
+    const goods=new RegExp(`\\b(${goodsPattern})\\b`).test(text);
+    // A service can also sell goods, but merely mentioning clients' stock or luggage
+    // is not evidence that it runs a shop. Require a concrete selling statement.
+    const sellsGoods=new RegExp(`\\b(?:sell(?:s|ing)?|retail(?:s|ing)?)\\s+(?:physical\\s+)?(?:${goodsPattern})\\b`).test(text);
+    const retail=service?sellsGoods:(goods||/\b(retail|retailer|e-?commerce|wholesale|shopify|online (?:shop|store))\b/.test(text));
+    const freight=!service&&/\b(freight|courier|parcels?|shipments?|fulfilment|fulfillment)\b/.test(text);
+    const stock=!service&&/\b(inventory|stockroom|warehouse|warehousing|manufacturing|manufacturer|restaurant|café|cafe|bakery|grocery|supermarket)\b/.test(text);
+    const allowed={returns:retail,logistics:retail||freight||(!service&&/\b(logistics|distribution)\b/.test(text)),inventory:retail||stock};
+    return catalog.filter(a=>Object.hasOwn(allowed,a.id)?allowed[a.id]:a.industries.includes('all'));
+  }
+  function rankAgents(){const text=businessText();const boost=bizBoost(text);return eligibleAgents().map((agent,index)=>{let score=boost[agent.id]||0;agent.keywords.forEach(k=>{if(text.includes(k))score+=4});if(agent.industries.includes(text.trim()))score+=2;if(recommended.has(agent.id))score+=1;return{agent,score,index};}).sort((a,b)=>b.score-a.score||a.index-b.index);}
   // The 6 best-matched agents for this business get generated portraits + the Recommended row.
   // The researched/ranked six, plus anything the prospect added from the Marketplace.
   const topAgents = () => {
-    const base=(state.team&&state.team.ids.length)?state.team.ids.map(id=>catalog.find(a=>a.id===id)).filter(Boolean):rankAgents().slice(0,6).map(r=>r.agent);
+    const eligible=eligibleAgents();
+    const suggested=Array.isArray(state.team?.ids)?[...new Set(state.team.ids)].map(id=>eligible.find(a=>a.id===id)).filter(Boolean):[];
+    const base=suggested.length?suggested:rankAgents().slice(0,6).map(r=>r.agent);
+    // Explicit additions are user choices, not stale model recommendations. Preserve them
+    // in Profiles/Chats on restore; never offer a new ineligible marketplace addition.
     (state.added||[]).forEach(id=>{const a=catalog.find(x=>x.id===id);if(a&&!base.includes(a))base.push(a);});
     return base;
   };
   // "Add to your team" on a Marketplace card: the portrait is already drawn, so joining is
   // free and instant — the card turns green and the agent shows up under Profiles and Chats.
   function addAgent(id){
-    const agent=catalog.find(a=>a.id===id);if(!agent||topAgents().includes(agent))return;
+    const agent=eligibleAgents().find(a=>a.id===id);if(!agent||topAgents().includes(agent))return;
     state.added=[...(state.added||[]),id];celebrate();render();
     document.querySelectorAll('.create-pop').forEach(p=>p.remove());
     const pop=document.createElement('div');pop.className='create-pop wb-pop';pop.innerHTML=`${ci.check}<span><b>${escapeHtml(agent.name)}</b> joined your team — it’s now under Profiles and Chats.</span>`;
@@ -80,7 +103,8 @@
   async function researchTeam(biz,research=biz){
     state.team=null;state.teamBusy=true;
     const started=Date.now();const mine=biz;
-    const roster=catalog.map(a=>({id:a.id,name:a.name,summary:a.summary}));
+    const eligible=eligibleAgents();
+    const roster=eligible.map(a=>({id:a.id,name:a.name,summary:a.summary}));
     let result=null;
     for(let attempt=0;attempt<2&&!result;attempt++){
       if(attempt) await sleep(600);
@@ -89,7 +113,7 @@
         const body=await res.json().catch(()=>({}));
         if(res.ok&&body&&Array.isArray(body.team)&&body.team.length>=4){
           const lines={};const ids=[];
-          body.team.forEach(t=>{const a=catalog.find(x=>x.id===t.id);if(a&&!ids.includes(a.id)){ids.push(a.id);lines[a.id]={does:String(t.does||PLAIN[a.id].does),job:String(t.job||PLAIN[a.id].job)};}});
+          body.team.forEach(t=>{const a=eligible.find(x=>x.id===t?.id);if(a&&!ids.includes(a.id)){ids.push(a.id);lines[a.id]={does:String(t.does||PLAIN[a.id].does),job:String(t.job||PLAIN[a.id].job)};}});
           if(ids.length>=4) result={ids:ids.slice(0,6),lines,intro:String(body.intro||''),source:'ai'};
         }
         if(res.status===400) break;
