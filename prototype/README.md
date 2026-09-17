@@ -16,8 +16,25 @@ Every page runs the same hatching experience (shared code in `app.js` / `styles.
    Marketplace and Merch, all populated with the hatched character.
 6. **Connect** — the Slack/Teams connection dialog.
 
-Ranking uses the catalog keyword sets plus `BIZ_HINTS` (everyday words like "dentist" or
-"café" → the agents that matter for that business). The Chats sidebar's "Other profiles"
+Ranking first applies conservative business eligibility, then uses the catalog keyword sets
+plus `BIZ_HINTS` to sort the eligible agents. Logistics requires physical retail or freight
+operations; Returns requires physical retail; Inventory requires retail or explicit stock
+operations (for example a warehouse or restaurant). Ambiguous/unknown businesses retain
+cross-industry roles, never niche roles to fill a quota. This is a deterministic allowlist,
+not general natural-language understanding: unusual physical-goods businesses should describe
+their operations explicitly, and new business categories should be added with regression tests.
+
+Only the business description and selected industry determine eligibility. If neither is
+present, `config.industry` and `industryLabel` are used. Names, visual styling, tools and
+`recommendedAgents` cannot grant eligibility. Generic online/digital/services wording does
+not establish physical commerce. Hybrid service businesses need explicit goods-selling
+wording (for example “travel agency also selling luggage”).
+
+The same gate covers marketplace cards/portrait batches, team research requests, AI results,
+saved suggested teams, offline fallback and new Add actions. Previously explicit `added`
+agents remain in Profiles/Chats; no installed-agent migration or deletion is performed.
+
+The Chats sidebar's "Other profiles"
 (Bug Destroyer, Data Scientist, …) are generated in the hatched character's look right after
 the marketplace batch, so no stock robot ever appears next to the prospect's agent.
 
@@ -69,4 +86,19 @@ Until the proxy is wired, pages work now with simulated designs.
 
 The flow and marketplace live in `prototype/app.js`; visual styling lives in
 `prototype/styles.css`. Update those shared files once to change every prospect page.
-Contract tests: `python3 -m unittest` from `prototype/`.
+Contract tests (from repo root): `python3 -m unittest discover -s prototype/tests -v`.
+Selection regressions (Node 18+): `node --test prototype/tests/industry-selection.test.cjs`.
+
+Rendered desktop/mobile check (Playwright and Chromium installed): serve the repo root with
+`python3 -m http.server 8768 --bind 127.0.0.1`, then run
+`node prototype/tests/industry-browser.cjs`. Set `NODE_PATH` if Playwright is installed outside
+this repo, and `PLAYWRIGHT_BROWSERS_PATH` if its browser cache is non-default. The test loads
+the actual page/CSS/app, exposes closure state only in the intercepted test response, verifies
+cards, Add and IndexedDB restore, and blocks every non-local request (no paid APIs).
+
+Release discovery: `.github/workflows/deploy.yml` publishes the repo root to GitHub Pages
+on pushes to `main` or manual dispatch. This repair is shared static JavaScript; it does not
+require a portrait-proxy deployment. Before an approved release, bump `BUILD` and the app.js
+cache-busting versions in prototype entry pages together, then verify the served script and
+travel/retail marketplace in a fresh browser. Creating a local worktree or running these
+checks does not publish anything.
