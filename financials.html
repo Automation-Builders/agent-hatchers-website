@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>The Ledger — Agent Hatchers</title>
+<link rel="icon" type="image/png" href="agent-hatchers-mark.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════════════════════════════════════
+   AGENT HATCHERS — The Ledger (internal financial model)
+   Same paper + ink + two blues as the public site. Every number on this
+   page is live: drag a dial, everything recomputes.
+   ════════════════════════════════════════════════════════════════════════ */
+:root{
+  --paper:#F4F1EA; --paper-2:#ECE8DD; --ink:#16150F;
+  --ink-70:rgba(22,21,15,.72); --ink-50:rgba(22,21,15,.52); --ink-30:rgba(22,21,15,.30);
+  --line:rgba(22,21,15,.18); --line-soft:rgba(22,21,15,.10);
+  --accent:#216BAC; --accent-2:#C1DCE8; --accent-3:#E4EFF5;
+  --egg:#F6EBD4; --egg-spot:#2E7FC0;
+  --good:#1B5F51; --good-bg:#D7EAE4; --bad:#8C3535; --bad-bg:#F2DCDC;
+  --font-d:'Baloo 2',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-s:'Instrument Serif',Georgia,serif;
+  --font-m:'Space Mono',ui-monospace,monospace;
+  --gutter:clamp(16px,4vw,64px); --sec-pad:clamp(44px,5vw,80px);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+::selection{background:var(--ink);color:var(--paper);}
+body{font-family:var(--font-d);background:var(--paper);color:var(--ink);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+body::after{content:'';position:fixed;inset:-50%;z-index:2000;pointer-events:none;opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+.wrap{max-width:1440px;margin:0 auto;padding:0 var(--gutter);position:relative;}
+.mono{font-family:var(--font-m);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-70);}
+em.s{font-family:var(--font-s);font-style:italic;font-weight:400;letter-spacing:0;text-transform:none;color:var(--accent);}
+button{font-family:inherit;}
+input,select{font-family:inherit;color:inherit;}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:0 20px;border-radius:999px;font-weight:600;font-size:14px;cursor:pointer;border:1.5px solid var(--ink);text-decoration:none;background:transparent;color:var(--ink);transition:background .2s,color .2s,transform .15s;white-space:nowrap;}
+.btn:hover{background:var(--ink);color:var(--paper);}
+.btn-primary{background:var(--ink);color:var(--paper);}
+.btn-primary:hover{background:var(--accent);border-color:var(--accent);color:#fff;}
+.btn-sm{min-height:34px;padding:0 14px;font-size:13px;}
+
+/* nav */
+nav{position:sticky;top:0;z-index:100;background:rgba(244,241,234,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line);}
+.nav-inner{max-width:1440px;margin:0 auto;padding:0 var(--gutter);height:68px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.logo{display:flex;align-items:center;gap:12px;font-weight:600;font-size:15px;text-decoration:none;color:var(--ink);text-transform:uppercase;letter-spacing:-.01em;}
+.logo img{width:30px;height:30px;border-radius:6px;object-fit:contain;}
+.logo .ledger{font-family:var(--font-s);font-style:italic;text-transform:none;font-weight:400;color:var(--accent);font-size:18px;margin-left:-4px;}
+.nav-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+.presets{display:flex;gap:6px;padding:4px;border:1.5px solid var(--ink);border-radius:999px;background:#fff;}
+.presets button{border:0;background:transparent;border-radius:999px;padding:6px 14px;font-family:var(--font-m);font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;color:var(--ink-70);transition:background .2s,color .2s;}
+.presets button:hover{color:var(--accent);}
+.presets button.on{background:var(--ink);color:var(--paper);}
+@media(max-width:900px){.nav-actions .btn .lbl{display:none;} .nav-actions .btn{padding:0 12px;}}
+@media(max-width:680px){.presets{display:none;} .nav-inner{height:60px;} .logo span.word{display:none;}}
+
+/* sections */
+.section{padding:var(--sec-pad) 0;position:relative;}
+.section + .section{border-top:1px solid var(--line);}
+.sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:clamp(24px,3vw,44px);flex-wrap:wrap;}
+.sec-title{font-size:clamp(30px,4.2vw,58px);font-weight:600;letter-spacing:-.035em;line-height:1;text-transform:uppercase;}
+.sec-title em{font-family:var(--font-s);font-style:italic;font-weight:400;text-transform:none;letter-spacing:-.01em;color:var(--accent);}
+.sec-intro{font-size:clamp(15px,1.2vw,18px);color:var(--ink-70);line-height:1.55;max-width:48ch;}
+.sec-num{font-family:var(--font-m);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;display:block;}
+
+/* cards */
+.card{background:#fff;border:1.5px solid var(--ink);border-radius:20px;padding:clamp(18px,2vw,28px);position:relative;}
+.card.soft{background:var(--accent-3);border-color:transparent;}
+.card.dark{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.card.dark .mono{color:rgba(244,241,234,.6);}
+.card h3{font-size:clamp(18px,1.6vw,24px);font-weight:700;letter-spacing:-.02em;text-transform:uppercase;line-height:1.05;margin-bottom:6px;}
+.card .sub{color:var(--ink-70);font-size:14px;margin-bottom:16px;line-height:1.45;}
+.card.dark .sub{color:rgba(244,241,234,.7);}
+.grid{display:grid;gap:clamp(14px,1.6vw,22px);}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr));}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr));}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr));}
+@media(max-width:1100px){.g4{grid-template-columns:repeat(2,minmax(0,1fr));} .g3{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:640px){.g2,.g3,.g4{grid-template-columns:minmax(0,1fr);}}
+
+/* dials */
+.dials{display:grid;gap:14px 22px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));}
+.dial{display:flex;flex-direction:column;gap:6px;}
+.dial-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
+.dial-l{font-family:var(--font-m);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-70);line-height:1.3;}
+.card.dark .dial-l{color:rgba(244,241,234,.65);}
+.dial-v{display:inline-flex;align-items:baseline;gap:1px;font-weight:700;font-size:17px;letter-spacing:-.02em;white-space:nowrap;}
+.dial-v i{font-style:normal;font-weight:600;color:var(--ink-50);font-size:14px;}
+.card.dark .dial-v i{color:rgba(244,241,234,.6);}
+.dial-v input{width:8ch;border:0;border-bottom:1.5px dashed var(--line);background:transparent;font-weight:700;font-size:17px;letter-spacing:-.02em;text-align:right;padding:0 2px;outline:none;-moz-appearance:textfield;color:inherit;}
+.dial-v input::-webkit-outer-spin-button,.dial-v input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.dial-v input:focus{border-bottom-color:var(--accent);}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:999px;outline:none;--p:50%;
+  background:linear-gradient(90deg,var(--accent) var(--p),var(--accent-2) var(--p));cursor:pointer;}
+.card.dark input[type=range]{background:linear-gradient(90deg,var(--accent-2) var(--p),rgba(255,255,255,.18) var(--p));}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid var(--ink);box-shadow:0 2px 0 rgba(22,21,15,.25);cursor:grab;transition:transform .15s;}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.12);}
+input[type=range]:active::-webkit-slider-thumb{cursor:grabbing;transform:scale(1.2);}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid var(--ink);cursor:grab;}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;}
+.switch .dial-l{flex:1;}
+.sw{position:relative;width:46px;height:26px;border-radius:999px;background:var(--accent-2);border:1.5px solid var(--ink);cursor:pointer;flex:0 0 auto;transition:background .2s;}
+.sw::after{content:'';position:absolute;top:2px;left:2px;width:19px;height:19px;border-radius:50%;background:#fff;border:1.5px solid var(--ink);transition:transform .2s cubic-bezier(.22,1,.36,1);}
+.sw[aria-checked="true"]{background:var(--accent);}
+.sw[aria-checked="true"]::after{transform:translateX(20px);}
+
+/* stats */
+.stat{display:flex;flex-direction:column;gap:2px;}
+.stat .k{font-family:var(--font-m);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-70);}
+.card.dark .stat .k{color:rgba(244,241,234,.6);}
+.stat .v{font-weight:700;font-size:clamp(24px,2.4vw,36px);letter-spacing:-.03em;line-height:1.05;}
+.stat .v small{font-size:.5em;font-weight:600;color:var(--ink-50);letter-spacing:0;margin-left:4px;}
+.card.dark .stat .v small{color:rgba(244,241,234,.6);}
+.stat .d{font-size:13px;color:var(--ink-70);}
+.card.dark .stat .d{color:rgba(244,241,234,.7);}
+.stats{display:grid;gap:18px 20px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 12px;font-family:var(--font-m);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;border:1.5px solid currentColor;line-height:1.4;white-space:nowrap;}
+.pill.ok{color:var(--good);background:var(--good-bg);}
+.pill.bad{color:var(--bad);background:var(--bad-bg);}
+.pill.info{color:var(--accent);background:var(--accent-3);}
+
+/* hero */
+.hero{padding:clamp(36px,5vw,72px) 0 clamp(36px,4vw,64px);border-bottom:1px solid var(--line);position:relative;overflow:hidden;
+  background-image:linear-gradient(rgba(22,21,15,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(22,21,15,.045) 1px,transparent 1px);background-size:96px 96px;}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:clamp(24px,4vw,64px);align-items:center;}
+@media(max-width:900px){.hero-grid{grid-template-columns:minmax(0,1fr);}}
+.hero-title{font-size:clamp(38px,5.6vw,84px);line-height:.98;letter-spacing:-.04em;font-weight:600;text-transform:uppercase;margin:12px 0 20px;}
+.hero-title em{font-family:var(--font-s);font-style:italic;font-weight:400;text-transform:none;letter-spacing:-.015em;color:var(--accent);}
+.hero-sub{font-size:clamp(15px,1.3vw,19px);color:var(--ink-70);max-width:56ch;margin-bottom:24px;}
+.hero-sub strong{color:var(--ink);}
+.hero-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
+@media(max-width:1100px){.hero-tiles{grid-template-columns:repeat(2,minmax(0,1fr));}}
+.tile{background:#fff;border:1.5px solid var(--ink);border-radius:18px;padding:16px 18px;display:flex;flex-direction:column;gap:2px;transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s;}
+.tile:hover{transform:translateY(-4px);box-shadow:6px 8px 0 rgba(22,21,15,.12);}
+.tile.hi{background:var(--ink);color:var(--paper);}
+.tile .k{font-family:var(--font-m);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-70);}
+.tile.hi .k{color:rgba(244,241,234,.65);}
+.tile .v{font-weight:800;font-size:clamp(30px,3vw,46px);letter-spacing:-.04em;line-height:1;margin:6px 0 2px;}
+.tile .v small{font-size:.42em;font-weight:600;letter-spacing:0;color:var(--ink-50);margin-left:3px;}
+.tile.hi .v small{color:rgba(244,241,234,.6);}
+.tile .d{font-size:13px;color:var(--ink-70);}
+.tile.hi .d{color:rgba(244,241,234,.7);}
+.hero-scene{position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;}
+.hero-scene img{width:min(78%,300px);height:auto;filter:drop-shadow(0 18px 24px rgba(22,21,15,.18));transition:transform .5s cubic-bezier(.22,1,.36,1);}
+.hero-scene:hover img{transform:translateY(-6px) rotate(-2deg);}
+.level{display:flex;align-items:center;gap:14px;background:#fff;border:1.5px solid var(--ink);border-radius:999px;padding:8px 18px 8px 8px;}
+.ring{width:54px;height:54px;flex:0 0 auto;}
+.ring circle{fill:none;stroke-width:6;}
+.ring .bg{stroke:var(--accent-2);}
+.ring .fg{stroke:var(--accent);stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .6s cubic-bezier(.22,1,.36,1);}
+.level .name{font-weight:700;font-size:18px;letter-spacing:-.02em;line-height:1.1;}
+.level .xp{font-family:var(--font-m);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-70);}
+
+/* egg progress */
+.eggbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:22px;}
+.eggbar .eggs{display:flex;gap:5px;}
+.egg{width:18px;height:23px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:var(--paper-2);border:1.5px solid var(--ink);position:relative;transition:background .3s,transform .3s;}
+.egg.on{background:var(--egg);}
+.egg.on::after{content:'';position:absolute;left:4px;top:7px;width:5px;height:5px;border-radius:50%;background:var(--egg-spot);box-shadow:6px 6px 0 -1px var(--egg-spot),-1px 9px 0 -2px var(--egg-spot);}
+.egg.hatched{background:var(--accent);border-color:var(--accent);}
+.egg.hatched::after{content:'';position:absolute;left:4px;top:7px;width:4px;height:7px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);}
+.eggbar .lbl{font-family:var(--font-m);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-70);}
+
+/* targets */
+.trow{display:grid;grid-template-columns:minmax(120px,1fr) 130px 170px 40px;gap:12px;align-items:end;padding:16px 0;border-top:1px solid var(--line-soft);}
+.trow:first-child{border-top:0;padding-top:0;}
+.trow .f{display:flex;flex-direction:column;gap:4px;}
+.trow input[type=text],.trow input[type=number]{border:1.5px solid var(--line);border-radius:12px;padding:8px 12px;font-size:16px;font-weight:600;background:#fff;width:100%;outline:none;}
+.trow input:focus{border-color:var(--accent);}
+.trow .x{border:1.5px solid var(--line);background:#fff;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:16px;line-height:1;color:var(--ink-50);}
+.trow .x:hover{border-color:var(--bad);color:var(--bad);}
+.tout{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px 16px;background:var(--accent-3);border-radius:14px;padding:14px 16px;}
+.tout .stat .v{font-size:clamp(20px,1.8vw,28px);}
+.tout .tnote{grid-column:1/-1;font-size:13px;color:var(--ink-70);display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+@media(max-width:700px){.trow{grid-template-columns:1fr 1fr;} .trow .f.lbl{grid-column:1/-1;} .trow .x{justify-self:end;}}
+
+/* chips */
+.chips{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{border:1.5px solid var(--ink);background:#fff;border-radius:999px;padding:6px 14px;font-family:var(--font-m);font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s,color .2s;}
+.chip:hover{color:var(--accent);}
+.chip.on{background:var(--ink);color:var(--paper);}
+
+/* chart */
+.chart-wrap{position:relative;}
+.chart{width:100%;height:auto;display:block;overflow:visible;}
+.chart text{font-family:var(--font-m);font-size:11px;fill:var(--ink-50);}
+.chart .grid line{stroke:var(--line-soft);}
+.chart .ax{stroke:var(--line);}
+.chart .ln{fill:none;stroke:var(--accent);stroke-width:3;stroke-linejoin:round;stroke-linecap:round;}
+.chart .ln2{fill:none;stroke:var(--ink);stroke-width:2;stroke-dasharray:6 6;opacity:.55;}
+.chart .area{fill:var(--accent);opacity:.08;}
+.chart .neg{fill:var(--bad);opacity:.10;}
+.chart .tg{fill:#fff;stroke:var(--ink);stroke-width:2;}
+.chart .tg.hit{fill:var(--accent);}
+.chart .tg.miss{fill:var(--bad-bg);stroke:var(--bad);}
+.chart .act{fill:var(--ink);}
+.chart .cur{stroke:var(--ink);stroke-width:1;stroke-dasharray:3 3;}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--paper);border-radius:12px;padding:8px 12px;font-size:13px;line-height:1.35;white-space:nowrap;transform:translate(-50%,-110%);opacity:0;transition:opacity .15s;}
+.tip b{font-weight:700;}
+.tip .k{font-family:var(--font-m);font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.65;}
+
+/* tables */
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px;}
+.tbl th{font-family:var(--font-m);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-70);text-align:right;padding:8px 10px;border-bottom:1.5px solid var(--ink);font-weight:400;white-space:nowrap;}
+.tbl td{text-align:right;padding:9px 10px;border-bottom:1px solid var(--line-soft);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.tbl th:first-child,.tbl td:first-child{text-align:left;font-weight:600;}
+.tbl tr:hover td{background:var(--accent-3);}
+.tbl .neg{color:var(--bad);}
+.tbl .pos{color:var(--good);}
+.scroll{overflow:auto;max-height:420px;border:1.5px solid var(--line);border-radius:14px;}
+.scroll .tbl th{position:sticky;top:0;background:#fff;}
+details.more{margin-top:18px;}
+details.more summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:8px;font-family:var(--font-m);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);}
+details.more summary::-webkit-details-marker{display:none;}
+details.more summary::before{content:'+';font-size:16px;line-height:1;}
+details.more[open] summary::before{content:'–';}
+details.more > *:not(summary){margin-top:14px;}
+
+/* achievements */
+.badges{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));}
+.badge{background:#fff;border:1.5px solid var(--ink);border-radius:18px;padding:16px;display:flex;gap:12px;align-items:flex-start;transition:transform .25s cubic-bezier(.22,1,.36,1),opacity .3s;}
+.badge .ic{width:44px;height:44px;flex:0 0 auto;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;letter-spacing:-.02em;}
+.badge .t{font-weight:700;font-size:15px;letter-spacing:-.01em;line-height:1.15;}
+.badge .d{font-size:12.5px;color:var(--ink-70);margin-top:3px;line-height:1.35;}
+.badge .pts{font-family:var(--font-m);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-top:6px;}
+.badge.locked{opacity:.5;border-style:dashed;}
+.badge.locked .ic{background:var(--paper-2);color:var(--ink-50);}
+.badge.locked .pts{color:var(--ink-50);}
+.badge:not(.locked):hover{transform:translateY(-4px) rotate(-1deg);}
+.badge.pop{animation:pop .6s cubic-bezier(.22,1,.36,1);}
+@keyframes pop{0%{transform:scale(.8);}60%{transform:scale(1.08);}100%{transform:scale(1);}}
+
+/* misc */
+.note{font-size:13px;color:var(--ink-70);line-height:1.45;}
+.note b{color:var(--ink);}
+.hint{font-family:var(--font-m);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-top:6px;}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:14px;}
+.kv:last-child{border-bottom:0;}
+.kv b{font-weight:700;font-variant-numeric:tabular-nums;}
+.kv .m{font-family:var(--font-m);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-70);align-self:center;}
+.card.dark .kv{border-color:rgba(255,255,255,.14);}
+.card.dark .kv .m{color:rgba(244,241,234,.65);}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--ink);color:var(--paper);border-radius:999px;padding:12px 22px;font-weight:600;font-size:14px;z-index:300;opacity:0;transition:transform .35s cubic-bezier(.22,1,.36,1),opacity .35s;pointer-events:none;}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:1500;}
+footer{border-top:1px solid var(--ink);}
+.footer-inner{max-width:1440px;margin:0 auto;padding:20px var(--gutter) 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;font-family:var(--font-m);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-50);}
+.footer-inner a{color:var(--ink-50);text-decoration:none;}
+.footer-inner a:hover{color:var(--accent);}
+.month-in{border:1.5px solid var(--line);border-radius:12px;padding:6px 10px;font-size:14px;font-weight:600;background:#fff;outline:none;}
+.month-in:focus{border-color:var(--accent);}
+.actuals-add{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:8px;align-items:end;margin-top:10px;}
+.actuals-add input{border:1.5px solid var(--line);border-radius:12px;padding:8px 10px;font-size:14px;font-weight:600;background:#fff;width:100%;outline:none;}
+.actuals-add input:focus{border-color:var(--accent);}
+@media(max-width:700px){.actuals-add{grid-template-columns:1fr 1fr;}}
+.rm{border:0;background:transparent;color:var(--ink-50);cursor:pointer;font-size:15px;}
+.rm:hover{color:var(--bad);}
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo" aria-label="Agent Hatchers home">
+      <img src="agent-hatchers-mark.png" alt="" width="30" height="30" />
+      <span class="word">Agent&nbsp;Hatchers</span><span class="ledger">the ledger</span>
+    </a>
+    <div class="nav-actions">
+      <div class="presets" id="presets" role="group" aria-label="Scenario presets">
+        <button data-preset="boot">Bootstrapped</button>
+        <button data-preset="base">Damo's plan</button>
+        <button data-preset="rocket">Rocket</button>
+      </div>
+      <button class="btn btn-sm" id="btnShare" title="Copy a link that carries every dial">🔗 <span class="lbl">Share</span></button>
+      <button class="btn btn-sm" id="btnSummary" title="Copy an investor-ready summary">📋 <span class="lbl">Summary</span></button>
+      <button class="btn btn-sm" id="btnCsv" title="Download the monthly forecast">⬇ <span class="lbl">CSV</span></button>
+      <button class="btn btn-sm" id="btnReset" title="Back to defaults">↺</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+<!-- ═══ HERO — the one number that matters ═══ -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="mono" id="heroKicker">Primary target</span>
+      <h1 class="hero-title" id="heroTitle">Hatch <em>$1M ARR</em> by <em>Sep 2027</em></h1>
+      <p class="hero-sub" id="heroSub"></p>
+      <div class="hero-tiles">
+        <div class="tile hi"><span class="k">Sales needed / week</span><span class="v" id="hWeek">—</span><span class="d" id="hWeekD"></span></div>
+        <div class="tile"><span class="k">Sales needed / month</span><span class="v" id="hMonth">—</span><span class="d" id="hMonthD"></span></div>
+        <div class="tile"><span class="k">Paying clients needed</span><span class="v" id="hClients">—</span><span class="d" id="hClientsD"></span></div>
+        <div class="tile"><span class="k">Forecast on that date</span><span class="v" id="hForecast">—</span><span class="d" id="hForecastD"></span></div>
+      </div>
+      <div class="eggbar"><div class="eggs" id="eggs"></div><span class="lbl" id="eggLbl"></span></div>
+    </div>
+    <div class="hero-scene">
+      <img id="heroImg" src="hatchy-success.webp" alt="" width="300" height="360" />
+      <div class="level">
+        <svg class="ring" viewBox="0 0 60 60" aria-hidden="true"><circle class="bg" cx="30" cy="30" r="25"/><circle class="fg" id="ringFg" cx="30" cy="30" r="25" stroke-dasharray="157" stroke-dashoffset="157"/></svg>
+        <div><div class="name" id="lvlName">Egg</div><div class="xp" id="lvlXp">0 xp</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 01 TODAY + THE NEST (unit economics) ═══ -->
+<section class="section" id="nest">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="sec-num">01 — Unit economics</span><h2 class="sec-title">One <em>nest.</em></h2></div>
+      <p class="sec-intro">What one client is worth every month, after the server and the model bill. Everything else in the model is built from this number.</p>
+    </div>
+    <div class="grid g3">
+      <div class="card" style="grid-column:span 2;">
+        <h3>Price &amp; cost per client</h3>
+        <p class="sub">Flat per company, not per seat. Bundled OpenAI is a pass-through: it lifts revenue, not margin.</p>
+        <div class="dials" data-dials="price,bundledShare,bundledAddon,openaiCost,serverCost,otherVarCost"></div>
+        <div class="switch" style="margin-top:10px;"><span class="dial-l">Free first month for new clients (Damo's ad test)</span><button class="sw" role="switch" aria-checked="true" data-sw="freeMonth" aria-label="Free first month"></button></div>
+      </div>
+      <div class="card dark">
+        <h3>Per client, per month</h3>
+        <p class="sub">The margin that pays for engineers and ads.</p>
+        <div class="stats" style="grid-template-columns:1fr;gap:14px;">
+          <div class="stat"><span class="k">Revenue (ARPA)</span><span class="v" id="uArpa">—</span></div>
+          <div class="stat"><span class="k">Variable cost</span><span class="v" id="uVar">—</span></div>
+          <div class="stat"><span class="k">Gross margin</span><span class="v" id="uMargin">—</span><span class="d" id="uMarginPct"></span></div>
+          <div class="stat"><span class="k">Lifetime value</span><span class="v" id="uLtv">—</span><span class="d" id="uLtvD"></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="grid g3" style="margin-top:20px;">
+      <div class="card">
+        <h3>Where we are today</h3>
+        <p class="sub">Month zero of the forecast.</p>
+        <div class="dials" data-dials="startCustomers,startCash"></div>
+        <div class="dial" style="margin-top:14px;"><div class="dial-head"><span class="dial-l">Forecast starts</span></div><input class="month-in" type="month" id="startMonth" /></div>
+      </div>
+      <div class="card">
+        <h3>Churn</h3>
+        <p class="sub">Clients lost each month as a share of the base. Good B2B SaaS sits around 1–3%.</p>
+        <div class="dials" data-dials="churn"></div>
+        <div style="margin-top:14px;" class="stats">
+          <div class="stat"><span class="k">Avg lifetime</span><span class="v" id="uLife">—</span></div>
+          <div class="stat"><span class="k">Annual retention</span><span class="v" id="uNrr">—</span></div>
+        </div>
+      </div>
+      <div class="card soft">
+        <h3>What the numbers say</h3>
+        <div id="uNotes" class="note"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 02 TARGETS — work backwards ═══ -->
+<section class="section" id="targets">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="sec-num">02 — Targets</span><h2 class="sec-title">Work <em>backwards.</em></h2></div>
+      <p class="sec-intro">Set the ARR you want and when. The model turns each milestone into paying clients, sales per week, leads per week and meetings per week, and checks the forecast against it.</p>
+    </div>
+    <div class="grid g3">
+      <div class="card" style="grid-column:span 2;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;"><h3 style="margin:0;">Milestones</h3><button class="btn btn-sm" id="btnAddTarget">+ Add a milestone</button></div>
+        <div id="targetsList"></div>
+      </div>
+      <div class="card dark">
+        <h3>Set a market value</h3>
+        <p class="sub">Pick what the company should be worth and when. The multiple is shared with the valuation section below.</p>
+        <div class="dials" data-dials="valTarget,valMonths,multiple"></div>
+        <div style="margin-top:18px;" class="stats">
+          <div class="stat"><span class="k">ARR required</span><span class="v" id="vReqArr">—</span></div>
+          <div class="stat"><span class="k">Paying clients</span><span class="v" id="vReqClients">—</span></div>
+          <div class="stat"><span class="k">Sales / week</span><span class="v" id="vReqWeek">—</span></div>
+          <div class="stat"><span class="k">Forecast worth then</span><span class="v" id="vForecast">—</span><span class="d" id="vForecastD"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 03 ENGINES — how clients arrive ═══ -->
+<section class="section" id="engines">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="sec-num">03 — Growth engines</span><h2 class="sec-title">Where clients <em>come from.</em></h2></div>
+      <p class="sec-intro">Four engines feed the nest: paid ads, a salesperson, the founders' own meetings, and referrals plus inbound. Each is a dial, so the “how many from ads?” question stays fluid.</p>
+    </div>
+    <div class="grid g4">
+      <div class="card">
+        <h3>Paid ads</h3>
+        <p class="sub">Spend → leads → free month → paying.</p>
+        <div class="dials" style="grid-template-columns:1fr;" data-dials="adSpend,adGrowth,cpl,leadToTrial,trialToPaid"></div>
+        <div class="kv" style="margin-top:14px;"><span class="m">Clients / month</span><b id="eAds">—</b></div>
+        <div class="kv"><span class="m">CAC from ads</span><b id="eAdsCac">—</b></div>
+      </div>
+      <div class="card">
+        <h3>Salesperson</h3>
+        <p class="sub">Damo's call: hire one instead of the founders doing all the selling.</p>
+        <div class="dials" style="grid-template-columns:1fr;" data-dials="reps,repStartMonth,meetingsPerWeek,closeRate,repRampMonths"></div>
+        <div class="kv" style="margin-top:14px;"><span class="m">Clients / month (ramped)</span><b id="eRep">—</b></div>
+        <div class="kv"><span class="m">CAC from a rep</span><b id="eRepCac">—</b></div>
+      </div>
+      <div class="card">
+        <h3>Founders</h3>
+        <p class="sub">Meetings you take yourselves, and word of mouth.</p>
+        <div class="dials" style="grid-template-columns:1fr;" data-dials="founderMeetingsPerWeek,founderClose,referralRate,organicAdds,organicGrowth"></div>
+        <div class="kv" style="margin-top:14px;"><span class="m">Founders / month</span><b id="eFounder">—</b></div>
+        <div class="kv"><span class="m">Referral + inbound (m1)</span><b id="eOrganic">—</b></div>
+      </div>
+      <div class="card dark">
+        <h3>Blended</h3>
+        <p class="sub">All engines together, first 12 months.</p>
+        <div class="stats" style="grid-template-columns:1fr;gap:12px;">
+          <div class="stat"><span class="k">New clients / month (avg yr 1)</span><span class="v" id="eTotal">—</span><span class="d" id="eTotalD"></span></div>
+          <div class="stat"><span class="k">Blended CAC</span><span class="v" id="eCac">—</span></div>
+          <div class="stat"><span class="k">LTV : CAC</span><span class="v" id="eLtvCac">—</span><span class="d" id="eLtvCacD"></span></div>
+          <div class="stat"><span class="k">CAC payback</span><span class="v" id="ePayback">—</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:20px;">
+      <div class="card soft">
+        <h3>The ad test</h3>
+        <p class="sub">Damo's experiment: ~20 ads, a whitelist landing page, free first month, measure cost per lead. This tells you the CPL you must beat.</p>
+        <div class="dials" data-dials="adTestBudget,adTestAds"></div>
+        <div class="stats" style="margin-top:16px;">
+          <div class="stat"><span class="k">Budget per ad</span><span class="v" id="tPerAd">—</span></div>
+          <div class="stat"><span class="k">Leads expected</span><span class="v" id="tLeads">—</span><span class="d">at today's CPL dial</span></div>
+          <div class="stat"><span class="k">Clients expected</span><span class="v" id="tClients">—</span></div>
+          <div class="stat"><span class="k">Max CPL you can afford</span><span class="v" id="tMaxCpl">—</span><span class="d">keeps LTV:CAC ≥ 3</span></div>
+        </div>
+        <div id="tVerdict" style="margin-top:14px;"></div>
+      </div>
+      <div class="card">
+        <h3>Share of new clients by engine</h3>
+        <p class="sub">First 12 months of the forecast.</p>
+        <div id="mix"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 04 COSTS ═══ -->
+<section class="section" id="costs">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="sec-num">04 — Costs</span><h2 class="sec-title">The <em>burn.</em></h2></div>
+      <p class="sec-intro">People are the real cost. Engineers scale with clients (auto-hire), the salesperson costs base plus commission, and everything else is overhead.</p>
+    </div>
+    <div class="grid g3">
+      <div class="card" style="grid-column:span 2;">
+        <h3>Team &amp; overhead</h3>
+        <p class="sub">Salaries are annual AUD. On-costs cover super, leave and insurances.</p>
+        <div class="dials" data-dials="engineers,engSalary,onCosts,customersPerEngineer,repSalary,commission,founderPay,overhead"></div>
+        <div class="switch" style="margin-top:10px;"><span class="dial-l">Auto-hire an engineer for every N clients</span><button class="sw" role="switch" aria-checked="true" data-sw="autoHire" aria-label="Auto-hire engineers"></button></div>
+      </div>
+      <div class="card dark">
+        <h3>Monthly burn</h3>
+        <p class="sub">Fixed costs before any revenue.</p>
+        <div class="stats" style="grid-template-columns:1fr;gap:12px;">
+          <div class="stat"><span class="k">Month 1 opex</span><span class="v" id="cOpex">—</span><span class="d" id="cOpexD"></span></div>
+          <div class="stat"><span class="k">Clients to cover it</span><span class="v" id="cCover">—</span><span class="d">paying, at today's margin</span></div>
+          <div class="stat"><span class="k">Engineers at m12 / m24 / m36</span><span class="v" id="cEng">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 05 FORECAST ═══ -->
+<section class="section" id="forecast">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="sec-num">05 — Forecast</span><h2 class="sec-title">Forward, <em>month by month.</em></h2></div>
+      <div class="chips" id="chartChips">
+        <button class="chip on" data-series="arr">ARR</button>
+        <button class="chip" data-series="customers">Clients</button>
+        <button class="chip" data-series="cash">Cash</button>
+        <button class="chip" data-series="ebitda">Profit</button>
+        <button class="chip" data-series="valuation">Valuation</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="chart-wrap"><svg class="chart" id="chart" viewBox="0 0 1000 380" role="img" aria-label="Forecast chart"></svg><div class="tip" id="tip"></div></div>
+    </div>
+    <div class="stats" style="margin-top:22px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+      <div class="stat card"><span class="k">Break-even month</span><span class="v" id="fBreak">—</span><span class="d" id="fBreakD"></span></div>
+      <div class="stat card"><span class="k">Cash low point</span><span class="v" id="fCashLow">—</span><span class="d" id="fCashLowD"></span></div>
+      <div class="stat card"><span class="k">Runway</span><span class="v" id="fRunway">—</span><span class="d" id="fRunwayD"></span></div>
+      <div class="stat card"><span class="k">Year-1 revenue</span><span class="v" id="fRev1">—</span><span class="d" id="fRev1D"></span></div>
+      <div class="stat card"><span class="k">Rule of 40 (yr 2)</span><span class="v" id="fR40">—</span><span class="d" id="fR40D"></span></div>
+      <div class="stat card"><span class="k">Burn multiple (yr 1)</span><span class="v" id="fBurn">—</span><span class="d" id="fBurnD"></span></div>
+    </div>
+    <div class="card" style="margin-top:20px;">
+      <h3>Year by year</h3>
+      <div style="overflow:auto;"><table class="tbl" id="yearTbl"></table></div>
+      <details class="more"><summary>Every month</summary><div class="scroll"><table class="tbl" id="monthTbl"></table></div></details>
+      <div class="dials" style="margin-top:18px;max-width:260px;" data-dials="horizon"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 06 VALUATION ═══ -->
+<section class="section" id="valuation">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="sec-num">06 — Valuation</span><h2 class="sec-title">What it's <em>worth.</em></h2></div>
+      <p class="sec-intro">Early SaaS is priced on ARR times a multiple. The multiple follows growth: triple-digit growth earns 10–15×, steady growth 4–8×. Move the dial to see the market cap on every date.</p>
+    </div>
+    <div class="grid g3">
+      <div class="card" style="grid-column:span 2;">
+        <h3>Market cap by date</h3>
+        <p class="sub" id="vMultNote"></p>
+        <div class="stats" id="vTiles"></div>
+        <div class="hint" id="vHint"></div>
+      </div>
+      <div class="card dark">
+        <h3>Raise &amp; dilution</h3>
+        <p class="sub">A round on these terms. Cash lands in the forecast on the month you pick.</p>
+        <div class="dials" style="grid-template-columns:1fr;" data-dials="raise,preMoney,raiseMonth,founderOwn"></div>
+        <div style="margin-top:16px;">
+          <div class="kv"><span class="m">Post-money</span><b id="rPost">—</b></div>
+          <div class="kv"><span class="m">Investor gets</span><b id="rDilution">—</b></div>
+          <div class="kv"><span class="m">Founders after</span><b id="rFounders">—</b></div>
+          <div class="kv"><span class="m">Pre-money ÷ ARR at raise</span><b id="rImplied">—</b></div>
+          <div class="kv"><span class="m">Founders' stake at horizon</span><b id="rExit">—</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 07 ACHIEVEMENTS ═══ -->
+<section class="section" id="achievements">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="sec-num">07 — Achievements</span><h2 class="sec-title">Badges you've <em>earned.</em></h2></div>
+      <p class="sec-intro">Each badge is a real investor check. Unlock them all and the plan is one you can put in front of anyone.</p>
+    </div>
+    <div class="badges" id="badges"></div>
+  </div>
+</section>
+
+<!-- ═══ 08 ACTUALS ═══ -->
+<section class="section" id="actuals">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="sec-num">08 — Actuals</span><h2 class="sec-title">Track the <em>real thing.</em></h2></div>
+      <p class="sec-intro">Log what really happened each month. Actuals appear as dots on the chart so you can see the plan drift before it matters.</p>
+    </div>
+    <div class="card">
+      <div style="overflow:auto;"><table class="tbl" id="actTbl"></table></div>
+      <div class="actuals-add">
+        <div class="f"><span class="dial-l">Month</span><input type="month" id="aMonth" /></div>
+        <div class="f"><span class="dial-l">Clients</span><input type="number" id="aCust" min="0" step="1" placeholder="0" /></div>
+        <div class="f"><span class="dial-l">MRR ($)</span><input type="number" id="aMrr" min="0" step="100" placeholder="0" /></div>
+        <div class="f"><span class="dial-l">Cash ($)</span><input type="number" id="aCash" step="1000" placeholder="0" /></div>
+        <button class="btn btn-primary btn-sm" id="btnAddActual">Log it</button>
+      </div>
+      <p class="note" style="margin-top:12px;">Saved in this browser. Use Share to carry the whole model, actuals included, to another machine.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <span>Agent Hatchers — internal. Not for prospects.</span>
+    <span><a href="index.html">← back to the site</a></span>
+  </div>
+</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   MODEL
+   ═══════════════════════════════════════════════════════════════════════ */
+const DEF = {
+  startCustomers:0, startCash:60000, startMonth:'',
+  price:500, bundledShare:30, bundledAddon:100, openaiCost:100, serverCost:100, otherVarCost:0, freeMonth:true,
+  churn:2.5,
+  targets:[{label:'Year 1',months:12,arr:1000000},{label:'Year 2',months:24,arr:3000000},{label:'Year 3',months:36,arr:10000000}],
+  valTarget:50000000, valMonths:36, multiple:8,
+  adSpend:3000, adGrowth:5, cpl:80, leadToTrial:30, trialToPaid:35,
+  reps:1, repStartMonth:4, meetingsPerWeek:6, closeRate:20, repRampMonths:3,
+  founderMeetingsPerWeek:2, founderClose:30, referralRate:1.5, organicAdds:1, organicGrowth:5,
+  engineers:1, engSalary:120000, onCosts:12, customersPerEngineer:50, autoHire:true,
+  repSalary:80000, commission:10, founderPay:0, overhead:800,
+  raise:0, preMoney:6000000, raiseMonth:6, founderOwn:100,
+  horizon:60, adTestBudget:3000, adTestAds:20,
+  actuals:[]
+};
+const PRESETS = {
+  boot:{adSpend:1000,adGrowth:3,reps:0,founderMeetingsPerWeek:4,founderClose:30,churn:3,engineers:1,overhead:500,raise:0,founderPay:0},
+  base:{adSpend:3000,adGrowth:5,cpl:80,leadToTrial:30,trialToPaid:35,reps:1,repStartMonth:4,meetingsPerWeek:6,closeRate:20,founderMeetingsPerWeek:2,churn:2.5,engineers:1,overhead:800,raise:0},
+  rocket:{adSpend:12000,adGrowth:8,cpl:70,leadToTrial:30,trialToPaid:40,reps:2,repStartMonth:2,meetingsPerWeek:8,closeRate:25,referralRate:3,churn:2,engineers:2,overhead:2000,raise:1500000,raiseMonth:1,preMoney:6000000}
+};
+const DIALS = {
+  startCustomers:{l:'Clients today',min:0,max:200,step:1,f:'n'},
+  startCash:{l:'Cash in the bank',min:0,max:2000000,step:5000,f:'$'},
+  price:{l:'Subscription / month',min:100,max:2000,step:10,f:'$'},
+  bundledShare:{l:'Clients on bundled OpenAI',min:0,max:100,step:5,f:'%'},
+  bundledAddon:{l:'Bundled OpenAI add-on / month',min:0,max:1000,step:10,f:'$'},
+  openaiCost:{l:'OpenAI cost / bundled client',min:0,max:500,step:5,f:'$'},
+  serverCost:{l:'Linode server / client',min:0,max:500,step:5,f:'$'},
+  otherVarCost:{l:'Other cost / client (GCP, support)',min:0,max:300,step:5,f:'$'},
+  churn:{l:'Monthly churn',min:0,max:15,step:0.5,f:'%'},
+  adSpend:{l:'Ad spend / month',min:0,max:50000,step:250,f:'$'},
+  adGrowth:{l:'Ad spend growth / month',min:0,max:25,step:1,f:'%'},
+  cpl:{l:'Cost per lead',min:5,max:500,step:5,f:'$'},
+  leadToTrial:{l:'Lead → free month',min:1,max:100,step:1,f:'%'},
+  trialToPaid:{l:'Free month → paying',min:1,max:100,step:1,f:'%'},
+  reps:{l:'Salespeople',min:0,max:10,step:1,f:'n'},
+  repStartMonth:{l:'First rep starts',min:1,max:36,step:1,f:'mo'},
+  meetingsPerWeek:{l:'Meetings / week / rep',min:0,max:40,step:1,f:'n'},
+  closeRate:{l:'Close rate',min:1,max:80,step:1,f:'%'},
+  repRampMonths:{l:'Ramp-up',min:0,max:12,step:1,f:'mo'},
+  founderMeetingsPerWeek:{l:'Founder meetings / week',min:0,max:30,step:1,f:'n'},
+  founderClose:{l:'Founder close rate',min:1,max:80,step:1,f:'%'},
+  referralRate:{l:'Referrals (% of clients / mo)',min:0,max:15,step:0.5,f:'%'},
+  organicAdds:{l:'Inbound / month',min:0,max:30,step:0.5,f:'n'},
+  organicGrowth:{l:'Inbound growth / month',min:0,max:25,step:1,f:'%'},
+  engineers:{l:'Engineers (minimum)',min:0,max:20,step:1,f:'n'},
+  engSalary:{l:'Engineer salary',min:40000,max:300000,step:5000,f:'$'},
+  onCosts:{l:'On-costs',min:0,max:40,step:1,f:'%'},
+  customersPerEngineer:{l:'Clients per engineer',min:5,max:300,step:5,f:'n'},
+  repSalary:{l:'Salesperson base',min:30000,max:250000,step:5000,f:'$'},
+  commission:{l:'Commission on year-1 value',min:0,max:40,step:1,f:'%'},
+  founderPay:{l:'Founder pay (total / year)',min:0,max:500000,step:5000,f:'$'},
+  overhead:{l:'Tools & overhead / month',min:0,max:20000,step:100,f:'$'},
+  multiple:{l:'ARR multiple',min:1,max:30,step:0.5,f:'x'},
+  valTarget:{l:'Target valuation',min:1000000,max:1000000000,step:1000000,f:'$'},
+  valMonths:{l:'By month',min:6,max:120,step:1,f:'mo'},
+  raise:{l:'Raise amount',min:0,max:20000000,step:50000,f:'$'},
+  raiseMonth:{l:'Cash lands',min:1,max:60,step:1,f:'mo'},
+  preMoney:{l:'Pre-money valuation',min:500000,max:200000000,step:250000,f:'$'},
+  founderOwn:{l:'Founders own today',min:10,max:100,step:1,f:'%'},
+  horizon:{l:'Horizon',min:12,max:120,step:12,f:'mo'},
+  adTestBudget:{l:'Ad test budget',min:500,max:50000,step:250,f:'$'},
+  adTestAds:{l:'Ads in the test',min:1,max:100,step:1,f:'n'},
+};
+const WK = 52/12; // weeks per month
+
+let S = load();
+
+function thisMonth(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+function load(){
+  let s=null;
+  try{ const h=location.hash.match(/[#&]s=([^&]+)/); if(h) s=JSON.parse(decodeURIComponent(escape(atob(h[1].replace(/-/g,'+').replace(/_/g,'/'))))); }catch(e){}
+  if(!s){ try{ s=JSON.parse(localStorage.getItem('ah-ledger')||'null'); }catch(e){} }
+  const out=Object.assign({},DEF,s||{});
+  if(!out.startMonth) out.startMonth=thisMonth();
+  if(!Array.isArray(out.targets)||!out.targets.length) out.targets=JSON.parse(JSON.stringify(DEF.targets));
+  if(!Array.isArray(out.actuals)) out.actuals=[];
+  return out;
+}
+function save(){ try{ localStorage.setItem('ah-ledger',JSON.stringify(S)); }catch(e){} }
+
+/* requirement solver: constant gross adds A per month such that N0 → NT in T months with churn c */
+function needAdds(N0,NT,T,c){
+  if(T<=0) return NT>N0?Infinity:0;
+  if(c<=0) return Math.max(0,(NT-N0)/T);
+  const k=Math.pow(1-c,T);
+  return Math.max(0,(NT-N0*k)*c/(1-k));
+}
+
+function model(s){
+  const H=s.horizon;
+  const bs=s.bundledShare/100;
+  const arpa=s.price+bs*s.bundledAddon;
+  const varCost=s.serverCost+s.otherVarCost+bs*s.openaiCost;
+  const margin=arpa-varCost;
+  const c=s.churn/100;
+  const engMo=s.engSalary*(1+s.onCosts/100)/12;
+  const repMo=s.repSalary*(1+s.onCosts/100)/12;
+  const l2p=(s.leadToTrial/100)*(s.trialToPaid/100);
+  let customers=s.startCustomers, cash=s.startCash;
+  const rows=[];
+  for(let m=1;m<=H;m++){
+    const adSpend=s.adSpend*Math.pow(1+s.adGrowth/100,m-1);
+    const leads=s.cpl>0?adSpend/s.cpl:0;
+    const adAdds=leads*l2p;
+    let repAdds=0,activeReps=0;
+    if(s.reps>0&&m>=s.repStartMonth){
+      const age=m-s.repStartMonth; // 0 on start month
+      const ramp=s.repRampMonths>0?Math.min(1,(age+1)/(s.repRampMonths+1)):1;
+      activeReps=s.reps; repAdds=s.reps*ramp*s.meetingsPerWeek*WK*(s.closeRate/100);
+    }
+    const founderAdds=s.founderMeetingsPerWeek*WK*(s.founderClose/100);
+    const refAdds=customers*(s.referralRate/100);
+    const orgAdds=s.organicAdds*Math.pow(1+s.organicGrowth/100,m-1);
+    const adds=adAdds+repAdds+founderAdds+refAdds+orgAdds;
+    const churned=customers*c;
+    customers=customers+adds-churned;
+    const paying=s.freeMonth?Math.max(0,customers-adds):customers;
+    const revenue=paying*arpa;
+    const cogs=customers*(s.serverCost+s.otherVarCost)+paying*bs*s.openaiCost;
+    const engineers=s.autoHire?Math.max(s.engineers,Math.ceil(customers/Math.max(1,s.customersPerEngineer))):s.engineers;
+    const team=engineers*engMo+activeReps*repMo+s.founderPay/12;
+    const commission=repAdds*arpa*12*(s.commission/100);
+    const sm=adSpend+activeReps*repMo+commission;
+    const opex=team+s.overhead+adSpend+commission;
+    const ebitda=revenue-cogs-opex;
+    const raise=(s.raise>0&&s.raiseMonth===m)?s.raise:0;
+    cash+=ebitda+raise;
+    rows.push({m,adSpend,leads,adAdds,repAdds,founderAdds,refAdds,orgAdds,adds,churned,customers,paying,revenue,arr:revenue*12,cogs,gross:revenue-cogs,engineers,activeReps,team,commission,sm,opex,ebitda,raise,cash,valuation:revenue*12*s.multiple});
+  }
+  const at=m=>rows[Math.min(H,Math.max(1,m))-1];
+  const sum=(a,b,k)=>rows.slice(a-1,b).reduce((t,r)=>t+r[k],0);
+  const y1adds=sum(1,12,'adds'), y1sm=sum(1,12,'sm');
+  const cac=y1adds>0?y1sm/y1adds:0;
+  const ltv=c>0?margin/c:margin*60;
+  const breakEven=rows.find(r=>r.ebitda>=0&&r.paying>0);
+  const cashOut=rows.find(r=>r.cash<0);
+  let low=rows[0]; rows.forEach(r=>{if(r.cash<low.cash)low=r;});
+  const rev1=sum(1,12,'revenue'), eb1=sum(1,12,'ebitda');
+  const arr12=at(12).arr, arr24=at(24).arr, arr0=s.startCustomers*arpa*12;
+  const rev2=sum(13,24,'revenue'), eb2=sum(13,24,'ebitda');
+  const growth2=arr12>0?(arr24/arr12-1)*100:(arr24>0?999:0);
+  const r40=growth2+(rev2>0?eb2/rev2*100:-100);
+  const netNewArr1=arr12-arr0;
+  const burnMult=eb1<0&&netNewArr1>0?(-eb1)/netNewArr1:(eb1>=0?0:Infinity);
+  const startMonthAdds=rows[0].adds;
+  return {rows,arpa,varCost,margin,c,engMo,repMo,l2p,cac,ltv,breakEven,cashOut,low,rev1,eb1,arr12,arr24,rev2,eb2,growth2,r40,burnMult,y1adds,y1sm,at,sum,startMonthAdds,
+    adsCac:l2p>0?s.cpl/l2p:Infinity,
+    repCac:(s.meetingsPerWeek*WK*s.closeRate/100)>0?(repMo+ (s.meetingsPerWeek*WK*s.closeRate/100)*arpa*12*s.commission/100)/(s.meetingsPerWeek*WK*s.closeRate/100):Infinity};
+}
+
+/* targets: chain of phases, each solved for constant adds */
+function solveTargets(s,R){
+  const out=[]; let prevN=s.startCustomers, prevT=0;
+  const sorted=s.targets.map((t,i)=>({...t,i})).sort((a,b)=>a.months-b.months);
+  sorted.forEach((t,idx)=>{
+    const NT=R.arpa>0?t.arr/(12*R.arpa):0;
+    let dur=t.months-prevT; if(idx===0&&s.freeMonth) dur-=1;
+    const addsMo=needAdds(prevN,NT,dur,R.c);
+    const fc=t.months<=s.horizon?R.at(t.months):null;
+    const hitRow=R.rows.find(r=>r.arr>=t.arr);
+    const phaseRows=R.rows.slice(prevT,Math.min(t.months,s.horizon));
+    const fcAdds=phaseRows.length?phaseRows.reduce((a,r)=>a+r.adds,0)/phaseRows.length:0;
+    const gap=addsMo-fcAdds;
+    out.push({...t,NT,dur,addsMo,addsWk:addsMo/WK,leadsWk:R.l2p>0?addsMo/WK/R.l2p:Infinity,meetWk:addsMo/WK/(s.closeRate/100),fc,hit:!!fc&&fc.arr>=t.arr,hitRow,fcAdds,gap,adToClose:gap>0&&R.l2p>0?gap/R.l2p*s.cpl:0});
+    prevN=NT; prevT=t.months;
+  });
+  return out;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   FORMAT
+   ═══════════════════════════════════════════════════════════════════════ */
+const fmt={
+  money:(v,d)=>{ if(!isFinite(v)) return '∞'; const neg=v<0; v=Math.abs(v); let s;
+    if(v>=1e9) s='$'+(v/1e9).toFixed(d==null?2:d)+'B'; else if(v>=1e6) s='$'+(v/1e6).toFixed(d==null?(v>=1e7?1:2):d)+'M'; else if(v>=1e4) s='$'+Math.round(v/1e3)+'k'; else s='$'+Math.round(v).toLocaleString('en-AU');
+    s=s.replace(/\.(\d*?)0+([kMB])$/,'.$1$2').replace(/\.([kMB])$/,'$1');
+    return (neg?'−':'')+s; },
+  full:v=>(v<0?'−':'')+'$'+Math.round(Math.abs(v)).toLocaleString('en-AU'),
+  n:(v,d)=>!isFinite(v)?'∞':(Math.round(v*Math.pow(10,d||0))/Math.pow(10,d||0)).toLocaleString('en-AU'),
+  pct:(v,d)=>!isFinite(v)?'∞':(Math.round(v*Math.pow(10,d==null?0:d))/Math.pow(10,d==null?0:d))+'%',
+  x:v=>!isFinite(v)?'∞':(Math.round(v*10)/10)+'×'
+};
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function ym(m){ const [y,mo]=S.startMonth.split('-').map(Number); const d=new Date(y,mo-1+m,1); return MON[d.getMonth()]+' '+d.getFullYear(); }
+function ymShort(m){ const [y,mo]=S.startMonth.split('-').map(Number); const d=new Date(y,mo-1+m,1); return MON[d.getMonth()]+' '+String(d.getFullYear()).slice(2); }
+function ymKey(m){ const [y,mo]=S.startMonth.split('-').map(Number); const d=new Date(y,mo-1+m,1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function monthsFromStart(key){ const [y,mo]=S.startMonth.split('-').map(Number); const [y2,m2]=key.split('-').map(Number); return (y2-y)*12+(m2-mo); }
+const $=id=>document.getElementById(id);
+const set=(id,v)=>{const e=$(id); if(e) e.textContent=v;};
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DIALS
+   ═══════════════════════════════════════════════════════════════════════ */
+function buildDials(){
+  document.querySelectorAll('[data-dials]').forEach(box=>{
+    box.dataset.dials.split(',').forEach(k=>{
+      const d=DIALS[k]; if(!d) return;
+      const el=document.createElement('div'); el.className='dial'; el.dataset.k=k;
+      const pre=d.f==='$'?'<i>$</i>':'', suf=d.f==='%'?'<i>%</i>':d.f==='x'?'<i>×</i>':d.f==='mo'?'<i>mo</i>':'';
+      el.innerHTML=`<div class="dial-head"><span class="dial-l">${d.l}</span><span class="dial-v">${pre}<input type="text" inputmode="decimal" aria-label="${d.l}">${suf}</span></div><input type="range" min="${d.min}" max="${d.max}" step="${d.step}" aria-label="${d.l} slider">`;
+      const num=el.querySelector('input[type=text]'), rng=el.querySelector('input[type=range]');
+      const apply=v=>{ v=parseNum(v); if(!isFinite(v)) {syncDial(el,k);return;} v=Math.max(d.min,v); S[k]=v; syncDial(el,k); render(); };
+      rng.addEventListener('input',()=>apply(rng.value));
+      num.addEventListener('change',()=>apply(num.value));
+      num.addEventListener('keydown',e=>{if(e.key==='Enter'){num.blur();}});
+      box.appendChild(el); syncDial(el,k);
+    });
+  });
+  document.querySelectorAll('.sw').forEach(sw=>{
+    sw.addEventListener('click',()=>{ S[sw.dataset.sw]=!S[sw.dataset.sw]; syncSwitches(); render(); });
+  });
+  $('startMonth').addEventListener('change',e=>{ if(e.target.value){S.startMonth=e.target.value; render();} });
+}
+function syncDial(el,k){
+  const d=DIALS[k], v=S[k];
+  const num=el.querySelector('input[type=text]'), rng=el.querySelector('input[type=range]');
+  if(document.activeElement!==num) num.value=fmtIn(v);
+  const max=Math.max(d.max,v); rng.max=max; rng.value=v;
+  rng.style.setProperty('--p',((v-d.min)/(max-d.min)*100)+'%');
+  num.style.width=(fmtIn(v).length+1.5)+'ch';
+}
+function syncAll(){ document.querySelectorAll('.dial[data-k]').forEach(el=>syncDial(el,el.dataset.k)); syncSwitches(); $('startMonth').value=S.startMonth; }
+function fmtIn(v){ return Number(v).toLocaleString('en-AU',{maximumFractionDigits:2}); }
+function parseNum(v){ return Number(String(v).replace(/[^0-9.\-]/g,'')); }
+function syncSwitches(){ document.querySelectorAll('.sw').forEach(sw=>sw.setAttribute('aria-checked',S[sw.dataset.sw]?'true':'false')); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RENDER
+   ═══════════════════════════════════════════════════════════════════════ */
+let chartSeries='arr', lastHit=null, lastBadges=null;
+function render(){
+  const R=model(S), T=solveTargets(S,R);
+  renderHero(R,T); renderUnit(R); renderTargets(R,T); renderEngines(R); renderCosts(R);
+  renderChart(R,T); renderKpis(R); renderTables(R); renderValuation(R,T); renderBadges(R,T); renderActuals(); renderPresets();
+  save();
+}
+
+function renderHero(R,T){
+  const t=T[0]; if(!t) return;
+  $('heroTitle').innerHTML=`Hatch <em>${fmt.money(t.arr)} ARR</em> by <em>${ym(t.months)}</em>`;
+  set('heroKicker',`Primary target — ${t.label}`);
+  const pct=t.arr>0&&t.fc?t.fc.arr/t.arr:0;
+  $('heroSub').innerHTML=t.hit
+    ?`The current dials get there. Forecast is <strong>${fmt.money(t.fc.arr)}</strong> on ${ym(t.months)}${t.hitRow?` and crosses the line in <strong>${ym(t.hitRow.m)}</strong>`:''}. Keep the engines running and protect churn.`
+    :`At today's dials the forecast lands at <strong>${fmt.money(t.fc?t.fc.arr:0)}</strong> (${fmt.pct(pct*100)} of target). Close the gap with <strong>${fmt.n(Math.max(0,t.gap),1)} more sales a month</strong>${t.adToClose>0?`, or about <strong>${fmt.money(t.adToClose)}/mo</strong> more ad spend at today's CPL`:''}.`;
+  set('hWeek',isFinite(t.addsWk)?fmt.n(t.addsWk,1):'∞'); set('hWeekD',`≈ ${fmt.n(isFinite(t.leadsWk)?t.leadsWk:0,0)} leads or ${fmt.n(t.meetWk,0)} meetings a week`);
+  set('hMonth',fmt.n(t.addsMo,1)); set('hMonthD',`forecast averages ${fmt.n(t.fcAdds,1)} / month`);
+  set('hClients',fmt.n(Math.ceil(t.NT))); set('hClientsD',`at ${fmt.full(R.arpa)} per client per month`);
+  $('hForecast').textContent=fmt.money(t.fc?t.fc.arr:0);
+  $('hForecastD').innerHTML=`<span class="pill ${t.hit?'ok':'bad'}">${t.hit?'On track':'Behind'}</span> <span style="margin-left:6px;">${t.fc?fmt.n(t.fc.paying,0)+' paying':''}</span>`;
+  const eggs=$('eggs'); eggs.innerHTML='';
+  const n=12, filled=Math.min(n,Math.round(pct*n));
+  for(let i=0;i<n;i++){const e=document.createElement('span');e.className='egg'+(i<filled?(t.hit?' hatched':' on'):'');eggs.appendChild(e);}
+  set('eggLbl',`${fmt.pct(Math.min(999,pct*100))} of ${t.label} target hatched`);
+  $('heroImg').src=t.hit?'hatchy-success.webp':'assets/agents/hatchy-lib-invoice.webp';
+  if(lastHit===false&&t.hit) confetti();
+  lastHit=t.hit;
+}
+
+function renderUnit(R){
+  set('uArpa',fmt.full(R.arpa)); set('uVar',fmt.full(R.varCost)); set('uMargin',fmt.full(R.margin));
+  set('uMarginPct',`${fmt.pct(R.arpa>0?R.margin/R.arpa*100:0)} gross margin`);
+  set('uLtv',fmt.money(R.ltv)); set('uLtvD',R.c>0?`margin ÷ churn, ≈ ${fmt.n(1/R.c,0)} months`:'capped at 60 months');
+  set('uLife',R.c>0?fmt.n(1/R.c,0)+' mo':'∞'); set('uNrr',fmt.pct(Math.pow(1-R.c,12)*100));
+  const c100=100*R.arpa*12;
+  $('uNotes').innerHTML=`
+    <p><b>100 clients = ${fmt.money(c100)} ARR</b> at this price, so $1M ARR needs <b>${fmt.n(Math.ceil(1e6/(12*R.arpa)))} paying clients</b>, not 100.</p>
+    <p style="margin-top:8px;">Every client clears <b>${fmt.full(R.margin)}/mo</b>. One engineer costs <b>${fmt.money(R.engMo)}/mo</b> loaded, so it takes <b>${fmt.n(Math.ceil(R.engMo/Math.max(1,R.margin)))} clients</b> to pay for each engineer.</p>
+    <p style="margin-top:8px;">Bundling OpenAI adds ${fmt.full(S.bundledAddon)} of revenue and ${fmt.full(S.openaiCost)} of cost per bundled client, so it ${S.bundledAddon-S.openaiCost>=0?'is margin-neutral or better':'<b>loses money</b>'} — but it removes a sign-up step, which is worth clicks.</p>`;
+}
+
+function renderTargets(R,T){
+  const box=$('targetsList'); box.innerHTML='';
+  T.forEach((t,idx)=>{
+    const row=document.createElement('div'); row.className='trow';
+    row.innerHTML=`
+      <div class="f lbl"><span class="dial-l">Milestone</span><input type="text" value="${t.label.replace(/"/g,'&quot;')}" data-i="${t.i}" data-f="label"></div>
+      <div class="f"><span class="dial-l">Month · ${ym(t.months)}</span><input type="number" min="1" step="1" value="${t.months}" data-i="${t.i}" data-f="months"></div>
+      <div class="f"><span class="dial-l">ARR target ($)</span><input type="text" inputmode="decimal" value="${fmtIn(t.arr)}" data-i="${t.i}" data-f="arr"></div>
+      <button class="x" data-del="${t.i}" aria-label="Remove milestone" ${S.targets.length<=1?'disabled':''}>×</button>
+      <div class="tout">
+        <div class="stat"><span class="k">Paying clients</span><span class="v">${fmt.n(Math.ceil(t.NT))}</span></div>
+        <div class="stat"><span class="k">Sales / week</span><span class="v">${isFinite(t.addsWk)?fmt.n(t.addsWk,1):'∞'}</span></div>
+        <div class="stat"><span class="k">Sales / month</span><span class="v">${isFinite(t.addsMo)?fmt.n(t.addsMo,1):'∞'}</span></div>
+        <div class="stat"><span class="k">Leads / week</span><span class="v">${isFinite(t.leadsWk)?fmt.n(t.leadsWk,0):'∞'}</span></div>
+        <div class="stat"><span class="k">Meetings / week</span><span class="v">${isFinite(t.meetWk)?fmt.n(t.meetWk,0):'∞'}</span></div>
+        <div class="stat"><span class="k">Forecast then</span><span class="v">${t.fc?fmt.money(t.fc.arr):'—'}</span></div>
+        <div class="tnote">
+          <span class="pill ${t.fc?(t.hit?'ok':'bad'):'info'}">${t.fc?(t.hit?'On track':'Behind'):'Beyond horizon'}</span>
+          ${t.hitRow?`<span>Forecast crosses ${fmt.money(t.arr)} in <b>${ym(t.hitRow.m)}</b> (${t.hitRow.m<=t.months?fmt.n(t.months-t.hitRow.m)+' months early':fmt.n(t.hitRow.m-t.months)+' months late'}).</span>`:`<span>Forecast never reaches ${fmt.money(t.arr)} inside the horizon.</span>`}
+          ${t.gap>0?`<span>Needs <b>${fmt.n(t.gap,1)}</b> more sales/mo than forecast${t.adToClose>0?` ≈ <b>${fmt.money(t.adToClose)}/mo</b> extra ads`:''}.</span>`:''}
+          <span>Phase: ${idx===0?'today':ym(T[idx-1].months)} → ${ym(t.months)}, ${t.dur} selling months${idx===0&&S.freeMonth?' (free month eats one)':''}.</span>
+        </div>
+      </div>`;
+    box.appendChild(row);
+  });
+  box.querySelectorAll('input').forEach(inp=>inp.addEventListener('change',()=>{
+    const t=S.targets[Number(inp.dataset.i)]; if(!t) return;
+    if(inp.dataset.f==='label') t.label=inp.value||'Milestone'; else t[inp.dataset.f]=Math.max(inp.dataset.f==='months'?1:0,parseNum(inp.value)||0);
+    render();
+  }));
+  box.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{ if(S.targets.length>1){S.targets.splice(Number(b.dataset.del),1); render();} }));
+  // valuation-backward card
+  const reqArr=S.valTarget/Math.max(0.1,S.multiple), NT=R.arpa>0?reqArr/(12*R.arpa):0;
+  const dur=S.valMonths-(S.freeMonth?1:0), adds=needAdds(S.startCustomers,NT,dur,R.c);
+  set('vReqArr',fmt.money(reqArr)); set('vReqClients',fmt.n(Math.ceil(NT))); set('vReqWeek',isFinite(adds)?fmt.n(adds/WK,1):'∞');
+  const fc=S.valMonths<=S.horizon?R.at(S.valMonths):null;
+  set('vForecast',fc?fmt.money(fc.valuation):'—');
+  $('vForecastD').innerHTML=fc?`<span class="pill ${fc.valuation>=S.valTarget?'ok':'bad'}" style="border-color:currentColor">${fc.valuation>=S.valTarget?'On track':fmt.pct(fc.valuation/S.valTarget*100)+' there'}</span>`:'beyond horizon';
+}
+
+function renderEngines(R){
+  const r1=R.rows[0];
+  set('eAds',fmt.n(r1.adAdds,1)); set('eAdsCac',fmt.money(R.adsCac));
+  const repFull=S.meetingsPerWeek*WK*S.closeRate/100*S.reps;
+  set('eRep',S.reps>0?`${fmt.n(repFull,1)} from ${ym(S.repStartMonth)}`:'no rep yet'); set('eRepCac',S.reps>0?fmt.money(R.repCac):'—');
+  set('eFounder',fmt.n(r1.founderAdds,1)); set('eOrganic',fmt.n(r1.refAdds+r1.orgAdds,1));
+  set('eTotal',fmt.n(R.y1adds/12,1)); set('eTotalD',`${fmt.n(R.y1adds,0)} new clients in year 1`);
+  set('eCac',fmt.money(R.cac)); const lc=R.cac>0?R.ltv/R.cac:Infinity;
+  set('eLtvCac',fmt.x(lc)); $('eLtvCacD').innerHTML=`<span class="pill ${lc>=3?'ok':'bad'}" style="border-color:currentColor">${lc>=3?'investor grade (≥3)':'below 3'}</span>`;
+  set('ePayback',R.margin>0?fmt.n(R.cac/R.margin,1)+' mo':'—');
+  // ad test
+  const leads=S.cpl>0?S.adTestBudget/S.cpl:0, clients=leads*R.l2p, maxCac=R.ltv/3, maxCpl=maxCac*R.l2p;
+  set('tPerAd',fmt.money(S.adTestBudget/Math.max(1,S.adTestAds))); set('tLeads',fmt.n(leads,0)); set('tClients',fmt.n(clients,1)); set('tMaxCpl',fmt.money(maxCpl));
+  $('tVerdict').innerHTML=`<span class="pill ${S.cpl<=maxCpl?'ok':'bad'}">${S.cpl<=maxCpl?`CPL ${fmt.full(S.cpl)} is under the ceiling`:`CPL ${fmt.full(S.cpl)} is over the ceiling`}</span> <span class="note" style="display:block;margin-top:8px;">A lead is worth <b>${fmt.money(R.ltv*R.l2p)}</b> of lifetime margin at today's conversion. Measure CPL in the test, then set the dial to what you see.</span>`;
+  // mix
+  const tot=R.y1adds||1, parts=[['Ads',R.sum(1,12,'adAdds')],['Salesperson',R.sum(1,12,'repAdds')],['Founders',R.sum(1,12,'founderAdds')],['Referrals + inbound',R.sum(1,12,'refAdds')+R.sum(1,12,'orgAdds')]];
+  $('mix').innerHTML=parts.map(([k,v])=>`<div class="kv"><span class="m">${k}</span><span style="flex:1;height:10px;border-radius:999px;background:var(--accent-2);align-self:center;overflow:hidden;"><span style="display:block;height:100%;width:${Math.min(100,v/tot*100)}%;background:var(--accent);border-radius:999px;transition:width .4s;"></span></span><b style="min-width:110px;text-align:right;">${fmt.n(v,0)} · ${fmt.pct(v/tot*100)}</b></div>`).join('');
+}
+
+function renderCosts(R){
+  const r1=R.rows[0];
+  set('cOpex',fmt.money(r1.opex)); set('cOpexD',`${fmt.money(r1.team)} people · ${fmt.money(r1.adSpend)} ads · ${fmt.money(S.overhead)} overhead`);
+  set('cCover',fmt.n(Math.ceil((r1.opex)/Math.max(1,R.margin))));
+  set('cEng',`${R.at(12).engineers} / ${R.at(24).engineers} / ${R.at(36).engineers}`);
+}
+
+function renderKpis(R){
+  set('fBreak',R.breakEven?ym(R.breakEven.m):'never'); set('fBreakD',R.breakEven?`month ${R.breakEven.m}, ${fmt.n(R.breakEven.paying,0)} paying clients`:'inside the horizon');
+  set('fCashLow',fmt.money(R.low.cash)); set('fCashLowD',`in ${ym(R.low.m)}`);
+  set('fRunway',R.cashOut?`${R.cashOut.m-1} mo`:'∞'); set('fRunwayD',R.cashOut?`cash out in ${ym(R.cashOut.m)} — raise or cut`:'cash never goes negative');
+  set('fRev1',fmt.money(R.rev1)); set('fRev1D',`EBITDA ${fmt.money(R.eb1)} · ARR ${fmt.money(R.arr12)} at m12`);
+  set('fR40',isFinite(R.r40)?fmt.n(R.r40,0):'—'); set('fR40D',`${fmt.pct(Math.min(9999,R.growth2))} growth + ${fmt.pct(R.rev2>0?R.eb2/R.rev2*100:-100)} margin`);
+  set('fBurn',isFinite(R.burnMult)?fmt.x(R.burnMult):'—'); set('fBurnD',R.burnMult===0?'profitable in year 1':R.burnMult<1?'excellent (<1)':R.burnMult<2?'good (<2)':'burning hard (>2)');
+}
+
+function renderTables(R){
+  const years=Math.ceil(S.horizon/12); let h='<thead><tr><th>Year</th><th>Clients</th><th>New</th><th>ARR</th><th>Revenue</th><th>Gross profit</th><th>Opex</th><th>EBITDA</th><th>Cash</th><th>Valuation</th></tr></thead><tbody>';
+  for(let y=1;y<=years;y++){ const a=(y-1)*12+1, b=Math.min(y*12,S.horizon); const e=R.at(b);
+    h+=`<tr><td>Year ${y} <span class="mono" style="font-size:9.5px;">${ymShort(b)}</span></td><td>${fmt.n(e.customers,0)}</td><td>${fmt.n(R.sum(a,b,'adds'),0)}</td><td>${fmt.money(e.arr)}</td><td>${fmt.money(R.sum(a,b,'revenue'))}</td><td>${fmt.money(R.sum(a,b,'gross'))}</td><td>${fmt.money(R.sum(a,b,'opex'))}</td><td class="${R.sum(a,b,'ebitda')<0?'neg':'pos'}">${fmt.money(R.sum(a,b,'ebitda'))}</td><td class="${e.cash<0?'neg':''}">${fmt.money(e.cash)}</td><td>${fmt.money(e.valuation)}</td></tr>`; }
+  $('yearTbl').innerHTML=h+'</tbody>';
+  let m='<thead><tr><th>Month</th><th>New</th><th>Churn</th><th>Clients</th><th>Paying</th><th>MRR</th><th>ARR</th><th>COGS</th><th>Opex</th><th>EBITDA</th><th>Cash</th><th>Eng</th></tr></thead><tbody>';
+  R.rows.forEach(r=>{ m+=`<tr><td>${r.m} · ${ymShort(r.m)}</td><td>${fmt.n(r.adds,1)}</td><td>${fmt.n(r.churned,1)}</td><td>${fmt.n(r.customers,0)}</td><td>${fmt.n(r.paying,0)}</td><td>${fmt.money(r.revenue)}</td><td>${fmt.money(r.arr)}</td><td>${fmt.money(r.cogs)}</td><td>${fmt.money(r.opex)}</td><td class="${r.ebitda<0?'neg':'pos'}">${fmt.money(r.ebitda)}</td><td class="${r.cash<0?'neg':''}">${fmt.money(r.cash)}${r.raise?' ↑':''}</td><td>${r.engineers}</td></tr>`; });
+  $('monthTbl').innerHTML=m+'</tbody>';
+}
+
+function renderValuation(R,T){
+  const pts=[12,24,36,48,60].filter(m=>m<=S.horizon);
+  $('vTiles').innerHTML=pts.map(m=>{const r=R.at(m);return `<div class="stat"><span class="k">${ym(m)}</span><span class="v">${fmt.money(r.valuation)}</span><span class="d">${fmt.money(r.arr)} ARR × ${S.multiple}</span></div>`;}).join('');
+  const g=R.growth2; const sug=g>=150?'12–15×':g>=100?'10–12×':g>=50?'6–10×':g>=25?'4–6×':'2–4×';
+  set('vMultNote',`Year-2 ARR growth in this forecast is ${fmt.pct(Math.min(9999,g))}. A multiple of ${S.multiple}× is ${S.multiple>=parseFloat(sug)?'punchy':'conservative'} for that.`);
+  set('vHint',`Growth of ${fmt.pct(Math.min(9999,g))} usually earns ${sug} ARR`);
+  const post=S.preMoney+S.raise, dil=S.raise>0?S.raise/post:0;
+  set('rPost',fmt.money(post)); set('rDilution',fmt.pct(dil*100,1)); set('rFounders',fmt.pct(S.founderOwn*(1-dil),1));
+  const arrAtRaise=R.at(S.raiseMonth).arr; set('rImplied',arrAtRaise>0?fmt.x(S.preMoney/arrAtRaise)+' ARR':'no ARR yet');
+  set('rExit',fmt.money(R.at(S.horizon).valuation*S.founderOwn/100*(1-dil)));
+}
+
+const BADGES=[
+  {id:'ten',t:'Ten nests',d:'Ten clients in the forecast.',p:5,ic:'10',test:(R)=>R.rows.some(r=>r.customers>=10)},
+  {id:'century',t:'The century',d:'100 clients hatched.',p:10,ic:'100',test:(R)=>R.rows.some(r=>r.customers>=100)},
+  {id:'seven',t:'Seven figures',d:'$1M ARR inside the horizon.',p:15,ic:'$1M',test:(R)=>R.rows.some(r=>r.arr>=1e6)},
+  {id:'ontrack',t:'On target',d:'The primary milestone is hit on time.',p:25,ic:'🎯',test:(R,T)=>T[0]&&T[0].hit},
+  {id:'all',t:'Every milestone',d:'All milestones inside the horizon are hit.',p:15,ic:'★',test:(R,T)=>T.length>0&&T.every(t=>!t.fc||t.hit)},
+  {id:'breakeven',t:'Break-even',d:'A month where EBITDA is positive.',p:10,ic:'0',test:(R)=>!!R.breakEven},
+  {id:'black',t:'Never in the red',d:'Cash stays above zero every month.',p:10,ic:'▲',test:(R)=>!R.cashOut},
+  {id:'ltv',t:'3 : 1',d:'LTV is at least three times CAC.',p:10,ic:'3×',test:(R)=>R.cac>0&&R.ltv/R.cac>=3},
+  {id:'payback',t:'Fast payback',d:'CAC paid back inside 12 months.',p:5,ic:'12',test:(R)=>R.margin>0&&R.cac/R.margin<=12},
+  {id:'r40',t:'Rule of 40',d:'Growth plus margin ≥ 40 in year 2.',p:10,ic:'40',test:(R)=>R.r40>=40},
+  {id:'sticky',t:'Sticky',d:'Monthly churn at 2% or less.',p:5,ic:'🪺',test:()=>S.churn<=2},
+  {id:'hire',t:'Damo approved',d:'A salesperson is in the plan.',p:5,ic:'👔',test:()=>S.reps>=1},
+  {id:'burn',t:'Efficient burn',d:'Burn multiple under 1 in year 1 (or profitable).',p:10,ic:'🔥',test:(R)=>R.burnMult<1},
+  {id:'ten-m',t:'Eight figures',d:'$10M ARR inside the horizon.',p:15,ic:'$10M',test:(R)=>R.rows.some(r=>r.arr>=1e7)},
+  {id:'unicorn',t:'Unicorn',d:'A $1B valuation on the multiple you set.',p:20,ic:'🦄',test:(R)=>R.rows.some(r=>r.valuation>=1e9)},
+];
+const LEVELS=[[0,'Egg'],[30,'Cracking'],[60,'Hatchling'],[95,'Fledgling'],[125,'Full flock'],[160,'Legend']];
+function renderBadges(R,T){
+  let xp=0, total=0; const on={};
+  const html=BADGES.map(b=>{ const ok=!!b.test(R,T); total+=b.p; if(ok) xp+=b.p; on[b.id]=ok;
+    const pop=lastBadges&&!lastBadges[b.id]&&ok?' pop':'';
+    return `<div class="badge ${ok?'':'locked'}${pop}"><div class="ic">${b.ic}</div><div><div class="t">${b.t}</div><div class="d">${b.d}</div><div class="pts">${ok?'unlocked':'locked'} · ${b.p} xp</div></div></div>`; }).join('');
+  $('badges').innerHTML=html; lastBadges=on;
+  let lvl=LEVELS[0]; LEVELS.forEach(l=>{if(xp>=l[0])lvl=l;});
+  const next=LEVELS.find(l=>l[0]>xp);
+  set('lvlName',lvl[1]); set('lvlXp',`${xp} xp${next?` · ${next[0]-xp} to ${next[1]}`:' · maxed'}`);
+  $('ringFg').style.strokeDashoffset=String(157-157*Math.min(1,xp/total));
+}
+
+function renderPresets(){
+  document.querySelectorAll('#presets button').forEach(b=>{ const p=PRESETS[b.dataset.preset]; b.classList.toggle('on',Object.keys(p).every(k=>S[k]===p[k])); });
+}
+
+/* ── chart ── */
+const SERIES={arr:{k:'arr',l:'ARR',money:true},customers:{k:'customers',l:'Clients',money:false},cash:{k:'cash',l:'Cash',money:true},ebitda:{k:'ebitda',l:'Monthly EBITDA',money:true},valuation:{k:'valuation',l:'Valuation',money:true}};
+let chartState=null;
+function renderChart(R,T){
+  const svg=$('chart'), sp=SERIES[chartSeries], W=1000, Hh=380, L=70, Rr=20, Tt=24, B=40;
+  const vals=R.rows.map(r=>r[sp.k]);
+  const acts=S.actuals.map(a=>({m:monthsFromStart(a.ym),v:chartSeries==='arr'?a.mrr*12:chartSeries==='customers'?a.customers:chartSeries==='cash'?a.cash:null})).filter(a=>a.v!=null&&a.m>=0&&a.m<=S.horizon);
+  let lo=Math.min(0,...vals,...acts.map(a=>a.v)), hi=Math.max(...vals,...acts.map(a=>a.v),1);
+  if(chartSeries==='arr') hi=Math.max(hi,...T.filter(t=>t.months<=S.horizon).map(t=>t.arr));
+  if(chartSeries==='valuation') hi=Math.max(hi,S.valMonths<=S.horizon?S.valTarget:0);
+  hi*=1.06; if(lo<0) lo*=1.1;
+  const x=m=>L+(m/S.horizon)*(W-L-Rr), y=v=>Tt+(1-(v-lo)/(hi-lo))*(Hh-Tt-B);
+  const ticks=5; let g='<g class="grid">';
+  for(let i=0;i<=ticks;i++){ const v=lo+(hi-lo)*i/ticks; g+=`<line x1="${L}" x2="${W-Rr}" y1="${y(v)}" y2="${y(v)}"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end">${sp.money?fmt.money(v,0):fmt.n(v)}</text>`; }
+  g+='</g>';
+  const years=Math.floor(S.horizon/12);
+  for(let yy=0;yy<=years;yy++){ const m=yy*12; g+=`<text x="${x(m)}" y="${Hh-B+18}" text-anchor="${yy===0?'start':'middle'}">${yy===0?ymShort(0):ymShort(m)}</text>`; }
+  g+=`<line class="ax" x1="${L}" x2="${W-Rr}" y1="${y(0)}" y2="${y(0)}"/>`;
+  const pts=R.rows.map(r=>`${x(r.m)},${y(r[sp.k])}`);
+  const p0=`${x(0)},${y(chartSeries==='customers'?S.startCustomers:chartSeries==='cash'?S.startCash:chartSeries==='arr'?S.startCustomers*R.arpa*12:chartSeries==='valuation'?S.startCustomers*R.arpa*12*S.multiple:0)}`;
+  g+=`<path class="area" d="M${p0} L${pts.join(' L')} L${x(S.horizon)},${y(0)} L${x(0)},${y(0)} Z"/>`;
+  g+=`<path class="ln" d="M${p0} L${pts.join(' L')}"/>`;
+  if(chartSeries==='arr'){
+    const ts=T.filter(t=>t.months<=S.horizon);
+    if(ts.length) g+=`<path class="ln2" d="M${p0} L${ts.map(t=>`${x(t.months)},${y(t.arr)}`).join(' L')}"/>`;
+    ts.forEach(t=>{ g+=`<circle class="tg ${t.hit?'hit':'miss'}" cx="${x(t.months)}" cy="${y(t.arr)}" r="7"><title>${t.label}: ${fmt.money(t.arr)} by ${ym(t.months)}</title></circle><text x="${x(t.months)}" y="${y(t.arr)-14}" text-anchor="middle" style="fill:var(--ink);font-weight:700">${t.label}</text>`; });
+  }
+  if(chartSeries==='valuation'&&S.valMonths<=S.horizon){ const hit=R.at(S.valMonths).valuation>=S.valTarget; g+=`<circle class="tg ${hit?'hit':'miss'}" cx="${x(S.valMonths)}" cy="${y(S.valTarget)}" r="7"/><text x="${x(S.valMonths)}" y="${y(S.valTarget)-14}" text-anchor="middle" style="fill:var(--ink);font-weight:700">Target</text>`; }
+  if(S.raise>0&&S.raiseMonth<=S.horizon&&chartSeries==='cash') g+=`<text x="${x(S.raiseMonth)}" y="${Tt+10}" text-anchor="middle" style="fill:var(--accent)">raise ↓</text>`;
+  acts.forEach(a=>{ g+=`<circle class="act" cx="${x(a.m)}" cy="${y(a.v)}" r="5"><title>Actual ${a.m>0?ymShort(a.m):'start'}: ${sp.money?fmt.money(a.v):fmt.n(a.v)}</title></circle>`; });
+  g+=`<line class="cur" id="curLine" x1="-10" x2="-10" y1="${Tt}" y2="${Hh-B}"/>`;
+  svg.innerHTML=g;
+  chartState={x,y,R,sp,W,Hh};
+}
+(function chartHover(){
+  const svg=$('chart'), tip=$('tip');
+  function move(e){ if(!chartState) return; const rect=svg.getBoundingClientRect(); const px=(e.clientX-rect.left)/rect.width*1000;
+    const m=Math.round((px-70)/(1000-90)*S.horizon); if(m<1||m>S.horizon){leave();return;}
+    const r=chartState.R.at(m), v=r[chartState.sp.k]; const cx=chartState.x(m), cy=chartState.y(v);
+    $('curLine').setAttribute('x1',cx); $('curLine').setAttribute('x2',cx);
+    tip.style.left=(cx/1000*rect.width)+'px'; tip.style.top=(cy/380*rect.height)+'px'; tip.style.opacity=1;
+    tip.innerHTML=`<span class="k">${ym(m)} · month ${m}</span><br><b>${chartState.sp.money?fmt.money(v):fmt.n(v,0)}</b> ${chartState.sp.l}<br>${fmt.n(r.customers,0)} clients · ${fmt.money(r.arr)} ARR · cash ${fmt.money(r.cash)}`; }
+  function leave(){ tip.style.opacity=0; const c=$('curLine'); if(c){c.setAttribute('x1',-10);c.setAttribute('x2',-10);} }
+  svg.addEventListener('pointermove',move); svg.addEventListener('pointerleave',leave);
+})();
+$('chartChips').addEventListener('click',e=>{ const b=e.target.closest('.chip'); if(!b) return; chartSeries=b.dataset.series; document.querySelectorAll('#chartChips .chip').forEach(c=>c.classList.toggle('on',c===b)); render(); });
+
+/* ── actuals ── */
+function renderActuals(){
+  const t=$('actTbl'); const rows=S.actuals.slice().sort((a,b)=>a.ym<b.ym?-1:1);
+  if(!rows.length){ t.innerHTML='<tbody><tr><td class="note" style="text-align:left;font-weight:400;">Nothing logged yet. Add this month&rsquo;s real numbers below.</td></tr></tbody>'; return; }
+  const R=model(S);
+  t.innerHTML='<thead><tr><th>Month</th><th>Clients</th><th>Plan</th><th>MRR</th><th>Plan</th><th>Cash</th><th>Plan</th><th></th></tr></thead><tbody>'+rows.map(a=>{ const m=monthsFromStart(a.ym); const p=m>=1&&m<=S.horizon?R.at(m):null;
+    const d=(v,pv)=>pv==null?'—':`<span class="${v>=pv?'pos':'neg'}">${v>=pv?'+':'−'}${fmt.n(Math.abs(v-pv),0)}</span>`;
+    return `<tr><td>${a.ym}</td><td>${fmt.n(a.customers,0)}</td><td>${p?fmt.n(p.customers,0)+' '+d(a.customers,p.customers):'—'}</td><td>${fmt.money(a.mrr)}</td><td>${p?fmt.money(p.revenue):'—'}</td><td>${fmt.money(a.cash)}</td><td>${p?fmt.money(p.cash):'—'}</td><td><button class="rm" data-rm="${a.ym}" aria-label="Remove">×</button></td></tr>`; }).join('')+'</tbody>';
+  t.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click',()=>{ S.actuals=S.actuals.filter(a=>a.ym!==b.dataset.rm); render(); }));
+}
+$('btnAddActual').addEventListener('click',()=>{ const ymv=$('aMonth').value; if(!ymv){toast('Pick a month first');return;}
+  S.actuals=S.actuals.filter(a=>a.ym!==ymv); S.actuals.push({ym:ymv,customers:Number($('aCust').value)||0,mrr:Number($('aMrr').value)||0,cash:Number($('aCash').value)||0});
+  $('aCust').value='';$('aMrr').value='';$('aCash').value=''; toast('Logged '+ymv); render(); });
+
+/* ── targets add ── */
+$('btnAddTarget').addEventListener('click',()=>{ const last=S.targets.reduce((a,t)=>t.months>a.months?t:a,S.targets[0]); S.targets.push({label:'Year '+(Math.round(last.months/12)+1),months:last.months+12,arr:Math.round(last.arr*2.5/1e5)*1e5}); render(); toast('Milestone added'); });
+
+/* ── presets / share / summary / csv / reset ── */
+$('presets').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; Object.assign(S,PRESETS[b.dataset.preset]); syncAll(); render(); toast(b.textContent+' loaded'); });
+$('btnReset').addEventListener('click',()=>{ if(!confirm('Reset every dial to the defaults? Actuals are kept.')) return; const acts=S.actuals; S=Object.assign({},DEF,{targets:JSON.parse(JSON.stringify(DEF.targets)),startMonth:thisMonth(),actuals:acts}); syncAll(); render(); toast('Back to defaults'); });
+function copy(text,msg){ (navigator.clipboard?navigator.clipboard.writeText(text):Promise.reject()).then(()=>toast(msg)).catch(()=>{prompt('Copy this:',text);}); }
+$('btnShare').addEventListener('click',()=>{ const b=btoa(unescape(encodeURIComponent(JSON.stringify(S)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); const url=location.origin+location.pathname+'#s='+b; history.replaceState(null,'',url); copy(url,'Link copied — every dial travels with it'); });
+$('btnSummary').addEventListener('click',()=>{ const R=model(S), T=solveTargets(S,R), t=T[0]; const lc=R.cac>0?R.ltv/R.cac:Infinity;
+  const txt=[`Agent Hatchers — financial model (${new Date().toLocaleDateString('en-AU')})`,
+  `Pricing: ${fmt.full(S.price)}/mo flat per company (${S.bundledShare}% take bundled OpenAI at ${fmt.full(S.price+S.bundledAddon)}). ARPA ${fmt.full(R.arpa)}, gross margin ${fmt.full(R.margin)}/client/mo (${fmt.pct(R.margin/R.arpa*100)}). Churn ${S.churn}%/mo, LTV ${fmt.money(R.ltv)}.`,
+  `Target: ${fmt.money(t.arr)} ARR by ${ym(t.months)} = ${fmt.n(Math.ceil(t.NT))} paying clients = ${fmt.n(t.addsWk,1)} sales/week (${fmt.n(t.addsMo,1)}/mo). Forecast on that date: ${fmt.money(t.fc?t.fc.arr:0)} (${t.hit?'on track':'behind'}).`,
+  `Engines (yr 1): ${fmt.n(R.y1adds,0)} new clients — ads ${fmt.n(R.sum(1,12,'adAdds'),0)}, salesperson ${fmt.n(R.sum(1,12,'repAdds'),0)}, founders ${fmt.n(R.sum(1,12,'founderAdds'),0)}, referral/inbound ${fmt.n(R.sum(1,12,'refAdds')+R.sum(1,12,'orgAdds'),0)}. Blended CAC ${fmt.money(R.cac)}, LTV:CAC ${fmt.x(lc)}, payback ${fmt.n(R.cac/Math.max(1,R.margin),1)} mo.`,
+  `P&L: year-1 revenue ${fmt.money(R.rev1)}, EBITDA ${fmt.money(R.eb1)}. Break-even ${R.breakEven?ym(R.breakEven.m):'not inside horizon'}. Cash low ${fmt.money(R.low.cash)} (${ym(R.low.m)})${R.cashOut?`, cash out ${ym(R.cashOut.m)}`:''}. Burn multiple ${isFinite(R.burnMult)?fmt.x(R.burnMult):'n/a'}, Rule of 40 (yr 2) ${fmt.n(R.r40,0)}.`,
+  `Valuation at ${S.multiple}× ARR: ${[12,24,36].filter(m=>m<=S.horizon).map(m=>`${ym(m)} ${fmt.money(R.at(m).valuation)}`).join(', ')}.`,
+  S.raise>0?`Raise: ${fmt.money(S.raise)} at ${fmt.money(S.preMoney)} pre (${fmt.pct(S.raise/(S.preMoney+S.raise)*100,1)} dilution), lands ${ym(S.raiseMonth)}.`:''].filter(Boolean).join('\n');
+  copy(txt,'Summary copied'); });
+$('btnCsv').addEventListener('click',()=>{ const R=model(S); const cols=['m','month','adds','churned','customers','paying','revenue','arr','cogs','gross','team','adSpend','commission','opex','ebitda','raise','cash','engineers','valuation'];
+  const csv=[cols.join(',')].concat(R.rows.map(r=>cols.map(c=>c==='month'?ymKey(r.m):Math.round(r[c]*100)/100).join(','))).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='agent-hatchers-forecast.csv'; a.click(); toast('CSV downloaded'); });
+
+/* ── confetti ── */
+function confetti(){ const c=$('confetti'), ctx=c.getContext('2d'); c.width=innerWidth; c.height=innerHeight;
+  const P=[]; for(let i=0;i<160;i++) P.push({x:innerWidth/2+(Math.random()-.5)*200,y:innerHeight*0.35,vx:(Math.random()-.5)*14,vy:-Math.random()*14-4,r:4+Math.random()*5,a:Math.random()*6.3,s:Math.random()*.3-.15,col:['#216BAC','#C1DCE8','#16150F','#F6EBD4','#2E7FC0'][i%5]});
+  let t=0; (function f(){ ctx.clearRect(0,0,c.width,c.height); P.forEach(p=>{p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.a+=p.s;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.a);ctx.fillStyle=p.col;ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r);ctx.restore();}); if(++t<110) requestAnimationFrame(f); else ctx.clearRect(0,0,c.width,c.height); })(); }
+
+/* ── boot ── */
+buildDials(); syncAll(); render();
+</script>
+</body>
+</html>
