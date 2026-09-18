@@ -160,8 +160,9 @@ export function buildDesignPrompt(input, brief) {
     `- "outcomes": exactly 5, each one sentence (max 16 words), concrete things the agent will do for ${co}, ` +
     `naming the actual systems, documents, customers or moments from the brief. Not five ways of saying the ` +
     `same thing.\n` +
-    `- "mcps": 3-5 systems it plugs into, most important first, real product names (industry-specific ones ` +
-    `included).\n` +
+    `- "mcps": 3-5 systems it plugs into, most important first, as short real product names (max 3 words, ` +
+    `e.g. "HICAPS", "CargoWise", "Dental4Windows") — industry-specific ones included, no brackets or ` +
+    `explanations.\n` +
     `- "scene": one sentence starting "It is a" describing the agent as a small friendly robot dressed and ` +
     `equipped for THIS job in THIS business's setting — its outfit, one or two props, the place (e.g. "It is a ` +
     `recall agent wearing dental scrubs, holding a ringing phone and a stack of appointment cards at a bright ` +
