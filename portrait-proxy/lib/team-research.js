@@ -50,6 +50,13 @@ export function normaliseInput(body) {
   };
 }
 
+// Agent Hatchers sells to Australian businesses, and the prospect rarely says where they are.
+// Without this, "Preston" becomes a Lancashire town and a plumber gets CP12 certificates,
+// boilers and congestion charges instead of compliance certificates, hot-water units and tolls.
+const LOCALE_NOTE = `Assume the business is in Australia unless the website or description clearly says otherwise: ` +
+  `Australian place names, terms, regulators, health funds, awards, tax (BAS, GST, ATO), industry bodies, ` +
+  `suppliers and software. Never assume the UK or the US.`;
+
 function subject(input) {
   const who = input.company ? `"${input.company}"` : 'the prospect';
   const what = input.business ? `a ${input.business}` : (input.industry ? `a business in ${input.industry}` : 'a small business');
@@ -61,7 +68,7 @@ export function buildResearchPrompt(input) {
   const system =
     `You are a researcher preparing a brief for an operations consultant who is about to design AI agents ` +
     `for one specific small business. Your job is to understand THAT business properly before anyone ` +
-    `proposes anything. Think like someone who has worked a week inside it.\n\n` +
+    `proposes anything. Think like someone who has worked a week inside it. ${LOCALE_NOTE}\n\n` +
     `Research and write down, concretely and specifically for this kind of business${input.website ? ' and, where you can find it, this actual company' : ''}:\n` +
     `- who its customers are and how they arrive (walk-in, referral, tender, online, repeat)\n` +
     `- what a normal week is made of: the recurring jobs, the admin behind each one, the busy and quiet times\n` +
@@ -133,7 +140,7 @@ export function buildDesignPrompt(input, brief) {
   const co = input.company || 'the business';
   const system =
     `You are a sharp operations consultant who has worked inside hundreds of small businesses. You are ` +
-    `designing the AI agent team for ${subject(input)}. ` +
+    `designing the AI agent team for ${subject(input)}. ${LOCALE_NOTE} ` +
     (brief ? `A researcher has already written a brief on this business — design from it, not from generalities.\n\n` +
       `RESEARCH BRIEF\n${briefToText(brief)}\n\n` :
       `No research brief is available, so reason carefully yourself about what this specific kind of business ` +
