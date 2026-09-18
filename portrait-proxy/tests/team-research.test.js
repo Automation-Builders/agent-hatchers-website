@@ -84,6 +84,13 @@ test('the design prompt carries the brief in and bans the generic catalog names'
   assert.match(bare.system, /No research brief is available/);
 });
 
+test('both prompts default the business to Australia', () => {
+  const input = normaliseInput({ business: 'plumbing business in Preston', roster: ROSTER });
+  assert.match(buildResearchPrompt(input).system, /Assume the business is in Australia unless the website or description clearly says otherwise/);
+  assert.match(buildDesignPrompt(input, null).system, /Assume the business is in Australia/);
+  assert.match(buildDesignPrompt(input, null).system, /Never assume the UK or the US/);
+});
+
 test('validateBrief needs real roles and leaks', () => {
   const b = validateBrief(DENTAL_BRIEF);
   assert.equal(b.roles.length, 3);
