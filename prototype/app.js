@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 69;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 70;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -470,6 +470,45 @@
     ensureTeamPalette();
     saveSession();
   }
+  // ---------- Research pop: a little terminal that thinks out loud while the team is researched ----------
+  // The research takes ~20s and runs behind the create screen. Rather than a silent wait, a small
+  // console-style card cycles through status lines the way a coding agent does — mostly nonsense
+  // ("Caramelising onions"), sprinkled with what is genuinely happening ("Reading tanssu.com").
+  // Lives on document.body, so it survives every render() until the team lands.
+  const RESEARCH_LINES=['Caramelising onions','Jogging','Slowly completing','Reticulating splines','Sharpening pencils','Brewing a flat white','Warming the incubator','Polishing the eggs','Reading the fine print','Pondering','Untangling the headphones','Rehearsing the handshake','Ironing the lab coat','Counting the paperclips','Calling a mate in the trade','Doing the maths','Doing the maths again','Timing the kettle','Asking around at the pub','Watering the office plant','Herding the eggs','Finding the good stapler','Waiting for the printer','Refilling the biscuit tin','Squinting at the spreadsheet','Learning the jargon','Practising the phone voice','Stretching','Feeding the mascot','Alphabetising the invoices','Checking the group chat','Adjusting the beret','Reading it twice','Taking notes','Overthinking this','Nearly there','Choosing a font','Sitting in traffic','Rebooting the toaster'];
+  const SPIN_FRAMES=['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏'];
+  let rsPop=null,rsToken=0,rsTimers=[];
+  function researchPopStart(){
+    researchPopStop();
+    const token=++rsToken;
+    const pop=document.createElement('div');pop.className='rs-pop';pop.setAttribute('role','status');pop.setAttribute('aria-live','polite');
+    pop.innerHTML=`<span class="rs-spin">${SPIN_FRAMES[0]}</span><span class="rs-line">Researching your business…</span><span class="rs-time">0s</span>`;
+    document.body.appendChild(pop);rsPop=pop;
+    requestAnimationFrame(()=>pop.classList.add('show'));
+    const spin=pop.querySelector('.rs-spin'),line=pop.querySelector('.rs-line'),time=pop.querySelector('.rs-time');
+    const started=Date.now();let frame=0;
+    // The true lines, dealt in among the silly ones so the card is honest as well as fun.
+    const biz=(state.biz||'business').replace(/\s*\([^)]*\)\s*$/,'');
+    const real=[`Working out what a ${biz} does all week`,`Listing who a ${biz} hires`,`Finding the software a ${biz} runs on`,`Spotting where a ${biz} loses hours`,'Designing six agents','Naming them properly'];
+    if(state.website)real.splice(1,0,`Reading ${state.website}`);
+    const silly=[...RESEARCH_LINES].sort(()=>Math.random()-.5);
+    let n=0;
+    const next=()=>{if(token!==rsToken)return;const pick=(n%3===2||!silly.length)?(real.shift()||silly.shift()):(silly.shift()||real.shift());n++;if(!pick)return;line.classList.add('swap');setTimeout(()=>{if(token!==rsToken)return;line.textContent=pick+'…';line.classList.remove('swap');},160);};
+    rsTimers.push(setInterval(()=>{if(token!==rsToken)return;spin.textContent=SPIN_FRAMES[frame=(frame+1)%SPIN_FRAMES.length];time.textContent=Math.round((Date.now()-started)/1000)+'s';},90));
+    rsTimers.push(setTimeout(()=>{next();rsTimers.push(setInterval(next,2100));},1500));
+  }
+  // Called when the research resolves. `result` is state.team (or null if abandoned).
+  function researchPopDone(result){
+    if(!rsPop)return;const pop=rsPop;const token=rsToken;
+    rsTimers.forEach(clearTimeout);rsTimers=[];
+    const n=result&&result.ids?result.ids.length:0;
+    const biz=(state.biz||'your business').replace(/\s*\([^)]*\)\s*$/,'');
+    const msg=!result?'':result.source==='fallback'?`Couldn’t reach the researcher — went with our best ${n} picks.`:`Done — ${n} agents, written for a ${biz}.`;
+    if(!msg){researchPopStop();return;}
+    pop.classList.add('done');pop.querySelector('.rs-spin').textContent='✓';pop.querySelector('.rs-line').textContent=msg;
+    rsTimers.push(setTimeout(()=>{if(token===rsToken)researchPopStop();},4200));
+  }
+  function researchPopStop(){rsToken++;rsTimers.forEach(clearTimeout);rsTimers=[];if(rsPop){const p=rsPop;rsPop=null;p.classList.remove('show');setTimeout(()=>p.remove(),300);}}
   // Tabs the prospect can see but not open yet — the padlock is the point.
   const LOCKED_TABS={analytics:'Analytics unlocks once your agent is live'};
   let lockNoteTimer=0;
@@ -1524,7 +1563,8 @@
         const connectors=[...new Set(catalog.flatMap(a=>a.mcps).concat(TOOLS.map(t=>t.n)))];
         // Research normally lands while they're still naming the agent; if they beat it to the
         // dashboard, redraw so the team shows its real names rather than the stock ones.
-        researchTeam(biz,text&&ind&&ind.noun?`${text} (${ind.label.toLowerCase()})`:biz,{industry:ind&&ind.label!==OTHER?ind.label:'',connectors}).then(()=>{if(state.step>=4&&!VIEW_ONLY)render();});
+        researchPopStart();
+        researchTeam(biz,text&&ind&&ind.noun?`${text} (${ind.label.toLowerCase()})`:biz,{industry:ind&&ind.label!==OTHER?ind.label:'',connectors}).then(()=>{if(state.teamBusy)return;researchPopDone(state.team);if(state.step>=4&&!VIEW_ONLY)render();});
         render()}
       if(a==='generate'){const input=document.getElementById('agent-name');const name=input.value.trim();if(!name){input.focus();input.setAttribute('aria-invalid','true');return}state.name=name;const coIn=document.getElementById('agent-co');if(coIn)state.company=coIn.value.trim();const bizIn=document.getElementById('agent-biz');state.biz=bizIn?bizIn.value.trim():'';const lookTa=document.getElementById('agent-look');state.look=(lookTa&&lookTa.value.trim())||(hasReference()?'a friendly robot mascot':'a friendly rounded robot in blue and white');generateAgents()}
       if(a==='redesign'){if(hatchesLeft()){state.step=2;render()}else hatchPop()}
@@ -1548,7 +1588,7 @@
         const s=state.slots[state.variant];
         state.selectedImage=(s&&s.image)||state.selectedImage||((state.slots.find(x=>x&&x.image)||{}).image)||'';
         document.querySelectorAll('.confetti').forEach(c=>c.remove());if(window.ahTrack)ahTrack('DemoComplete');state.step=4;render();generateMarket()}
-      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.website='';state.tools=[];state.toolsOpen=false;state.look='';state.team=null;state.teamBusy=false;state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.added=[];state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='reset'){researchPopStop();state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.website='';state.tools=[];state.toolsOpen=false;state.look='';state.team=null;state.teamBusy=false;state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.added=[];state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-egg]').forEach(el=>{
       // Select a design the moment it's hatched — direct DOM updates only, so picking
