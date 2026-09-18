@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 68;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 69;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -17,7 +17,7 @@
     {id:'website',icon:'◇',name:'Website Agent',industries:['all'],keywords:['website','content','publish','webflow','wordpress','page','blog','copy','web','online'],summary:'Keeps website content accurate, on-brand and ready for approval before publishing.',portrait:'/hatchy-website.webp',team:'Marketing',scene:'It is a website agent wearing a comfy hoodie and headphones around its neck, at a dual-monitor desk in a loft studio at night editing a colourful online storefront, with sticky notes on the window and a small cactus by the keyboard.',mcps:['GitHub','Webflow','WordPress','Google Drive','Slack'],outcomes:['Draft new website pages','Update approved copy and details','Check pages for stale information','Prepare search-friendly metadata','Publish only after human approval']},
     {id:'operations',icon:'✓',name:'Operations Agent',industries:['professional-services','construction','healthcare','all'],keywords:['operations','workflow','project','task','deadline','schedule','coordination','process','compliance','ops','clinic','manufacturing'],summary:'Coordinates repeatable workflows and keeps teams informed when work changes state.',portrait:'/hatchy-routing.webp',team:'Operations',scene:'It is an operations agent wearing a project-manager lanyard and holding a marker, standing at a wall-sized kanban board covered in swim-lanes and sticky notes in a bright planning room, with interlocking gears drawn on a whiteboard behind it.',mcps:['Monday.com','Asana','Notion','Slack','Microsoft Teams'],outcomes:['Turn requests into structured work','Monitor deadlines and blockers','Prepare daily operating summaries','Chase missing information','Escalate exceptions to the right person']}
   ];
-  const state = {step:0,name:'',biz:'',industry:'',tools:[],toolsOpen:false,look:'',team:null,teamBusy:false,refPhoto:'',brand:null,refBusy:false,refError:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketRefKey:'',marketStarted:false,added:[],tab:'profiles',chatActive:0,chatExtra:{},chatTyping:{},company:'',editUses:0,profiles:[],sid:'',startedAt:0,merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
+  const state = {step:0,name:'',biz:'',industry:'',website:'',tools:[],toolsOpen:false,look:'',team:null,teamBusy:false,refPhoto:'',brand:null,refBusy:false,refError:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketRefKey:'',marketStarted:false,added:[],tab:'profiles',chatActive:0,chatExtra:{},chatTyping:{},company:'',editUses:0,profiles:[],sid:'',startedAt:0,merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
   const root = document.getElementById('prototype-app');
   const co = () => state.company || config.company || 'Your Company';
   const DESIGN_AXES={
@@ -78,29 +78,41 @@
     const allowed={returns:retail,logistics:retail||freight||(!service&&/\b(logistics|distribution)\b/.test(text)),inventory:retail||stock};
     return catalog.filter(a=>Object.hasOwn(allowed,a.id)?allowed[a.id]:a.industries.includes('all'));
   }
-  function rankAgents(){const text=businessText();const boost=bizBoost(text);return eligibleAgents().map((agent,index)=>{let score=boost[agent.id]||0;agent.keywords.forEach(k=>{if(text.includes(k))score+=4});if(agent.industries.includes(text.trim()))score+=2;if(recommended.has(agent.id))score+=1;return{agent,score,index};}).sort((a,b)=>b.score-a.score||a.index-b.index);}
+  // The researched team overrides the stock catalog entry it is based on: same id (so art,
+  // portraits, categories, eligibility and hand-offs keep working), but the name, one-liner,
+  // outcomes, tools and portrait scene are the ones written for THIS business. Everything that
+  // shows an agent goes through agentById/liveCatalog so a "Recall & Rebooking Agent" never
+  // turns back into a "Support Agent" halfway through the dashboard.
+  const agentById=id=>{const a=catalog.find(x=>x.id===id);if(!a)return null;const o=state.team&&state.team.agents&&state.team.agents[id];return o?{...a,...o,bespoke:true}:a;};
+  const liveCatalog=()=>catalog.map(a=>agentById(a.id));
+  function rankAgents(){const text=businessText();const boost=bizBoost(text);const teamIds=(state.team&&state.team.ids)||[];return eligibleAgents().map(a=>agentById(a.id)).map((agent,index)=>{let score=boost[agent.id]||0;const t=teamIds.indexOf(agent.id);if(t>=0)score+=10000-t*100;agent.keywords.forEach(k=>{if(text.includes(k))score+=4});if(agent.industries.includes(text.trim()))score+=2;if(recommended.has(agent.id))score+=1;return{agent,score,index};}).sort((a,b)=>b.score-a.score||a.index-b.index);}
   // The 6 best-matched agents for this business get generated portraits + the Recommended row.
   // The researched/ranked six, plus anything the prospect added from the Marketplace.
   const topAgents = () => {
     const eligible=eligibleAgents();
-    const suggested=Array.isArray(state.team?.ids)?[...new Set(state.team.ids)].map(id=>eligible.find(a=>a.id===id)).filter(Boolean):[];
+    const suggested=Array.isArray(state.team?.ids)?[...new Set(state.team.ids)].map(id=>eligible.find(a=>a.id===id)).filter(Boolean).map(a=>agentById(a.id)):[];
     const base=suggested.length?suggested:rankAgents().slice(0,6).map(r=>r.agent);
     // Explicit additions are user choices, not stale model recommendations. Preserve them
     // in Profiles/Chats on restore; never offer a new ineligible marketplace addition.
-    (state.added||[]).forEach(id=>{const a=catalog.find(x=>x.id===id);if(a&&!base.includes(a))base.push(a);});
+    (state.added||[]).forEach(id=>{const a=agentById(id);if(a&&!base.some(b=>b.id===a.id))base.push(a);});
     return base;
   };
   // "Add to your team" on a Marketplace card: the portrait is already drawn, so joining is
   // free and instant — the card turns green and the agent shows up under Profiles and Chats.
   function addAgent(id){
-    const agent=eligibleAgents().find(a=>a.id===id);if(!agent||topAgents().includes(agent))return;
+    const agent=eligibleAgents().some(a=>a.id===id)?agentById(id):null;if(!agent||topAgents().some(t=>t.id===agent.id))return;
     state.added=[...(state.added||[]),id];celebrate();render();
     document.querySelectorAll('.create-pop').forEach(p=>p.remove());
     const pop=document.createElement('div');pop.className='create-pop wb-pop';pop.innerHTML=`${ci.check}<span><b>${escapeHtml(agent.name)}</b> joined your team — it’s now under Profiles and Chats.</span>`;
     document.body.appendChild(pop);setTimeout(()=>pop.classList.add('show'),10);setTimeout(()=>{pop.classList.remove('show');setTimeout(()=>pop.remove(),300)},4600);
   }
   // ---------- Team research: a model reasons about THIS business before we show a team ----------
-  async function researchTeam(biz,research=biz){
+  // The proxy researches the business first (roles, systems, where the hours go — with a web
+  // search when it can) and then designs six agents for it. Each comes back pinned to a catalog
+  // base with its own name, one-liner, outcomes, tools and portrait scene; v1 responses (id +
+  // does + job only) still work and just keep the stock names. `extra` carries the industry
+  // label and connector list from the caller.
+  async function researchTeam(biz,research=biz,extra={}){
     state.team=null;state.teamBusy=true;
     const started=Date.now();const mine=biz;
     const eligible=eligibleAgents();
@@ -109,12 +121,20 @@
     for(let attempt=0;attempt<2&&!result;attempt++){
       if(attempt) await sleep(600);
       try{
-        const res=await fetch(teamEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({business:research,roster})});
+        const res=await fetch(teamEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({business:research,industry:extra.industry||'',company:state.company||config.company||'',website:state.website||'',tools:state.tools||[],connectors:extra.connectors||[],roster})});
         const body=await res.json().catch(()=>({}));
         if(res.ok&&body&&Array.isArray(body.team)&&body.team.length>=4){
-          const lines={};const ids=[];
-          body.team.forEach(t=>{const a=eligible.find(x=>x.id===t?.id);if(a&&!ids.includes(a.id)){ids.push(a.id);lines[a.id]={does:String(t.does||PLAIN[a.id].does),job:String(t.job||PLAIN[a.id].job)};}});
-          if(ids.length>=4) result={ids:ids.slice(0,6),lines,intro:String(body.intro||''),source:'ai'};
+          const lines={};const ids=[];const agents={};
+          body.team.forEach(t=>{const a=eligible.find(x=>x.id===t?.id);if(a&&!ids.includes(a.id)){ids.push(a.id);lines[a.id]={does:String(t.does||PLAIN[a.id].does),job:String(t.job||PLAIN[a.id].job)};
+            const name=String(t.name||'').trim();
+            if(name&&name.toLowerCase()!==a.name.toLowerCase()){
+              const o={name:name.slice(0,44),summary:String(t.does||a.summary).slice(0,170)};
+              const outcomes=(Array.isArray(t.outcomes)?t.outcomes:[]).map(x=>String(x).trim()).filter(Boolean).slice(0,5);if(outcomes.length>=4)o.outcomes=outcomes;
+              const mcps=[...new Set((Array.isArray(t.mcps)?t.mcps:[]).map(x=>String(x).trim()).filter(Boolean))].slice(0,6);if(mcps.length>=2)o.mcps=mcps;
+              const scene=String(t.scene||'').trim();if(/^it is a/i.test(scene))o.scene=scene.slice(0,300);
+              agents[a.id]=o;
+            }}});
+          if(ids.length>=4) result={ids:ids.slice(0,6),lines,agents,intro:String(body.intro||''),source:body.researched?'research':'ai',researched:!!body.researched};
         }
         if(res.status===400) break;
       }catch(e){/* retry then fall back */}
@@ -122,7 +142,7 @@
     if(!result){
       // Keyword ranking with the stock lines — the page still works if the proxy is down.
       state.team=null;const ids=rankAgents().slice(0,6).map(r=>r.agent.id);
-      result={ids,lines:Object.fromEntries(ids.map(id=>[id,{does:PLAIN[id].does,job:PLAIN[id].job}])),intro:'',source:'fallback'};
+      result={ids,lines:Object.fromEntries(ids.map(id=>[id,{does:PLAIN[id].does,job:PLAIN[id].job}])),agents:{},intro:'',source:'fallback'};
     }
     // Let the research read as research — never flash the answer in under two seconds.
     const wait=Math.max(0,2400-(Date.now()-started));if(wait) await sleep(wait);
@@ -339,9 +359,9 @@
     const profiles=await Promise.all(state.profiles.filter(p=>p.status==='complete'||p.status==='deleted').map(async p=>({name:p.name,desc:p.desc,status:p.status,img:await thumb(p.img,240),profile:p.profile||null})));
     let chatNames=[];try{chatNames=chatProfiles().all.map(x=>x.name);}catch(e){}
     return {sid:state.sid,v:1,build:BUILD,page:location.pathname,startedAt:state.startedAt,savedAt:Date.now(),ua:navigator.userAgent.slice(0,160),
-      company:co(),name:state.name,biz:state.biz,industry:state.industry,tools:state.tools||[],look:state.look,step:state.step,tab:state.tab,done:state.done,editUses:state.editUses,
+      company:co(),name:state.name,biz:state.biz,industry:state.industry,website:state.website||'',tools:state.tools||[],look:state.look,step:state.step,tab:state.tab,done:state.done,editUses:state.editUses,
       brand:state.brand?{name:state.brand.name,url:state.brand.url,colors:state.brand.colors}:null,hadPhoto:!!state.refPhoto,
-      team:state.team?{ids:state.team.ids,intro:state.team.intro,source:state.team.source,lines:state.team.lines}:null,
+      team:state.team?{ids:state.team.ids,intro:state.team.intro,source:state.team.source,researched:!!state.team.researched,lines:state.team.lines,agents:state.team.agents||{}}:null,
       variant:state.variant,selectedImage:await thumb(state.selectedImage),slots,market,profiles,chats:state.chatExtra||{},chatNames};
   }
 
@@ -415,7 +435,7 @@
       d=await r.json();
     }
     catch(e){return fail(share?(e.message||'We couldn’t open this preview.'):'Could not load this session: '+e.message);}
-    ['name','company','biz','industry','tools','look','team','brand','variant','selectedImage','editUses'].forEach(k=>{if(d[k]!==undefined&&d[k]!==null)state[k]=d[k];});
+    ['name','company','biz','industry','website','tools','look','team','brand','variant','selectedImage','editUses'].forEach(k=>{if(d[k]!==undefined&&d[k]!==null)state[k]=d[k];});
     state.tools=cleanTools(state.tools);
     state.sid=d.sid||REVIEW_SID;state.startedAt=Number(d.startedAt)||0;
     state.slots=(d.slots||[]).map(im=>im?{status:'ready',image:im}:null);
@@ -507,7 +527,7 @@
     const options=INDUSTRIES.map(i=>`<li class="intro-option${i.label===state.industry?' is-on':''}" role="option" tabindex="-1" aria-selected="${i.label===state.industry}" data-industry="${escapeHtml(i.label)}">${escapeHtml(i.label)}</li>`).join('');
     const fieldLabel=other?'What does your business do?':ind?'Anything more specific? <span class="intro-optional">(optional)</span>':'Or just tell us what you do';
     const placeholder=ind?ind.eg:'e.g. dental clinic, online clothing shop, plumber';
-    return `<div class="stage welcome-grid intro"><div><span class="eyebrow">Agent Hatchers</span><h1 class="welcome-title intro-title">What can our agents do for you?</h1><p class="intro-lead">Tell us what your business does and we’ll work out which agents would actually help.</p><span class="intro-label" id="biz-industry-label">Your industry</span><div class="intro-select-wrap" id="biz-industry"><button type="button" class="name-field intro-select${ind?'':' is-empty'}" id="biz-industry-btn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="biz-industry-label biz-industry-btn">${escapeHtml(ind?ind.label:'Choose your industry…')}</button><ul class="intro-menu" id="biz-industry-menu" role="listbox" aria-labelledby="biz-industry-label" hidden>${options}</ul></div><label class="intro-label" for="biz-intro">${fieldLabel}</label><div class="mic-field intro-field"><input class="name-field" id="biz-intro" maxlength="60" autocomplete="off" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(state.biz)}" aria-label="What your business does"><button type="button" class="mic-btn" data-mic="biz-intro" aria-label="Dictate what your business does">${micSvg}</button></div>${toolPicker()}<div class="actions">${button('Next →','team')}</div></div><div class="welcome-art" aria-hidden="true">${hatch5()}</div></div>`;
+    return `<div class="stage welcome-grid intro"><div><span class="eyebrow">Agent Hatchers</span><h1 class="welcome-title intro-title">What can our agents do for you?</h1><p class="intro-lead">Tell us what your business does and we’ll work out which agents would actually help.</p><span class="intro-label" id="biz-industry-label">Your industry</span><div class="intro-select-wrap" id="biz-industry"><button type="button" class="name-field intro-select${ind?'':' is-empty'}" id="biz-industry-btn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="biz-industry-label biz-industry-btn">${escapeHtml(ind?ind.label:'Choose your industry…')}</button><ul class="intro-menu" id="biz-industry-menu" role="listbox" aria-labelledby="biz-industry-label" hidden>${options}</ul></div><label class="intro-label" for="biz-intro">${fieldLabel}</label><div class="mic-field intro-field"><input class="name-field" id="biz-intro" maxlength="120" autocomplete="off" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(state.biz)}" aria-label="What your business does"><button type="button" class="mic-btn" data-mic="biz-intro" aria-label="Dictate what your business does">${micSvg}</button></div><label class="intro-label" for="biz-site">Your website <span class="intro-optional">(optional — we’ll research what you actually do)</span></label><div class="intro-field"><input class="name-field" id="biz-site" maxlength="120" autocomplete="url" inputmode="url" placeholder="e.g. tanssu.com" value="${escapeHtml(state.website)}" aria-label="Your website"></div>${toolPicker()}<div class="actions">${button('Next →','team')}</div></div><div class="welcome-art" aria-hidden="true">${hatch5()}</div></div>`;
   }
   // Screen 2 — the agents for that business, what each does, and how they hand work on.
   function nameScreen(){return `<div class="stage"><span class="eyebrow">Create a profile</span><h2>Create your agent</h2><p>Give it a name, tell us your type of company, and describe how it should look. You’ll pick specialist agents (sales, invoices, support…) from the marketplace next.</p><label class="field-label" for="agent-co">Company name</label><input class="name-field" id="agent-co" maxlength="40" autocomplete="off" placeholder="Company name — e.g. Tanssu" value="${escapeHtml(state.company||config.company||'')}" aria-label="Company name"><label class="field-label" for="agent-name">Agent name</label><input class="name-field" id="agent-name" maxlength="28" autocomplete="off" placeholder="Agent name — e.g. Pip, Scout or Atlas" value="${escapeHtml(state.name)}" aria-label="Agent name"><label class="field-label" for="agent-biz">Type of company</label><input class="name-field" id="agent-biz" maxlength="60" autocomplete="off" placeholder="e.g. dental clinic, online clothing shop, plumber" value="${escapeHtml(state.biz)}" aria-label="Type of company"><label class="field-label" for="agent-look">Image description</label><div class="mic-field"><textarea class="look-field" id="agent-look" placeholder="e.g. a friendly rounded robot holding a suitcase — or leave it to the photo / website below" aria-label="Image description">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div>${referenceBlock()}<div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
@@ -657,7 +677,7 @@
   // Two of the recommended agents are already switched on for the prospect's company, so the
   // board shows what "running" looks like next to the freshly hatched one.
   const RUNNING=['documents','sales'];
-  const runningAgents=()=>RUNNING.map(id=>catalog.find(a=>a.id===id)).filter(Boolean);
+  const runningAgents=()=>RUNNING.map(agentById).filter(Boolean);
   function profilesBoard(){
     const running=runningAgents();
     const rec=topAgents().filter(a=>!RUNNING.includes(a.id));
@@ -688,7 +708,7 @@
   async function fetchChatReply(question,agentName,history,turn){
     if(SHARE_TOKEN)return `This is a preview of ${agentName||'your agent'} — chat comes alive once we hatch it for real. Ask Agent Hatchers and we'll set it up.`;
     if(REVIEW_SID)return 'This is a saved session in review — chat is switched off here.';
-    const roster=catalog.map(a=>({name:a.name,summary:a.summary,mcps:a.mcps}));
+    const roster=liveCatalog().map(a=>({name:a.name,summary:a.summary,mcps:a.mcps}));
     for(let attempt=0;attempt<2;attempt++){
       if(attempt) await sleep(700);
       try{
@@ -719,7 +739,7 @@
       if(who==='pay')return `<div class="msg them"><div class="bubble paywall"><span class="pay-ic">${ci.key}</span><span>${escapeHtml(t)}</span><button class="btn pay-btn" data-noop="1">Unlock ${escapeHtml(activeName)}</button></div></div>`;
       if(who==='typing')return `<div class="msg them"><span class="msg-ava">${activeAv}</span><div class="bubble typing"><i></i><i></i><i></i></div></div>`;
       if(who==='them'){
-        const mentioned=catalog.filter(a=>t.includes(a.name));
+        const mentioned=liveCatalog().filter(a=>t.includes(a.name));
         const chips=mentioned.length?`<div class="chat-recs">${mentioned.map(a=>`<button class="chat-rec" data-agent="${a.id}"><img src="${escapeHtml(state.marketImages[a.id]||a.portrait)}" alt="">${a.name}</button>`).join('')}</div>`:'';
         return `<div class="msg them"><span class="msg-ava">${activeAv}</span><div class="bubble-wrap"><div class="bubble">${escapeHtml(t).replace(/\n/g,'<br>')}</div>${chips}</div></div>`;
       }
@@ -797,7 +817,7 @@
   const MERCH_SIZES=['S','M','L','XL','2XL','3XL','4XL'];
   function merchRobots(){
     const you={id:'__you',name:state.name||'Your agent',img:state.selectedImage||'/hatchy-pop.webp'};
-    return [you,...catalog.map(a=>({id:a.id,name:a.name.replace(' Agent','').toLowerCase()+'-agent',img:state.marketImages[a.id]||a.portrait}))];
+    return [you,...liveCatalog().map(a=>({id:a.id,name:a.name.replace(' Agent','').toLowerCase()+'-agent',img:state.marketImages[a.id]||a.portrait}))];
   }
   function merchRobotImg(){const r=merchRobots().find(r=>r.id===state.merch.robot)||merchRobots()[0];return r.img;}
   function garmentSvg(kind,color){
@@ -1053,7 +1073,7 @@
   }
   async function researchProfile(p){
     if(VIEW_ONLY)return null;                                      // previews spend nothing
-    const roster=catalog.map(a=>({id:a.id,name:a.name,summary:a.summary}));
+    const roster=liveCatalog().map(a=>({id:a.id,name:a.name,summary:a.summary}));
     const connectors=[...new Set(catalog.flatMap(a=>a.mcps).concat(Object.keys(MCP_MONO)))];
     for(let attempt=0;attempt<2;attempt++){
       if(p.cancelled)return null;
@@ -1106,7 +1126,7 @@
   function showProfile(p){
     const pr=p.profile||fallbackProfile(p);
     const backdrop=document.createElement('div');backdrop.className='modal-backdrop';
-    const mates=pr.mates.map(mid=>{const m=catalog.find(a=>a.id===mid);if(!m)return '';const av=state.marketImages[m.id]||m.portrait;return `<button class="mate" data-mate="${m.id}"><span class="mate-ava"><img src="${escapeHtml(av)}" alt=""></span><span class="mate-meta"><b>${m.name}</b><i>${m.team}</i></span></button>`;}).join('');
+    const mates=pr.mates.map(mid=>{const m=agentById(mid);if(!m)return '';const av=state.marketImages[m.id]||m.portrait;return `<button class="mate" data-mate="${m.id}"><span class="mate-ava"><img src="${escapeHtml(av)}" alt=""></span><span class="mate-meta"><b>${m.name}</b><i>${m.team}</i></span></button>`;}).join('');
     backdrop.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-labelledby="np-title"><div class="modal-top"><div><span class="eyebrow">Agent profile</span><h2 id="np-title">${escapeHtml(p.name)}</h2></div><button class="close" aria-label="Close">×</button></div>
       <p>${escapeHtml(pr.summary)}</p>
       <div class="profile-cols"><div><h3>What this agent can do for ${escapeHtml(co())}</h3><p class="tailored-note"><span class="tailored-pill">Tailored</span>Worked out from your description${pr.source==='ai'?' by a model that read it':''}.</p><div class="checks">${pr.outcomes.map(o=>`<div class="check"><i>✓</i><span>${escapeHtml(o)}</span></div>`).join('')}</div></div><div class="profile-art"><img src="${escapeHtml(p.img)}" alt="${escapeHtml(p.name)}"></div></div>
@@ -1220,8 +1240,12 @@
     returns:(c,b)=>[`Handle ${c}'s return and refund requests end to end`,`Apply ${c}'s returns policy the same way every time`,`Spot the products a ${b} gets sent back most`,`Keep customers updated so nobody has to chase ${c}`,`Turn returns into a short weekly report for ${c}`],
     support:(c,b)=>[`Answer ${c}'s customers' common questions instantly, day or night`,`Know a ${b}'s hours, pricing and policies by heart`,`Escalate the tricky ones to a person at ${c} with full context`,`Follow up until each ${c} customer is actually sorted`,`Track what ${c}'s customers keep asking about`]
   };
-  function tailoredOutcomes(agent){const fn=TAILORED[agent.id];return fn?fn(co(),state.biz||'your business'):agent.outcomes;}
-  function showAgent(id){const agent=catalog.find(a=>a.id===id);if(!agent)return;const tailoredLead=state.team?.lines?.[agent.id]?.does||'';const backdrop=document.createElement('div');backdrop.className='modal-backdrop';backdrop.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-labelledby="agent-title"><div class="modal-top"><div><span class="eyebrow">Agent profile</span><h2 id="agent-title">${agent.name}</h2></div><button class="close" aria-label="Close agent profile">×</button></div><p>${agent.summary}</p><div class="profile-cols"><div><h3>What this agent can do for ${escapeHtml(co())}</h3><p class="tailored-note"><span class="tailored-pill">Tailored</span>Written for a ${escapeHtml(state.biz||'business')}${state.industry&&state.industry!==OTHER?` in ${escapeHtml(state.industry.toLowerCase())}`:''}.${tailoredLead?` <b>${escapeHtml(tailoredLead)}</b>`:''}</p><div class="checks">${tailoredOutcomes(agent).map(o=>`<div class="check"><i>✓</i><span>${escapeHtml(o)}</span></div>`).join('')}</div></div><div class="profile-art"><img src="${escapeHtml(state.marketImages[agent.id]||agent.portrait)}" alt="${agent.name}"></div></div>${mcpSection(escapeHtml(agent.name),agent.mcps,AGENT_CATS[agent.id])}<h3>Works well with</h3><p>Agents that share hand-offs with ${agent.name} — hatch them together as a team.</p><div class="mate-row">${(WORKS_WITH[agent.id]||[]).map(mid=>{const m=catalog.find(a=>a.id===mid);if(!m)return '';const av=state.marketImages[m.id]||m.portrait;return `<button class="mate" data-mate="${m.id}"><span class="mate-ava"><img src="${escapeHtml(av)}" alt=""></span><span class="mate-meta"><b>${m.name}</b><i>${m.team}</i></span></button>`;}).join('')}</div></section>`;document.body.appendChild(backdrop);const close=()=>backdrop.remove();backdrop.querySelector('.close').onclick=close;backdrop.querySelectorAll('[data-mate]').forEach(b=>b.onclick=()=>{close();showAgent(b.dataset.mate);});backdrop.onclick=e=>{if(e.target===backdrop)close()};document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc)}},{once:true});}
+  // Who an agent hands work to. The stock map pairs catalog roles (support ↔ returns ↔
+  // logistics); a researched team hands off within itself — a dental recall agent works with
+  // the claims and treatment-plan agents, not a returns desk it doesn't have.
+  function matesFor(agent){const stock=WORKS_WITH[agent.id]||[];if(!agent.bespoke||!state.team)return stock;const team=(state.team.ids||[]).filter(id=>id!==agent.id);return [...new Set([...stock.filter(id=>team.includes(id)),...team])].slice(0,3);}
+  function tailoredOutcomes(agent){if(agent.bespoke&&Array.isArray(agent.outcomes)&&agent.outcomes.length>=4)return agent.outcomes;const fn=TAILORED[agent.id];return fn?fn(co(),state.biz||'your business'):agent.outcomes;}
+  function showAgent(id){const agent=agentById(id);if(!agent)return;const tailoredLead=state.team?.lines?.[agent.id]?.does||'';const backdrop=document.createElement('div');backdrop.className='modal-backdrop';backdrop.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-labelledby="agent-title"><div class="modal-top"><div><span class="eyebrow">Agent profile</span><h2 id="agent-title">${agent.name}</h2></div><button class="close" aria-label="Close agent profile">×</button></div><p>${agent.summary}</p><div class="profile-cols"><div><h3>What this agent can do for ${escapeHtml(co())}</h3><p class="tailored-note"><span class="tailored-pill">Tailored</span>Written for a ${escapeHtml(state.biz||'business')}${state.industry&&state.industry!==OTHER?` in ${escapeHtml(state.industry.toLowerCase())}`:''}.${tailoredLead?` <b>${escapeHtml(tailoredLead)}</b>`:''}</p><div class="checks">${tailoredOutcomes(agent).map(o=>`<div class="check"><i>✓</i><span>${escapeHtml(o)}</span></div>`).join('')}</div></div><div class="profile-art"><img src="${escapeHtml(state.marketImages[agent.id]||agent.portrait)}" alt="${agent.name}"></div></div>${mcpSection(escapeHtml(agent.name),agent.mcps,AGENT_CATS[agent.id])}<h3>Works well with</h3><p>Agents that share hand-offs with ${agent.name} — hatch them together as a team.</p><div class="mate-row">${matesFor(agent).map(mid=>{const m=agentById(mid);if(!m)return '';const av=state.marketImages[m.id]||m.portrait;return `<button class="mate" data-mate="${m.id}"><span class="mate-ava"><img src="${escapeHtml(av)}" alt=""></span><span class="mate-meta"><b>${m.name}</b><i>${m.team}</i></span></button>`;}).join('')}</div></section>`;document.body.appendChild(backdrop);const close=()=>backdrop.remove();backdrop.querySelector('.close').onclick=close;backdrop.querySelectorAll('[data-mate]').forEach(b=>b.onclick=()=>{close();showAgent(b.dataset.mate);});backdrop.onclick=e=>{if(e.target===backdrop)close()};document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc)}},{once:true});}
   function celebrate(){const c=document.createElement('div');c.className='confetti';for(let i=0;i<38;i++){const s=document.createElement('span');s.style.left=`${Math.random()*100}%`;s.style.background=['#216bac','#c1dce8','#ffb36b','#59c6ad'][i%4];s.style.animationDelay=`${Math.random()*.5}s`;c.appendChild(s)}document.body.appendChild(c);setTimeout(()=>c.remove(),2400)}
 
   let activeRec=null;
@@ -1364,7 +1388,7 @@
         <input type="file" id="ref-file" accept="image/*" hidden>
         <div class="ref-drop" tabindex="0" role="button" aria-label="Add a photo"><span class="ref-ico">📷</span><div><strong>Drop in a photo</strong> of someone, or <button type="button" class="ref-browse" data-ref-browse>browse</button> — pasting works too<br><span class="ref-sub">We’ll hatch a robot version of them.</span></div></div>
         <div class="ref-or">or</div>
-        <div class="ref-url"><span class="ref-ico">🌐</span><input type="text" id="ref-url" placeholder="Paste a website — e.g. tanssu.com" autocomplete="off" aria-label="Website address" ${state.refBusy?'disabled':''}><button type="button" class="btn btn-secondary ref-go" data-ref-go ${state.refBusy?'disabled':''}>${state.refBusy?'Reading…':'Use its brand'}</button></div>
+        <div class="ref-url"><span class="ref-ico">🌐</span><input type="text" id="ref-url" placeholder="Paste a website — e.g. tanssu.com" autocomplete="off" aria-label="Website address" value="${escapeHtml(state.brand?'':(state.website||''))}" ${state.refBusy?'disabled':''}><button type="button" class="btn btn-secondary ref-go" data-ref-go ${state.refBusy?'disabled':''}>${state.refBusy?'Reading…':'Use its brand'}</button></div>
         <div class="ref-sub ref-url-sub">We’ll pull its brand colours and logo and match the look.</div>
       </div>
       ${state.refError?`<div class="ref-error">${escapeHtml(state.refError)}</div>`:''}
@@ -1496,7 +1520,12 @@
       const a=el.dataset.action;
       if(a==='back'){state.step=state.step===2?0:Math.max(0,state.step-1);render()}
       if(a==='next'){state.step++;render()}
-      if(a==='team'){const input=document.getElementById('biz-intro');const text=input?input.value.trim():'';const ind=industryOf(state.industry);const biz=text||(ind&&ind.noun)||'';if(!biz){input?.focus();input?.setAttribute('aria-invalid','true');return}state.biz=biz;if(window.ahTrack)ahTrack('DemoStart');state.step=2;researchTeam(biz,text&&ind&&ind.noun?`${text} (${ind.label.toLowerCase()})`:biz);render()}
+      if(a==='team'){const input=document.getElementById('biz-intro');const text=input?input.value.trim():'';const ind=industryOf(state.industry);const biz=text||(ind&&ind.noun)||'';if(!biz){input?.focus();input?.setAttribute('aria-invalid','true');return}state.biz=biz;const site=document.getElementById('biz-site');state.website=site?site.value.trim().replace(/^https?:\/\//i,'').replace(/\/.*$/,'').slice(0,120):'';if(window.ahTrack)ahTrack('DemoStart');state.step=2;
+        const connectors=[...new Set(catalog.flatMap(a=>a.mcps).concat(TOOLS.map(t=>t.n)))];
+        // Research normally lands while they're still naming the agent; if they beat it to the
+        // dashboard, redraw so the team shows its real names rather than the stock ones.
+        researchTeam(biz,text&&ind&&ind.noun?`${text} (${ind.label.toLowerCase()})`:biz,{industry:ind&&ind.label!==OTHER?ind.label:'',connectors}).then(()=>{if(state.step>=4&&!VIEW_ONLY)render();});
+        render()}
       if(a==='generate'){const input=document.getElementById('agent-name');const name=input.value.trim();if(!name){input.focus();input.setAttribute('aria-invalid','true');return}state.name=name;const coIn=document.getElementById('agent-co');if(coIn)state.company=coIn.value.trim();const bizIn=document.getElementById('agent-biz');state.biz=bizIn?bizIn.value.trim():'';const lookTa=document.getElementById('agent-look');state.look=(lookTa&&lookTa.value.trim())||(hasReference()?'a friendly robot mascot':'a friendly rounded robot in blue and white');generateAgents()}
       if(a==='redesign'){if(hatchesLeft()){state.step=2;render()}else hatchPop()}
       if(a==='edit-look'){openEditLook()}
@@ -1519,7 +1548,7 @@
         const s=state.slots[state.variant];
         state.selectedImage=(s&&s.image)||state.selectedImage||((state.slots.find(x=>x&&x.image)||{}).image)||'';
         document.querySelectorAll('.confetti').forEach(c=>c.remove());if(window.ahTrack)ahTrack('DemoComplete');state.step=4;render();generateMarket()}
-      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.tools=[];state.toolsOpen=false;state.look='';state.team=null;state.teamBusy=false;state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.added=[];state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='reset'){state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.website='';state.tools=[];state.toolsOpen=false;state.look='';state.team=null;state.teamBusy=false;state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.added=[];state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-egg]').forEach(el=>{
       // Select a design the moment it's hatched — direct DOM updates only, so picking

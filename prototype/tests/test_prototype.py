@@ -76,6 +76,32 @@ class PrototypeContractTests(unittest.TestCase):
         self.assertIn("e.data.event==='calendly.event_scheduled'", self.app)
         self.assertIn(".book-frame{", self.css)
 
+    def test_team_is_researched_for_the_business_not_picked_from_stock_labels(self):
+        # Feedback (Sep 2026): the suggested agents were generic. The first screen now also asks
+        # for the website, the proxy researches the business (roles, systems, leaks — web search
+        # when it can) before designing six named roles, and every dashboard surface reads the
+        # researched names/outcomes/tools/scenes via agentById instead of the stock catalog.
+        team_fn = (ROOT.parent / "portrait-proxy" / "api" / "prototype-team.js").read_text()
+        research = (ROOT.parent / "portrait-proxy" / "lib" / "team-research.js").read_text()
+        self.assertIn('id="biz-site"', self.app)
+        self.assertIn("website:state.website||'',tools:state.tools||[],connectors:extra.connectors||[],roster", self.app)
+        self.assertIn("researchTeam(biz,text&&ind&&ind.noun?`${text} (${ind.label.toLowerCase()})`:biz,{industry:ind&&ind.label!==OTHER?ind.label:'',connectors})", self.app)
+        self.assertIn("import { normaliseInput, researchTeam } from '../lib/team-research.js';", team_fn)
+        self.assertIn("plugins: [{ id: 'web', max_results: 5 }]", research)
+        self.assertIn("stockNames.has(name.toLowerCase())) continue;", research)   # a stock label is rejected
+        self.assertIn("const agentById=id=>", self.app)
+        for surface in ("function showAgent(id){const agent=agentById(id);",
+                        "const runningAgents=()=>RUNNING.map(agentById)",
+                        "const roster=liveCatalog().map(a=>({name:a.name,summary:a.summary,mcps:a.mcps}));",
+                        "return eligibleAgents().map(a=>agentById(a.id)).map((agent,index)=>",
+                        "if(agent.bespoke&&Array.isArray(agent.outcomes)&&agent.outcomes.length>=4)return agent.outcomes;",
+                        "${matesFor(agent).map(mid=>"):
+            self.assertIn(surface, self.app)
+        self.assertNotIn("catalog.find(a=>a.id===id);if(!agent)return;", self.app)
+        # the researched team survives saving, review and share mode
+        self.assertIn("agents:state.team.agents||{}}:null", self.app)
+        self.assertIn("['name','company','biz','industry','website','tools','look','team',", self.app)
+
     def test_demo_is_unlisted_from_search_engines(self):
         self.assertIn('name="robots" content="noindex,nofollow,noarchive"', self.demo)
 
@@ -123,7 +149,7 @@ class PrototypeContractTests(unittest.TestCase):
         self.assertIn("${toolPicker()}", self.app)
         self.assertIn("Other connections available", self.app)
         self.assertEqual(self.app.count("mcpSection("), 3)   # definition + both modals
-        self.assertEqual(self.app.count("tools:state.tools||[]"), 3)   # snapshot, capture, profile request
+        self.assertEqual(self.app.count("tools:state.tools||[]"), 4)   # snapshot, capture, profile request, team research
         # Every tool the picker offers has a REAL logo (sprite symbol, inline SVG or a vendored
         # site icon) — never a two-letter monogram — and a known category.
         tools = re.findall(r"\{n:'([^']+)',c:'([^']+)'\}", self.app)

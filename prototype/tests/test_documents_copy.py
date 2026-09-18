@@ -20,6 +20,7 @@ const co = () => 'Slow Poke & <friends>';
 const catalog = [{id:'documents', name:'Documents', summary:'Documents', portrait:'', mcps:[]}];
 const OTHER = 'Other', AGENT_CATS = {}, WORKS_WITH = {};
 const mcpSection = () => '';
+const agentById = id => catalog.find(a => a.id === id);
 const document = {
   createElement: () => ({innerHTML:'', querySelector:()=>({}), querySelectorAll:()=>[], remove(){}}),
   body: {appendChild(el){ this.modal = el; }},

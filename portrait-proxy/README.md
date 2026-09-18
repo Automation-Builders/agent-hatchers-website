@@ -57,14 +57,27 @@ curl -X POST "https://<your-vercel-url>/api/prototype-portrait" \
 
 A working response is `{ "image": "data:image/png;base64,…" }`.
 
-## Team research (`api/prototype-team.js`)
+## Team research (`api/prototype-team.js`, build 68, Sep 2026)
 
-The first screen asks what the prospect's business does. `POST /api/prototype-team` with
-`{ business, roster:[{id,name,summary}] }` has a text model (default
-`google/gemini-3.7-flash`, override `OPENROUTER_TEAM_MODEL`) reason about that specific
-business and return `{ intro, team:[{id, does, job}] }` — six catalog agents, best first, each
-with a one-line description written for that business. The page shows a "working out your
-team" state while it thinks and falls back to keyword ranking if the call fails.
+The first screen asks what the prospect's business does, plus their industry, the tools they
+use and (optionally) their website. `POST /api/prototype-team` with
+`{ business, industry, company, website, tools, connectors, roster:[{id,name,summary}] }` runs
+two model calls (logic in `lib/team-research.js`, tests in `tests/team-research.test.js`):
+
+1. **Research** — a brief on THAT business: who its customers are, the roles it hires for and
+   what they do all day, the industry-specific software it runs on, where hours and money leak,
+   compliance admin, and facts about the actual company when a website was given. The first
+   attempt adds OpenRouter's web plugin (`plugins:[{id:'web'}]`, ~US$0.02/call; set
+   `TEAM_WEB_SEARCH=0` to turn it off); if that fails it retries without, and if research fails
+   altogether the designer still runs (flagged `researched:false`).
+2. **Design** — six agents from the brief, each a named role for this business ("Recall &
+   Rebooking Agent", "HICAPS Claims Agent"), pinned to the closest catalog `base` for artwork,
+   category and hand-offs. Stock catalog names are rejected server-side.
+
+Response: `{ intro, team:[{id, name, does, job, outcomes[5], mcps[3-5], scene}], researched,
+brief, v:2 }`. Models: `OPENROUTER_TEAM_MODEL` (default `google/gemini-3.7-flash`) for design,
+`OPENROUTER_RESEARCH_MODEL` (defaults to the team model) for research. The page keeps the stock
+names if the proxy is unreachable or still returns the old v1 shape.
 
 ## Website brand lookup (`api/prototype-brand.js`)
 
