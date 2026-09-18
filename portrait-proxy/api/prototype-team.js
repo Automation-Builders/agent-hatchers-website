@@ -1,17 +1,25 @@
 // Vercel serverless function: work out which agents a specific business needs.
 //
-// The prototype's first screen asks "what does your business do?". This function has a
-// text model actually reason about that business — what its day looks like, where the
-// hours go, which of the catalog agents would pay off first — and returns a ranked team
-// with a one-line, business-specific description per agent:
-//   POST { business, roster:[{id,name,summary}] }
-//   → { team:[{id, does, job}], intro, v:1 }
-// The client falls back to its keyword ranking if this is unreachable.
+// The prototype's first screen asks what the prospect's business does (plus industry, the
+// tools they use and, optionally, their website). This function has a text model RESEARCH
+// that business first — its customers, the roles it hires for and what they do all day, the
+// software it runs on, where the hours and money leak — with a web search when one is
+// available, and only then DESIGN six agents from that brief. Each agent comes back as a named
+// role for this business (not a catalog label) pinned to the closest catalog base:
+//   POST { business, industry, company, website, tools:[...], connectors:[...], roster:[{id,name,summary}] }
+//   → { intro, team:[{id, name, does, job, outcomes[5], mcps[3-5], scene}], researched, brief, v:2 }
+// The client falls back to its keyword ranking if this is unreachable. All the reasoning
+// lives in ../lib/team-research.js so it can be tested with a fake model.
+
+import { normaliseInput, researchTeam } from '../lib/team-research.js';
 
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
   'https://agenthatchers.com,https://www.agenthatchers.com,http://localhost:8799')
   .split(',').map(s => s.trim()).filter(Boolean);
 const TEAM_MODEL = process.env.OPENROUTER_TEAM_MODEL || process.env.OPENROUTER_CHAT_MODEL || 'google/gemini-3.7-flash';
+const RESEARCH_MODEL = process.env.OPENROUTER_RESEARCH_MODEL || TEAM_MODEL;
+// OpenRouter's web plugin (about US$0.02 per research call at 5 results). TEAM_WEB_SEARCH=0 turns it off.
+const WEB_SEARCH = process.env.TEAM_WEB_SEARCH !== '0';
 
 function applyCors(res, origin) {
   const allow = ALLOWED_ORIGINS.includes('*')
@@ -23,14 +31,30 @@ function applyCors(res, origin) {
   res.setHeader('Access-Control-Allow-Headers', 'content-type');
 }
 
-// Models wrap JSON in fences or prose more often than you'd like; dig the object out.
-function parseJson(text) {
-  if (!text) return null;
-  const cleaned = text.replace(/```(?:json)?/gi, '').trim();
-  try { return JSON.parse(cleaned); } catch {}
-  const a = cleaned.indexOf('{'), b = cleaned.lastIndexOf('}');
-  if (a >= 0 && b > a) { try { return JSON.parse(cleaned.slice(a, b + 1)); } catch {} }
-  return null;
+async function callModel({ system, user, ...params }) {
+  const upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://agenthatchers.com',
+      'X-Title': 'Agent Hatchers Prototype Team'
+    },
+    body: JSON.stringify({
+      temperature: 0.5,
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: user }
+      ],
+      ...params
+    })
+  });
+  const data = await upstream.json().catch(() => ({}));
+  const msg = data?.choices?.[0]?.message;
+  let text = '';
+  if (typeof msg?.content === 'string') text = msg.content;
+  else if (Array.isArray(msg?.content)) text = msg.content.map(p => p?.text || '').join('');
+  return { ok: upstream.ok, status: upstream.status, error: data?.error?.message || data?.error || null, text: (text || '').trim() };
 }
 
 export default async function handler(req, res) {
@@ -41,93 +65,19 @@ export default async function handler(req, res) {
 
   let body = req.body;
   if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = {}; } }
-  body = body || {};
-  const business = String(body.business || '').slice(0, 160).trim();
-  const roster = (Array.isArray(body.roster) ? body.roster : []).slice(0, 16).map(a => ({
-    id: String(a.id || '').slice(0, 30),
-    name: String(a.name || '').slice(0, 40),
-    summary: String(a.summary || '').slice(0, 200)
-  })).filter(a => a.id && a.name);
-  if (business.length < 2) { res.status(400).json({ error: 'business too short' }); return; }
-  if (roster.length < 3) { res.status(400).json({ error: 'roster missing' }); return; }
-  const ids = new Set(roster.map(a => a.id));
-
-  const system =
-    `You are a sharp operations consultant who has worked inside hundreds of small businesses. ` +
-    `A prospect has told you what their business is. Think carefully about THAT specific kind of ` +
-    `business: what a normal day looks like, who the customers are, where the owner and staff lose ` +
-    `hours, what falls through the cracks, what they'd pay to never think about again. Then pick, from ` +
-    `the agent catalog below and nothing else, the 6 agents that would make the biggest difference, ` +
-    `most valuable first.\n\nAgent catalog (use the exact id):\n` +
-    roster.map(a => `- id "${a.id}" — ${a.name}: ${a.summary}`).join('\n') +
-    `\n\nReturn ONLY a JSON object, no prose, no markdown, shaped exactly like:\n` +
-    `{"intro":"...","team":[{"id":"...","does":"...","job":"..."}]}\n` +
-    `Rules:\n` +
-    `- "intro": one sentence (max 28 words) that shows you understand this particular business — a ` +
-    `concrete observation about its day-to-day, not a compliment and not generic.\n` +
-    `- "team": exactly 6 entries, unique ids from the catalog, best first.\n` +
-    `- "does": one sentence (max 22 words), plain everyday English, second person ("your"), naming the ` +
-    `specific things THIS business deals with (its real customers, jobs, stock, paperwork, tools). ` +
-    `Never reuse the catalog wording. No jargon, no "AI", no "leverage".\n` +
-    `- "job": 2-5 words, lowercase, present tense, the hand-off this agent owns for this business ` +
-    `(e.g. "books the appointments", "chases unpaid invoices").`;
-
-  async function callModel(params) {
-    const upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://agenthatchers.com',
-        'X-Title': 'Agent Hatchers Prototype Team'
-      },
-      body: JSON.stringify({
-        temperature: 0.5,
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user', content: `The business: ${business}` }
-        ],
-        ...params
-      })
-    });
-    const data = await upstream.json().catch(() => ({}));
-    const msg = data?.choices?.[0]?.message;
-    let text = '';
-    if (typeof msg?.content === 'string') text = msg.content;
-    else if (Array.isArray(msg?.content)) text = msg.content.map(p => p?.text || '').join('');
-    return { ok: upstream.ok, status: upstream.status, error: data?.error?.message || data?.error || null, text: (text || '').trim() };
-  }
-
-  function validate(obj) {
-    if (!obj || !Array.isArray(obj.team)) return null;
-    const seen = new Set();
-    const team = obj.team.map(t => ({
-      id: String(t?.id || '').trim(),
-      does: String(t?.does || '').replace(/\s+/g, ' ').trim().slice(0, 170),
-      job: String(t?.job || '').replace(/\s+/g, ' ').trim().replace(/\.$/, '').slice(0, 48)
-    })).filter(t => ids.has(t.id) && !seen.has(t.id) && seen.add(t.id) && t.does.length > 12 && t.job.length > 2)
-      .slice(0, 6);
-    if (team.length < 4) return null;
-    return { team, intro: String(obj.intro || '').replace(/\s+/g, ' ').trim().slice(0, 240) };
-  }
+  const input = normaliseInput(body);
+  if (input.business.length < 2 && !input.industry) { res.status(400).json({ error: 'business too short' }); return; }
+  if (input.roster.length < 3) { res.status(400).json({ error: 'roster missing' }); return; }
 
   try {
-    // Reasoning models can spend the budget thinking and return nothing visible — the
-    // same escalation the chat function uses.
-    const attempts = [
-      { model: TEAM_MODEL, max_tokens: 2500, reasoning: { enabled: false }, response_format: { type: 'json_object' } },
-      { model: TEAM_MODEL, max_tokens: 6000, reasoning: { effort: 'low' } },
-      { model: TEAM_MODEL, max_tokens: 6000 }
-    ];
-    const trace = [];
-    for (const params of attempts) {
-      const r = await callModel(params);
-      const out = r.ok ? validate(parseJson(r.text)) : null;
-      trace.push({ status: r.status, len: r.text.length, error: r.error, valid: !!out });
-      if (out) { res.setHeader('Cache-Control', 'no-store'); res.status(200).json({ ...out, v: 1, business }); return; }
-    }
-    res.status(502).json({ error: 'No usable team', v: 1, trace });
+    const out = await researchTeam(input, {
+      callModel, researchModel: RESEARCH_MODEL, designModel: TEAM_MODEL, webSearch: WEB_SEARCH,
+      log: r => console.log(JSON.stringify({ fn: 'prototype-team', business: input.business, website: input.website, ...r }))
+    });
+    if (!out.ok) { res.status(502).json({ error: 'No usable team', v: 2, trace: out.trace }); return; }
+    res.setHeader('Cache-Control', 'no-store');
+    res.status(200).json({ team: out.team, intro: out.intro, researched: out.researched, brief: out.brief, v: 2, business: input.business });
   } catch (e) {
-    res.status(502).json({ error: 'Upstream request failed: ' + (e && e.message), v: 1 });
+    res.status(502).json({ error: 'Upstream request failed: ' + (e && e.message), v: 2 });
   }
 }

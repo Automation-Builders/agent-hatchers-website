@@ -16,6 +16,16 @@ Every page runs the same hatching experience (shared code in `app.js` / `styles.
    Marketplace and Merch, all populated with the hatched character.
 6. **Connect** — the Slack/Teams connection dialog.
 
+The team is **researched, not picked from a list** (build 69): the proxy's `prototype-team`
+function researches the business first (roles, systems, where the hours go — with a web search
+when it can, and the prospect's website when they give one on screen 1) and designs six named
+roles for it ("Recall & Rebooking Agent", not "Support Agent"), each pinned to a catalog base.
+`app.js` overlays those names, one-liners, outcomes, tools and portrait scenes on the catalog
+entries via `agentById()` so Profiles, Chats, Marketplace, the agent modal and hand-offs all show
+them. The
+research request and response go through the eligibility gate below; if the proxy is down the
+page falls back to keyword ranking with the stock names.
+
 Ranking first applies conservative business eligibility, then uses the catalog keyword sets
 plus `BIZ_HINTS` to sort the eligible agents. Logistics requires physical retail or freight
 operations; Returns requires physical retail; Inventory requires retail or explicit stock
