@@ -88,12 +88,12 @@ class PrototypeContractTests(unittest.TestCase):
         self.assertIn("researchTeam(biz,text&&ind&&ind.noun?`${text} (${ind.label.toLowerCase()})`:biz,{industry:ind&&ind.label!==OTHER?ind.label:'',connectors})", self.app)
         self.assertIn("import { normaliseInput, researchTeam } from '../lib/team-research.js';", team_fn)
         self.assertIn("plugins: [{ id: 'web', max_results: 5 }]", research)
-        self.assertIn("stockNames.has(name.toLowerCase())) continue;", research)   # a stock label is rejected
+        self.assertIn("stockNames.has(name.toLowerCase()) || usedNames.has(name.toLowerCase())) return null;", research)   # a stock label is rejected
         self.assertIn("const agentById=id=>", self.app)
         for surface in ("function showAgent(id){const agent=agentById(id);",
                         "const runningAgents=()=>RUNNING.map(agentById)",
                         "const roster=liveCatalog().map(a=>({name:a.name,summary:a.summary,mcps:a.mcps}));",
-                        "return eligibleAgents().map(a=>agentById(a.id)).map((agent,index)=>",
+                        "return [...eligibleAgents().map(a=>agentById(a.id)),...extraAgents()].map((agent,index)=>",
                         "if(agent.bespoke&&Array.isArray(agent.outcomes)&&agent.outcomes.length>=4)return agent.outcomes;",
                         "${matesFor(agent).map(mid=>"):
             self.assertIn(surface, self.app)
@@ -103,8 +103,13 @@ class PrototypeContractTests(unittest.TestCase):
         self.assertIn("if(state.teamBusy)return;researchPopDone(state.team);", self.app)
         self.assertIn("if(a==='reset'){researchPopStop();", self.app)
         self.assertIn(".rs-pop{position:fixed;", self.css)
+        # ten more researched roles for the marketplace ride the same call and the same overlay
+        self.assertIn("(Array.isArray(body.more)?body.more:[]).forEach(", self.app)
+        self.assertIn("const extraAgents=()=>(state.team&&state.team.extras||[])", self.app)
+        self.assertIn("if(agent.extra)score+=5000-index;", self.app)
+        self.assertIn('"more": exactly ${MAX_MORE} further entries', research)
         # the researched team survives saving, review and share mode
-        self.assertIn("agents:state.team.agents||{}}:null", self.app)
+        self.assertIn("agents:state.team.agents||{},extras:state.team.extras||[]}:null", self.app)
         self.assertIn("['name','company','biz','industry','website','tools','look','team',", self.app)
 
     def test_demo_is_unlisted_from_search_engines(self):

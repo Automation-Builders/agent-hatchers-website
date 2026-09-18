@@ -25,7 +25,9 @@ entries via `agentById()` so Profiles, Chats, Marketplace, the agent modal and h
 them. While it thinks (~20s, behind the create screen) a small console-style card
 (`researchPopStart` in `app.js`, `.rs-pop` in the CSS) cycles through status lines the way a
 coding agent does — mostly silly ("Caramelising onions…"), every third one true ("Reading
-tanssu.com…") — and ends with a tick when the team lands. The
+tanssu.com…") — and ends with a tick when the team lands. The same call designs **ten more** roles for the Marketplace (`state.team.extras`, ids
+`more-1`…`more-10`, each pinned to a catalog `base` for art/category), listed straight after the
+team and ahead of the stock leftovers; every one gets a portrait in the hatched character's look. The
 research request and response go through the eligibility gate below; if the proxy is down the
 page falls back to keyword ranking with the stock names.
 

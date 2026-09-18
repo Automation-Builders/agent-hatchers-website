@@ -7,7 +7,7 @@
 // available, and only then DESIGN six agents from that brief. Each agent comes back as a named
 // role for this business (not a catalog label) pinned to the closest catalog base:
 //   POST { business, industry, company, website, tools:[...], connectors:[...], roster:[{id,name,summary}] }
-//   → { intro, team:[{id, name, does, job, outcomes[5], mcps[3-5], scene}], researched, brief, v:2 }
+//   → { intro, team:[{id, name, does, job, outcomes[5], mcps[3-5], scene}], more:[…10 more, id "more-n", base], researched, brief, v:2 }
 // The client falls back to its keyword ranking if this is unreachable. All the reasoning
 // lives in ../lib/team-research.js so it can be tested with a fake model.
 
@@ -76,7 +76,7 @@ export default async function handler(req, res) {
     });
     if (!out.ok) { res.status(502).json({ error: 'No usable team', v: 2, trace: out.trace }); return; }
     res.setHeader('Cache-Control', 'no-store');
-    res.status(200).json({ team: out.team, intro: out.intro, researched: out.researched, brief: out.brief, v: 2, business: input.business });
+    res.status(200).json({ team: out.team, more: out.more, intro: out.intro, researched: out.researched, brief: out.brief, v: 2, business: input.business });
   } catch (e) {
     res.status(502).json({ error: 'Upstream request failed: ' + (e && e.message), v: 2 });
   }

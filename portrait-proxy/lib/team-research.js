@@ -13,6 +13,9 @@
 // in api/prototype-team.js does HTTP and CORS only.
 
 export const MAX_TEAM = 6;
+// Ten more roles, just as specific, for the marketplace — the shelf the prospect browses after
+// meeting the core six. Pinned to bases too (repeats allowed), never duplicating a team role.
+export const MAX_MORE = 10;
 
 const clean = s => String(s || '').replace(/\s+/g, ' ').trim();
 const list = (v, n, len) => (Array.isArray(v) ? v : []).map(x => clean(x).slice(0, len)).filter(Boolean).slice(0, n);
@@ -136,22 +139,28 @@ export function buildDesignPrompt(input, brief) {
       `No research brief is available, so reason carefully yourself about what this specific kind of business ` +
       `does all week, who it hires, what software it runs on and where its hours and money leak.\n\n`) +
     `Design the ${MAX_TEAM} agents that would make the biggest difference to THIS business, most valuable ` +
-    `first. Each agent is a ROLE in this business — the job a person there is doing by hand today — not a ` +
+    `first, and then ${MAX_MORE} MORE agents for its marketplace — the next jobs down the list, each just as ` +
+    `specific (a seasonal job, a compliance chore, a supplier, a channel, a report someone builds by hand). ` +
+    `Each agent is a ROLE in this business — the job a person there is doing by hand today — not a ` +
     `department. Name it for that job, in words the owner would use. Good: "Recall & Rebooking Agent", ` +
     `"Quote Chaser Agent", "HICAPS Claims Agent", "Tender Deadline Agent", "Job Card Agent". Bad (too generic, ` +
     `never use these or anything like them): "Support Agent", "Operations Agent", "Sales Agent", "Marketing ` +
     `Agent", "Document Agent".\n\n` +
-    `Every agent must be pinned to the closest BASE from this catalog (exact id; each base at most once — ` +
-    `it decides the agent's artwork, category and which agents it hands work to):\n` +
+    `Every agent must be pinned to the closest BASE from this catalog (exact id — it decides the agent's ` +
+    `artwork, category and which agents it hands work to; each base at most once within "team", repeats ` +
+    `allowed in "more"):\n` +
     input.roster.map(a => `- id "${a.id}" — ${a.name}: ${a.summary}`).join('\n') +
     (input.tools.length ? `\n\n${co} already uses: ${input.tools.join(', ')}. Build around those — name them in "mcps" first and prefer them over rivals.` : '') +
     (input.connectors.length ? `\n\nConnectors the product already has logos for (use these exact names when one fits; add real industry-specific systems by name when the job needs them): ${input.connectors.join(', ')}` : '') +
     `\n\nReturn ONLY a JSON object, no prose, no markdown, shaped exactly like:\n` +
-    `{"intro":"...","team":[{"base":"catalog id","name":"... Agent","does":"...","job":"...","outcomes":["...","...","...","...","..."],"mcps":["..."],"scene":"..."}]}\n` +
+    `{"intro":"...","team":[{"base":"catalog id","name":"... Agent","does":"...","job":"...","outcomes":["...","...","...","...","..."],"mcps":["..."],"scene":"..."}],"more":[{...same shape...}]}\n` +
     `Rules:\n` +
     `- "intro": one sentence (max 28 words) that shows you understand this particular business — a concrete ` +
     `observation about its week, not a compliment, not generic.\n` +
     `- "team": exactly ${MAX_TEAM} entries, distinct bases, best first, no two agents doing the same job.\n` +
+    `- "more": exactly ${MAX_MORE} further entries, same shape and same specificity, none overlapping a "team" ` +
+    `role or each other. Spread them across the business's week: front desk, money, suppliers, staff, ` +
+    `compliance, marketing channels, seasonal peaks, reporting.\n` +
     `- "name": 2-4 words ending in "Agent", specific to this business's work. Never the catalog names.\n` +
     `- "does": one sentence (max 22 words), plain everyday English, second person ("your"), naming the real ` +
     `customers, jobs, paperwork, stock or systems THIS business deals with. No jargon, no "AI", no "leverage".\n` +
@@ -171,37 +180,48 @@ export function buildDesignPrompt(input, brief) {
   return { system, user };
 }
 
+// One agent entry from the model → a clean record, or null. `usedNames` keeps names unique
+// across team and more; `usedBases` (team only) keeps bases distinct.
+function cleanAgent(t, byId, stockNames, usedNames, usedBases) {
+  const id = clean(t && (t.base || t.id));
+  const base = byId.get(id);
+  if (!base || (usedBases && usedBases.has(id))) return null;
+  let name = clean(t && t.name).replace(/[.!]+$/, '').slice(0, 44);
+  if (name && !/agent$/i.test(name)) name = `${name} Agent`;
+  const does = clean(t && t.does).slice(0, 170);
+  const job = clean(t && t.job).replace(/\.$/, '').slice(0, 48);
+  const outcomes = list(t && t.outcomes, 5, 140).filter(o => o.length > 8);
+  const mcps = [...new Set(list(t && t.mcps, 5, 30))];
+  const scene = clean(t && t.scene).slice(0, 300);
+  // The whole point is a non-generic team: a stock label is not an answer.
+  if (name.length < 6 || stockNames.has(name.toLowerCase()) || usedNames.has(name.toLowerCase())) return null;
+  if (does.length <= 12 || job.length <= 2) return null;
+  usedNames.add(name.toLowerCase());
+  if (usedBases) usedBases.add(id);
+  return { id, name, does, job, outcomes: outcomes.length >= 4 ? outcomes : [], mcps, scene: /^it is a/i.test(scene) ? scene : '' };
+}
+
 export function validateTeam(obj, roster) {
   if (!obj || !Array.isArray(obj.team)) return null;
   const byId = new Map(roster.map(a => [a.id, a]));
   const stockNames = new Set(roster.map(a => a.name.toLowerCase()));
-  const seen = new Set();
+  const usedNames = new Set(), usedBases = new Set();
   const team = [];
   for (const t of obj.team) {
-    const id = clean(t && (t.base || t.id));
-    const base = byId.get(id);
-    if (!base || seen.has(id)) continue;
-    let name = clean(t && t.name).replace(/[.!]+$/, '').slice(0, 44);
-    if (name && !/agent$/i.test(name)) name = `${name} Agent`;
-    const does = clean(t && t.does).slice(0, 170);
-    const job = clean(t && t.job).replace(/\.$/, '').slice(0, 48);
-    const outcomes = list(t && t.outcomes, 5, 140).filter(o => o.length > 8);
-    const mcps = [...new Set(list(t && t.mcps, 5, 30))];
-    const scene = clean(t && t.scene).slice(0, 300);
-    // The whole point is a non-generic team: a stock label is not an answer.
-    if (name.length < 6 || stockNames.has(name.toLowerCase())) continue;
-    if (does.length <= 12 || job.length <= 2) continue;
-    seen.add(id);
-    team.push({
-      id, name, does, job,
-      outcomes: outcomes.length >= 4 ? outcomes : [],
-      mcps,
-      scene: /^it is a/i.test(scene) ? scene : ''
-    });
+    const a = cleanAgent(t, byId, stockNames, usedNames, usedBases);
+    if (a) team.push(a);
     if (team.length >= MAX_TEAM) break;
   }
   if (team.length < 4) return null;
-  return { team, intro: clean(obj.intro).slice(0, 240) };
+  // Marketplace extras: same bar, bases may repeat, never a team role again. Optional — a
+  // short or missing list just means the marketplace shows the stock catalog after the team.
+  const more = [];
+  for (const t of (Array.isArray(obj.more) ? obj.more : [])) {
+    const a = cleanAgent(t, byId, stockNames, usedNames, null);
+    if (a) more.push({ ...a, base: a.id, id: `more-${more.length + 1}` });
+    if (more.length >= MAX_MORE) break;
+  }
+  return { team, more, intro: clean(obj.intro).slice(0, 240) };
 }
 
 // ---------- Orchestration ----------
@@ -233,9 +253,9 @@ export async function researchTeam(input, { callModel, researchModel, designMode
   // visible, so escalate: strict JSON mode first, then plain, then default reasoning.
   const design = buildDesignPrompt(input, brief);
   const designAttempts = [
-    { model: designModel, max_tokens: 8000, reasoning: { effort: 'low' }, response_format: { type: 'json_object' } },
-    { model: designModel, max_tokens: 8000, reasoning: { effort: 'low' } },
-    { model: designModel, max_tokens: 8000 }
+    { model: designModel, max_tokens: 14000, reasoning: { effort: 'low' }, response_format: { type: 'json_object' } },
+    { model: designModel, max_tokens: 14000, reasoning: { effort: 'low' } },
+    { model: designModel, max_tokens: 14000 }
   ];
   for (const params of designAttempts) {
     let r;

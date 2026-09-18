@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 70;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 71;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -83,9 +83,14 @@
   // outcomes, tools and portrait scene are the ones written for THIS business. Everything that
   // shows an agent goes through agentById/liveCatalog so a "Recall & Rebooking Agent" never
   // turns back into a "Support Agent" halfway through the dashboard.
-  const agentById=id=>{const a=catalog.find(x=>x.id===id);if(!a)return null;const o=state.team&&state.team.agents&&state.team.agents[id];return o?{...a,...o,bespoke:true}:a;};
-  const liveCatalog=()=>catalog.map(a=>agentById(a.id));
-  function rankAgents(){const text=businessText();const boost=bizBoost(text);const teamIds=(state.team&&state.team.ids)||[];return eligibleAgents().map(a=>agentById(a.id)).map((agent,index)=>{let score=boost[agent.id]||0;const t=teamIds.indexOf(agent.id);if(t>=0)score+=10000-t*100;agent.keywords.forEach(k=>{if(text.includes(k))score+=4});if(agent.industries.includes(text.trim()))score+=2;if(recommended.has(agent.id))score+=1;return{agent,score,index};}).sort((a,b)=>b.score-a.score||a.index-b.index);}
+  // Marketplace extras are ten MORE researched roles (ids "more-1"…"more-10"), each pinned to a
+  // catalog base for artwork, category and hand-offs, but otherwise entirely their own agent.
+  const agentById=id=>{
+    if(/^more-/.test(String(id))){const x=(state.team&&state.team.extras||[]).find(e=>e.id===id);const b=x&&catalog.find(c=>c.id===x.base);return x&&b?{...b,...x,keywords:[],industries:['all'],bespoke:true,extra:true}:null;}
+    const a=catalog.find(x=>x.id===id);if(!a)return null;const o=state.team&&state.team.agents&&state.team.agents[id];return o?{...a,...o,bespoke:true}:a;};
+  const extraAgents=()=>(state.team&&state.team.extras||[]).map(e=>agentById(e.id)).filter(Boolean);
+  const liveCatalog=()=>[...catalog.map(a=>agentById(a.id)),...extraAgents()];
+  function rankAgents(){const text=businessText();const boost=bizBoost(text);const teamIds=(state.team&&state.team.ids)||[];return [...eligibleAgents().map(a=>agentById(a.id)),...extraAgents()].map((agent,index)=>{let score=boost[agent.id]||0;const t=teamIds.indexOf(agent.id);if(t>=0)score+=10000-t*100;if(agent.extra)score+=5000-index;agent.keywords.forEach(k=>{if(text.includes(k))score+=4});if(agent.industries.includes(text.trim()))score+=2;if(recommended.has(agent.id))score+=1;return{agent,score,index};}).sort((a,b)=>b.score-a.score||a.index-b.index);}
   // The 6 best-matched agents for this business get generated portraits + the Recommended row.
   // The researched/ranked six, plus anything the prospect added from the Marketplace.
   const topAgents = () => {
@@ -100,7 +105,7 @@
   // "Add to your team" on a Marketplace card: the portrait is already drawn, so joining is
   // free and instant — the card turns green and the agent shows up under Profiles and Chats.
   function addAgent(id){
-    const agent=eligibleAgents().some(a=>a.id===id)?agentById(id):null;if(!agent||topAgents().some(t=>t.id===agent.id))return;
+    const agent=(eligibleAgents().some(a=>a.id===id)||/^more-/.test(String(id)))?agentById(id):null;if(!agent||topAgents().some(t=>t.id===agent.id))return;
     state.added=[...(state.added||[]),id];celebrate();render();
     document.querySelectorAll('.create-pop').forEach(p=>p.remove());
     const pop=document.createElement('div');pop.className='create-pop wb-pop';pop.innerHTML=`${ci.check}<span><b>${escapeHtml(agent.name)}</b> joined your team — it’s now under Profiles and Chats.</span>`;
@@ -125,16 +130,18 @@
         const body=await res.json().catch(()=>({}));
         if(res.ok&&body&&Array.isArray(body.team)&&body.team.length>=4){
           const lines={};const ids=[];const agents={};
-          body.team.forEach(t=>{const a=eligible.find(x=>x.id===t?.id);if(a&&!ids.includes(a.id)){ids.push(a.id);lines[a.id]={does:String(t.does||PLAIN[a.id].does),job:String(t.job||PLAIN[a.id].job)};
-            const name=String(t.name||'').trim();
-            if(name&&name.toLowerCase()!==a.name.toLowerCase()){
-              const o={name:name.slice(0,44),summary:String(t.does||a.summary).slice(0,170)};
-              const outcomes=(Array.isArray(t.outcomes)?t.outcomes:[]).map(x=>String(x).trim()).filter(Boolean).slice(0,5);if(outcomes.length>=4)o.outcomes=outcomes;
-              const mcps=[...new Set((Array.isArray(t.mcps)?t.mcps:[]).map(x=>String(x).trim()).filter(Boolean))].slice(0,6);if(mcps.length>=2)o.mcps=mcps;
-              const scene=String(t.scene||'').trim();if(/^it is a/i.test(scene))o.scene=scene.slice(0,300);
-              agents[a.id]=o;
-            }}});
-          if(ids.length>=4) result={ids:ids.slice(0,6),lines,agents,intro:String(body.intro||''),source:body.researched?'research':'ai',researched:!!body.researched};
+          // One researched entry → the fields that override its base (null if it is just a stock label).
+          const bespoke=(t,a)=>{const name=String(t.name||'').trim();if(!name||name.toLowerCase()===a.name.toLowerCase())return null;
+            const o={name:name.slice(0,44),summary:String(t.does||a.summary).slice(0,170)};
+            const outcomes=(Array.isArray(t.outcomes)?t.outcomes:[]).map(x=>String(x).trim()).filter(Boolean).slice(0,5);if(outcomes.length>=4)o.outcomes=outcomes;
+            const mcps=[...new Set((Array.isArray(t.mcps)?t.mcps:[]).map(x=>String(x).trim()).filter(Boolean))].slice(0,6);if(mcps.length>=2)o.mcps=mcps;
+            const scene=String(t.scene||'').trim();if(/^it is a/i.test(scene))o.scene=scene.slice(0,300);
+            return o;};
+          body.team.forEach(t=>{const a=eligible.find(x=>x.id===t?.id);if(a&&!ids.includes(a.id)){ids.push(a.id);lines[a.id]={does:String(t.does||PLAIN[a.id].does),job:String(t.job||PLAIN[a.id].job)};const o=bespoke(t,a);if(o)agents[a.id]=o;}});
+          // Ten more for the marketplace: same bar, pinned to an eligible base, own id.
+          const extras=[];const names=new Set(Object.values(agents).map(o=>o.name.toLowerCase()));
+          (Array.isArray(body.more)?body.more:[]).forEach(t=>{const a=t&&eligible.find(x=>x.id===(t.base||t.id));if(!a||extras.length>=10)return;const o=bespoke(t,a);if(!o||names.has(o.name.toLowerCase()))return;names.add(o.name.toLowerCase());extras.push({...o,id:'more-'+(extras.length+1),base:a.id,job:String(t.job||'').slice(0,48)});});
+          if(ids.length>=4) result={ids:ids.slice(0,6),lines,agents,extras,intro:String(body.intro||''),source:body.researched?'research':'ai',researched:!!body.researched};
         }
         if(res.status===400) break;
       }catch(e){/* retry then fall back */}
@@ -142,7 +149,7 @@
     if(!result){
       // Keyword ranking with the stock lines — the page still works if the proxy is down.
       state.team=null;const ids=rankAgents().slice(0,6).map(r=>r.agent.id);
-      result={ids,lines:Object.fromEntries(ids.map(id=>[id,{does:PLAIN[id].does,job:PLAIN[id].job}])),agents:{},intro:'',source:'fallback'};
+      result={ids,lines:Object.fromEntries(ids.map(id=>[id,{does:PLAIN[id].does,job:PLAIN[id].job}])),agents:{},extras:[],intro:'',source:'fallback'};
     }
     // Let the research read as research — never flash the answer in under two seconds.
     const wait=Math.max(0,2400-(Date.now()-started));if(wait) await sleep(wait);
@@ -361,7 +368,7 @@
     return {sid:state.sid,v:1,build:BUILD,page:location.pathname,startedAt:state.startedAt,savedAt:Date.now(),ua:navigator.userAgent.slice(0,160),
       company:co(),name:state.name,biz:state.biz,industry:state.industry,website:state.website||'',tools:state.tools||[],look:state.look,step:state.step,tab:state.tab,done:state.done,editUses:state.editUses,
       brand:state.brand?{name:state.brand.name,url:state.brand.url,colors:state.brand.colors}:null,hadPhoto:!!state.refPhoto,
-      team:state.team?{ids:state.team.ids,intro:state.team.intro,source:state.team.source,researched:!!state.team.researched,lines:state.team.lines,agents:state.team.agents||{}}:null,
+      team:state.team?{ids:state.team.ids,intro:state.team.intro,source:state.team.source,researched:!!state.team.researched,lines:state.team.lines,agents:state.team.agents||{},extras:state.team.extras||[]}:null,
       variant:state.variant,selectedImage:await thumb(state.selectedImage),slots,market,profiles,chats:state.chatExtra||{},chatNames};
   }
 
@@ -711,7 +718,7 @@
   const marketLoader='<div class="hatch-loader"><img class="loader-egg" src="/egg-closed.webp" alt=""><span class="loader-txt">Hatching…</span></div>';
   function willGenerate(agent){if(VIEW_ONLY)return false;   // review mode shows what was stored, no egg loaders
     return (usePortraits&&config.marketPortraits!==false&&state.variant!==null)||!!(config.bakedMarket&&config.bakedMarket[agent.id]);}
-  function agentCard(agent,running=false){const gen=state.marketImages[agent.id];const loading=!gen&&willGenerate(agent);const inner=gen?`<img src="${escapeHtml(gen)}" alt="${escapeHtml(agent.name)}">`:(loading?marketLoader:`<img src="${agent.portrait}" alt="${escapeHtml(agent.name)}" loading="lazy">`);return `<article class="p-card" data-agent="${agent.id}" data-search="${escapeHtml((agent.name+' '+agent.team).toLowerCase())}" tabindex="0"><div class="p-thumb thumb-${agent.id} ${gen?'is-generated':''} ${loading?'is-loading':''}" data-thumb="${agent.id}">${inner}</div><div class="p-meta"><div class="p-name">${agent.name} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span>${teamTag(agent.team)}${running?'<span class="p-tag tag-run"><i></i>Running</span>':''}</div></div></article>`;}
+  function agentCard(agent,running=false){const gen=state.marketImages[agent.id];const loading=!gen&&willGenerate(agent);const inner=gen?`<img src="${escapeHtml(gen)}" alt="${escapeHtml(agent.name)}">`:(loading?marketLoader:`<img src="${agent.portrait}" alt="${escapeHtml(agent.name)}" loading="lazy">`);return `<article class="p-card" data-agent="${agent.id}" data-search="${escapeHtml((agent.name+' '+agent.team).toLowerCase())}" tabindex="0"><div class="p-thumb thumb-${agent.base||agent.id} ${gen?'is-generated':''} ${loading?'is-loading':''}" data-thumb="${agent.id}">${inner}</div><div class="p-meta"><div class="p-name">${agent.name} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span>${teamTag(agent.team)}${running?'<span class="p-tag tag-run"><i></i>Running</span>':''}</div></div></article>`;}
   function hatchedCard(){const vis=state.selectedImage?`<img src="${escapeHtml(state.selectedImage)}" alt="${escapeHtml(state.name)}">`:`<div class="thumb-bot">${bot('v'+(state.variant||0))}</div>`;return `<article class="p-card is-yours"><div class="p-thumb thumb-new ${state.selectedImage?'is-generated':''}">${vis}</div><div class="p-meta"><div class="p-name">${escapeHtml(state.name||'Your agent')} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span><span class="p-tag tag-new">Just hatched</span></div></div></article>`;}
   // Two of the recommended agents are already switched on for the prospect's company, so the
   // board shows what "running" looks like next to the freshly hatched one.
@@ -841,7 +848,7 @@
     const ranked=rankAgents().map(r=>r.agent);
     return `<div class="mkt-page">
       <div class="mkt-head"><h2><span class="mkt-head-ic">${ic.market}</span>Marketplace</h2><div class="mkt-head-r"><button class="filter-pill" data-noop="1">All categories ${ic.chev}</button><div class="search-box">${ic.search}<input placeholder="Search agents..."></div></div></div>
-      <div class="mkt-grid">${ranked.map((a,i)=>{const img=state.marketImages[a.id];const installed=topAgents().some(t=>t.id===a.id)||RUNNING.includes(a.id);const inner=img?`<img src="${escapeHtml(img)}" alt="${escapeHtml(a.name)}">`:(willGenerate(a)?marketLoader:`<img src="${a.portrait}" alt="${escapeHtml(a.name)}" loading="lazy">`);return `<article class="mkt-card${installed?' is-installed':''}" data-agent="${a.id}" data-search="${escapeHtml((a.name+' '+a.team).toLowerCase())}" tabindex="0"><div class="mkt-thumb thumb-${a.id}">${inner}${installed?`<span class="mkt-installed">${ci.check}<span>Installed</span></span>`:`<span class="mkt-free">Free to add</span>`}</div><div class="mkt-body"><h3>${a.name}</h3><p>${a.summary}</p><div class="mkt-tags">${teamTag(a.team)}<span class="mkt-skills">${a.outcomes.length} skills</span></div>${installed?'':`<button type="button" class="mkt-add" data-add="${a.id}"><b>+</b>Add to your team</button>`}</div></article>`;}).join('')}</div>
+      <div class="mkt-grid">${ranked.map((a,i)=>{const img=state.marketImages[a.id];const installed=topAgents().some(t=>t.id===a.id)||RUNNING.includes(a.id);const inner=img?`<img src="${escapeHtml(img)}" alt="${escapeHtml(a.name)}">`:(willGenerate(a)?marketLoader:`<img src="${a.portrait}" alt="${escapeHtml(a.name)}" loading="lazy">`);return `<article class="mkt-card${installed?' is-installed':''}" data-agent="${a.id}" data-search="${escapeHtml((a.name+' '+a.team).toLowerCase())}" tabindex="0"><div class="mkt-thumb thumb-${a.base||a.id}">${inner}${installed?`<span class="mkt-installed">${ci.check}<span>Installed</span></span>`:`<span class="mkt-free">Free to add</span>`}</div><div class="mkt-body"><h3>${a.name}</h3><p>${a.summary}</p><div class="mkt-tags">${teamTag(a.team)}<span class="mkt-skills">${a.outcomes.length} skills</span></div>${installed?'':`<button type="button" class="mkt-add" data-add="${a.id}"><b>+</b>Add to your team</button>`}</div></article>`;}).join('')}</div>
     </div>`;
   }
 
@@ -1284,7 +1291,7 @@
   // the claims and treatment-plan agents, not a returns desk it doesn't have.
   function matesFor(agent){const stock=WORKS_WITH[agent.id]||[];if(!agent.bespoke||!state.team)return stock;const team=(state.team.ids||[]).filter(id=>id!==agent.id);return [...new Set([...stock.filter(id=>team.includes(id)),...team])].slice(0,3);}
   function tailoredOutcomes(agent){if(agent.bespoke&&Array.isArray(agent.outcomes)&&agent.outcomes.length>=4)return agent.outcomes;const fn=TAILORED[agent.id];return fn?fn(co(),state.biz||'your business'):agent.outcomes;}
-  function showAgent(id){const agent=agentById(id);if(!agent)return;const tailoredLead=state.team?.lines?.[agent.id]?.does||'';const backdrop=document.createElement('div');backdrop.className='modal-backdrop';backdrop.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-labelledby="agent-title"><div class="modal-top"><div><span class="eyebrow">Agent profile</span><h2 id="agent-title">${agent.name}</h2></div><button class="close" aria-label="Close agent profile">×</button></div><p>${agent.summary}</p><div class="profile-cols"><div><h3>What this agent can do for ${escapeHtml(co())}</h3><p class="tailored-note"><span class="tailored-pill">Tailored</span>Written for a ${escapeHtml(state.biz||'business')}${state.industry&&state.industry!==OTHER?` in ${escapeHtml(state.industry.toLowerCase())}`:''}.${tailoredLead?` <b>${escapeHtml(tailoredLead)}</b>`:''}</p><div class="checks">${tailoredOutcomes(agent).map(o=>`<div class="check"><i>✓</i><span>${escapeHtml(o)}</span></div>`).join('')}</div></div><div class="profile-art"><img src="${escapeHtml(state.marketImages[agent.id]||agent.portrait)}" alt="${agent.name}"></div></div>${mcpSection(escapeHtml(agent.name),agent.mcps,AGENT_CATS[agent.id])}<h3>Works well with</h3><p>Agents that share hand-offs with ${agent.name} — hatch them together as a team.</p><div class="mate-row">${matesFor(agent).map(mid=>{const m=agentById(mid);if(!m)return '';const av=state.marketImages[m.id]||m.portrait;return `<button class="mate" data-mate="${m.id}"><span class="mate-ava"><img src="${escapeHtml(av)}" alt=""></span><span class="mate-meta"><b>${m.name}</b><i>${m.team}</i></span></button>`;}).join('')}</div></section>`;document.body.appendChild(backdrop);const close=()=>backdrop.remove();backdrop.querySelector('.close').onclick=close;backdrop.querySelectorAll('[data-mate]').forEach(b=>b.onclick=()=>{close();showAgent(b.dataset.mate);});backdrop.onclick=e=>{if(e.target===backdrop)close()};document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc)}},{once:true});}
+  function showAgent(id){const agent=agentById(id);if(!agent)return;const tailoredLead=state.team?.lines?.[agent.id]?.does||'';const backdrop=document.createElement('div');backdrop.className='modal-backdrop';backdrop.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-labelledby="agent-title"><div class="modal-top"><div><span class="eyebrow">Agent profile</span><h2 id="agent-title">${agent.name}</h2></div><button class="close" aria-label="Close agent profile">×</button></div><p>${agent.summary}</p><div class="profile-cols"><div><h3>What this agent can do for ${escapeHtml(co())}</h3><p class="tailored-note"><span class="tailored-pill">Tailored</span>Written for a ${escapeHtml(state.biz||'business')}${state.industry&&state.industry!==OTHER?` in ${escapeHtml(state.industry.toLowerCase())}`:''}.${tailoredLead?` <b>${escapeHtml(tailoredLead)}</b>`:''}</p><div class="checks">${tailoredOutcomes(agent).map(o=>`<div class="check"><i>✓</i><span>${escapeHtml(o)}</span></div>`).join('')}</div></div><div class="profile-art"><img src="${escapeHtml(state.marketImages[agent.id]||agent.portrait)}" alt="${agent.name}"></div></div>${mcpSection(escapeHtml(agent.name),agent.mcps,AGENT_CATS[agent.base||agent.id])}<h3>Works well with</h3><p>Agents that share hand-offs with ${agent.name} — hatch them together as a team.</p><div class="mate-row">${matesFor(agent).map(mid=>{const m=agentById(mid);if(!m)return '';const av=state.marketImages[m.id]||m.portrait;return `<button class="mate" data-mate="${m.id}"><span class="mate-ava"><img src="${escapeHtml(av)}" alt=""></span><span class="mate-meta"><b>${m.name}</b><i>${m.team}</i></span></button>`;}).join('')}</div></section>`;document.body.appendChild(backdrop);const close=()=>backdrop.remove();backdrop.querySelector('.close').onclick=close;backdrop.querySelectorAll('[data-mate]').forEach(b=>b.onclick=()=>{close();showAgent(b.dataset.mate);});backdrop.onclick=e=>{if(e.target===backdrop)close()};document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc)}},{once:true});}
   function celebrate(){const c=document.createElement('div');c.className='confetti';for(let i=0;i<38;i++){const s=document.createElement('span');s.style.left=`${Math.random()*100}%`;s.style.background=['#216bac','#c1dce8','#ffb36b','#59c6ad'][i%4];s.style.animationDelay=`${Math.random()*.5}s`;c.appendChild(s)}document.body.appendChild(c);setTimeout(()=>c.remove(),2400)}
 
   let activeRec=null;
@@ -1513,7 +1520,7 @@
     const refKey=imageKey(ref);
     if(state.marketRefKey&&state.marketRefKey!==refKey){state.marketImages={};}
     state.marketRefKey=refKey;
-    await Promise.all(agents.map(async (agent,idx)=>{
+    const draw=async (agent,idx)=>{
       let img = state.marketImages[agent.id] || baked[agent.id];
       if(!img && useLive) img = await fetchImage({brief:state.look,name:agent.name,role:agent.scene,image:ref,company:co(),industry:industryLabel,variant:state.variant||0});
       const minMs=1100+idx*500;const wait=Math.max(0,minMs-(Date.now()-started));if(wait)await sleep(wait);  // let the loader show
@@ -1521,7 +1528,9 @@
       state.marketImages[agent.id]=img;saveSession();
       const thumb = root.querySelector(`[data-thumb="${agent.id}"]`);
       if(thumb){thumb.innerHTML=`<img src="${escapeHtml(img)}" alt="${escapeHtml(agent.name)}">`;thumb.classList.remove('is-loading');thumb.classList.add('is-generated');}
-    }));
+    };
+    await Promise.all(agents.slice(0,10).map(draw));
+    await Promise.all(agents.slice(10).map((a,i)=>draw(a,i+10)));
     // Then the six "Other profiles" for the Chats sidebar, same character, each in its own
     // costume. A failed call settles on the prospect's own avatar — never a stranger.
     await Promise.all(EXTRA_PROFILES.map(async p=>{
