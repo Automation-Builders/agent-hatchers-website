@@ -139,27 +139,31 @@ test('a generic first draft is rejected and the design step escalates', async ()
   const out = await researchTeam(normaliseInput({ business: 'dental clinic', roster: ROSTER }), { callModel, researchModel: 'm', designModel: 'm', webSearch: false });
   assert.equal(out.ok, true);
   assert.equal(calls.length, 3);
-  assert.equal(calls[2].reasoning.effort, 'low');
+  assert.equal(calls[1].response_format.type, 'json_object');
+  assert.deepEqual(calls[2].reasoning, { effort: 'low' });
+  assert.equal(calls[2].response_format, undefined);
   assert.equal(out.trace[1].valid, false);
   assert.equal(out.team[0].name, 'Recall & Rebooking Agent');
 });
 
 test('when research fails the designer still returns a team, flagged as unresearched', async () => {
-  const { calls, callModel } = fakeModel([fail(502), fail(502), ok(DENTAL_TEAM)]);
+  const { calls, callModel } = fakeModel([fail(502), fail(502), fail(502), ok(DENTAL_TEAM)]);
   const out = await researchTeam(normaliseInput({ business: 'dental clinic', roster: ROSTER }), { callModel, researchModel: 'm', designModel: 'm', webSearch: true });
   assert.equal(out.ok, true);
   assert.equal(out.researched, false);
   assert.equal(out.brief, null);
-  assert.equal(calls.length, 3);
+  assert.equal(calls.length, 4);
   assert.equal(calls[1].plugins, undefined, 'second research attempt drops the web plugin');
-  assert.match(calls[2].system, /No research brief is available/);
+  assert.equal(calls[2].reasoning, undefined, 'third research attempt is the model default');
+  assert.match(calls[3].system, /No research brief is available/);
+  for (const c of calls) assert.notEqual(c.reasoning && c.reasoning.enabled, false, 'never send reasoning:{enabled:false} — the model rejects it');
 });
 
 test('a model that throws or returns prose never crashes the pipeline', async () => {
-  const { callModel } = fakeModel([() => { throw new Error('socket hang up'); }, { ok: true, status: 200, text: 'Sure! Here is the brief you asked for.' }, { ok: true, status: 200, text: 'I think you should get a Support Agent.' }, fail(), fail()]);
+  const { callModel } = fakeModel([() => { throw new Error('socket hang up'); }, { ok: true, status: 200, text: 'Sure! Here is the brief you asked for.' }, fail(), { ok: true, status: 200, text: 'I think you should get a Support Agent.' }, fail(), fail()]);
   const out = await researchTeam(normaliseInput({ business: 'dental clinic', roster: ROSTER }), { callModel, researchModel: 'm', designModel: 'm', webSearch: true });
   assert.equal(out.ok, false);
-  assert.equal(out.trace.length, 5);
+  assert.equal(out.trace.length, 6);
   assert.equal(parseJson('```json\n{"a":1}\n```').a, 1);
   assert.equal(parseJson('Here you go: {"a":2} hope that helps').a, 2);
 });

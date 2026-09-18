@@ -214,9 +214,12 @@ export async function researchTeam(input, { callModel, researchModel, designMode
   // designer works without a brief; it never blocks a team.
   let brief = null;
   const research = buildResearchPrompt(input);
+  // gemini-3.7-flash refuses `reasoning:{enabled:false}` ("Reasoning is mandatory"), so every
+  // attempt keeps reasoning on at low effort and leaves budget for the thinking tokens.
   const researchAttempts = [];
-  if (webSearch) researchAttempts.push({ model: researchModel, max_tokens: 4000, plugins: [{ id: 'web', max_results: 5 }], reasoning: { enabled: false } });
-  researchAttempts.push({ model: researchModel, max_tokens: 4000, reasoning: { enabled: false }, response_format: { type: 'json_object' } });
+  if (webSearch) researchAttempts.push({ model: researchModel, max_tokens: 8000, plugins: [{ id: 'web', max_results: 5 }], reasoning: { effort: 'low' } });
+  researchAttempts.push({ model: researchModel, max_tokens: 8000, reasoning: { effort: 'low' }, response_format: { type: 'json_object' } });
+  researchAttempts.push({ model: researchModel, max_tokens: 8000 });
   for (const params of researchAttempts) {
     let r;
     try { r = await callModel({ ...research, ...params }); } catch (e) { r = { ok: false, status: 0, error: String(e && e.message || e), text: '', model: params.model }; }
@@ -226,10 +229,10 @@ export async function researchTeam(input, { callModel, researchModel, designMode
   }
 
   // Stage 2 — design. Reasoning models can spend the budget thinking and return nothing
-  // visible, so escalate the same way the chat function does.
+  // visible, so escalate: strict JSON mode first, then plain, then default reasoning.
   const design = buildDesignPrompt(input, brief);
   const designAttempts = [
-    { model: designModel, max_tokens: 4000, reasoning: { enabled: false }, response_format: { type: 'json_object' } },
+    { model: designModel, max_tokens: 8000, reasoning: { effort: 'low' }, response_format: { type: 'json_object' } },
     { model: designModel, max_tokens: 8000, reasoning: { effort: 'low' } },
     { model: designModel, max_tokens: 8000 }
   ];
