@@ -114,6 +114,19 @@ test('validateTeam keeps bespoke roles, drops stock labels and duplicate bases',
   assert.equal(validateTeam({ team: DENTAL_TEAM.team.slice(0, 3) }, ROSTER), null, 'fewer than four usable agents is not a team');
 });
 
+test('marketplace extras are validated like the team, may share bases, never repeat a name', () => {
+  const extra = (base, name) => ({ base, name, does: `Handles the ${name.toLowerCase()} side of your clinic every week.`, job: 'does the thing', outcomes: ['one two three', 'four five six', 'seven eight nine', 'ten eleven twelve', 'thirteen'], mcps: ['Gmail', 'Xero'], scene: 'It is a small agent in the clinic.' });
+  const out = validateTeam({
+    intro: 'ok', team: DENTAL_TEAM.team,
+    more: [extra('support', 'Emergency Triage'), extra('support', 'Waitlist Filler'), extra('invoices', 'HICAPS Claims Agent'), extra('operations', 'Operations Agent'), extra('nope', 'Ghost'), extra('documents', 'Referral Letter')]
+  }, ROSTER);
+  assert.equal(out.team.length, 6);
+  assert.deepEqual(out.more.map(m => [m.id, m.base, m.name]), [['more-1', 'support', 'Emergency Triage Agent'], ['more-2', 'support', 'Waitlist Filler Agent'], ['more-3', 'documents', 'Referral Letter Agent']]);
+  assert.deepEqual(validateTeam({ team: DENTAL_TEAM.team }, ROSTER).more, [], 'missing extras is fine');
+  const p = buildDesignPrompt(normaliseInput({ business: 'dental clinic', roster: ROSTER }), null);
+  assert.match(p.system, /"more": exactly 10 further entries/);
+});
+
 test('researchTeam researches with web search first, then designs from the brief', async () => {
   const { calls, callModel } = fakeModel([ok(DENTAL_BRIEF), ok(DENTAL_TEAM)]);
   const input = normaliseInput({ business: 'two-chair dental clinic', industry: 'Health & wellness', website: 'smile.com.au', roster: ROSTER });
