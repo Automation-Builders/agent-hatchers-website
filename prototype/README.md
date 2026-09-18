@@ -22,7 +22,10 @@ when it can, and the prospect's website when they give one on screen 1) and desi
 roles for it ("Recall & Rebooking Agent", not "Support Agent"), each pinned to a catalog base.
 `app.js` overlays those names, one-liners, outcomes, tools and portrait scenes on the catalog
 entries via `agentById()` so Profiles, Chats, Marketplace, the agent modal and hand-offs all show
-them. The
+them. While it thinks (~20s, behind the create screen) a small console-style card
+(`researchPopStart` in `app.js`, `.rs-pop` in the CSS) cycles through status lines the way a
+coding agent does — mostly silly ("Caramelising onions…"), every third one true ("Reading
+tanssu.com…") — and ends with a tick when the team lands. The
 research request and response go through the eligibility gate below; if the proxy is down the
 page falls back to keyword ranking with the stock names.
 

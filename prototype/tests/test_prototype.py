@@ -98,6 +98,11 @@ class PrototypeContractTests(unittest.TestCase):
                         "${matesFor(agent).map(mid=>"):
             self.assertIn(surface, self.app)
         self.assertNotIn("catalog.find(a=>a.id===id);if(!agent)return;", self.app)
+        # the ~20s wait is a console-style card that thinks out loud, cleared on Start over
+        self.assertIn("researchPopStart();", self.app)
+        self.assertIn("if(state.teamBusy)return;researchPopDone(state.team);", self.app)
+        self.assertIn("if(a==='reset'){researchPopStop();", self.app)
+        self.assertIn(".rs-pop{position:fixed;", self.css)
         # the researched team survives saving, review and share mode
         self.assertIn("agents:state.team.agents||{}}:null", self.app)
         self.assertIn("['name','company','biz','industry','website','tools','look','team',", self.app)
