@@ -543,6 +543,8 @@ h1{font-weight:800}h2{font-weight:700}
 .p-thumb.is-loading,.mkt-thumb:has(.hatch-loader){position:relative;background:radial-gradient(circle at 50% 30%,#fff 0%,#f2f8fc 55%,#e2eef7 100%)!important}
 .hatch-loader{display:grid;place-items:center;width:100%;height:100%;gap:0;position:relative}
 .hatch-loader .loader-egg{width:42%;height:auto;animation:eggRock 1.7s ease-in-out infinite;filter:drop-shadow(0 6px 10px rgba(33,107,172,.16))}
+.hatch-loader.is-still .loader-egg{animation:none;opacity:.8}
+.hatch-loader.is-still .loader-txt{color:#6b7480}
 .hatch-loader .loader-txt{position:absolute;bottom:9px;left:0;right:0;text-align:center;font:800 .68rem 'Inter',system-ui;letter-spacing:.09em;text-transform:uppercase;color:var(--brand,#216bac)}
 .ws-avatar-img{border-radius:50%;object-fit:cover}
 /* Analytics — filter bar + horizontal bar charts */

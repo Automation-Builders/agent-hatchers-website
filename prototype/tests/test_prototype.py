@@ -25,6 +25,20 @@ class PrototypeContractTests(unittest.TestCase):
         self.assertIn("if(VIEW_ONLY)reviewSession();", self.app)
         self.assertIn(".review-bar", self.css)
 
+    def test_review_of_an_unpicked_hatch_still_shows_a_hero_and_no_stock_robots(self):
+        # 21 Sep 2026: a session saved at the design step (three hatched, none picked) opened
+        # as a dashboard with a blob hero and stock Hatchy art on every team card. Review must
+        # stand up the chosen/first design, say so in the bar, and show still eggs where no
+        # team portrait was ever generated.
+        review = self.app.split("async function reviewSession(){")[1].split("function welcomeBack(){")[0]
+        self.assertIn("state.selectedImage=state.slots[i].image;state.unpicked=true;", review)
+        self.assertIn("state.variant=i;", review)
+        self.assertIn("never picked one, so this shows design ${state.variant+1}", review)
+        self.assertIn("const unhatched=!gen&&VIEW_ONLY;", self.app)
+        self.assertIn("unhatched?marketUnhatched:", self.app)
+        self.assertIn('class="hatch-loader is-still"', self.app)
+        self.assertIn(".hatch-loader.is-still .loader-egg{animation:none", self.css)
+
     def test_share_links_open_one_session_without_the_key(self):
         # The team mints a token on sessions.html; the prospect's link carries only that token.
         # The public read must never touch the key-gated list/log, and the token must be minted
