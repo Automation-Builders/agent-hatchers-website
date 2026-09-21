@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 71;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 72;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -446,6 +446,12 @@
     state.tools=cleanTools(state.tools);
     state.sid=d.sid||REVIEW_SID;state.startedAt=Number(d.startedAt)||0;
     state.slots=(d.slots||[]).map(im=>im?{status:'ready',image:im}:null);
+    // A session saved before a design was picked (tab closed mid-hatch, or the QA sweep stops
+    // there) still holds its hatched designs. The dashboard used to pour it in with an empty
+    // hero — blob avatar, stock robots on every team card — so stand the chosen design up
+    // (or the first hatched one) and let the bar say nobody picked it.
+    state.unpicked=false;
+    if(!state.selectedImage){const i=state.variant!==null&&state.slots[state.variant]&&state.slots[state.variant].image?state.variant:state.slots.findIndex(x=>x&&x.image);if(i>=0){state.variant=i;state.selectedImage=state.slots[i].image;state.unpicked=true;}}
     state.marketImages=Object.assign({},d.market||{});state.marketStarted=true;   // never regenerate on the team's behalf
     state.profiles=(d.profiles||[]).map((q,i)=>({id:'np'+(i+1),name:q.name||'',desc:q.desc||'',img:q.img||'',step:CP_STEPS.length-1,status:q.status||'complete',profile:q.profile||null,cancelled:false,dismissed:true}));
     cpSeq=state.profiles.length;
@@ -457,7 +463,7 @@
     render();
     bar.innerHTML=share
       ?`<span>A preview hatched for <b>${escapeHtml(d.company||'you')}</b> by Agent Hatchers${d.name?` — meet ${escapeHtml(d.name)}`:''}</span><a href="${escapeHtml(location.pathname)}">Hatch your own →</a>`
-      :`<span>Reviewing <b>${escapeHtml(d.company||'an unnamed company')}</b>${d.name?` · ${escapeHtml(d.name)}`:''} — read-only: nothing here is saved, generated or counted</span><a href="/prototype/sessions.html">Back to sessions</a>`;
+      :`<span>Reviewing <b>${escapeHtml(d.company||'an unnamed company')}</b>${d.name?` · ${escapeHtml(d.name)}`:''} — read-only: nothing here is saved, generated or counted${state.unpicked?` · they hatched designs but never picked one, so this shows design ${state.variant+1}`:''}</span><a href="/prototype/sessions.html">Back to sessions</a>`;
   }
   function welcomeBack(){
     const pop=document.createElement('div');pop.className='create-pop wb-pop';pop.innerHTML=state.rehatch?`${ci.check}<span>Welcome back${state.name?`, ${escapeHtml(state.name)} is still here`:''}. Your earlier designs were made before a fix, so hatch them again — one press.</span>`:`${ci.check}<span>Picked up where you left off${state.name?` with ${escapeHtml(state.name)}`:''}. <b>Start over</b> is in the footer if you want a fresh hatch.</span>`;
@@ -716,9 +722,12 @@
   function hatchScreen(){return `<div class="stage hatch-zone"><span class="eyebrow">Hatching</span><h2>Hatching ${escapeHtml(state.name||'your agent')}…</h2><p>Three takes on your description. Click your favourite — it becomes ${escapeHtml(state.name||'your agent')}’s avatar.</p><div class="hatch-row" aria-live="polite">${[0,1,2].map(eggScene).join('')}</div><div class="hatch-actions">${hatchActionsBar()}</div></div>`;}
   function initials(str){return String(str||'AH').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();}
   const marketLoader='<div class="hatch-loader"><img class="loader-egg" src="/egg-closed.webp" alt=""><span class="loader-txt">Hatching…</span></div>';
+  // Review/share of a session that never reached the dashboard: its team portraits were never
+  // generated. A still egg says so honestly — the stock Hatchy art looked like a different robot.
+  const marketUnhatched='<div class="hatch-loader is-still"><img class="loader-egg" src="/egg-closed.webp" alt=""><span class="loader-txt">Not hatched</span></div>';
   function willGenerate(agent){if(VIEW_ONLY)return false;   // review mode shows what was stored, no egg loaders
     return (usePortraits&&config.marketPortraits!==false&&state.variant!==null)||!!(config.bakedMarket&&config.bakedMarket[agent.id]);}
-  function agentCard(agent,running=false){const gen=state.marketImages[agent.id];const loading=!gen&&willGenerate(agent);const inner=gen?`<img src="${escapeHtml(gen)}" alt="${escapeHtml(agent.name)}">`:(loading?marketLoader:`<img src="${agent.portrait}" alt="${escapeHtml(agent.name)}" loading="lazy">`);return `<article class="p-card" data-agent="${agent.id}" data-search="${escapeHtml((agent.name+' '+agent.team).toLowerCase())}" tabindex="0"><div class="p-thumb thumb-${agent.base||agent.id} ${gen?'is-generated':''} ${loading?'is-loading':''}" data-thumb="${agent.id}">${inner}</div><div class="p-meta"><div class="p-name">${agent.name} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span>${teamTag(agent.team)}${running?'<span class="p-tag tag-run"><i></i>Running</span>':''}</div></div></article>`;}
+  function agentCard(agent,running=false){const gen=state.marketImages[agent.id];const loading=!gen&&willGenerate(agent);const unhatched=!gen&&VIEW_ONLY;const inner=gen?`<img src="${escapeHtml(gen)}" alt="${escapeHtml(agent.name)}">`:(loading?marketLoader:unhatched?marketUnhatched:`<img src="${agent.portrait}" alt="${escapeHtml(agent.name)}" loading="lazy">`);return `<article class="p-card" data-agent="${agent.id}" data-search="${escapeHtml((agent.name+' '+agent.team).toLowerCase())}" tabindex="0"><div class="p-thumb thumb-${agent.base||agent.id} ${gen?'is-generated':''} ${loading||unhatched?'is-loading':''}" data-thumb="${agent.id}">${inner}</div><div class="p-meta"><div class="p-name">${agent.name} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span>${teamTag(agent.team)}${running?'<span class="p-tag tag-run"><i></i>Running</span>':''}</div></div></article>`;}
   function hatchedCard(){const vis=state.selectedImage?`<img src="${escapeHtml(state.selectedImage)}" alt="${escapeHtml(state.name)}">`:`<div class="thumb-bot">${bot('v'+(state.variant||0))}</div>`;return `<article class="p-card is-yours"><div class="p-thumb thumb-new ${state.selectedImage?'is-generated':''}">${vis}</div><div class="p-meta"><div class="p-name">${escapeHtml(state.name||'Your agent')} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span><span class="p-tag tag-new">Just hatched</span></div></div></article>`;}
   // Two of the recommended agents are already switched on for the prospect's company, so the
   // board shows what "running" looks like next to the freshly hatched one.
