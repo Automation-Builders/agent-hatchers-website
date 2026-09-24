@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 72;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 73;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -168,6 +168,7 @@
     eye:'<svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
     eyeOff:'<svg viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 10.6a3 3 0 004.2 4.2M9.9 4.2A10 10 0 0112 4c6.5 0 10 8 10 8a15 15 0 01-3.3 3.9M6.1 6.1A15 15 0 002 12s3.5 7 10 7a10 10 0 003-.5"/></svg>',
     check:'<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11"/></svg>',
+    download:'<svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
     cal:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>'
   };
   const MCP_SPRITE="<svg xmlns=\"http://www.w3.org/2000/svg\" style=\"display:none\" aria-hidden=\"true\"><symbol id=\"lg-gmail\" viewBox=\"52 42 88 66\">       <path fill=\"#4285f4\" d=\"M58 108h14V74L52 59v43c0 3.32 2.69 6 6 6\"/>       <path fill=\"#34a853\" d=\"M120 108h14c3.32 0 6-2.69 6-6V59l-20 15\"/>       <path fill=\"#fbbc04\" d=\"M120 48v26l20-15v-8c0-7.42-8.47-11.65-14.4-7.2\"/>       <path fill=\"#ea4335\" d=\"M72 74V48l24 18 24-18v26L96 92\"/>       <path fill=\"#c5221f\" d=\"M52 51v8l20 15V48l-5.6-4.2c-5.94-4.45-14.4-.22-14.4 7.2\"/>     </symbol><symbol id=\"lg-slack\" viewBox=\"0 0 24 24\">       <path fill=\"#36C5F0\" d=\"M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313z\"/>       <path fill=\"#2EB67D\" d=\"M8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312z\"/>       <path fill=\"#ECB22E\" d=\"M18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312z\"/>       <path fill=\"#E01E5A\" d=\"M15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z\"/>     </symbol><symbol id=\"lg-teams\" viewBox=\"0 0 2228.833 2073.333\"><path fill=\"#5059C9\" d=\"M1554.637,777.5h575.713c54.391,0,98.483,44.092,98.483,98.483v524.398c0,199.901-162.051,361.952-361.952,361.952h-1.711c-199.901,0.028-361.975-162-362.004-361.901V828.971C1503.167,800.544,1526.211,777.5,1554.637,777.5z\"/><path fill=\"#5059C9\" d=\"M1943.75,207.333a233.25,233.25 0 1 1 0,466.5a233.25,233.25 0 1 1 0,-466.5z\"/><path fill=\"#7B83EB\" d=\"M1218.083,0a336.917,336.917 0 1 1 0,673.834a336.917,336.917 0 1 1 0,-673.834z\"/><path fill=\"#7B83EB\" d=\"M1667.323,777.5H717.01c-53.743,1.33-96.257,45.931-95.01,99.676v598.105c-7.505,322.519,247.657,590.16,570.167,598.053c322.51-7.893,577.671-275.534,570.167-598.053V877.176C1763.579,823.431,1721.066,778.83,1667.323,777.5z\"/><path fill=\"#000000\" opacity=\"0.2\" d=\"M1192.167,777.5v786.312c-0.395,52.223-42.632,94.46-94.855,94.855h-447.84c-18.144-59.476-27.402-121.307-27.472-183.49V877.02c-1.246-53.659,41.198-98.19,94.855-99.52H1192.167z\"/><path fill=\"#000000\" opacity=\"0.2\" d=\"M1192.167,561.355v111.442c-17.496-1.161-34.848-3.937-51.833-8.293c-104.963-24.857-191.679-98.469-233.25-198.003h190.228C1149.616,466.699,1191.968,509.051,1192.167,561.355z\"/><path fill=\"#4B53BC\" d=\"M95.01,466.5h950.312c52.473,0,95.01,42.538,95.01,95.01v950.312c0,52.473-42.538,95.01-95.01,95.01H95.01c-52.473,0-95.01-42.538-95.01-95.01V561.51C0,509.038,42.538,466.5,95.01,466.5z\"/><path fill=\"#FFFFFF\" d=\"M820.211,828.193H630.241v517.297H509.211V828.193H320.123V727.844h500.088V828.193z\"/></symbol><symbol id=\"lg-hubspot\" viewBox=\"0 0 24 24\">       <path fill=\"#FF7A59\" d=\"M18.164 7.93V5.084a2.198 2.198 0 0 0 1.267-1.978v-.067A2.2 2.2 0 0 0 17.238.845h-.067a2.2 2.2 0 0 0-2.193 2.194v.067a2.196 2.196 0 0 0 1.252 1.973l.013.006v2.852a6.22 6.22 0 0 0-2.969 1.31l.012-.01-7.828-6.095A2.497 2.497 0 1 0 4.3 4.656l-.012.006 7.697 5.991a6.176 6.176 0 0 0-1.038 3.446c0 1.343.425 2.588 1.147 3.606l-.013-.02-2.342 2.343a1.968 1.968 0 0 0-.58-.095h-.002a2.033 2.033 0 1 0 2.033 2.033 1.978 1.978 0 0 0-.1-.595l.005.014 2.317-2.317a6.247 6.247 0 1 0 4.782-11.134l-.036-.005zm-1.02 9.378a3.206 3.206 0 1 1 3.207-3.207 3.206 3.206 0 0 1-3.206 3.206z\"/>     </symbol><symbol id=\"lg-xero\" viewBox=\"0 0 24 24\">       <path fill=\"#13B5EA\" d=\"M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm6.585 14.655c-1.485 0-2.69-1.206-2.69-2.689 0-1.485 1.207-2.691 2.69-2.691 1.485 0 2.69 1.207 2.69 2.691s-1.207 2.689-2.69 2.689zM7.53 14.644c-.099 0-.192-.041-.267-.116l-2.043-2.04-2.052 2.047c-.069.068-.16.108-.258.108-.202 0-.368-.166-.368-.368 0-.099.04-.191.111-.263l2.04-2.05-2.038-2.047c-.075-.069-.113-.162-.113-.261 0-.203.166-.366.368-.366.098 0 .188.037.258.105l2.055 2.048 2.048-2.045c.069-.071.162-.108.26-.108.211 0 .375.165.375.366 0 .098-.029.188-.104.258l-2.056 2.055 2.055 2.051c.068.069.104.16.104.258 0 .202-.165.368-.365.368h-.01zm8.017-4.591c-.796.101-.882.476-.882 1.404v2.787c0 .202-.165.366-.366.366-.203 0-.367-.165-.368-.366v-4.53c0-.204.16-.366.362-.366.166 0 .316.125.346.289.27-.209.6-.317.93-.317h.105c.195 0 .359.165.359.368 0 .201-.164.352-.375.359 0 0-.09 0-.164.008l.053-.002zm-3.091 2.205H8.625c0 .019.003.037.006.057.02.105.045.211.083.31.194.531.765 1.275 1.829 1.29.33-.003.631-.086.9-.229.21-.12.391-.271.525-.428.045-.058.09-.112.12-.168.18-.229.405-.186.54-.083.164.135.18.391.045.57l-.016.016c-.21.27-.435.495-.689.66-.255.164-.525.284-.811.345-.33.09-.645.104-.975.06-1.095-.135-2.01-.93-2.28-2.01-.06-.21-.09-.42-.09-.645 0-.855.421-1.695 1.125-2.205.885-.615 2.085-.66 3-.075.63.405 1.035 1.021 1.185 1.771.075.419-.21.794-.734.81l.068-.046zm6.129-2.223c-1.064 0-1.931.865-1.931 1.931 0 1.064.866 1.931 1.931 1.931s1.931-.867 1.931-1.931c0-1.065-.866-1.933-1.931-1.933v.002zm0 2.595c-.367 0-.666-.297-.666-.666 0-.367.3-.665.666-.665.367 0 .667.299.667.665 0 .369-.3.667-.667.666zm-8.04-2.603c-.91 0-1.672.623-1.886 1.466v.03h3.776c-.203-.855-.973-1.494-1.891-1.494v-.002z\"/>     </symbol><symbol id=\"lg-quickbooks\" viewBox=\"0 0 24 24\">       <path fill=\"#2CA01C\" d=\"M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm.642 4.1335c.9554 0 1.7296.776 1.7296 1.7332v9.0667h1.6c1.614 0 2.9275-1.3156 2.9275-2.933 0-1.6173-1.3136-2.9333-2.9276-2.9333h-.6654V7.3334h.6654c2.5722 0 4.6577 2.0897 4.6577 4.667 0 2.5774-2.0855 4.6666-4.6577 4.6666H12.642zM7.9837 7.333h3.3291v12.533c-.9555 0-1.73-.7759-1.73-1.7332V9.0662H7.9837c-1.6146 0-2.9277 1.316-2.9277 2.9334 0 1.6175 1.3131 2.9333 2.9277 2.9333h.6654v1.7332h-.6654c-2.5725 0-4.6577-2.0892-4.6577-4.6665 0-2.5771 2.0852-4.6666 4.6577-4.6666Z\"/>     </symbol><symbol id=\"lg-stripe\" viewBox=\"0 0 24 24\">       <rect width=\"24\" height=\"24\" rx=\"5\" fill=\"#635BFF\"/>       <path fill=\"#fff\" transform=\"translate(5.4,5.4) scale(0.55)\" d=\"M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z\"/>     </symbol><symbol id=\"lg-notion\" viewBox=\"0 0 24 24\">       <rect x=\"1.5\" y=\"1.5\" width=\"21\" height=\"21\" rx=\"3.5\" fill=\"#fff\" stroke=\"#16150F\" stroke-width=\"1.6\"/>       <text x=\"12\" y=\"17.2\" text-anchor=\"middle\" font-family=\"Georgia,'Times New Roman',serif\" font-weight=\"700\" font-size=\"14\" fill=\"#16150F\">N</text>     </symbol><symbol id=\"lg-zendesk\" viewBox=\"0 0 24 24\">       <path fill=\"#03363D\" d=\"M11.087 4.685v14.629H0L11.087 4.685zM11.087 0c0 3.062-2.482 5.544-5.544 5.544S0 3.062 0 0h11.087zM12.913 19.314c0-3.062 2.482-5.544 5.544-5.544S24 16.252 24 19.314H12.913zM12.913 14.629V0H24L12.913 14.629z\"/>     </symbol></svg>";
@@ -388,7 +389,7 @@
       if(!state.sid){state.sid=uid();state.startedAt=Date.now();}
       const snap={v:1,build:BUILD,sid:state.sid,startedAt:state.startedAt,savedAt:Date.now(),step:state.step,name:state.name,company:state.company,biz:state.biz,industry:state.industry,tools:state.tools||[],look:state.look,team:state.team,axes:state.axes||null,refPhoto:state.refPhoto,brand:state.brand,
         slots:state.slots.map(s=>s&&s.status==='ready'?{status:'ready',image:s.image||''}:null),variant:state.variant,selectedImage:state.selectedImage,done:state.done,
-        marketImages:state.marketImages,marketRefKey:state.marketRefKey,added:state.added||[],tab:state.tab,chatActive:state.chatActive,chatExtra:state.chatExtra,editUses:state.editUses,
+        marketImages:state.marketImages,marketRefKey:state.marketRefKey,added:state.added||[],tab:state.tab,chatActive:state.chatActive,chatExtra:state.chatExtra,editUses:state.editUses,downloadOffered:!!state.downloadOffered,
         profiles:state.profiles.filter(p=>p.status==='complete'||p.status==='deleted').map(p=>({id:p.id,name:p.name,desc:p.desc,img:p.img,step:p.step,status:p.status,profile:p.profile||null,dismissed:!!p.dismissed}))};
       writeSession(snap);
       syncSession();
@@ -398,7 +399,7 @@
   async function restoreSession(){
     const snap=await loadSession();
     if(!snap||snap.v!==1||!(snap.step>=1))return false;
-    const fields=['sid','startedAt','name','company','biz','industry','tools','look','team','axes','refPhoto','brand','variant','selectedImage','done','marketImages','marketRefKey','added','tab','chatActive','chatExtra','editUses'];
+    const fields=['sid','startedAt','name','company','biz','industry','tools','look','team','axes','refPhoto','brand','variant','selectedImage','done','marketImages','marketRefKey','added','tab','chatActive','chatExtra','editUses','downloadOffered'];
     fields.forEach(k=>{if(snap[k]!==undefined)state[k]=snap[k];});
     state.tools=cleanTools(state.tools);
     state.slots=(snap.slots||[]).map(s=>s&&s.status==='ready'?{status:'ready',image:s.image||''}:null);
@@ -927,8 +928,8 @@
       </header>
       ${body}
       ${SHARE_TOKEN
-        ?`<div class="board-foot share-foot"><span class="share-foot-txt">Like what you see? This is what your team could look like.</span><div class="foot-nav"><a class="btn btn-secondary" href="${escapeHtml(location.pathname)}">Hatch your own agent →</a><button class="btn btn-primary" data-action="book" data-source="share">Book a call →</button></div></div>`
-        :`<div class="board-foot"><div class="foot-nav">${button('← Back','back',true)}${button('Start over','reset',true)}${button('Connect your agent →','next',true)}</div><button class="btn btn-primary" data-action="book" data-source="dashboard">Book a call →</button></div>`}
+        ?`<div class="board-foot share-foot"><span class="share-foot-txt">Like what you see? This is what your team could look like.</span><div class="foot-nav">${state.selectedImage?`<button class="btn btn-secondary dl-foot" data-action="download">${ci.download}<span>Download your image</span></button>`:''}<a class="btn btn-secondary" href="${escapeHtml(location.pathname)}">Hatch your own agent →</a><button class="btn btn-primary" data-action="book" data-source="share">Book a call →</button></div></div>`
+        :`<div class="board-foot"><div class="foot-nav">${button('← Back','back',true)}${button('Start over','reset',true)}${button('Connect your agent →','next',true)}${state.selectedImage?`<button class="btn btn-secondary dl-foot" data-action="download">${ci.download}<span>Download your image</span></button>`:''}</div><button class="btn btn-primary" data-action="book" data-source="dashboard">Book a call →</button></div>`}
     </div>`;
   }
   function connectScreen(){
@@ -1548,6 +1549,48 @@
       state.marketImages[p.id]=img||state.selectedImage||p.portrait;saveSession();
       root.querySelectorAll(`[data-xav="${p.id}"]`).forEach(el=>{el.src=state.marketImages[p.id];el.classList.remove('egg');});
     }));
+    // The dashboard is fully drawn — hand the prospect their character to keep, once per hatch.
+    if(!state.downloadOffered&&state.selectedImage&&state.step>=4){state.downloadOffered=true;saveSession();downloadPop();}
+  }
+  // ---------- Download your image: the hatched character as a PNG the prospect keeps ----------
+  // Pops once when the dashboard finishes generating (and from the footer any time after).
+  // `downloadFiles()` is the attachment list — the dashboard's JSON creation script will join
+  // the PNG here as a second entry.
+  const fileSlug=t=>String(t||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60);
+  async function toPng(src){
+    const im=await loadImg(src);const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;
+    c.getContext('2d').drawImage(im,0,0);
+    return await new Promise((ok,bad)=>c.toBlob(b=>b?ok(b):bad(new Error('no png')),'image/png'));
+  }
+  function saveBlob(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);}
+  function downloadFiles(){
+    const base=fileSlug(state.name)||'your-agent';
+    return [{id:'image',name:`${base}.png`,kind:'PNG image',detail:`${state.name||'Your agent'}, the character you hatched`,
+      make:()=>toPng(state.selectedImage)}];
+  }
+  function downloadPop(){
+    if(!state.selectedImage)return;
+    document.querySelectorAll('.dl-backdrop').forEach(b=>b.remove());
+    const files=downloadFiles();
+    const backdrop=document.createElement('div');backdrop.className='modal-backdrop dl-backdrop';
+    backdrop.innerHTML=`<section class="modal dl-modal" role="dialog" aria-modal="true" aria-labelledby="dl-title"><div class="modal-top"><div><span class="eyebrow">Your dashboard is ready</span><h2 id="dl-title">Download your image</h2></div><button class="close" aria-label="Close">×</button></div>
+      <div class="dl-hero"><img src="${escapeHtml(state.selectedImage)}" alt="${escapeHtml(state.name||'Your agent')}"></div>
+      <p class="dl-lead">Keep ${escapeHtml(state.name||'your agent')} — use the picture anywhere you like.</p>
+      <ul class="dl-files">${files.map(f=>`<li class="dl-file"><span class="dl-ic">${ci.download}</span><div class="dl-meta"><b>${escapeHtml(f.name)}</b><i>${escapeHtml(f.kind)} · ${escapeHtml(f.detail)}</i></div><button type="button" class="btn btn-primary dl-get" data-dl="${f.id}">Download</button></li>`).join('')}</ul></section>`;
+    document.body.appendChild(backdrop);
+    const close=()=>{backdrop.remove();document.removeEventListener('keydown',esc);};
+    const esc=e=>{if(e.key==='Escape')close();};
+    document.addEventListener('keydown',esc);
+    backdrop.querySelector('.close').onclick=close;
+    backdrop.onclick=e=>{if(e.target===backdrop)close();};
+    backdrop.querySelectorAll('[data-dl]').forEach(btn=>btn.onclick=async()=>{
+      const f=files.find(x=>x.id===btn.dataset.dl);if(!f||btn.disabled)return;
+      const label=btn.textContent;btn.disabled=true;btn.textContent='Preparing…';
+      try{saveBlob(await f.make(),f.name);btn.innerHTML=`${ci.check} Downloaded`;}
+      catch(e){btn.textContent='Try again';}
+      btn.disabled=false;setTimeout(()=>{if(btn.isConnected)btn.textContent=label;},2600);
+    });
+    backdrop.querySelector('.dl-get')?.focus({preventScroll:true});
   }
   // Exact homepage hero hatch (index.html): egg rocks, crack walks the seam, lid
   // shatters into shards, the design pops out. Runs when each design's image is ready.
@@ -1556,7 +1599,7 @@
     bumpUsage(HATCH_KEY);   // three images per hatch; three hatches per browser
     const lookTa=document.getElementById('agent-look');if(lookTa&&lookTa.value.trim())state.look=lookTa.value.trim();
     dealDesignAxes();
-    state.slots=[null,null,null];state.variant=null;state.selectedImage='';state.marketImages={};state.marketStarted=false;state.marketRefKey='';state.step=3;render();
+    state.slots=[null,null,null];state.variant=null;state.selectedImage='';state.marketImages={};state.marketStarted=false;state.marketRefKey='';state.step=3;state.downloadOffered=false;render();
     const refreshBar=()=>{const bar=root.querySelector('.hatch-actions');if(bar){bar.innerHTML=hatchActionsBar();bind();}};
     const sceneOf=i=>()=>root.querySelector(`.hx6[data-i="${i}"]`);
     [0,1,2].forEach(i=>crackStart('d'+i,sceneOf(i),true));   // the crack creeps while the model draws
@@ -1589,6 +1632,7 @@
       if(a==='edit-look'){openEditLook()}
       if(a==='open-connect'){openConnectDialog()}
       if(a==='book'){openBooking(el.dataset.source||'prototype')}
+      if(a==='download'){downloadPop()}
       if(a==='chat-send'){const box=document.getElementById('chat-box');const t=box?box.value.trim():'';if(!t)return;const i=state.chatActive??8;
         const FREE_TURNS=5;
         const prior=(state.chatExtra[i]||[]).filter(m=>m[0]==='me').length;
@@ -1606,7 +1650,7 @@
         const s=state.slots[state.variant];
         state.selectedImage=(s&&s.image)||state.selectedImage||((state.slots.find(x=>x&&x.image)||{}).image)||'';
         document.querySelectorAll('.confetti').forEach(c=>c.remove());if(window.ahTrack)ahTrack('DemoComplete');state.step=4;render();generateMarket()}
-      if(a==='reset'){researchPopStop();state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.website='';state.tools=[];state.toolsOpen=false;state.look='';state.team=null;state.teamBusy=false;state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.added=[];state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='reset'){researchPopStop();state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.website='';state.tools=[];state.toolsOpen=false;state.look='';state.team=null;state.teamBusy=false;state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.added=[];state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.downloadOffered=false;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-egg]').forEach(el=>{
       // Select a design the moment it's hatched — direct DOM updates only, so picking

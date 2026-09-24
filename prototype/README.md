@@ -16,6 +16,12 @@ Every page runs the same hatching experience (shared code in `app.js` / `styles.
    Marketplace and Merch, all populated with the hatched character.
 6. **Connect** — the Slack/Teams connection dialog.
 
+When the dashboard finishes generating (every marketplace and "Other profiles" portrait is
+drawn), a **Download your image** pop hands the prospect their hatched character as a PNG
+(`downloadPop()` in `app.js`). It shows once per hatch (`state.downloadOffered`, saved with
+the session) and stays reachable from the dashboard footer. `downloadFiles()` is the list of
+attachments, so the dashboard's JSON creation script can be added there as a second file.
+
 The team is **researched, not picked from a list** (build 69): the proxy's `prototype-team`
 function researches the business first (roles, systems, where the hours go — with a web search
 when it can, and the prospect's website when they give one on screen 1) and designs six named

@@ -209,5 +209,18 @@ class PrototypeContractTests(unittest.TestCase):
         # Vendored tool icons are cache-busted by build so a redeploy never shows an old logo.
         self.assertIn("/prototype/assets/tools/${MCP_IMGS[name]}?v=${BUILD}", self.app)
 
+    def test_finished_dashboard_offers_the_character_as_a_png(self):
+        # When the dashboard finishes generating, a "Download your image" pop hands the prospect
+        # their hatched character as a PNG — once per hatch, and from the footer after that.
+        market = self.app.split("async function generateMarket(){")[1].split("async function generateAgents(){")[0]
+        self.assertIn("if(!state.downloadOffered&&state.selectedImage&&state.step>=4){state.downloadOffered=true;saveSession();downloadPop();}", market)
+        self.assertIn("Download your image", self.app)
+        self.assertIn("c.toBlob(b=>b?ok(b):bad(new Error('no png')),'image/png')", self.app)
+        self.assertIn("name:`${base}.png`", self.app)
+        self.assertIn("downloadOffered:!!state.downloadOffered", self.app)
+        self.assertIn("state.marketRefKey='';state.step=3;state.downloadOffered=false;", self.app)
+        self.assertIn('data-action="download"', self.app)
+        self.assertIn(".dl-modal", self.css)
+
 if __name__ == "__main__":
     unittest.main()
