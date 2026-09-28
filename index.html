@@ -139,7 +139,7 @@
           "name": "Is my data safe? Do you need my passwords?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "We never ask for passwords — we connect through each app's official 'Sign in with…' approval screen, and you can revoke any connection yourself at any time. Hermes is installed for your business alone — on its own Linode server, with your files in your own Google Cloud storage bucket — each agent gets access only to the tools its job needs, anything customer-facing waits for a person to approve it, and we don't use your data to train AI models."
+            "text": "We never ask for passwords — we connect through each app's official 'Sign in with…' approval screen, and you can revoke any connection yourself at any time. Hermes is installed for your business alone — on its own Linode server, with your files in a private storage bucket just for your business — each agent gets access only to the tools its job needs, by default anything customer-facing waits for a person to approve it, and we don't use your data to train AI models."
           }
         },
         {
@@ -2012,7 +2012,7 @@ html.lenis,html.lenis body{height:auto;}
         <div class="safe-img"><img src="hatchy-sec-storage.webp" alt="Hatchy resting a hand on its own little storage cabinet" width="640" height="640" loading="lazy"></div>
         <div class="safe-body">
           <h3>Your own server, your own storage</h3>
-          <p>Hermes isn't a shared app you log into next to a thousand other companies. It runs on <strong>its own Linode server, set up for your business alone,</strong> and your files live in <strong>your business's own Google Cloud storage bucket.</strong> Everything is encrypted on the way there and while it sits there, nobody else's data shares the space — and if you ever leave, it's handed back to you and wiped from our side.</p>
+          <p>Hermes isn't a shared app you log into next to a thousand other companies. It runs on <strong>its own Linode server, set up for your business alone,</strong> and your files live in <strong>a private storage bucket just for your business.</strong> Everything is encrypted on the way there, the bucket is encrypted at rest, nobody else's data shares the space — and if you ever leave, it's handed back to you and wiped from our side.</p>
         </div>
       </div>
       <div class="safe reveal">
@@ -2026,14 +2026,14 @@ html.lenis,html.lenis body{height:auto;}
         <div class="safe-img"><img src="hatchy-sec-approve.webp" alt="Hatchy holding an envelope, waiting for approval" width="640" height="640" loading="lazy"></div>
         <div class="safe-body">
           <h3>Nothing sent without you</h3>
-          <p>Agents draft and prepare on their own, but <strong>anything that reaches a customer or moves money waits for a human to click approve.</strong></p>
+          <p>Agents draft and prepare on their own, but <strong>by default, anything that reaches a customer or moves money waits for a human to click approve.</strong></p>
         </div>
       </div>
       <div class="safe reveal">
         <div class="safe-img"><img src="hatchy-sec-training.webp" alt="Hatchy hugging a padlocked folder" width="640" height="640" loading="lazy"></div>
         <div class="safe-body">
           <h3>Your data isn't training material</h3>
-          <p>Your emails and documents do <em class="s">your</em> job and nothing else — <strong>we don't use them to train AI models.</strong> AI requests run pay-per-use through paid business APIs, not through free consumer chatbots.</p>
+          <p>Your emails and documents do <em class="s">your</em> job and nothing else — <strong>we don't use them to train AI models.</strong></p>
         </div>
       </div>
       <div class="safe reveal">
@@ -2078,7 +2078,7 @@ html.lenis,html.lenis body{height:auto;}
       </details>
       <details class="faq-item reveal" id="faq-data">
         <summary>Is my data safe? Do you need my passwords?<span class="faq-icon">+</span></summary>
-        <div class="faq-body">Never a password — we connect through each app's official "Sign in with…" approval screen, and you can revoke any connection yourself, at any time, from your own admin settings. Hermes is installed for your business alone — on its own Linode server, with your files in your own Google Cloud storage bucket — each agent gets access only to the tools its job needs, anything customer-facing waits for a person to approve it, and we don't use your data to train AI models. More in the <a href="#security" class="tlink">security section</a>.</div>
+        <div class="faq-body">Never a password — we connect through each app's official "Sign in with…" approval screen, and you can revoke any connection yourself, at any time, from your own admin settings. Hermes is installed for your business alone — on its own Linode server, with your files in a private storage bucket just for your business — each agent gets access only to the tools its job needs, by default anything customer-facing waits for a person to approve it, and we don't use your data to train AI models. More in the <a href="#security" class="tlink">security section</a>.</div>
       </details>
       <details class="faq-item reveal" id="faq-offboard">
         <summary>What if I want out, or something breaks?<span class="faq-icon">+</span></summary>
