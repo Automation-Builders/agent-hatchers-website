@@ -26,15 +26,15 @@
 .xs-ico{flex:0 0 auto;display:grid;place-items:center}\
 \
 /* ── booking modal: soft and rounded — pill field, floating card list ── */\
-.xs--ed .xs-btn{border:1px solid var(--ink);border-radius:16px;background:#fff;padding:13px 10px 13px 18px;font-family:var(--font-d);font-size:15px;color:var(--ink);box-shadow:0 1px 2px rgba(22,21,15,.06);transition:border-color .15s,box-shadow .25s,transform .2s}\
+.xs--ed .xs-btn{border:1px solid var(--ink);border-radius:16px;background:transparent;padding:13px 10px 13px 18px;font-family:var(--font-d);font-size:15px;color:var(--ink);box-shadow:0 1px 2px rgba(22,21,15,.06);transition:border-color .15s,box-shadow .25s,transform .2s}\
 .xs--ed .xs-btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px -10px rgba(22,21,15,.35)}\
 .xs--ed .xs-btn:focus-visible,.xs--ed.is-open .xs-btn{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(33,107,172,.14);transform:none}\
 .xs--ed .xs-btn.is-empty .xs-val{color:var(--ink-30)}\
 .xs--ed .xs-chev{width:30px;height:30px;border-radius:50%;background:var(--accent-2);color:var(--accent)}\
 .xs--ed.is-open .xs-chev,.xs--ed .xs-btn:hover .xs-chev{background:var(--accent);color:#fff}\
-.xs-pop--ed{background:#fff;border:1px solid rgba(22,21,15,.12);border-radius:20px;padding:6px;box-shadow:0 2px 6px rgba(22,21,15,.06),0 24px 50px -16px rgba(22,21,15,.4)}\
+.xs-pop--ed{background:var(--paper);border:1px solid rgba(22,21,15,.12);border-radius:20px;padding:6px;box-shadow:0 2px 6px rgba(22,21,15,.06),0 24px 50px -16px rgba(22,21,15,.4)}\
 .xs-pop--ed .xs-opt{padding:12px 12px;margin:2px 0;border-radius:14px;font-family:var(--font-d);font-size:15px;color:var(--ink)}\
-.xs-pop--ed .xs-num{display:grid;place-items:center;flex:0 0 28px;height:28px;border-radius:50%;background:var(--paper);font-family:var(--font-m);font-size:10px;letter-spacing:.04em;color:var(--ink-50);transition:background .15s,color .15s}\
+.xs-pop--ed .xs-num{display:grid;place-items:center;flex:0 0 28px;height:28px;border-radius:50%;background:var(--paper-2);font-family:var(--font-m);font-size:10px;letter-spacing:.04em;color:var(--ink-50);transition:background .15s,color .15s}\
 .xs-pop--ed .xs-opt.is-active{background:linear-gradient(90deg,rgba(193,220,232,.75),rgba(193,220,232,.35));padding-left:16px}\
 .xs-pop--ed .xs-opt.is-active .xs-num{background:#fff;color:var(--accent)}\
 .xs-pop--ed .xs-tick{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;box-shadow:0 4px 10px rgba(33,107,172,.3)}\
