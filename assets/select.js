@@ -25,24 +25,21 @@
 .xs-opt[aria-selected=true] .xs-tick{opacity:1;transform:none}\
 .xs-ico{flex:0 0 auto;display:grid;place-items:center}\
 \
-/* ── editorial (booking modal): paper, ink rule, hard offset shadow like the modal ── */\
-.xs--ed .xs-btn{border:1px solid var(--ink);background:transparent;padding:15px 14px 15px 16px;font-family:var(--font-d);font-size:15px;color:var(--ink);transition:border-color .15s,box-shadow .2s,transform .2s}\
-.xs--ed .xs-btn:hover{box-shadow:3px 3px 0 0 var(--ink);transform:translate(-1px,-1px)}\
-.xs--ed .xs-btn:focus-visible,.xs--ed.is-open .xs-btn{outline:none;border-color:var(--accent);box-shadow:3px 3px 0 0 var(--accent);transform:translate(-1px,-1px)}\
+/* ── booking modal: soft and rounded — pill field, floating card list ── */\
+.xs--ed .xs-btn{border:1px solid var(--ink);border-radius:16px;background:#fff;padding:13px 10px 13px 18px;font-family:var(--font-d);font-size:15px;color:var(--ink);box-shadow:0 1px 2px rgba(22,21,15,.06);transition:border-color .15s,box-shadow .25s,transform .2s}\
+.xs--ed .xs-btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px -10px rgba(22,21,15,.35)}\
+.xs--ed .xs-btn:focus-visible,.xs--ed.is-open .xs-btn{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(33,107,172,.14);transform:none}\
 .xs--ed .xs-btn.is-empty .xs-val{color:var(--ink-30)}\
-.xs--ed .xs-chev{width:28px;height:28px;border-radius:50%;border:1px solid var(--ink);color:var(--ink)}\
-.xs--ed.is-open .xs-chev,.xs--ed .xs-btn:hover .xs-chev{background:var(--ink);color:var(--paper);border-color:var(--ink)}\
-.xs-pop--ed{background:var(--paper);border:1px solid var(--ink);box-shadow:6px 6px 0 0 var(--ink);padding:0}\
-.xs-pop--ed .xs-opt{padding:15px 16px;border-top:1px solid var(--line);font-family:var(--font-d);font-size:15px;color:var(--ink)}\
-.xs-pop--ed .xs-opt:first-child{border-top:0}\
-.xs-pop--ed .xs-num{font-family:var(--font-m);font-size:10px;letter-spacing:.12em;color:var(--ink-50);width:18px;transition:color .15s}\
-.xs-pop--ed .xs-opt:before{content:'';position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent);transition:width .22s cubic-bezier(.3,1.4,.5,1)}\
-.xs-pop--ed .xs-opt.is-active{background:var(--accent-2);padding-left:22px}\
-.xs-pop--ed .xs-opt.is-active:before{width:4px}\
-.xs-pop--ed .xs-opt.is-active .xs-num{color:var(--accent)}\
-.xs-pop--ed .xs-tick{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff}\
+.xs--ed .xs-chev{width:30px;height:30px;border-radius:50%;background:var(--accent-2);color:var(--accent)}\
+.xs--ed.is-open .xs-chev,.xs--ed .xs-btn:hover .xs-chev{background:var(--accent);color:#fff}\
+.xs-pop--ed{background:#fff;border:1px solid rgba(22,21,15,.12);border-radius:20px;padding:6px;box-shadow:0 2px 6px rgba(22,21,15,.06),0 24px 50px -16px rgba(22,21,15,.4)}\
+.xs-pop--ed .xs-opt{padding:12px 12px;margin:2px 0;border-radius:14px;font-family:var(--font-d);font-size:15px;color:var(--ink)}\
+.xs-pop--ed .xs-num{display:grid;place-items:center;flex:0 0 28px;height:28px;border-radius:50%;background:var(--paper);font-family:var(--font-m);font-size:10px;letter-spacing:.04em;color:var(--ink-50);transition:background .15s,color .15s}\
+.xs-pop--ed .xs-opt.is-active{background:linear-gradient(90deg,rgba(193,220,232,.75),rgba(193,220,232,.35));padding-left:16px}\
+.xs-pop--ed .xs-opt.is-active .xs-num{background:#fff;color:var(--accent)}\
+.xs-pop--ed .xs-tick{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;box-shadow:0 4px 10px rgba(33,107,172,.3)}\
 .xs-pop--ed .xs-opt[aria-selected=true]{color:var(--accent)}\
-.xs-pop--ed .xs-opt[aria-selected=true] .xs-num{color:var(--accent)}\
+.xs-pop--ed .xs-opt[aria-selected=true] .xs-num{background:var(--accent);color:#fff}\
 \
 /* ── workspace mock (Slack / Teams model picker): app-like, soft, rounded ── */\
 .xs--ws{display:inline-block}\
