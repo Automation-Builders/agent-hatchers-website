@@ -999,7 +999,7 @@ h1{font-weight:800}h2{font-weight:700}
 .welcome-grid.intro .actions{margin-top:22px}
 /* Chats sidebar: "Other profiles" still hatching in the prospect's look */
 .pf-av img.egg,.chat-empty-av img.egg,.msg-ava img.egg{object-fit:contain;padding:4px;background:#fff}
-@media(max-width:760px){.welcome-grid.intro{padding-top:8px}.intro-title{font-size:clamp(2.1rem,9.5vw,3rem)}.team-stage{padding-top:24px}.team-row{align-items:flex-start}.team-flow{flex-direction:column;align-items:flex-start;gap:4px}.flow-arrow{transform:rotate(90deg);margin-left:14px;line-height:1}.flow-step{border-radius:14px}}
+@media(max-width:760px){.welcome-grid.intro{padding-top:8px;grid-template-columns:1fr}.welcome-grid.intro .welcome-art{min-height:250px}.welcome-grid.intro .welcome-art:before{width:240px;height:240px}.intro-title{font-size:clamp(2.1rem,9.5vw,3rem)}.team-stage{padding-top:24px}.team-row{align-items:flex-start}.team-flow{flex-direction:column;align-items:flex-start;gap:4px}.flow-arrow{transform:rotate(90deg);margin-left:14px;line-height:1}.flow-step{border-radius:14px}}
 /* team research: the model thinks about the business before the team appears */
 @keyframes thinkRock{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
 @keyframes thinkDot{0%,80%,100%{opacity:.35;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
@@ -1201,3 +1201,55 @@ h1{font-weight:800}h2{font-weight:700}
 .dl-get:disabled{opacity:.7;cursor:progress}
 .dl-foot{display:inline-flex;align-items:center;gap:8px}
 @media (max-width:520px){.dl-file{flex-wrap:wrap}.dl-get{width:100%;justify-content:center}}
+/* ============ Dropdowns, refreshed (build 73): soft glass trigger, springy menu, pill options ============ */
+.intro-select{padding:15px 58px 15px 20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1.5px solid #d6e4ee;border-radius:18px;background:linear-gradient(180deg,#fff 0%,#f6fafd 100%);box-shadow:0 1px 0 #fff inset,0 2px 6px rgba(33,107,172,.06),0 8px 22px -12px rgba(33,107,172,.25);transition:border-color .2s,box-shadow .25s,transform .2s,background .2s}
+.intro-select:hover{border-color:#a9cbe2;transform:translateY(-1px);box-shadow:0 1px 0 #fff inset,0 4px 10px rgba(33,107,172,.08),0 14px 30px -14px rgba(33,107,172,.35)}
+.intro-select:focus-visible{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px rgba(33,107,172,.14)}
+.intro-select[aria-expanded="true"]{border-color:var(--brand);background:#fff;transform:none;box-shadow:0 0 0 4px rgba(33,107,172,.13),0 14px 30px -14px rgba(33,107,172,.35)}
+/* chevron sits in a round brand-tinted badge and flips when open */
+.intro-select-wrap:before{content:"";position:absolute;z-index:1;right:12px;top:27px;width:34px;height:34px;margin-top:-17px;border-radius:50%;background:#eaf3fa;pointer-events:none;transition:background .2s,transform .3s cubic-bezier(.3,1.5,.5,1)}
+.intro-select-wrap:after{z-index:2;right:22.5px;top:27px;width:13px;height:13px;border:0;background:var(--brand);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 4.2 6 8l4-3.8' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 4.2 6 8l4-3.8' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;transform:translateY(-50%);transition:transform .3s cubic-bezier(.3,1.5,.5,1),background .2s}
+.intro-select-wrap:hover:before{background:#dcecf7}
+.intro-select-wrap:has([aria-expanded="true"]):before{background:var(--brand);transform:scale(1.04)}
+.intro-select-wrap:has([aria-expanded="true"]):after{background:#fff;transform:translateY(-50%) rotate(180deg)}
+/* the open list: deeper shadow, springs out of the field */
+.intro-menu{padding:6px;border:1px solid rgba(214,228,238,.9);border-radius:20px;background:#fff;box-shadow:0 1px 0 #fff inset,0 2px 6px rgba(20,40,70,.05),0 24px 60px -18px rgba(20,60,110,.35);transform-origin:top center;animation:ddIn .26s cubic-bezier(.2,1.2,.4,1) both;scrollbar-width:thin;scrollbar-color:#c6dbe9 transparent}
+.intro-menu.is-up{transform-origin:bottom center;animation-name:ddInUp}
+.intro-menu::-webkit-scrollbar{width:8px}.intro-menu::-webkit-scrollbar-thumb{background:#c6dbe9;border-radius:99px;border:2px solid #fff}
+@keyframes ddIn{from{opacity:0;transform:translateY(-6px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes ddInUp{from{opacity:0;transform:translateY(6px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes ddItem{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+.intro-option{position:relative;display:flex;align-items:center;gap:10px;padding:11px 14px;margin:1px 0;border-radius:13px;transition:background .15s,color .15s,padding-left .2s;animation:ddItem .3s ease both}
+.intro-option:nth-child(2){animation-delay:.02s}.intro-option:nth-child(3){animation-delay:.04s}.intro-option:nth-child(4){animation-delay:.06s}.intro-option:nth-child(5){animation-delay:.08s}.intro-option:nth-child(6){animation-delay:.1s}.intro-option:nth-child(7){animation-delay:.12s}.intro-option:nth-child(n+8){animation-delay:.14s}
+/* a slim brand bar slides in on the active row */
+.intro-option:before{content:"";position:absolute;left:4px;top:50%;width:3px;height:0;border-radius:3px;background:var(--brand);transform:translateY(-50%);transition:height .2s cubic-bezier(.3,1.4,.5,1)}
+.intro-option:hover,.intro-option:focus{background:linear-gradient(90deg,#e8f2fa,#f3f8fc);color:var(--brand);padding-left:18px}
+.intro-option:hover:before,.intro-option:focus:before{height:18px}
+/* only one row lit at a time: the pointer wins over keyboard focus while it is in the list */
+.intro-menu:hover .intro-option:focus:not(:hover){background:none;color:var(--ink);padding-left:14px}
+.intro-menu:hover .intro-option:focus:not(:hover):before{height:0}
+.intro-menu:hover .intro-option.is-on:focus:not(:hover){color:var(--brand)}
+/* selected: a filled tick badge instead of a bare ✓ */
+.intro-option.is-on{color:var(--brand);font-weight:700}
+.intro-option.is-on:after{content:"";float:none;margin-left:auto;flex:0 0 22px;width:22px;height:22px;border-radius:50%;background:var(--brand) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='m3 6.2 2 2L9 4' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/13px no-repeat;box-shadow:0 4px 10px rgba(33,107,172,.3);animation:ddTick .3s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes ddTick{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}
+/* multi-select tools: an empty checkbox on unchosen rows so it reads as "pick several" */
+.tool-option:not(.is-on):after{content:"";margin-left:auto;flex:0 0 20px;width:20px;height:20px;border-radius:7px;border:1.5px solid #cbdbe6;background:#fff;transition:border-color .15s}
+.tool-option:not(.is-on):hover:after{border-color:var(--brand)}
+.tool-option.is-on:after{border-radius:7px}
+.tool-option .mcp-lg,.tool-option .mcp-mono{width:18px;height:18px;flex:0 0 18px;padding:5px;box-sizing:content-box;border-radius:9px;background:#fff;box-shadow:0 0 0 1px #e6edf3,0 2px 5px rgba(20,40,70,.06)}
+.tool-menu{padding:6px}
+.tool-search{padding:11px 12px 11px 38px;border:1.5px solid #e2ebf2;border-radius:14px;background:#f5f9fc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='7' cy='7' r='4.6' fill='none' stroke='%237d93a8' stroke-width='1.7'/%3E%3Cpath d='m10.6 10.6 3 3' stroke='%237d93a8' stroke-width='1.7' stroke-linecap='round'/%3E%3C/svg%3E") 13px center/15px no-repeat;transition:border-color .15s,background-color .15s,box-shadow .15s}
+.tool-search:focus{background-color:#fff}
+.tool-chip{border-radius:999px;padding:6px 8px 6px 7px;background:linear-gradient(135deg,var(--brand),#2f86cc);animation:ddTick .3s cubic-bezier(.2,1.6,.4,1) both}
+.tool-chip .mcp-lg,.tool-chip .mcp-mono{width:14px;height:14px;padding:3px;box-sizing:content-box;border-radius:50%;background:#fff}
+.tool-sel button{display:grid;place-items:center;width:18px;height:18px;padding:0;margin-left:2px;border-radius:50%;background:#ffffff26;opacity:1;transition:background .15s}
+.tool-sel button:hover{background:#ffffff55}
+/* Create ▾ menu gets the same spring, with icons in soft tiles */
+.create-menu{padding:6px;border:1px solid rgba(214,228,238,.9);border-radius:18px;background:#fff;box-shadow:0 1px 0 #fff inset,0 24px 60px -18px rgba(20,40,80,.35);transform-origin:top right;animation:ddIn .24s cubic-bezier(.2,1.2,.4,1) both;min-width:220px}
+.create-menu button{padding:8px 10px;border-radius:12px;transition:background .15s,color .15s;animation:ddItem .3s ease both}
+.create-menu button:nth-child(2){animation-delay:.03s}.create-menu button:nth-child(3){animation-delay:.06s}.create-menu button:nth-child(4){animation-delay:.09s}
+.create-menu button svg{width:32px;height:32px;padding:7.5px;box-sizing:border-box;flex:0 0 32px;border-radius:10px;background:#eef4f9;color:#3d5570;transition:background .15s,color .15s,transform .2s cubic-bezier(.3,1.6,.5,1)}
+.create-menu button:hover,.create-menu button:focus-visible{background:#f0f6fb;color:var(--brand)}
+.create-menu button:hover svg,.create-menu button:focus-visible svg{background:var(--brand);color:#fff;transform:scale(1.06) rotate(-4deg)}
+@media(prefers-reduced-motion:reduce){.intro-menu,.intro-option,.create-menu,.create-menu button,.tool-chip,.intro-option.is-on:after{animation:none}}
