@@ -165,6 +165,8 @@
 <script src="/assets/analytics.js" defer></script>
 <!-- Meta Pixel — base code + event helper live in /assets/meta-pixel.js (dataset "Agent Hatchers Website") -->
 <script src="/assets/meta-pixel.js"></script>
+<!-- Remembers the ad a visitor came from and passes it to the booking calendar (see /assets/utm.js) -->
+<script src="/assets/utm.js"></script>
 <script src="/assets/select.js" defer></script>
 <noscript><img height="1" width="1" style="display:none"
 src="https://www.facebook.com/tr?id=1806418700537742&ev=PageView&noscript=1"
@@ -3353,6 +3355,7 @@ bookingForm.addEventListener('submit', async e => {
   params.set('primary_color', '216bac');
   params.set('embed_domain', location.hostname); // makes Calendly post calendly.* events to this page
   params.set('embed_type', 'Inline');
+  if (window.ahUtm) ahUtm(params); // which ad brought them here, so the booking can be credited to it
   const url = CALENDLY_URL + '?' + params.toString();
 
   bookingForm.classList.add('is-leaving');
