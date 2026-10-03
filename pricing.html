@@ -22,6 +22,8 @@
 <script src="/assets/analytics.js" defer></script>
 <!-- Meta Pixel — base code + event helper live in /assets/meta-pixel.js (dataset "Agent Hatchers Website") -->
 <script src="/assets/meta-pixel.js"></script>
+<!-- Remembers the ad a visitor came from and passes it to the booking calendar (see /assets/utm.js) -->
+<script src="/assets/utm.js"></script>
 <script src="/assets/select.js" defer></script>
 <noscript><img height="1" width="1" style="display:none"
 src="https://www.facebook.com/tr?id=1806418700537742&ev=PageView&noscript=1"
@@ -1349,6 +1351,7 @@ bookingForm.addEventListener('submit',async function(e){e.preventDefault();
  if(window.ahTrack)ahTrack('Lead',{source:bookingSource}); /* meta pixel: name/email step done — name and email are never sent */
  var p=new URLSearchParams();if(data.name)p.set('name',data.name);if(data.email)p.set('email',data.email);
  p.set('hide_event_type_details','1');p.set('hide_gdpr_banner','1');p.set('background_color','f4f1ea');p.set('text_color','16150f');p.set('primary_color','216bac');p.set('embed_domain',location.hostname);p.set('embed_type','Inline'); /* so Calendly posts calendly.* events to this page */
+ if(window.ahUtm)ahUtm(p); /* which ad brought them here, so the booking can be credited to it */
  var url=CALENDLY_URL+'?'+p.toString();
  bookingForm.classList.add('is-leaving');await new Promise(function(r){setTimeout(r,220);});bookingForm.hidden=true;bookingForm.classList.remove('is-leaving');
  $('bookingTitle').textContent='Pick a time.';$('bookingSub').textContent='Pre-filled with what you sent. Change anything you like.';
