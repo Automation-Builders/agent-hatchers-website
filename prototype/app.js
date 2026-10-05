@@ -975,7 +975,7 @@
     backdrop.querySelector('.cp-close').focus();
   }
   // Only Calendly's own event_scheduled message counts as a booking (same rule as index.html).
-  addEventListener('message',e=>{if(e.origin!=='https://calendly.com'||!e.data||typeof e.data.event!=='string')return;if(e.data.event==='calendly.event_scheduled'&&window.ahTrack)ahTrack('Schedule',{source:'prototype'});});
+  addEventListener('message',e=>{if(e.origin!=='https://calendly.com'||!e.data||typeof e.data.event!=='string')return;if(!window.ahTrack)return;if(e.data.event==='calendly.event_type_viewed')ahTrack('Contact',{source:'prototype'});/* calendar opened */if(e.data.event==='calendly.event_scheduled')ahTrack('Schedule',{source:'prototype'});});
 
   // Faithful port of the dashboard's AddInstanceDialog: Name it → Connect → Dashboard.
 

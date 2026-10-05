@@ -21,6 +21,8 @@
  *   DemoComplete    prospect reaches the hatched dashboard        (custom, prototype/app.js)
  *   BookCallClick   any "Book a call" button                      (custom, index/pricing/prototype)
  *   Lead            name + email step of the booking modal        (standard, index/pricing)
+ *   Contact         the booking calendar has loaded (calendly.event_type_viewed) — "calendar
+ *                   opened" in the Hatchery's funnel                (standard, index/pricing/prototype)
  *   Schedule        Calendly confirms the booking (event_scheduled) (standard, index/pricing/prototype)
  * Params carry only a short source label ("hero", "nav", …). No names, emails, business
  * descriptions, chat text or form contents — ever.
