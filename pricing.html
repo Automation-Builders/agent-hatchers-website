@@ -1358,7 +1358,7 @@ bookingForm.addEventListener('submit',async function(e){e.preventDefault();
  var l=$('calendlyLoader');if(l)l.classList.remove('is-hidden');calendlyFrame.src=url;bookingCalendly.hidden=false;
  calendlyFrame.addEventListener('load',function(){if(l)l.classList.add('is-hidden');},{once:true});});
 /* meta pixel: confirmed bookings — only Calendly's own event_scheduled message counts as Schedule; clicks (BookCallClick) and the name/email step (Lead) are reported separately */
-addEventListener('message',function(e){if(e.origin!=='https://calendly.com'||!e.data||typeof e.data.event!=='string')return;if(e.data.event==='calendly.event_scheduled'&&window.ahTrack)ahTrack('Schedule',{source:bookingSource});});
+addEventListener('message',function(e){if(e.origin!=='https://calendly.com'||!e.data||typeof e.data.event!=='string')return;if(!window.ahTrack)return;if(e.data.event==='calendly.event_type_viewed')ahTrack('Contact',{source:bookingSource}); /* calendar opened */if(e.data.event==='calendly.event_scheduled')ahTrack('Schedule',{source:bookingSource});});
 /* smooth scroll (optional) */
 (function(){if(typeof Lenis==='undefined')return;if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
  var lenis=new Lenis({duration:0.95,easing:function(t){return Math.min(1,1.001-Math.pow(2,-10*t));},smoothWheel:true});

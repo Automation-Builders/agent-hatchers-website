@@ -3383,7 +3383,10 @@ bookingForm.addEventListener('submit', async e => {
    Schedule. The payload's URIs are not forwarded; only the source label is. ── */
 window.addEventListener('message', e => {
   if (e.origin !== 'https://calendly.com' || !e.data || typeof e.data.event !== 'string') return;
-  if (e.data.event === 'calendly.event_scheduled' && window.ahTrack) ahTrack('Schedule', { source: bookingSource });
+  if (!window.ahTrack) return;
+  // The booking calendar (with its available times) has loaded: "calendar opened" in the funnel.
+  if (e.data.event === 'calendly.event_type_viewed') ahTrack('Contact', { source: bookingSource });
+  if (e.data.event === 'calendly.event_scheduled') ahTrack('Schedule', { source: bookingSource });
 });
 
 /* ── LENIS SMOOTH SCROLL ── */
