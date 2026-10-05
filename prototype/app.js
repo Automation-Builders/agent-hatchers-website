@@ -958,6 +958,10 @@
   function bookingUrl(){
     const p=new URLSearchParams({hide_event_type_details:'1',hide_gdpr_banner:'1',background_color:'f4f1ea',text_color:'16150f',primary_color:'216bac',embed_domain:location.hostname,embed_type:'Inline',utm_source:'agenthatchers',utm_medium:'prototype',utm_campaign:'demo'});
     const who=[state.company,state.name].filter(Boolean).join(' / ');if(who)p.set('utm_content',who.slice(0,80));
+    // A visitor who came from a Hatchery ad (utm_content=ah-xxxxx, remembered by /assets/utm.js) keeps
+    // that ad's tags, so the booking is credited to the ad rather than labelled as a demo.
+    const ad=window.ahUtm?window.ahUtm(new URLSearchParams()):null;
+    if(ad&&/^ah-/i.test(ad.get('utm_content')||''))ad.forEach((v,k)=>p.set(k,v));
     return CALENDLY_URL+'?'+p.toString();
   }
   function openBooking(source){
