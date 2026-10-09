@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 76;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 77;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -328,7 +328,13 @@
   function chip(){if(state.variant===null)return `<span class="private-pill">Private preview</span>`;const inner=state.selectedImage?`<img class="chip-img" src="${escapeHtml(state.selectedImage)}" alt="">`:bot('v'+state.variant+' chip');return `<span class="agent-chip">${inner}<span>${escapeHtml(state.name)}</span></span>`;}
   // Both intro screens (ask + team) count as step 1; create is 2, hatch is 3.
   const stepNo = () => Math.max(1,state.step);
-  const layout = content => `<main class="shell"><section class="panel"><div class="progress" aria-label="Prototype progress"><span style="--progress:${Math.min(100,stepNo()/5*100)}%"></span></div><header class="topbar"><div class="brand"><img src="/agent-hatchers-logo.png" alt=""><span>Agent Hatchers</span></div><div class="topbar-right">${chip()}<span class="step-label">Step ${stepNo()} of 5</span></div></header>${content}</section></main>`;
+  // The hatching flow wears the dashboard's v4 onboarding frame (Hermes-Dashboard
+  // Onboarding/SelfServe/SelfServeChrome.tsx): black page, the mark top-left, and each screen
+  // a big centred heading, one thing in the middle and full-width pills at the bottom.
+  const layout = content => `<div class="ob"><header class="ob-top"><div class="ob-brand"><img src="/hatchy-pop.webp" alt=""><span>Agent Hatchers</span></div><div class="ob-top-r">${chip()}<span class="ob-step">Step ${stepNo()} of 5</span></div></header>${content}</div>`;
+  const screen = ({title,sub='',body='',actions='',cls=''}) => `<section class="ob-screen ${cls}"><h1 class="ob-h">${title}</h1>${sub?`<p class="ob-sub">${sub}</p>`:''}<div class="ob-body">${body}</div>${actions?`<div class="ob-actions">${actions}</div>`:''}</section>`;
+  // NextPill / BackPill: white full-width pill, and the raised one under it.
+  const pill = (label, action, back=false) => `<button type="button" class="ob-pill${back?' is-back':''}" data-action="${action}">${label}</button>`;
 
   // ---------- Session capture: a small copy of each hatch goes to our store ----------
   // So the team can see what prospects actually did: business, team, chosen look, marketplace
@@ -478,7 +484,7 @@
     const screens = [welcome,welcome,nameScreen,hatchScreen,marketScreen,connectScreen];
     const inner = screens[state.step]();
     root.innerHTML = state.step>=4 ? inner : layout(inner);
-    document.body.classList.toggle('dx-on',state.step===4);   // dialogs go dark over the dashboard
+    document.body.classList.add('dx-on');   // the whole flow is v4-dark, dialogs included
     bind();
     if(typeof drawNotifs==='function')drawNotifs();
     if(state.step===3)applyCutouts(root);
@@ -566,11 +572,12 @@
     const options=INDUSTRIES.map(i=>`<li class="intro-option${i.label===state.industry?' is-on':''}" role="option" tabindex="-1" aria-selected="${i.label===state.industry}" data-industry="${escapeHtml(i.label)}">${escapeHtml(i.label)}</li>`).join('');
     const fieldLabel=other?'What does your business do?':ind?'Anything more specific? <span class="intro-optional">(optional)</span>':'Or just tell us what you do';
     const placeholder=ind?ind.eg:'e.g. dental clinic, online clothing shop, plumber';
-    return `<div class="stage welcome-grid intro"><div><span class="eyebrow">Agent Hatchers</span><h1 class="welcome-title intro-title">What can our agents do for you?</h1><p class="intro-lead">Tell us what your business does and we’ll work out which agents would actually help.</p><span class="intro-label" id="biz-industry-label">Your industry</span><div class="intro-select-wrap" id="biz-industry"><button type="button" class="name-field intro-select${ind?'':' is-empty'}" id="biz-industry-btn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="biz-industry-label biz-industry-btn">${escapeHtml(ind?ind.label:'Choose your industry…')}</button><ul class="intro-menu" id="biz-industry-menu" role="listbox" aria-labelledby="biz-industry-label" hidden>${options}</ul></div><label class="intro-label" for="biz-intro">${fieldLabel}</label><div class="mic-field intro-field"><input class="name-field" id="biz-intro" maxlength="120" autocomplete="off" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(state.biz)}" aria-label="What your business does"><button type="button" class="mic-btn" data-mic="biz-intro" aria-label="Dictate what your business does">${micSvg}</button></div><label class="intro-label" for="biz-site">Your website <span class="intro-optional">(optional — we’ll research what you actually do)</span></label><div class="intro-field"><input class="name-field" id="biz-site" maxlength="120" autocomplete="url" inputmode="url" placeholder="e.g. tanssu.com" value="${escapeHtml(state.website)}" aria-label="Your website"></div>${toolPicker()}<div class="actions">${button('Next →','team')}</div></div><div class="welcome-art" aria-hidden="true">${hatch5()}</div></div>`;
+    const form=`<div class="ob-form"><span class="intro-label" id="biz-industry-label">Your industry</span><div class="intro-select-wrap" id="biz-industry"><button type="button" class="name-field intro-select${ind?'':' is-empty'}" id="biz-industry-btn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="biz-industry-label biz-industry-btn">${escapeHtml(ind?ind.label:'Choose your industry…')}</button><ul class="intro-menu" id="biz-industry-menu" role="listbox" aria-labelledby="biz-industry-label" hidden>${options}</ul></div><label class="intro-label" for="biz-intro">${fieldLabel}</label><div class="mic-field intro-field"><input class="name-field" id="biz-intro" maxlength="120" autocomplete="off" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(state.biz)}" aria-label="What your business does"><button type="button" class="mic-btn" data-mic="biz-intro" aria-label="Dictate what your business does">${micSvg}</button></div><label class="intro-label" for="biz-site">Your website <span class="intro-optional">(optional — we’ll research what you actually do)</span></label><div class="intro-field"><input class="name-field" id="biz-site" maxlength="120" autocomplete="url" inputmode="url" placeholder="e.g. tanssu.com" value="${escapeHtml(state.website)}" aria-label="Your website"></div>${toolPicker()}</div>`;
+    return screen({cls:'is-intro',title:'What can our agents do for you?',sub:'Tell us what your business does and we’ll work out which agents would actually help.',body:`<div class="ob-art" aria-hidden="true">${hatch5()}</div>${form}`,actions:pill('Next','team')});
   }
   // Screen 2 — the agents for that business, what each does, and how they hand work on.
-  function nameScreen(){return `<div class="stage"><span class="eyebrow">Create a profile</span><h2>Create your agent</h2><p>Give it a name, tell us your type of company, and describe how it should look. You’ll pick specialist agents (sales, invoices, support…) from the marketplace next.</p><label class="field-label" for="agent-co">Company name</label><input class="name-field" id="agent-co" maxlength="40" autocomplete="off" placeholder="Company name — e.g. Tanssu" value="${escapeHtml(state.company||config.company||'')}" aria-label="Company name"><label class="field-label" for="agent-name">Agent name</label><input class="name-field" id="agent-name" maxlength="28" autocomplete="off" placeholder="Agent name — e.g. Pip, Scout or Atlas" value="${escapeHtml(state.name)}" aria-label="Agent name"><label class="field-label" for="agent-biz">Type of company</label><input class="name-field" id="agent-biz" maxlength="60" autocomplete="off" placeholder="e.g. dental clinic, online clothing shop, plumber" value="${escapeHtml(state.biz)}" aria-label="Type of company"><label class="field-label" for="agent-look">Image description</label><div class="mic-field"><textarea class="look-field" id="agent-look" placeholder="e.g. a friendly rounded robot holding a suitcase — or leave it to the photo / website below" aria-label="Image description">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div>${referenceBlock()}<div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
-  function designScreen(){return `<div class="stage"><span class="eyebrow">Design the look</span><h2>Describe how ${escapeHtml(state.name)} should look</h2><p>Write a short, practical description and we’ll hatch three designs for you to choose from.</p><div class="mic-field"><textarea class="look-field" id="agent-look" maxlength="600" placeholder="e.g. a friendly rounded robot medic in blue and white, holding a checklist" aria-label="Describe the avatar">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div>${referenceBlock()}<div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
+  function nameScreen(){return screen({title:'Create your agent',sub:'Give it a name, tell us your type of company, and describe how it should look. You’ll pick specialist agents (sales, invoices, support…) from the marketplace next.',body:`<div class="ob-form"><label class="field-label" for="agent-co">Company name</label><input class="name-field" id="agent-co" maxlength="40" autocomplete="off" placeholder="Company name — e.g. Tanssu" value="${escapeHtml(state.company||config.company||'')}" aria-label="Company name"><label class="field-label" for="agent-name">Agent name</label><input class="name-field" id="agent-name" maxlength="28" autocomplete="off" placeholder="Agent name — e.g. Pip, Scout or Atlas" value="${escapeHtml(state.name)}" aria-label="Agent name"><label class="field-label" for="agent-biz">Type of company</label><input class="name-field" id="agent-biz" maxlength="60" autocomplete="off" placeholder="e.g. dental clinic, online clothing shop, plumber" value="${escapeHtml(state.biz)}" aria-label="Type of company"><label class="field-label" for="agent-look">Image description</label><div class="mic-field"><textarea class="look-field" id="agent-look" placeholder="e.g. a friendly rounded robot holding a suitcase — or leave it to the photo / website below" aria-label="Image description">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div>${referenceBlock()}</div>`,actions:pill('Hatch 3 designs','generate')+pill('Back','back',true)});}
+  function designScreen(){return screen({title:`Describe how ${escapeHtml(state.name)} should look`,sub:'Write a short, practical description and we’ll hatch three designs for you to choose from.',body:`<div class="ob-form"><div class="mic-field"><textarea class="look-field" id="agent-look" maxlength="600" placeholder="e.g. a friendly rounded robot medic in blue and white, holding a checklist" aria-label="Describe the avatar">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div>${referenceBlock()}</div>`,actions:pill('Hatch 3 designs','generate')+pill('Back','back',true)});}
   // The same continuous split-egg hatch as the welcome screen, one per design.
   // Rendered stateful: a slot that already hatched shows its design (.done skips the
   // animation on re-renders instead of resetting to a closed egg), and each hatched
@@ -701,12 +708,12 @@
   function hatchActionsBar(){
     const settled=state.slots.length&&state.slots.every(Boolean);
     const anyReady=state.slots.some(s=>s&&s.status==='ready');
-    if(!anyReady) return `<p class="hatch-status">Hatching your designs… click your favourite as soon as it pops out.</p>`;
+    if(!anyReady) return `<p class="hatch-status"><i></i>Hatching your designs… click your favourite as soon as it pops out.</p>`;
     // A picked design can be tweaked right here ("nearly there, but…") before it becomes the avatar.
     const picked=state.variant!==null&&state.slots[state.variant]&&state.slots[state.variant].status==='ready';
-    return `${settled?button('Redesign','redesign',true):''}${picked?button('✎ Tweak this design','edit-look',true):''}${button('Use this avatar →','market')}`;
+    return `${pill('Use this avatar','market')}${picked||settled?`<div class="ob-pair">${picked?pill('Tweak this design','edit-look',true):''}${settled?pill('Redesign','redesign',true):''}</div>`:''}`;
   }
-  function hatchScreen(){return `<div class="stage hatch-zone"><span class="eyebrow">Hatching</span><h2>Hatching ${escapeHtml(state.name||'your agent')}…</h2><p>Three takes on your description. Click your favourite — it becomes ${escapeHtml(state.name||'your agent')}’s avatar.</p><div class="hatch-row" aria-live="polite">${[0,1,2].map(eggScene).join('')}</div><div class="hatch-actions">${hatchActionsBar()}</div></div>`;}
+  function hatchScreen(){return `<section class="ob-screen hatch-zone"><h1 class="ob-h">Hatching ${escapeHtml(state.name||'your agent')}…</h1><p class="ob-sub">Three takes on your description. Click your favourite — it becomes ${escapeHtml(state.name||'your agent')}’s avatar.</p><div class="ob-body"><div class="hatch-row" aria-live="polite">${[0,1,2].map(eggScene).join('')}</div></div><div class="ob-actions hatch-actions">${hatchActionsBar()}</div></section>`;}
   function initials(str){return String(str||'AH').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();}
   const marketLoader='<div class="hatch-loader"><img class="loader-egg" src="/egg-closed.webp" alt=""><span class="loader-txt">Hatching…</span></div>';
   // Review/share of a session that never reached the dashboard: its team portraits were never
@@ -763,6 +770,9 @@
     shield:'<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
     image:'<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
     palette:'<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 11.995 2z"/>',
+    key:'<path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/>',
+    server:'<rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><path d="M6 6h.01"/><path d="M6 18h.01"/>',
+    ticket:'<path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/>',
     link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
     hash:'<path d="M4 9h16"/><path d="M4 15h16"/><path d="M10 3 8 21"/><path d="m16 3-2 18"/>',
     coins:'<circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/>',
@@ -1110,23 +1120,17 @@
       ${dxTabbar()}
     </div>`;
   }
+  // The dashboard's first run with no box yet (OnboardingPage.tsx + NoBoxYet.tsx): the mark and
+  // "It's time to hatch…", then one raised panel — Book a call, or "I have my own box", which
+  // opens the inline Connect Your Agent form (ConnectStep.tsx).
+  const CONNECT_FIELDS=[['ci-base','link','Base URL','https://your-host.ts.net:8642'],['ci-key','key','API key','hc_…',true],['ci-dash','server','Dashboard URL','https://your-host.ts.net:9119'],['ci-token','ticket','Session token','dashboard session token',true]];
   function connectScreen(){
-    if(state.done){return `<main class="connect-shell"><section class="onboard-card"><div class="onboard-head"><span class="onboard-ic ok">${ci.check}</span><h2>Instance created</h2></div><p class="onboard-lead">Thanks, ${escapeHtml(co())}. Your dashboard is connected — book a call and we’ll bring ${escapeHtml(state.name||'your agent')} online.</p><nav class="connect-nav center"><button class="btn btn-primary" data-action="book" data-source="connected">Book a call →</button>${button('Start over','reset',true)}</nav></section></main>`;}
-    return `<main class="connect-shell">
-      <section class="onboard-card">
-        <div class="onboard-head"><span class="onboard-ic">${ci.server}</span><h2>Connect your Hermes instance</h2></div>
-        <p class="onboard-lead">This dashboard talks to your Hermes box. Connect it and it can start reading your profiles, skills and sessions.</p>
-        <p class="onboard-eyebrow">What you’ll need</p>
-        <ul class="onboard-list">
-          <li>${ci.link}<div><div class="req-label">Base URL</div><div class="req-detail">Your Hermes core API — the OpenAI-compatible server, port 8642 by default.</div></div></li>
-          <li>${ci.key}<div><div class="req-label">API key</div><div class="req-detail">API_SERVER_KEY from ~/.hermes/.env on that box.</div></div></li>
-          <li>${ci.server}<div><div class="req-label">Dashboard URL and session token <span class="opt">optional</span></div><div class="req-detail">Needed for profiles, skills and sessions — everything except chat.</div></div></li>
-        </ul>
-        <button class="btn onboard-btn" data-action="open-connect">Connect this instance ${ci.arrow}</button>
-      </section>
-      <div class="connect-cta"><span class="cta-left">${ci.cal} No agent yet? Let Agent Hatchers hatch one for you.</span><button class="btn cta-book" data-action="book" data-source="connect">Book a call</button></div>
-      <nav class="connect-nav">${button('← Back','back',true)}</nav>
-    </main>`;
+    const name=escapeHtml(state.name||'your agent');
+    let panel;
+    if(state.done)panel=`<div class="ob-nobox"><span class="ob-ok">${L('check')}Connected</span><h2>${name} is connected</h2><p>Thanks, ${escapeHtml(co())}. Book a call and we’ll bring ${name} online.</p><button type="button" class="ob-pill" data-action="book" data-source="connected">Book a call</button><button type="button" class="ob-link" data-action="reset">Start over</button></div>`;
+    else if(state.ownBox)panel=`<div class="ob-connect"><h2>Connect Your Agent</h2>${CONNECT_FIELDS.map(([id,icon,label,ph,secret])=>`<label class="ob-cf" for="${id}"><span class="ob-cf-l">${L(icon)}${label}</span><input id="${id}" type="${secret?'password':'text'}" placeholder="${escapeHtml(ph)}" autocomplete="off" spellcheck="false" autocapitalize="none"></label>`).join('')}<button type="button" class="ob-save" data-action="connect-save">Save and test connection</button></div>`;
+    else panel=`<div class="ob-nobox"><h2>${name}’s computer isn’t set up yet</h2><p>Already working with us? It appears here once it’s ready. New here? Book a call and we’ll set one up for you.</p><button type="button" class="ob-pill" data-action="book" data-source="connect">Book a call</button><button type="button" class="ob-link" data-action="own-box">I have my own box</button></div>`;
+    return `<div class="ob ob-connect-page"><header class="ob-top"><div class="ob-brand"><img src="/hatchy-pop.webp" alt=""><span>Agent Hatchers</span></div><button type="button" class="ob-link" data-action="back">${L('back')}Back to the dashboard</button></header><main class="ob-cmain"><div class="ob-chead"><img src="${escapeHtml(state.selectedImage||'/hatchy-pop.webp')}" alt=""><h1>It’s time to hatch ${name}</h1></div><div class="ob-panel">${panel}</div></main></div>`;
   }
   // ---------- Book a call (Calendly) ----------
   // The one real next step once a prospect has met their agent. Every "Book a call" in the
@@ -1434,34 +1438,6 @@
     document.body.appendChild(backdrop);draw('form');
     document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc)}},{once:true});
   }
-  function openConnectDialog(){
-    const STEPS=[
-      {key:'name',title:'Name it',lead:'What should this Hermes box be called in the switcher?'},
-      {key:'connect',title:'Connect',lead:'The core API this dashboard chats through. Both fields are needed.'},
-      {key:'dashboard',title:'Dashboard',lead:'The dashboard backend serves profiles, skills and sessions. You can add it later.'}
-    ];
-    const d={step:0,name:state.name||'',baseUrl:'',apiKey:'',dashUrl:'',token:'',reveal:{},core:'',dash:''};
-    const backdrop=document.createElement('div');backdrop.className='modal-backdrop';document.body.appendChild(backdrop);
-    const cf=(id,ic,label,ph,val,secret)=>{const has=(val||'').length>0;const masked=secret&&!d.reveal[id]&&has;return `<div class="cf"><label class="cf-label" for="${id}">${ic}${label}</label><div class="cf-wrap"><input class="cf-input" id="${id}" type="${masked?'password':'text'}" placeholder="${escapeHtml(ph)}" value="${escapeHtml(val)}" autocomplete="off" spellcheck="false" autocapitalize="none">${secret?`<button type="button" class="cf-eye" data-eye="${id}" tabindex="-1" aria-label="Show ${label}">${d.reveal[id]?ci.eyeOff:ci.eye}</button>`:''}</div></div>`;};
-    function read(){const g=id=>{const el=backdrop.querySelector('#'+id);return el?el.value:undefined;};let v;if((v=g('ci-name'))!==undefined)d.name=v;if((v=g('ci-base'))!==undefined)d.baseUrl=v;if((v=g('ci-key'))!==undefined)d.apiKey=v;if((v=g('ci-dash'))!==undefined)d.dashUrl=v;if((v=g('ci-token'))!==undefined)d.token=v;}
-    function draw(){
-      const s=STEPS[d.step],last=d.step===STEPS.length-1;
-      const rail=STEPS.map((st,i)=>`<li class="rail-item ${i<d.step?'done':''} ${i===d.step?'active':''}"><span class="rail-dot">${i<d.step?ci.check:i+1}</span><span class="rail-title">${st.title}</span></li>`).join('');
-      let body='';
-      if(s.key==='name')body=`<div class="cf"><label class="cf-label plain" for="ci-name">Company name</label><input class="cf-input" id="ci-name" placeholder="work" value="${escapeHtml(d.name)}" maxlength="64" autocomplete="off" spellcheck="false"><p class="cf-hint">Only you see this. It labels the box in the instance menu.</p></div>`;
-      if(s.key==='connect')body=`${cf('ci-base',ci.link,'Base URL','https://your-host.ts.net:8642',d.baseUrl)}<p class="cf-hint">Your Hermes core API — the OpenAI-compatible server, port 8642 by default.</p>${cf('ci-key',ci.key,'API key','hc_…',d.apiKey,true)}<p class="cf-hint">From <code>API_SERVER_KEY</code> in <code>~/.hermes/.env</code> on that box.</p><div class="cf-test"><button type="button" class="btn btn-outline" data-test="core">${d.core==='ok'?ci.check+' Connected':'Test Connection'}</button>${d.core==='ok'?'<span class="probe-ok">Connection successful.</span>':''}</div>`;
-      if(s.key==='dashboard')body=`${cf('ci-dash',ci.server,'Dashboard URL','https://your-host.ts.net:9119',d.dashUrl)}<p class="cf-hint">Used for profiles, skills and sessions — everything except chat.</p>${cf('ci-token',ci.key,'Session token','dashboard session token',d.token,true)}<p class="cf-hint">From <code>window.__HERMES_SESSION_TOKEN__</code> in the Hermes dashboard page source.</p><div class="cf-test"><button type="button" class="btn btn-outline" data-test="dash">${d.dash==='ok'?ci.check+' Reachable':'Test Dashboard'}</button>${d.dash==='ok'?'<span class="probe-ok">Dashboard reachable.</span>':''}</div><p class="cf-note">The dashboard switches onto this instance once it is created.</p>`;
-      backdrop.innerHTML=`<section class="modal connect-modal" role="dialog" aria-modal="true"><div class="modal-top"><ol class="step-rail">${rail}</ol><button class="close" aria-label="Close">×</button></div><p class="dlg-lead">${s.lead}</p><div class="dlg-form">${body}</div><div class="dlg-actions">${d.step>0?'<button type="button" class="btn btn-secondary" data-dlg="back">Back</button>':'<span></span>'}<button type="button" class="btn btn-primary" data-dlg="${last?'create':'next'}">${last?'Create instance':'Continue'}</button></div></section>`;
-      backdrop.querySelector('.close').onclick=close;
-      backdrop.querySelectorAll('[data-eye]').forEach(b=>b.onclick=()=>{read();d.reveal[b.dataset.eye]=!d.reveal[b.dataset.eye];draw();});
-      backdrop.querySelectorAll('[data-test]').forEach(b=>b.onclick=()=>{read();b.textContent='Testing…';const which=b.dataset.test;setTimeout(()=>{d[which==='core'?'core':'dash']='ok';draw();},700);});
-      backdrop.querySelectorAll('[data-dlg]').forEach(b=>b.onclick=()=>{read();const a=b.dataset.dlg;if(a==='back'){d.step=Math.max(0,d.step-1);draw();}else if(a==='next'){d.step=Math.min(STEPS.length-1,d.step+1);draw();}else if(a==='create'){close();state.name=d.name||state.name;state.done=true;render();celebrate();}});
-    }
-    function close(){backdrop.remove();}
-    backdrop.onclick=e=>{if(e.target===backdrop)close();};
-    document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc);}},{once:true});
-    draw();
-  }
   // "What this agent can do for <company>" — the same five promises every agent makes, but
   // written around the prospect's company name and the kind of business they told us about.
   const TAILORED={
@@ -1758,7 +1734,8 @@
       if(a==='generate'){const input=document.getElementById('agent-name');const name=input.value.trim();if(!name){input.focus();input.setAttribute('aria-invalid','true');return}state.name=name;const coIn=document.getElementById('agent-co');if(coIn)state.company=coIn.value.trim();const bizIn=document.getElementById('agent-biz');state.biz=bizIn?bizIn.value.trim():'';const lookTa=document.getElementById('agent-look');state.look=(lookTa&&lookTa.value.trim())||(hasReference()?'a friendly robot mascot':'a friendly rounded robot in blue and white');generateAgents()}
       if(a==='redesign'){if(hatchesLeft()){state.step=2;render()}else hatchPop()}
       if(a==='edit-look'){openEditLook()}
-      if(a==='open-connect'){openConnectDialog()}
+      if(a==='own-box'){state.ownBox=true;render();document.getElementById('ci-base')?.focus();}
+      if(a==='connect-save'){el.textContent='Connecting…';el.disabled=true;setTimeout(()=>{state.ownBox=false;state.done=true;render();celebrate();},900);}
       if(a==='book'){openBooking(el.dataset.source||'prototype')}
       if(a==='download'){downloadPop()}
       if(a==='chat-send'){const box=document.getElementById('chat-box');const t=box?box.value.trim():'';if(!t)return;const i=state.chatActive??8;
@@ -1778,7 +1755,7 @@
         const s=state.slots[state.variant];
         state.selectedImage=(s&&s.image)||state.selectedImage||((state.slots.find(x=>x&&x.image)||{}).image)||'';
         document.querySelectorAll('.confetti').forEach(c=>c.remove());if(window.ahTrack)ahTrack('DemoComplete');state.step=4;render();generateMarket()}
-      if(a==='reset'){researchPopStop();state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.website='';state.tools=[];state.toolsOpen=false;state.look='';state.team=null;state.teamBusy=false;state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.added=[];state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.downloadOffered=false;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='reset'){researchPopStop();state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.website='';state.tools=[];state.toolsOpen=false;state.look='';state.team=null;state.teamBusy=false;state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.ownBox=false;state.marketImages={};state.marketStarted=false;state.added=[];state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.downloadOffered=false;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-egg]').forEach(el=>{
       // Select a design the moment it's hatched — direct DOM updates only, so picking

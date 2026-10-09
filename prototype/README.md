@@ -16,7 +16,14 @@ Every page runs the same hatching experience (shared code in `app.js` / `styles.
    pills, left sidebar), populated with the hatched character. Same sections in the same order
    as the dashboard's sidebar: Home (the morning briefing), Agents, Chats, Feed (Soon),
    Analytics (locked here), Config, Marketplace and Merch. Phones get the bottom tab bar.
-6. **Connect** — the Slack/Teams connection dialog.
+6. **Connect** — the dashboard's first-run screen for an account with no box yet
+   ("It's time to hatch…", Book a call, or "I have my own box" for the inline Connect Your Agent
+   form).
+
+Steps 1–4 and Connect wear the dashboard's v4 onboarding frame (`SelfServeChrome.tsx`: black page,
+big centred heading, full-width pills); their styles are the `.ob` block at the end of
+`styles.css`. `dashboard-sync.json` records the Hermes-Dashboard commit the prototype was last
+matched to — the daily sync routine reads it and opens a PR when the dashboard changes.
 
 When the dashboard finishes generating (every marketplace and "Other profiles" portrait is
 drawn), a **Download your image** pop hands the prospect their hatched character as a PNG
