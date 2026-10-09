@@ -31,7 +31,9 @@ const assert=require('node:assert/strict');
         else for(const id of ['returns','inventory','logistics'])assert.ok(cards.includes(id));
         console.log(JSON.stringify({viewport,biz,cards}));
       }
-      await page.locator('[data-add="website"]').click();
+      // Install lives in the agent's peek, as on the dashboard's Marketplace.
+      await page.locator('.mkt-card[data-agent="website"]').click();
+      await page.locator('.dx-peek [data-add="website"]').click();
       assert.ok(await page.evaluate(()=>window.testApp.state.added.includes('website')),'eligible Add action still works');
       await page.evaluate(async()=>{
         const {state,render,addAgent,writeSession}=window.testApp;state.biz='travel agency';state.added=['inventory'];
@@ -41,7 +43,7 @@ const assert=require('node:assert/strict');
       await page.reload();await page.waitForSelector('.mkt-card');
       assert.equal(await page.locator('.mkt-card[data-agent="returns"]').count(),0);
       assert.equal(await page.locator('.mkt-card[data-agent="inventory"]').count(),0);
-      await page.locator('[data-tab="profiles"]').click();
+      await page.locator('[data-tab="profiles"]:visible').click();   // sidebar on desktop, tab bar on phones
       assert.ok(await page.locator('[data-agent="inventory"]').count()>0,'intentional installed agent survives restore');
       assert.equal(await page.locator('[data-agent="returns"]').count(),0);
       assert.deepEqual(errors,[]);
