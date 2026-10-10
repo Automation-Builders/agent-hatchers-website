@@ -12,9 +12,18 @@ Every page runs the same hatching experience (shared code in `app.js` / `styles.
    and a "how they work together" hand-off chain. Ends with "Ready to hatch your first agent?".
 3. **Create a profile** — company, agent name, type of company (prefilled) and the look.
 4. **Hatch** — three eggs hatch into three different designs; click one to pick it.
-5. **Dashboard** — a mimic of the product's Profiles board, Chats, Analytics, Config,
-   Marketplace and Merch, all populated with the hatched character.
-6. **Connect** — the Slack/Teams connection dialog.
+5. **Dashboard** — a mimic of the live dashboard (`Hermes-Dashboard`, its v4 look: black,
+   pills, left sidebar), populated with the hatched character. Same sections in the same order
+   as the dashboard's sidebar: Home (the morning briefing), Agents, Chats, Feed (Soon),
+   Analytics (locked here), Config, Marketplace and Merch. Phones get the bottom tab bar.
+6. **Connect** — the dashboard's first-run screen for an account with no box yet
+   ("It's time to hatch…", Book a call, or "I have my own box" for the inline Connect Your Agent
+   form).
+
+Steps 1–4 and Connect wear the dashboard's v4 onboarding frame (`SelfServeChrome.tsx`: black page,
+big centred heading, full-width pills); their styles are the `.ob` block at the end of
+`styles.css`. `dashboard-sync.json` records the Hermes-Dashboard commit the prototype was last
+matched to — the daily sync routine reads it and opens a PR when the dashboard changes.
 
 When the dashboard finishes generating (every marketplace and "Other profiles" portrait is
 drawn), a **Download your image** pop hands the prospect their hatched character as a PNG
@@ -27,7 +36,7 @@ function researches the business first (roles, systems, where the hours go — w
 when it can, and the prospect's website when they give one on screen 1) and designs six named
 roles for it ("Recall & Rebooking Agent", not "Support Agent"), each pinned to a catalog base.
 `app.js` overlays those names, one-liners, outcomes, tools and portrait scenes on the catalog
-entries via `agentById()` so Profiles, Chats, Marketplace, the agent modal and hand-offs all show
+entries via `agentById()` so Agents, Chats, Marketplace, the agent peek and hand-offs all show
 them. While it thinks (~20s, behind the create screen) a small console-style card
 (`researchPopStart` in `app.js`, `.rs-pop` in the CSS) cycles through status lines the way a
 coding agent does — mostly silly ("Caramelising onions…"), every third one true ("Reading
@@ -36,6 +45,13 @@ tanssu.com…") — and ends with a tick when the team lands. The same call desi
 team and ahead of the stock leftovers; every one gets a portrait in the hatched character's look. The
 research request and response go through the eligibility gate below; if the proxy is down the
 page falls back to keyword ranking with the stock names.
+
+The dashboard markup is `marketScreen()` and the views it picks from (`homeView`,
+`profilesBoard`, `chatsView`, `marketplaceView`, …) in `app.js`; its styles are the `.dx` block at
+the end of `styles.css`, built from the dashboard's own tokens (`client/src/v4theme.css`). Each
+view names the dashboard component it copies — check that file when the dashboard changes.
+As in the dashboard, a Marketplace card opens the agent's side peek and **Install** lives there;
+Create offers New Chat, New Agent and New Skill.
 
 Ranking first applies conservative business eligibility, then uses the catalog keyword sets
 plus `BIZ_HINTS` to sort the eligible agents. Logistics requires physical retail or freight
@@ -53,7 +69,7 @@ wording (for example “travel agency also selling luggage”).
 
 The same gate covers marketplace cards/portrait batches, team research requests, AI results,
 saved suggested teams, offline fallback and new Add actions. Previously explicit `added`
-agents remain in Profiles/Chats; no installed-agent migration or deletion is performed.
+agents remain in Agents/Chats; no installed-agent migration or deletion is performed.
 
 The Chats sidebar's "Other profiles"
 (Bug Destroyer, Data Scientist, …) are generated in the hatched character's look right after

@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 74;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 77;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -98,17 +98,17 @@
     const suggested=Array.isArray(state.team?.ids)?[...new Set(state.team.ids)].map(id=>eligible.find(a=>a.id===id)).filter(Boolean).map(a=>agentById(a.id)):[];
     const base=suggested.length?suggested:rankAgents().slice(0,6).map(r=>r.agent);
     // Explicit additions are user choices, not stale model recommendations. Preserve them
-    // in Profiles/Chats on restore; never offer a new ineligible marketplace addition.
+    // in Agents/Chats on restore; never offer a new ineligible marketplace addition.
     (state.added||[]).forEach(id=>{const a=agentById(id);if(a&&!base.some(b=>b.id===a.id))base.push(a);});
     return base;
   };
   // "Add to your team" on a Marketplace card: the portrait is already drawn, so joining is
-  // free and instant — the card turns green and the agent shows up under Profiles and Chats.
+  // free and instant — the card is marked Installed and the agent shows up under Agents and Chats.
   function addAgent(id){
     const agent=(eligibleAgents().some(a=>a.id===id)||/^more-/.test(String(id)))?agentById(id):null;if(!agent||topAgents().some(t=>t.id===agent.id))return;
     state.added=[...(state.added||[]),id];celebrate();render();
     document.querySelectorAll('.create-pop').forEach(p=>p.remove());
-    const pop=document.createElement('div');pop.className='create-pop wb-pop';pop.innerHTML=`${ci.check}<span><b>${escapeHtml(agent.name)}</b> joined your team — it’s now under Profiles and Chats.</span>`;
+    const pop=document.createElement('div');pop.className='create-pop wb-pop';pop.innerHTML=`${ci.check}<span><b>${escapeHtml(agent.name)}</b> joined your team — it’s now under Agents and Chats.</span>`;
     document.body.appendChild(pop);setTimeout(()=>pop.classList.add('show'),10);setTimeout(()=>{pop.classList.remove('show');setTimeout(()=>pop.remove(),300)},4600);
   }
   // ---------- Team research: a model reasons about THIS business before we show a team ----------
@@ -328,7 +328,13 @@
   function chip(){if(state.variant===null)return `<span class="private-pill">Private preview</span>`;const inner=state.selectedImage?`<img class="chip-img" src="${escapeHtml(state.selectedImage)}" alt="">`:bot('v'+state.variant+' chip');return `<span class="agent-chip">${inner}<span>${escapeHtml(state.name)}</span></span>`;}
   // Both intro screens (ask + team) count as step 1; create is 2, hatch is 3.
   const stepNo = () => Math.max(1,state.step);
-  const layout = content => `<main class="shell"><section class="panel"><div class="progress" aria-label="Prototype progress"><span style="--progress:${Math.min(100,stepNo()/5*100)}%"></span></div><header class="topbar"><div class="brand"><img src="/agent-hatchers-logo.png" alt=""><span>Agent Hatchers</span></div><div class="topbar-right">${chip()}<span class="step-label">Step ${stepNo()} of 5</span></div></header>${content}</section></main>`;
+  // The hatching flow wears the dashboard's v4 onboarding frame (Hermes-Dashboard
+  // Onboarding/SelfServe/SelfServeChrome.tsx): black page, the mark top-left, and each screen
+  // a big centred heading, one thing in the middle and full-width pills at the bottom.
+  const layout = content => `<div class="ob"><header class="ob-top"><div class="ob-brand"><img src="/hatchy-pop.webp" alt=""><span>Agent Hatchers</span></div><div class="ob-top-r">${chip()}<span class="ob-step">Step ${stepNo()} of 5</span></div></header>${content}</div>`;
+  const screen = ({title,sub='',body='',actions='',cls=''}) => `<section class="ob-screen ${cls}"><h1 class="ob-h">${title}</h1>${sub?`<p class="ob-sub">${sub}</p>`:''}<div class="ob-body">${body}</div>${actions?`<div class="ob-actions">${actions}</div>`:''}</section>`;
+  // NextPill / BackPill: white full-width pill, and the raised one under it.
+  const pill = (label, action, back=false) => `<button type="button" class="ob-pill${back?' is-back':''}" data-action="${action}">${label}</button>`;
 
   // ---------- Session capture: a small copy of each hatch goes to our store ----------
   // So the team can see what prospects actually did: business, team, chosen look, marketplace
@@ -478,10 +484,10 @@
     const screens = [welcome,welcome,nameScreen,hatchScreen,marketScreen,connectScreen];
     const inner = screens[state.step]();
     root.innerHTML = state.step>=4 ? inner : layout(inner);
+    document.body.classList.add('dx-on');   // the whole flow is v4-dark, dialogs included
     bind();
     if(typeof drawNotifs==='function')drawNotifs();
     if(state.step===3)applyCutouts(root);
-    ensureTeamPalette();
     saveSession();
   }
   // ---------- Research pop: a little terminal that thinks out loud while the team is researched ----------
@@ -526,20 +532,6 @@
   // Tabs the prospect can see but not open yet — the padlock is the point.
   const LOCKED_TABS={analytics:'Analytics unlocks once your agent is live'};
   let lockNoteTimer=0;
-  const ic = {
-    lock:'<svg class="tab-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke-width="2"/><path d="M8 11V7a4 4 0 018 0v4" fill="none" stroke-width="2"/></svg>',
-    profiles:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.6"/></svg>',
-    chats:'<svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 3z" fill="none" stroke-width="2"/></svg>',
-    analytics:'<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke-width="2"/></svg>',
-    config:'<svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10" stroke-width="2"/><circle cx="16" cy="7" r="2.4" fill="none" stroke-width="2"/><circle cx="8" cy="17" r="2.4" fill="none" stroke-width="2"/></svg>',
-    market:'<svg viewBox="0 0 24 24"><path d="M4 9l1-4h14l1 4M4 9h16v10H4zM4 9a3 3 0 006 0 3 3 0 006 0 3 3 0 004 0" fill="none" stroke-width="2"/></svg>',
-    merch:'<svg viewBox="0 0 24 24"><path d="M8 4l-5 3 2.5 4L8 10v10h8V10l2.5 1L21 7l-5-3a4 4 0 01-8 0z" fill="none" stroke-width="2"/></svg>',
-    gallery:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.4"/><rect x="14" y="3" width="7" height="7" rx="1.4"/><rect x="3" y="14" width="7" height="7" rx="1.4"/><rect x="14" y="14" width="7" height="7" rx="1.4"/></svg>',
-    kanban:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.4"/><rect x="10" y="4" width="5" height="11" rx="1.4"/><rect x="17" y="4" width="4" height="14" rx="1.4"/></svg>',
-    search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke-width="2"/><path d="M20 20l-4-4" stroke-width="2"/></svg>',
-    plus:'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-width="2.4"/></svg>',
-    chev:'<svg viewBox="0 0 24 24"><path d="M8 10l4 4 4-4" fill="none" stroke-width="2"/></svg>'
-  };
   // Welcome hatch: ONE continuous 5s animation, no layer swaps. The egg is two
   // clip-path halves of the same egg-closed.webp split along the crack seam, so the
   // lid that tumbles off IS the egg's top; Hatchy rises from behind the bottom shell
@@ -580,11 +572,12 @@
     const options=INDUSTRIES.map(i=>`<li class="intro-option${i.label===state.industry?' is-on':''}" role="option" tabindex="-1" aria-selected="${i.label===state.industry}" data-industry="${escapeHtml(i.label)}">${escapeHtml(i.label)}</li>`).join('');
     const fieldLabel=other?'What does your business do?':ind?'Anything more specific? <span class="intro-optional">(optional)</span>':'Or just tell us what you do';
     const placeholder=ind?ind.eg:'e.g. dental clinic, online clothing shop, plumber';
-    return `<div class="stage welcome-grid intro"><div><span class="eyebrow">Agent Hatchers</span><h1 class="welcome-title intro-title">What can our agents do for you?</h1><p class="intro-lead">Tell us what your business does and we’ll work out which agents would actually help.</p><span class="intro-label" id="biz-industry-label">Your industry</span><div class="intro-select-wrap" id="biz-industry"><button type="button" class="name-field intro-select${ind?'':' is-empty'}" id="biz-industry-btn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="biz-industry-label biz-industry-btn">${escapeHtml(ind?ind.label:'Choose your industry…')}</button><ul class="intro-menu" id="biz-industry-menu" role="listbox" aria-labelledby="biz-industry-label" hidden>${options}</ul></div><label class="intro-label" for="biz-intro">${fieldLabel}</label><div class="mic-field intro-field"><input class="name-field" id="biz-intro" maxlength="120" autocomplete="off" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(state.biz)}" aria-label="What your business does"><button type="button" class="mic-btn" data-mic="biz-intro" aria-label="Dictate what your business does">${micSvg}</button></div><label class="intro-label" for="biz-site">Your website <span class="intro-optional">(optional — we’ll research what you actually do)</span></label><div class="intro-field"><input class="name-field" id="biz-site" maxlength="120" autocomplete="url" inputmode="url" placeholder="e.g. tanssu.com" value="${escapeHtml(state.website)}" aria-label="Your website"></div>${toolPicker()}<div class="actions">${button('Next →','team')}</div></div><div class="welcome-art" aria-hidden="true">${hatch5()}</div></div>`;
+    const form=`<div class="ob-form"><span class="intro-label" id="biz-industry-label">Your industry</span><div class="intro-select-wrap" id="biz-industry"><button type="button" class="name-field intro-select${ind?'':' is-empty'}" id="biz-industry-btn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="biz-industry-label biz-industry-btn">${escapeHtml(ind?ind.label:'Choose your industry…')}</button><ul class="intro-menu" id="biz-industry-menu" role="listbox" aria-labelledby="biz-industry-label" hidden>${options}</ul></div><label class="intro-label" for="biz-intro">${fieldLabel}</label><div class="mic-field intro-field"><input class="name-field" id="biz-intro" maxlength="120" autocomplete="off" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(state.biz)}" aria-label="What your business does"><button type="button" class="mic-btn" data-mic="biz-intro" aria-label="Dictate what your business does">${micSvg}</button></div><label class="intro-label" for="biz-site">Your website <span class="intro-optional">(optional — we’ll research what you actually do)</span></label><div class="intro-field"><input class="name-field" id="biz-site" maxlength="120" autocomplete="url" inputmode="url" placeholder="e.g. tanssu.com" value="${escapeHtml(state.website)}" aria-label="Your website"></div>${toolPicker()}</div>`;
+    return screen({cls:'is-intro',title:'What can our agents do for you?',sub:'Tell us what your business does and we’ll work out which agents would actually help.',body:`<div class="ob-art" aria-hidden="true">${hatch5()}</div>${form}`,actions:pill('Next','team')});
   }
   // Screen 2 — the agents for that business, what each does, and how they hand work on.
-  function nameScreen(){return `<div class="stage"><span class="eyebrow">Create a profile</span><h2>Create your agent</h2><p>Give it a name, tell us your type of company, and describe how it should look. You’ll pick specialist agents (sales, invoices, support…) from the marketplace next.</p><label class="field-label" for="agent-co">Company name</label><input class="name-field" id="agent-co" maxlength="40" autocomplete="off" placeholder="Company name — e.g. Tanssu" value="${escapeHtml(state.company||config.company||'')}" aria-label="Company name"><label class="field-label" for="agent-name">Agent name</label><input class="name-field" id="agent-name" maxlength="28" autocomplete="off" placeholder="Agent name — e.g. Pip, Scout or Atlas" value="${escapeHtml(state.name)}" aria-label="Agent name"><label class="field-label" for="agent-biz">Type of company</label><input class="name-field" id="agent-biz" maxlength="60" autocomplete="off" placeholder="e.g. dental clinic, online clothing shop, plumber" value="${escapeHtml(state.biz)}" aria-label="Type of company"><label class="field-label" for="agent-look">Image description</label><div class="mic-field"><textarea class="look-field" id="agent-look" placeholder="e.g. a friendly rounded robot holding a suitcase — or leave it to the photo / website below" aria-label="Image description">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div>${referenceBlock()}<div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
-  function designScreen(){return `<div class="stage"><span class="eyebrow">Design the look</span><h2>Describe how ${escapeHtml(state.name)} should look</h2><p>Write a short, practical description and we’ll hatch three designs for you to choose from.</p><div class="mic-field"><textarea class="look-field" id="agent-look" maxlength="600" placeholder="e.g. a friendly rounded robot medic in blue and white, holding a checklist" aria-label="Describe the avatar">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div>${referenceBlock()}<div class="actions">${button('Back','back',true)}${button('Hatch 3 designs →','generate')}</div></div>`;}
+  function nameScreen(){return screen({title:'Create your agent',sub:'Give it a name, tell us your type of company, and describe how it should look. You’ll pick specialist agents (sales, invoices, support…) from the marketplace next.',body:`<div class="ob-form"><label class="field-label" for="agent-co">Company name</label><input class="name-field" id="agent-co" maxlength="40" autocomplete="off" placeholder="Company name — e.g. Tanssu" value="${escapeHtml(state.company||config.company||'')}" aria-label="Company name"><label class="field-label" for="agent-name">Agent name</label><input class="name-field" id="agent-name" maxlength="28" autocomplete="off" placeholder="Agent name — e.g. Pip, Scout or Atlas" value="${escapeHtml(state.name)}" aria-label="Agent name"><label class="field-label" for="agent-biz">Type of company</label><input class="name-field" id="agent-biz" maxlength="60" autocomplete="off" placeholder="e.g. dental clinic, online clothing shop, plumber" value="${escapeHtml(state.biz)}" aria-label="Type of company"><label class="field-label" for="agent-look">Image description</label><div class="mic-field"><textarea class="look-field" id="agent-look" placeholder="e.g. a friendly rounded robot holding a suitcase — or leave it to the photo / website below" aria-label="Image description">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div>${referenceBlock()}</div>`,actions:pill('Hatch 3 designs','generate')+pill('Back','back',true)});}
+  function designScreen(){return screen({title:`Describe how ${escapeHtml(state.name)} should look`,sub:'Write a short, practical description and we’ll hatch three designs for you to choose from.',body:`<div class="ob-form"><div class="mic-field"><textarea class="look-field" id="agent-look" maxlength="600" placeholder="e.g. a friendly rounded robot medic in blue and white, holding a checklist" aria-label="Describe the avatar">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div>${referenceBlock()}</div>`,actions:pill('Hatch 3 designs','generate')+pill('Back','back',true)});}
   // The same continuous split-egg hatch as the welcome screen, one per design.
   // Rendered stateful: a slot that already hatched shows its design (.done skips the
   // animation on re-renders instead of resetting to a closed egg), and each hatched
@@ -715,12 +708,12 @@
   function hatchActionsBar(){
     const settled=state.slots.length&&state.slots.every(Boolean);
     const anyReady=state.slots.some(s=>s&&s.status==='ready');
-    if(!anyReady) return `<p class="hatch-status">Hatching your designs… click your favourite as soon as it pops out.</p>`;
+    if(!anyReady) return `<p class="hatch-status"><i></i>Hatching your designs… click your favourite as soon as it pops out.</p>`;
     // A picked design can be tweaked right here ("nearly there, but…") before it becomes the avatar.
     const picked=state.variant!==null&&state.slots[state.variant]&&state.slots[state.variant].status==='ready';
-    return `${settled?button('Redesign','redesign',true):''}${picked?button('✎ Tweak this design','edit-look',true):''}${button('Use this avatar →','market')}`;
+    return `${pill('Use this avatar','market')}${picked||settled?`<div class="ob-pair">${picked?pill('Tweak this design','edit-look',true):''}${settled?pill('Redesign','redesign',true):''}</div>`:''}`;
   }
-  function hatchScreen(){return `<div class="stage hatch-zone"><span class="eyebrow">Hatching</span><h2>Hatching ${escapeHtml(state.name||'your agent')}…</h2><p>Three takes on your description. Click your favourite — it becomes ${escapeHtml(state.name||'your agent')}’s avatar.</p><div class="hatch-row" aria-live="polite">${[0,1,2].map(eggScene).join('')}</div><div class="hatch-actions">${hatchActionsBar()}</div></div>`;}
+  function hatchScreen(){return `<section class="ob-screen hatch-zone"><h1 class="ob-h">Hatching ${escapeHtml(state.name||'your agent')}…</h1><p class="ob-sub">Three takes on your description. Click your favourite — it becomes ${escapeHtml(state.name||'your agent')}’s avatar.</p><div class="ob-body"><div class="hatch-row" aria-live="polite">${[0,1,2].map(eggScene).join('')}</div></div><div class="ob-actions hatch-actions">${hatchActionsBar()}</div></section>`;}
   function initials(str){return String(str||'AH').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();}
   const marketLoader='<div class="hatch-loader"><img class="loader-egg" src="/egg-closed.webp" alt=""><span class="loader-txt">Hatching…</span></div>';
   // Review/share of a session that never reached the dashboard: its team portraits were never
@@ -728,34 +721,163 @@
   const marketUnhatched='<div class="hatch-loader is-still"><img class="loader-egg" src="/egg-closed.webp" alt=""><span class="loader-txt">Not hatched</span></div>';
   function willGenerate(agent){if(VIEW_ONLY)return false;   // review mode shows what was stored, no egg loaders
     return (usePortraits&&config.marketPortraits!==false&&state.variant!==null)||!!(config.bakedMarket&&config.bakedMarket[agent.id]);}
-  function agentCard(agent,running=false){const gen=state.marketImages[agent.id];const loading=!gen&&willGenerate(agent);const unhatched=!gen&&VIEW_ONLY;const inner=gen?`<img src="${escapeHtml(gen)}" alt="${escapeHtml(agent.name)}">`:(loading?marketLoader:unhatched?marketUnhatched:`<img src="${agent.portrait}" alt="${escapeHtml(agent.name)}" loading="lazy">`);return `<article class="p-card" data-agent="${agent.id}" data-search="${escapeHtml((agent.name+' '+agent.team).toLowerCase())}" tabindex="0"><div class="p-thumb thumb-${agent.base||agent.id} ${gen?'is-generated':''} ${loading||unhatched?'is-loading':''}" data-thumb="${agent.id}">${inner}</div><div class="p-meta"><div class="p-name">${agent.name} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span>${teamTag(agent.team)}${running?'<span class="p-tag tag-run"><i></i>Running</span>':''}</div></div></article>`;}
-  function hatchedCard(){const vis=state.selectedImage?`<img src="${escapeHtml(state.selectedImage)}" alt="${escapeHtml(state.name)}">`:`<div class="thumb-bot">${bot('v'+(state.variant||0))}</div>`;return `<article class="p-card is-yours"><div class="p-thumb thumb-new ${state.selectedImage?'is-generated':''}">${vis}</div><div class="p-meta"><div class="p-name">${escapeHtml(state.name||'Your agent')} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span><span class="p-tag tag-new">Just hatched</span></div></div></article>`;}
-  // Two of the recommended agents are already switched on for the prospect's company, so the
-  // board shows what "running" looks like next to the freshly hatched one.
+  // ===== Dashboard (step 4) — a mimic of the live dashboard (Hermes-Dashboard, v4 look) =====
+  // Black Grok-style frame: a top bar with the workspace switcher and Create, a left sidebar
+  // with the sections (client/src/components/Nav/sectionNav.ts — same names, order and icons),
+  // and pills instead of bordered boxes. Each view names the page it copies. The icons are
+  // lucide's, the set the dashboard draws with.
+  const LU={
+    home:'<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+    bot:'<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>',
+    chat:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+    chatPlus:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v6"/><path d="M9 10h6"/>',
+    chats:'<path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/>',
+    news:'<path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/>',
+    chart:'<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+    sliders:'<path d="M21 4h-7"/><path d="M10 4H3"/><path d="M21 12h-9"/><path d="M8 12H3"/><path d="M21 20h-5"/><path d="M12 20H3"/><path d="M14 2v4"/><path d="M8 10v4"/><path d="M16 18v4"/>',
+    store:'<path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/>',
+    shirt:'<path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>',
+    lock:'<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+    fold:'<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/>',
+    unfold:'<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/>',
+    search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+    plus:'<path d="M5 12h14"/><path d="M12 5v14"/>',
+    plug:'<path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/>',
+    upDown:'<path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/>',
+    down:'<path d="m6 9 6 6 6-6"/>',
+    up:'<path d="m18 15-6-6-6 6"/>',
+    right:'<path d="m9 18 6-6-6-6"/>',
+    grid:'<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
+    kanban:'<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 7v7"/><path d="M12 7v4"/><path d="M16 7v9"/>',
+    users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    filter:'<path d="M3 6h18"/><path d="M7 12h10"/><path d="M10 18h4"/>',
+    star:'<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/>',
+    zap:'<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
+    calClock:'<path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h5"/><path d="M17.5 17.5 16 16.3V14"/><circle cx="16" cy="16" r="6"/>',
+    brain:'<path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/>',
+    cog:'<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+    pen:'<path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/>',
+    clip:'<path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>',
+    mic:'<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/>',
+    send:'<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>',
+    check:'<path d="M20 6 9 17l-5-5"/>',
+    checkCircle:'<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+    bulb:'<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>',
+    refresh:'<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+    pencil:'<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>',
+    trash:'<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+    cpu:'<rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/>',
+    shield:'<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
+    image:'<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
+    palette:'<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 11.995 2z"/>',
+    key:'<path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/>',
+    server:'<rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><path d="M6 6h.01"/><path d="M6 18h.01"/>',
+    ticket:'<path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/>',
+    link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+    hash:'<path d="M4 9h16"/><path d="M4 15h16"/><path d="M10 3 8 21"/><path d="m16 3-2 18"/>',
+    coins:'<circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/>',
+    inbox:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+    folder:'<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
+    info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+    cal:'<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
+    wrench:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+    clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+    bag:'<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+    more:'<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+    sparkles:'<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>',
+    x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+    back:'<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+    redo:'<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+    arrowRight:'<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+    download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
+    mail:'<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+    file:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>'
+  };
+  const L=(name,cls)=>`<svg class="lu${cls?' '+cls:''}" viewBox="0 0 24 24" aria-hidden="true">${LU[name]}</svg>`;
+  // Sidebar sections, in the dashboard's order. Feed is "Soon" there too: customers see it
+  // locked and its page says it is coming. `short` is the phone tab bar's label.
+  const DX_SECTIONS=[
+    {k:'home',label:'Home',icon:'home'},
+    {k:'profiles',label:'Agents',icon:'bot'},
+    {k:'chats',label:'Chats',icon:'chat'},
+    {k:'feed',label:'Feed',icon:'news',soon:true},
+    {k:'analytics',label:'Analytics',icon:'chart'},
+    {k:'config',label:'Config',icon:'sliders'},
+    {k:'market',label:'Marketplace',icon:'store'},
+    {k:'merch',label:'Merch',icon:'shirt'}
+  ];
+  // Beside the chat list the sidebar starts folded to its icon rail (two lists side by side
+  // are too much); everywhere else it starts open. Home counts as a chat route, as it does in
+  // the dashboard. A toggle is remembered per kind, as V4Sidebar does.
+  const foldKind=()=>(state.tab==='chats'||state.tab==='home')?'chats':'other';
+  function sideFolded(){const f=state.sideFold||{};const k=foldKind();return k in f?!!f[k]:k==='chats';}
+  const yourAvatar=()=>state.selectedImage||'/hatchy-pop.webp';
+  const firstInitial=()=>(co().trim()[0]||'A').toUpperCase();
+  function dxSidebar(){
+    const folded=sideFolded();
+    const item=s=>{const locked=LOCKED_TABS[s.k];const on=state.tab===s.k;
+      return `<button type="button" class="dx-nav-item${on?' on':''}${locked?' is-locked':''}" data-tab="${s.k}"${on?' aria-current="page"':''}${folded?` title="${s.label}" aria-label="${s.label}${s.soon?' (coming soon)':''}"`:s.soon?` aria-label="${s.label} (coming soon)"`:''}>${L(locked?'lock':s.icon)}<span class="dx-nav-label">${s.label}</span>${s.soon?'<span class="dx-soon">Soon</span>':''}${locked&&state.lockNote===s.k?`<i class="dx-lock-note">${escapeHtml(locked)}</i>`:''}</button>`;};
+    return `<aside class="dx-side${folded?' is-folded':''}">
+      <div class="dx-side-top">
+        <div class="dx-side-btns"><button type="button" class="dx-fold" data-dx-fold aria-label="${folded?'Expand sidebar':'Collapse sidebar'}" title="${folded?'Expand sidebar':'Collapse sidebar'}" aria-expanded="${!folded}">${L(folded?'unfold':'fold')}</button><button type="button" class="dx-circle" aria-label="Search" data-noop="1">${L('search')}</button><button type="button" class="dx-circle" aria-label="New chat" data-dx-newchat>${L('plus')}</button></div>
+        <nav class="dx-nav" aria-label="Sections">${DX_SECTIONS.map(item).join('')}</nav>
+      </div>
+      <div class="dx-side-foot">
+        <button type="button" class="dx-connect" data-tab="config"${folded?' aria-label="Connect apps" title="Connect apps"':''}>${folded?L('plug'):`<span>Connect apps</span><span class="dx-appdots">${mcpIcon('Gmail')}${mcpIcon('Google Calendar')}${mcpIcon('Google Drive')}</span>`}</button>
+        <div class="dx-acct"><span class="dx-me">${escapeHtml(firstInitial())}</span><span class="dx-acct-txt"><b>${escapeHtml(co())}</b><i>Workspace owner</i></span></div>
+      </div>
+    </aside>`;
+  }
+  function dxTabbar(){
+    return `<nav class="dx-tabbar" aria-label="Sections">${DX_SECTIONS.map(s=>{const locked=LOCKED_TABS[s.k];return `<button type="button" class="dx-tab${state.tab===s.k?' on':''}${locked?' is-locked':''}" data-tab="${s.k}"${state.tab===s.k?' aria-current="page"':''}>${L(locked?'lock':s.icon)}<span>${s.label}</span>${locked&&state.lockNote===s.k?`<i class="dx-lock-note is-up">${escapeHtml(locked)}</i>`:''}</button>`;}).join('')}</nav>`;
+  }
+  // ---- Agents (/agents, components/Agents/Marketplace.tsx gallery) ----
+  // Picture-forward cards: a square portrait with the status riding its bottom edge, the name
+  // with the gateway dot (and a star on the default agent), then tag chips. Grouped by status:
+  // the hatched agent and the two already switched on are Active; the rest of the researched
+  // team waits under Upcoming.
   const RUNNING=['documents','sales'];
   const runningAgents=()=>RUNNING.map(agentById).filter(Boolean);
+  const STATUS_LOOK={active:{label:'Active',icon:'zap'},upcoming:{label:'Upcoming',icon:'calClock'}};
+  const sessionsOf=id=>8+[...String(id)].reduce((n,c)=>n+c.charCodeAt(0),0)%17;
+  function cardPicture(id,inner,status,cls){
+    const s=STATUS_LOOK[status];
+    return `<div class="dx-pic"><div class="dx-thumb ${cls||''}" data-thumb="${id}">${inner}</div>${s?`<div class="dx-status is-${status}">${L(s.icon)}<span>${s.label}</span></div>`:''}</div>`;
+  }
+  const teamChip=team=>`<span class="dx-chip is-team">${L('users')}${escapeHtml(team)}</span>`;
+  function agentCard(agent,status){const gen=state.marketImages[agent.id];const loading=!gen&&willGenerate(agent);const unhatched=!gen&&VIEW_ONLY;const inner=gen?`<img src="${escapeHtml(gen)}" alt="${escapeHtml(agent.name)}">`:(loading?marketLoader:unhatched?marketUnhatched:`<img src="${agent.portrait}" alt="${escapeHtml(agent.name)}" loading="lazy">`);const live=status==='active';return `<article class="dx-card" data-agent="${agent.id}" data-search="${escapeHtml((agent.name+' '+agent.team).toLowerCase())}" tabindex="0" role="button" aria-label="Open ${escapeHtml(agent.name)}">${cardPicture(agent.id,inner,status,`${gen?'is-generated':''} ${loading||unhatched?'is-loading':''}`)}<div class="dx-card-meta"><div class="dx-card-name"><h3>${agent.name}</h3><i class="dx-gw${live?' on':''}"></i></div><div class="dx-chips">${teamChip(agent.team)}${live?`<span class="dx-chip">${sessionsOf(agent.id)} sessions</span>`:''}</div></div></article>`;}
+  function hatchedCard(){const vis=state.selectedImage?`<img src="${escapeHtml(state.selectedImage)}" alt="${escapeHtml(state.name)}">`:`<div class="thumb-bot">${bot('v'+(state.variant||0))}</div>`;return `<article class="dx-card is-yours is-new" tabindex="0" role="button" aria-label="Change ${escapeHtml(state.name||'your agent')}’s look"><span class="dx-new">New</span>${cardPicture('__you',vis,'active',state.selectedImage?'is-generated':'')}<div class="dx-card-meta"><div class="dx-card-name"><h3>${escapeHtml(state.name||'Your agent')}</h3><i class="dx-gw on"></i>${L('star','dx-star')}</div></div></article>`;}
   function profilesBoard(){
     const running=runningAgents();
     const rec=topAgents().filter(a=>!RUNNING.includes(a.id));
-    return `<div class="filter-bar">
-        <div class="search-box">${ic.search}<input id="market-search" placeholder="Search profiles..." autocomplete="off"></div>
+    const group=(status,cards,n)=>`<section class="dx-group is-${status}"><div class="dx-group-h"><h2>${STATUS_LOOK[status].label}</h2><span class="dx-count">${n}</span></div><div class="dx-grid">${cards}</div></section>`;
+    return `<div class="dx-page">
+      <div class="dx-toolbar">
+        <div class="dx-tools">
+          <div class="dx-seg" role="tablist" aria-label="View"><button type="button" class="on" role="tab" aria-selected="true">${L('grid')}<span>Gallery</span></button><button type="button" class="is-kanban" role="tab" aria-selected="false" data-noop="1">${L('kanban')}<span>Kanban</span></button><button type="button" role="tab" aria-selected="false" data-noop="1">${L('users')}<span>Office</span></button></div>
+          <button type="button" class="dx-drop" data-noop="1">${L('filter')}<span>Status: All</span>${L('down')}</button>
+          <button type="button" class="dx-drop" data-noop="1"><span>Team: All</span>${L('down')}</button>
+          <button type="button" class="dx-drop" data-noop="1"><span>Manager: All</span>${L('down')}</button>
+          <button type="button" class="dx-drop" data-noop="1"><span>Group by: Status</span>${L('down')}</button>
+        </div>
+        <label class="dx-search">${L('search')}<input id="market-search" placeholder="Search agents..." autocomplete="off" aria-label="Search agents"></label>
       </div>
-      <div class="board" id="board">
-        <section class="board-group g-active"><div class="group-head"><h3>Active</h3><span class="count">${1+running.length+liveProfiles().length}</span></div><div class="p-grid">${hatchedCard()}${liveProfiles().map(profileCard).join('')}${running.map(a=>agentCard(a,true)).join('')}</div></section>
-        <section class="board-group g-rec"><div class="group-head"><h3>Recommended for ${escapeHtml(co())}</h3><span class="count">${rec.length}</span></div><div class="p-grid">${rec.map(a=>agentCard(a)).join('')}</div></section>
-        <div class="board-empty" id="board-empty" hidden>No profiles match your search.</div>
-      </div>`;
+      <div class="dx-board" id="board">
+        ${group('active',hatchedCard()+liveProfiles().map(profileCard).join('')+running.map(a=>agentCard(a,'active')).join(''),1+running.length+liveProfiles().length)}
+        ${rec.length?group('upcoming',rec.map(a=>agentCard(a,'upcoming')).join(''),rec.length):''}
+        <div class="dx-empty" id="board-empty" hidden>No agents match your search.</div>
+      </div>
+    </div>`;
   }
-  function agentAvatar(cls){return state.selectedImage?`<img class="${cls}" src="${escapeHtml(state.selectedImage)}" alt="">`:bot('v'+(state.variant||0)+' '+cls);}
-  // The chat sidebar mirrors the Profiles board exactly: the hatched agent first, then
-  // the six recommended agents (same names, same generated avatars). "Other profiles"
-  // is workspace flavour using the stock Hatchy avatar art.
+  // ---- Chats (/c/…, Nav.tsx chat column + AgentPicker + TeammateChatHeader) ----
+  // The chat sidebar mirrors the Agents board: the hatched agent first, then the team (same
+  // names, same generated avatars). "Other agents" is workspace flavour in the hatched look.
   function chatProfiles(){
-    const you={name:state.name||'Your agent',img:state.selectedImage||'/hatchy-pop.webp'};
-    const team=[...runningAgents(),...topAgents().filter(a=>!RUNNING.includes(a.id))].map(a=>({name:a.name,img:state.marketImages[a.id]||a.portrait}));
+    const you={name:state.name||'Your agent',img:yourAvatar(),title:'Your agent',does:'Runs your team and answers you.'};
+    const team=[...runningAgents(),...topAgents().filter(a=>!RUNNING.includes(a.id))].map(a=>({name:a.name,img:state.marketImages[a.id]||a.portrait,title:a.team,does:a.summary}));
     const live=!VIEW_ONLY&&usePortraits&&config.marketPortraits!==false&&state.variant!==null;
-    const other=EXTRA_PROFILES.map(p=>{const gen=state.marketImages[p.id];return {id:p.id,name:p.name,img:gen||(live?'/egg-closed.webp':(state.selectedImage||p.portrait)),egg:!gen&&live};});
-    const mine=state.profiles.filter(p=>p.status==='complete').map(p=>({name:p.name,img:p.img}));
+    const other=EXTRA_PROFILES.map(p=>{const gen=state.marketImages[p.id];return {id:p.id,name:p.name,img:gen||(live?'/egg-closed.webp':(state.selectedImage||p.portrait)),egg:!gen&&live,title:'Agent',does:''};});
+    const mine=state.profiles.filter(p=>p.status==='complete').map(p=>({name:p.name,img:p.img,title:p.profile?.team||'Agent',does:p.desc||''}));
     const your=[you,...mine,...team];
     return {your,other,all:[...your,...other]};
   }
@@ -785,89 +907,149 @@
     const tools=[...new Set(mates.flatMap(m=>m.mcps))].slice(0,4).join(', ');
     return `Good question — here is how I would run it down. First I would pull the full context from your connected systems (${tools}) so we are not guessing, then send the customer a clear answer with the exact link or next step, and log the fix so nobody has to ask twice. For this one I would loop in ${names} — this is exactly their lane, and they would pick it up from me mid-thread. If I were fully connected to ${co()}'s stack, the answer would already be on its way back to your customer.`;
   }
+  // The ideas under an empty chat (Configuration → Chat ideas in the dashboard).
+  const CHAT_IDEAS=['Summarise my inbox','Draft replies to customer emails','Chase unpaid invoices','Send me a morning briefing','Plan my day'];
   function chatsView(){
     const {your,other,all}=chatProfiles();
-    const active=Math.min(state.chatActive??0,all.length-1);const activeName=all[active].name;
-    const avOf=p=>`<img src="${escapeHtml(p.img)}" alt="" ${p.id?`data-xav="${p.id}"`:''} ${p.egg?'class="egg"':''}>`;const activeAv=avOf(all[active]);
+    const active=Math.min(state.chatActive??0,all.length-1);const cur=all[active];const activeName=cur.name;
+    const avOf=(p,cls)=>`<img class="${cls||''}${p.egg?' egg':''}" src="${escapeHtml(p.img)}" alt="" ${p.id?`data-xav="${p.id}"`:''}>`;
     const extra=(state.chatExtra[active]||[]).concat(state.chatTyping[active]?[['typing','']]:[]);
-    const item=(p,i)=>`<button class="pf-item ${i===active?'on':''}" data-chat="${i}"><span class="pf-av">${avOf(p)}<i class="pf-dot"></i></span><span class="pf-name">${escapeHtml(p.name)}</span></button>`;
+    const firstAsk=(state.chatExtra[active]||[]).find(m=>m[0]==='me');
+    const row=(p,i)=>`<div class="dx-pick-row${i===active?' on':''}" role="option" aria-selected="${i===active}" tabindex="0" data-chat="${i}"><span class="dx-pick-av">${avOf(p)}</span><span class="dx-pick-name">${escapeHtml(p.name)}</span><i class="dx-gw${i<your.length?' on':''}"></i></div>`;
+    const picker=state.pickerOpen?`<div class="dx-pick-menu" role="listbox" aria-label="Agents"><label class="dx-search dx-pick-search">${L('search')}<input id="dx-pick-q" placeholder="Search agents…" autocomplete="off" aria-label="Search agents"><span class="dx-pick-n">${all.length}/${all.length}</span></label><div class="dx-pick-list"><div class="dx-pick-sec">Your team</div>${your.map((p,i)=>row(p,i)).join('')}<div class="dx-pick-sec">Other agents</div>${other.map((p,i)=>row(p,your.length+i)).join('')}</div></div>`:'';
     const renderMsg=([who,t])=>{
-      if(who==='pay')return `<div class="msg them"><div class="bubble paywall"><span class="pay-ic">${ci.key}</span><span>${escapeHtml(t)}</span><button class="btn pay-btn" data-noop="1">Unlock ${escapeHtml(activeName)}</button></div></div>`;
-      if(who==='typing')return `<div class="msg them"><span class="msg-ava">${activeAv}</span><div class="bubble typing"><i></i><i></i><i></i></div></div>`;
+      if(who==='pay')return `<div class="dx-msg them"><div class="dx-ai-h">${avOf(cur,'dx-ai-av')}<span>${escapeHtml(activeName)}</span></div><div class="dx-paywall"><span class="dx-paywall-ic">${ci.key}</span><span>${escapeHtml(t)}</span><button class="dx-pill is-white" data-noop="1">Unlock ${escapeHtml(activeName)}</button></div></div>`;
+      if(who==='typing')return `<div class="dx-msg them"><div class="dx-ai-h">${avOf(cur,'dx-ai-av')}<span>${escapeHtml(activeName)}</span></div><div class="dx-typing"><i></i><i></i><i></i></div></div>`;
       if(who==='them'){
         const mentioned=liveCatalog().filter(a=>t.includes(a.name));
-        const chips=mentioned.length?`<div class="chat-recs">${mentioned.map(a=>`<button class="chat-rec" data-agent="${a.id}"><img src="${escapeHtml(state.marketImages[a.id]||a.portrait)}" alt="">${a.name}</button>`).join('')}</div>`:'';
-        return `<div class="msg them"><span class="msg-ava">${activeAv}</span><div class="bubble-wrap"><div class="bubble">${escapeHtml(t).replace(/\n/g,'<br>')}</div>${chips}</div></div>`;
+        const chips=mentioned.length?`<div class="dx-recs">${mentioned.map(a=>`<button class="dx-rec" data-agent="${a.id}"><img src="${escapeHtml(state.marketImages[a.id]||a.portrait)}" alt="">${a.name}</button>`).join('')}</div>`:'';
+        return `<div class="dx-msg them"><div class="dx-ai-h">${avOf(cur,'dx-ai-av')}<span>${escapeHtml(activeName)}</span></div><div class="dx-ai-text">${escapeHtml(t).replace(/\n/g,'<br>')}</div>${chips}</div>`;
       }
-      return `<div class="msg ${who}"><div class="bubble">${escapeHtml(t)}</div></div>`;
+      return `<div class="dx-msg me"><div class="dx-bubble">${escapeHtml(t)}</div></div>`;
     };
-    return `<div class="chats3">
-      <aside class="pf-side">
-        <div class="pf-side-h"><b>Profiles</b> <span class="pf-count">${all.length}</span><span class="pf-plus">${ic.plus}</span></div>
-        <div class="pf-search">${ic.search}<input placeholder="Search profiles..."></div>
-        <div class="pf-sec">Your profiles</div>${your.map((p,i)=>item(p,i)).join('')}
-        <div class="pf-sec">Other profiles</div>${other.map((p,i)=>item(p,your.length+i)).join('')}
+    const composer=`<div class="dx-composer"><button type="button" class="dx-comp-ic" data-noop="1" aria-label="Attach files">${L('clip')}</button><input id="chat-box" placeholder="Message ${escapeHtml(activeName)}" autocomplete="off" aria-label="Message ${escapeHtml(activeName)}"><button type="button" class="dx-comp-ic" data-mic="chat-box" aria-label="Dictate">${L('mic')}</button><button type="button" class="dx-send" data-action="chat-send" aria-label="Send">${L('send')}</button></div>`;
+    return `<div class="dx-chats">
+      <aside class="dx-chatcol">
+        <div class="dx-chatcol-h">
+          <div class="dx-pick"><button type="button" class="dx-pick-btn" data-dx-picker aria-haspopup="listbox" aria-expanded="${!!state.pickerOpen}"><span class="dx-pick-av">${avOf(cur)}</span><span class="dx-pick-name">${escapeHtml(activeName)}</span>${L(state.pickerOpen?'up':'down')}</button>${picker}</div>
+          <button type="button" class="dx-circle" data-noop="1" aria-label="Agent settings">${L('cog')}</button><button type="button" class="dx-circle" data-noop="1" aria-label="Filter chats">${L('sliders')}</button><button type="button" class="dx-circle" data-dx-newchat aria-label="New chat">${L('pen')}</button>
+        </div>
+        <label class="dx-search">${L('search')}<input placeholder="Search messages" aria-label="Search messages"></label>
+        ${firstAsk?`<div class="dx-hist"><div class="dx-hist-h"><span>Today</span><span>1</span></div><div class="dx-hist-item on">${L('checkCircle')}<span>${escapeHtml(firstAsk[1])}</span></div></div>`:''}
+        <span class="dx-grow"></span>
+        <button type="button" class="dx-mainlink${active===0?' on':''}" data-chat="0"><img src="${escapeHtml(yourAvatar())}" alt=""><span>${escapeHtml(state.name||'Your agent')}</span></button>
       </aside>
-      <aside class="chat-hist">
-        <div class="chat-hist-h"><b>Chat history</b></div>
-        <div class="pf-search hist"><input placeholder="Search messages..."></div>
-      </aside>
-      <section class="chat-empty">
-        ${extra.length?`<div class="chat-thread" id="chat-thread">${extra.map(renderMsg).join('')}</div>`:`<div class="chat-empty-mid"><span class="chat-empty-av">${activeAv}</span><div class="chat-empty-name">${escapeHtml(activeName)}</div></div>`}
-        <div class="chat-input big"><input id="chat-box" placeholder="Message ${escapeHtml(activeName)}" autocomplete="off"><button class="chat-mic" data-noop="1">${micSvg}</button><button class="send-btn" data-action="chat-send" aria-label="Send">↑</button></div>
+      <section class="dx-chat">
+        <header class="dx-chat-h"><span class="dx-chat-h-av">${avOf(cur)}</span><div class="dx-chat-h-txt"><b>${escapeHtml(activeName)}${cur.title?` · ${escapeHtml(cur.title)}`:''}</b>${cur.does?`<span>${escapeHtml(cur.does)}</span>`:''}</div><span class="dx-atdesk"><i></i>At desk</span></header>
+        ${extra.length?`<div class="dx-thread" id="chat-thread"><div class="dx-thread-in">${extra.map(renderMsg).join('')}</div></div><div class="dx-chat-foot">${composer}</div>`
+          :`<div class="dx-chat-empty"><span class="dx-chat-face">${avOf(cur)}</span><div class="dx-chat-name">${escapeHtml(activeName)}</div>${composer}<div class="dx-ideas"><div class="dx-ideas-h">${L('bulb')}Ideas</div><div class="dx-ideas-row">${CHAT_IDEAS.map(t=>`<button type="button" class="dx-idea" data-idea="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join('')}</div></div></div>`}
       </section>
     </div>`;
   }
-  function areaChart(pts,ymax){const w=300,h=132,pad=8;const max=ymax||Math.max(...pts);const n=pts.length;const X=i=>pad+(i/(n-1))*(w-2*pad);const Y=v=>h-16-(v/(max||1))*(h-26);const line=pts.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(' ');const area=`${line} L${X(n-1).toFixed(1)} ${h-16} L${X(0).toFixed(1)} ${h-16} Z`;return `<svg class="area-chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path class="area-fill" d="${area}"/><path class="area-line" d="${line}"/></svg>`;}
+  // ---- Home (/, HomePage.tsx + HatchyPanel.tsx) — the morning briefing ----
+  // The agent's card on the left (status, Restart, memory, recurring jobs); in the middle the
+  // briefing — overnight / today — and "What would you like to do next?" as lettered options.
+  const BRIEF={
+    documents:['drafted 2 proposals from your templates','tidies today’s paperwork',['Approve the new client proposal?']],
+    sales:['followed up 4 leads, booked 1 call','follows up the new enquiries',['Send the quote to your newest lead?']],
+    marketing:['drafted 3 social posts','posts once you approve',['Approve 3 Instagram posts']],
+    support:['answered 6 customer questions','watches the inbox and chat',['Send the refund reply?']],
+    invoices:['chased 3 overdue invoices','matches this week’s payments',['Approve 4 bills to pay']],
+    operations:['confirmed tomorrow’s 3 jobs','keeps today’s jobs on schedule',['Confirm Friday’s roster?']],
+    website:['refreshed your opening hours','checks the site for broken links',['Publish the updated services page?']],
+    inventory:['flagged 2 items running low','drafts this week’s reorder',['Approve the reorder?']],
+    logistics:['tracked 5 deliveries, 1 delayed','chases the delayed delivery',['Book tomorrow’s courier?']],
+    returns:['processed 2 returns','restocks returned items',['Approve 1 refund?']]
+  };
+  const JOBS=[['Check email','Daily, 7:00 am'],['Catch up on overnight Slack','Daily, 7:05 am'],['Check today’s calendar','Daily, 7:10 am'],['Plan today’s to-dos','Daily, 7:15 am'],['Suggest the top project and tasks','Daily, 7:20 am']];
+  const clockAgo=h=>new Date(Date.now()-h*3600e3).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+  function homeView(){
+    const name=state.name||'Your agent';
+    const team=[...runningAgents(),...topAgents().filter(a=>!RUNNING.includes(a.id))];
+    const lineFor=a=>BRIEF[a.base||a.id]||BRIEF.operations;
+    const overnight=team.slice(0,4).map((a,i)=>`<li><b>${escapeHtml(a.name)}</b> ${lineFor(a)[0]}<span class="dx-faint"> · ${clockAgo([1,5,7,10][i])}</span></li>`).join('');
+    const today=team.slice(1,4).map(a=>`<li><b>${escapeHtml(a.name)}</b> ${lineFor(a)[1]}</li>`).join('');
+    const needs=team.slice(2,4).map(a=>({a,title:lineFor(a)[2][0]}));
+    const hour=new Date().getHours();const hello=hour<12?'Good morning':hour<18?'Good afternoon':'Good evening';
+    const opt=(i,html,attr)=>`<li><button type="button" class="dx-opt" ${attr}><span class="dx-opt-l">${String.fromCharCode(65+i)}</span><span class="dx-opt-t">${html}</span></button></li>`;
+    const chatIndex=a=>1+state.profiles.filter(p=>p.status==='complete').length+team.indexOf(a);
+    return `<div class="dx-home">
+      <aside class="dx-hpanel">
+        <div class="dx-hcard"><button type="button" class="dx-hcard-fold" data-noop="1" aria-label="Collapse ${escapeHtml(name)}">${L('up')}</button><span class="dx-hcard-av"><img src="${escapeHtml(yourAvatar())}" alt=""></span><h2>${escapeHtml(name)}</h2><span class="dx-run"><i></i>Running</span><p>${escapeHtml(name)}’s computer keeps working when you close this tab.</p><button type="button" class="dx-pill" data-noop="1">Restart</button><button type="button" class="dx-pill is-wide" data-noop="1">${L('brain')}What ${escapeHtml(name)} remembers</button></div>
+        <section class="dx-jobs"><h2><span>Recurring jobs</span><span class="dx-faint">Examples</span></h2><ul>${JOBS.map(([j,w])=>`<li>${L('calClock')}<span><b>${j}</b><i>${w}</i></span></li>`).join('')}</ul></section>
+      </aside>
+      <div class="dx-hmain">
+        <div class="dx-hscroll"><main class="dx-hcol">
+          <div class="dx-hchip"><img src="${escapeHtml(yourAvatar())}" alt="">${escapeHtml(name)}</div>
+          <p class="dx-htime">Today ${new Date().toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})}</p>
+          <div class="dx-brief"><h1>${hello}.</h1><section><h2>Overnight</h2><ul>${overnight||'<li>Nothing finished overnight.</li>'}</ul></section><section><h2>Today</h2><ul>${today||'<li>Nothing in progress right now.</li>'}</ul></section></div>
+          <section class="dx-next" aria-label="Needs you"><h2>What would you like to do next?</h2><ul>${needs.map((n,i)=>opt(i,`${escapeHtml(n.title)}<span class="dx-faint"> · ${escapeHtml(n.a.name)}</span>`,`data-chat="${chatIndex(n.a)}" data-tab="chats"`)).join('')}${opt(needs.length,`Ask ${escapeHtml(name)} something new`,'data-dx-ask')}</ul></section>
+        </main></div>
+        <div class="dx-hcomp"><div class="dx-composer is-home"><input id="home-ask" placeholder="Message ${escapeHtml(name)}" autocomplete="off" aria-label="Message ${escapeHtml(name)}"><button type="button" class="dx-send is-on" data-dx-home-send aria-label="Send">${L('send')}</button></div></div>
+      </div>
+    </div>`;
+  }
+  // ---- Feed (/feed) — customers see "Coming soon" until real items flow ----
+  function feedView(){
+    return `<div class="dx-soonpage"><span class="dx-soon-ic">${L('news')}</span><h1>Feed</h1><span class="dx-soon-pill">Coming soon</span><p>Everything ${escapeHtml(state.name||'your agent')} did and anything waiting on your OK, in one place.</p></div>`;
+  }
+  // ---- Analytics (/analytics, AnalyticsPage.tsx) ----
+  function areaChart(pts,ymax){const w=300,h=170,l=30,b=18,t=8;const max=ymax||Math.max(...pts)*1.15;const n=pts.length;const X=i=>l+(i/(n-1))*(w-l-6);const Y=v=>t+(h-b-t)*(1-v/(max||1));const line=pts.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(' ');const area=`${line} L${X(n-1).toFixed(1)} ${h-b} L${X(0).toFixed(1)} ${h-b} Z`;const ticks=[0,.25,.5,.75,1].map(f=>({y:Y(max*f),v:max*f}));const fmt=v=>v>=100?Math.round(v):v>=10?v.toFixed(0):v.toFixed(1);return `<svg class="dx-area" viewBox="0 0 ${w} ${h}" aria-hidden="true"><defs><linearGradient id="dxg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#3b82f6" stop-opacity=".35"/><stop offset="1" stop-color="#3b82f6" stop-opacity="0"/></linearGradient></defs>${ticks.map(k=>`<line class="dx-gridline" x1="${l}" x2="${w-6}" y1="${k.y.toFixed(1)}" y2="${k.y.toFixed(1)}"/><text class="dx-ylab" x="${l-6}" y="${(k.y+3).toFixed(1)}">${fmt(k.v)}</text>`).join('')}<path d="${area}" fill="url(#dxg)"/><path class="dx-line" d="${line}"/><text class="dx-xlab" x="${X(1)}" y="${h-3}">1 Aug</text><text class="dx-xlab" x="${X(Math.floor(n/2))}" y="${h-3}">16 Aug</text><text class="dx-xlab" x="${X(n-1)}" y="${h-3}" text-anchor="end">27 Aug</text></svg>`;}
   function analyticsView(){
-    const nav=[['Usage',['Overview','Over time','Providers & sources','Models','Teams & profiles']],['Profiles',['Overview','Team, manager & workspace','Abilities per profile','Activity']],['Skills',['Overview','Adoption']],['Crons',['Overview','Growth over time','Ownership']]];
-    const tiles=[['Total spend','$334','Billed cost, all sources'],['Total tokens','47M','All accounts, incl. auth / BYOK'],['Sessions','961','18 profiles'],['Messages','17k','Across the fleet'],['Profiles','18','Tracked agents']];
-    const charts=[['Spend over time',[11.6,11.5,11.4,11.6,12.2,11.7,11.3,12.1,11.6,11.3,11.5,11.2]],['Tokens over time',[1.9,1.1,0.4,1.0,2.6,7.6,5.2,3.4,2.8,5.1,3.9,6.0]],['Messages over time',[1.1,0.7,0.4,0.9,1.9,3.2,2.6,1.7,1.9,2.6,1.6,2.4]],['Sessions over time',[40,22,18,28,52,120,70,44,52,90,60,110]],['Profiles over time',[10,11,12,12,13,14,15,16,16,17,17,18]],['Cost per session over time',[11.5,3,2.5,3,4,5,6,4.5,5,6.5,5.5,7]]];
-    return `<div class="an-page">
-      <aside class="an-side"><div class="an-side-h">On this page</div>${nav.map(([sec,items],si)=>`<div class="an-sec"><div class="an-sec-h ${si===0?'on':''}">${sec}</div>${items.map((it,i)=>`<div class="an-sub ${si===0&&i===0?'on':''}">${it}</div>`).join('')}</div>`).join('')}</aside>
-      <div class="an-main">
-        <h2 class="an-h">Usage</h2>
-        <div class="an-eyebrow">Overview</div>
-        <div class="an-tiles">${tiles.map(([l,v,s])=>`<div class="an-tile"><div class="an-tile-l">${l}</div><div class="an-tile-v">${v}</div><div class="an-tile-s">${s}</div></div>`).join('')}</div>
-        <div class="an-eyebrow">Over time</div>
-        <div class="an-charts">${charts.map(([t,data])=>`<div class="an-chart-card"><div class="an-chart-h">${t}</div>${areaChart(data)}<div class="an-x">1 Aug<span>16 Aug</span>27 Aug</div></div>`).join('')}</div>
+    const nav=[['Usage','chart',['Overview','Over time','Providers & sources','Models','Teams & agents']],['Agents','bot',[]],['Skills','wrench',[]],['Crons','clock',[]]];
+    const tiles=[['coins','Total spend','$334','Billed cost, all sources'],['hash','Total tokens','47M','All accounts, incl. auth / BYOK'],['inbox','Sessions','961','18 agents'],['chat','Messages','17k','Across the fleet'],['folder','Agents','18','Tracked agents']];
+    const charts=[['Spend over time',[11.6,11.5,11.4,11.6,12.2,11.7,11.3,12.1,11.6,11.3,11.5,11.2]],['Tokens over time',[1.9,1.1,0.4,1.0,2.6,7.6,5.2,3.4,2.8,5.1,3.9,6.0]],['Messages over time',[1.1,0.7,0.4,0.9,1.9,3.2,2.6,1.7,1.9,2.6,1.6,2.4]],['Sessions over time',[40,22,18,28,52,120,70,44,52,90,60,110]],['Agents over time',[10,11,12,12,13,14,15,16,16,17,17,18]],['Cost per session over time',[11.5,3,2.5,3,4,5,6,4.5,5,6.5,5.5,7]]];
+    return `<div class="dx-split">
+      <aside class="dx-an-side"><div class="dx-eyebrow">On this page</div>${nav.map(([sec,icon,items],si)=>`<div class="dx-an-sec${si===0?' on':''}">${L(icon)}<span>${sec}</span>${L(si===0?'down':'right')}</div>${items.map((it,i)=>`<div class="dx-an-sub${i===0?' on':''}">${it}</div>`).join('')}`).join('')}</aside>
+      <div class="dx-an-main">
+        <div class="dx-tools"><button type="button" class="dx-drop" data-noop="1">${L('filter')}<span>Status: All</span>${L('down')}</button><button type="button" class="dx-drop" data-noop="1"><span>Team: All</span>${L('down')}</button><button type="button" class="dx-drop" data-noop="1"><span>Manager: All</span>${L('down')}</button><button type="button" class="dx-drop" data-noop="1"><span>By day</span>${L('down')}</button><button type="button" class="dx-drop" data-noop="1">${L('cal')}<span>Last 30 days</span>${L('down')}</button></div>
+        <h2 class="dx-an-h">${L('chart')}Usage</h2>
+        <div class="dx-eyebrow">Overview</div>
+        <div class="dx-tiles">${tiles.map(([icon,l,v,s])=>`<div class="dx-tile"><div class="dx-tile-l">${L(icon)}<span>${l}</span>${L('info','dx-i')}</div><div class="dx-tile-v">${v}</div><div class="dx-tile-s">${s}</div></div>`).join('')}</div>
+        <div class="dx-eyebrow">Over time</div>
+        <div class="dx-charts">${charts.map(([t,data])=>`<div class="dx-chart"><div class="dx-chart-h">${t}${L('info','dx-i')}</div>${areaChart(data)}</div>`).join('')}</div>
       </div></div>`;
   }
-  const cfgIcons={Communications:ic.chats,Integrations:'<svg viewBox="0 0 24 24"><path d="M9 2v6M15 2v6M7 8h10v4a5 5 0 01-10 0zM12 17v5"/></svg>',Models:'<svg viewBox="0 0 24 24"><path d="M12 3l9 5v8l-9 5-9-5V8z"/><path d="M3 8l9 5 9-5M12 13v9"/></svg>',Users:'<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0112 0M16 5a3.5 3.5 0 010 7M18 20a6 6 0 00-3-5"/></svg>',Permissions:'<svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6z"/></svg>',Media:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M4 18l5-4 4 3 3-3 4 4"/></svg>',Branding:'<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 100 18c1.5 0 2-1 2-2s-1-1.5-1-2.5.5-1.5 1.5-1.5H18a3 3 0 003-3c0-4-4-6-9-6z"/><circle cx="7.5" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16.5" cy="10.5" r="1"/></svg>',Connection:ci.link};
+  // ---- Config (/configuration, ConfigurationPage.tsx → Communications) ----
+  const CFG_SECTIONS=[['Communications','chats'],['Integrations','plug'],['Models','cpu'],['Users','users'],['Permissions','shield'],['Media','image'],['Branding','palette'],['Chat ideas','bulb'],['Connection','link']];
   function configView(){
-    const side=['Communications','Integrations','Models','Users','Permissions','Media','Branding','Connection'];
     const slackLogo='<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lg-slack"/></svg>';   // the real marks from the homepage sprite
     const teamsLogo='<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lg-teams"/></svg>';
-    const wsAv=state.selectedImage?`<img src="${escapeHtml(state.selectedImage)}">`:bot('v'+(state.variant||0));
-    const workspaces=[[escapeHtml(co()),'T0BJX6REVC2']];
-    const channels=[[escapeHtml(co()),'13 / 16 Channels Assigned']];
-    return `<div class="cfg-page">
-      <aside class="cfg-side">${side.map((n,i)=>`<div class="cfg-side-item ${i===0?'on':''}" data-noop="1"><span class="cfg-side-ic">${cfgIcons[n]}</span>${n}</div>`).join('')}</aside>
-      <div class="cfg-main">
-        <div class="cfg-head"><span class="cfg-head-ic">${ic.chats}</span><h2>Communications</h2></div>
-        <div class="cfg-label">Chat platform</div>
-        <div class="platform-row"><button class="platform sel" data-noop="1"><span class="pf-ic">${slackLogo}</span> Slack <span class="pf-ok">${ci.check}</span></button><button class="platform" data-noop="1"><span class="pf-ic">${teamsLogo}</span> Microsoft Teams <span class="pf-ok">${ci.check}</span></button></div>
-        <div class="cfg-sub"><span><b>Workspaces</b> <span class="count">${workspaces.length}</span></span><button class="btn cfg-connect" data-noop="1">${ic.plus}<span>Connect Workspace</span></button></div>
-        ${workspaces.map(([n,id])=>`<div class="ws-row"><span class="ws-av2">${wsAv}</span><div class="ws-row-main"><b>${n}</b><div class="ws-id">${id}</div></div><div class="ws-actions"><button data-noop="1" aria-label="Edit">✎</button><button data-noop="1" aria-label="Delete">🗑</button></div></div>`).join('')}
-        <div class="cfg-sub"><span><b>Channels</b> <span class="count">16</span></span></div>
-        <div class="chan-filters"><button class="filter-pill" data-noop="1">All channels ${ic.chev}</button><button class="filter-pill" data-noop="1">All assignments ${ic.chev}</button><div class="search-box">${ic.search}<input placeholder="Search channels or agents..."></div></div>
-        ${channels.map(([n,c])=>`<div class="chan-row"><span class="ws-av2">${wsAv}</span><b>${n}</b><span class="chan-count">${c} ${ic.chev}</span></div>`).join('')}
+    const wsAv=`<img src="${escapeHtml(yourAvatar())}" alt="">`;
+    return `<div class="dx-split">
+      <aside class="dx-cfg-side">${CFG_SECTIONS.map(([n,icon],i)=>`<div class="dx-cfg-item${i===0?' on':''}" data-noop="1">${L(icon)}<span>${n}</span></div>`).join('')}</aside>
+      <div class="dx-cfg-main">
+        <div class="dx-ph"><span class="dx-ph-ic">${L('chats')}</span><h1>Communications</h1></div>
+        <div class="dx-cfg-label">Chat platform</div>
+        <div class="dx-platforms"><button type="button" class="dx-platform on" data-noop="1">${slackLogo}<span>Slack</span>${L('check')}</button><button type="button" class="dx-platform" data-noop="1">${teamsLogo}<span>Microsoft Teams</span></button></div>
+        <div class="dx-cfg-sub"><h2>Workspaces <span class="dx-faint">1</span></h2><div class="dx-cfg-acts"><button type="button" class="dx-circle is-raised" data-noop="1" aria-label="Refresh">${L('refresh')}</button><button type="button" class="dx-pill is-white" data-noop="1">${L('plus')}Connect Workspace</button></div></div>
+        <div class="dx-ws-row"><span class="dx-ws-av">${wsAv}</span><div class="dx-ws-txt"><b>${escapeHtml(co())}</b><code>T0BJX6REVC2</code></div><button type="button" class="dx-circle is-raised" data-noop="1" aria-label="Rename">${L('pencil')}</button><button type="button" class="dx-circle is-raised" data-noop="1" aria-label="Disconnect">${L('trash')}</button></div>
+        <div class="dx-cfg-sub"><h2>Channels <span class="dx-faint">16</span></h2></div>
+        <div class="dx-tools is-chan"><button type="button" class="dx-drop" data-noop="1"><span>All channels</span>${L('down')}</button><button type="button" class="dx-drop" data-noop="1"><span>All assignments</span>${L('down')}</button><span class="dx-grow"></span><button type="button" class="dx-icon-btn" data-noop="1" aria-label="Refresh channels">${L('refresh')}</button><label class="dx-search">${L('search')}<input placeholder="Search channels or agents..." aria-label="Search channels or agents"></label></div>
+        <div class="dx-chan-row"><span class="dx-ws-av">${wsAv}</span><b>${escapeHtml(co())}</b><span class="dx-chan-n">13 / 16 Channels Assigned</span>${L('down')}</div>
       </div></div>`;
+  }
+  // ---- Marketplace (/marketplace, MarketplacePage.tsx + AgentCard.tsx) ----
+  // A card is a portrait, a name and the tagline; installing happens in the agent's peek.
+  function isInstalled(id){return topAgents().some(t=>t.id===id)||RUNNING.includes(id);}
+  // The peek's foot: Install for an agent not on the team yet, a quiet note for one that is.
+  function peekFooter(agent){
+    if(isInstalled(agent.id))return `<p class="dx-peek-on">${L('check')}On your team</p>`;
+    return `<button type="button" class="dx-pill is-white is-block" data-add="${agent.id}">${L('sparkles')}Install ${escapeHtml(agent.name)}</button>`;
   }
   function marketplaceView(){
     const ranked=rankAgents().map(r=>r.agent);
-    return `<div class="mkt-page">
-      <div class="mkt-head"><h2><span class="mkt-head-ic">${ic.market}</span>Marketplace</h2><div class="mkt-head-r"><button class="filter-pill" data-noop="1">All categories ${ic.chev}</button><div class="search-box">${ic.search}<input placeholder="Search agents..."></div></div></div>
-      <div class="mkt-grid">${ranked.map((a,i)=>{const img=state.marketImages[a.id];const installed=topAgents().some(t=>t.id===a.id)||RUNNING.includes(a.id);const inner=img?`<img src="${escapeHtml(img)}" alt="${escapeHtml(a.name)}">`:(willGenerate(a)?marketLoader:`<img src="${a.portrait}" alt="${escapeHtml(a.name)}" loading="lazy">`);return `<article class="mkt-card${installed?' is-installed':''}" data-agent="${a.id}" data-search="${escapeHtml((a.name+' '+a.team).toLowerCase())}" tabindex="0"><div class="mkt-thumb thumb-${a.base||a.id}">${inner}${installed?`<span class="mkt-installed">${ci.check}<span>Installed</span></span>`:`<span class="mkt-free">Free to add</span>`}</div><div class="mkt-body"><h3>${a.name}</h3><p>${a.summary}</p><div class="mkt-tags">${teamTag(a.team)}<span class="mkt-skills">${a.outcomes.length} skills</span></div>${installed?'':`<button type="button" class="mkt-add" data-add="${a.id}"><b>+</b>Add to your team</button>`}</div></article>`;}).join('')}</div>
+    return `<div class="dx-page">
+      <div class="dx-mkt-h"><div class="dx-ph"><span class="dx-ph-ic">${L('store')}</span><h1>Marketplace</h1></div><div class="dx-tools"><div class="dx-seg is-light" role="tablist" aria-label="Group"><button type="button" class="on" role="tab" aria-selected="true">All</button><button type="button" role="tab" aria-selected="false" data-noop="1">By category</button></div><button type="button" class="dx-drop" data-noop="1"><span>All categories</span>${L('down')}</button><label class="dx-search">${L('search')}<input placeholder="Search agents..." aria-label="Search agents"></label></div></div>
+      <div class="dx-grid is-mkt">${ranked.map(a=>{const img=state.marketImages[a.id];const installed=isInstalled(a.id);const loading=!img&&willGenerate(a);const inner=img?`<img src="${escapeHtml(img)}" alt="${escapeHtml(a.name)}">`:(loading?marketLoader:`<img src="${a.portrait}" alt="${escapeHtml(a.name)}" loading="lazy">`);return `<article class="mkt-card dx-mcard${installed?' is-installed':''}" data-agent="${a.id}" data-search="${escapeHtml((a.name+' '+a.team).toLowerCase())}" tabindex="0" role="button" aria-label="${escapeHtml(a.name)} details"><div class="dx-pic"><div class="dx-thumb${loading?' is-loading':''}" data-thumb="${a.id}">${inner}</div>${installed?`<span class="dx-installed">${L('check')}Installed</span>`:''}</div><h3>${a.name}</h3><p>${escapeHtml(a.summary)}</p></article>`;}).join('')}</div>
     </div>`;
   }
-
-  // ── Merch tab — mirrors the real dashboard's Printful page ──
+  // ---- Merch (/merch, MerchPage.tsx) — mirrors the dashboard's Printful page ----
   const MERCH_PRODUCTS=[
-    {id:'tee',name:'T-shirt',price:11.92,code:'3001',desc:'Classic unisex tee with the robot printed front and centre.'},
-    {id:'jumper',name:'Jumper',price:19.17,code:'18500',desc:'Heavyweight hooded jumper with the robot printed front and centre.'},
-    {id:'socks',name:'Socks',price:null,code:'Crew',desc:'Crew socks with an all-over robot pattern.'},
-    {id:'hat',name:'Hat',price:14.94,code:'Snapback',desc:'Structured snapback with the robot embroidered on the front.'}
+    {id:'tee',name:'T-shirt',price:11.92,code:'Unisex Staple T-Shirt',desc:'Classic unisex tee with the robot printed front and centre.'},
+    {id:'jumper',name:'Jumper',price:19.17,code:'Unisex Crewneck Sweatshirt',desc:'Heavyweight crewneck sweatshirt, robot on the chest.'},
+    {id:'socks',name:'Socks',price:null,code:'Sublimated Crew Socks',desc:'All-over print crew socks covered in your robot.'},
+    {id:'hat',name:'Hat',price:14.94,code:'Embroidered Dad Hat',desc:'Low-profile cap with the robot embroidered on the front.'}
   ];
   const MERCH_COLORS=[['Aqua','#1D9FBF'],['Army','#5F5E44'],['Ash','#F2F1EC'],['Asphalt','#54514E'],['Athletic Heather','#CBCBCB'],['Autumn','#C85313'],['Baby Blue','#CDE0F2'],['Berry','#C4265E'],['Black','#101010'],['Black Heather','#1E1C1C'],['Brown','#4E3629'],['Burnt Orange','#D9773B'],['Cardinal','#9A1B2F'],['Charity Pink','#F67599'],['Charcoal','#3C3B3D'],['Dark Grey','#575959'],['Forest','#1C4230'],['Gold','#F2A93B'],['Ocean Blue','#1D9FBF'],['Toast','#B4653A'],['Clay','#9A5B44'],['Lavender Blue','#C4CFF0'],['Terracotta','#A85341'],['True Royal','#3E5EBF'],['Steel Blue','#4C6E8B'],['Cream','#EDE4D3'],['Evergreen','#1E4E36'],['Kelly','#2E8B57'],['Leaf','#5C9346'],['Mint','#DFF5EC'],['Teal','#12A29B'],['Mauve','#C77E8F'],['Navy','#1F2A44'],['Sage','#C9E5C5'],['Ivory','#F5EEDF'],['Deep Heather','#3F4149'],['Olive','#5B5B33'],['Coral','#F26D5B'],['Dusty Pink','#E1A9B8'],['Seafoam','#BFE3D5'],['Ice Blue','#D4EEF2'],['Pink','#F3B8CF'],['Spring Green','#A9D9A2'],['Red','#C8102E'],['Scarlet','#E23A3A'],['Slate','#5E7079'],['Lilac','#B78BD1'],['Indigo','#5A6BB0'],['Yellow','#F3C13A'],['Kelly Green','#28A05C'],['Soft Pink','#F2C6D8'],['Maroon','#6E1F32'],['Rose','#D4707E'],['Moss','#7C8449'],['Light Green','#C4EDB2'],['Butter','#F6E27F'],['Midnight','#232A5C'],['Sky','#BEE3F2'],['Olive Drab','#6B7031'],['Tangerine','#EE7B3C'],['Cocoa','#7A5643'],['Blush','#F6D7DC'],['True Red','#D31F2C'],['Sea Green','#7FBFA0'],['Stone','#D6D2C4'],['Turquoise','#37C2C8'],['Plum','#3B2A50'],['Amber','#E0932F'],['Royal','#2450B5'],['Aqua Blue','#59CBE8'],['Onyx','#232323'],['Snow','#FBFBFB'],['White','#FFFFFF'],['Lemon','#F5E15C']];
   const MERCH_SIZES=['S','M','L','XL','2XL','3XL','4XL'];
@@ -894,61 +1076,61 @@
     const prod=MERCH_PRODUCTS.find(p=>p.id===m.product)||MERCH_PRODUCTS[0];
     const colorHex=m.product==='hat'?'#16150F':MERCH_COLORS[m.color][1];
     const basket=m.basket;
-    return `<div class="merch-page">
-      <div class="merch-head"><h2><span class="merch-ic">${ic.merch}</span>Merch</h2><span class="merch-sub">Your robots, printed and shipped by Printful</span></div>
-      <div class="merch-note">Browsing only — merch ordering unlocks with your live workspace.</div>
-      <h3 class="merch-step">1 · Pick a robot</h3>
-      <div class="mr-row">${robots.map(r=>`<button class="mr ${m.robot===r.id?'on':''}" data-merch-robot="${r.id}"><span class="mr-ava"><img src="${escapeHtml(r.img)}" alt=""></span><span class="mr-name">${escapeHtml(r.id==='__you'?'default':r.name)}</span></button>`).join('')}</div>
-      <h3 class="merch-step">2 · Pick the merch</h3>
-      <div class="merch-prods">${MERCH_PRODUCTS.map(p=>`<button class="merch-prod ${m.product===p.id?'on':''} ${p.price===null?'is-off':''}" data-merch-prod="${p.id}" ${p.price===null?'disabled':''}>${merchMock(p.id,p.id==='hat'?'#16150F':(p.id==='tee'?MERCH_COLORS[m.color][1]:'#F4F2EC'),img)}<b>${p.name}</b><span>${p.price===null?'unavailable':'from $'+p.price.toFixed(2)}</span></button>`).join('')}</div>
-      <div class="merch-detail">
+    return `<div class="dx-merch">
+      <div class="dx-merch-h"><span class="dx-merch-ic">${L('shirt')}</span><h1>Merch</h1><span class="dx-faint">Your robots, printed and shipped by Printful</span></div>
+      <div class="dx-merch-body">
+      <h3 class="dx-step">1 · Pick a robot</h3>
+      <div class="dx-robots">${robots.map(r=>`<button type="button" class="dx-robot${m.robot===r.id?' on':''}" data-merch-robot="${r.id}"><span class="dx-robot-av"><img src="${escapeHtml(r.img)}" alt=""></span><span class="dx-robot-name">${escapeHtml(r.id==='__you'?'default':r.name)}</span></button>`).join('')}</div>
+      <h3 class="dx-step">2 · Pick the merch</h3>
+      <div class="dx-prods">${MERCH_PRODUCTS.map(p=>`<button type="button" class="dx-prod${m.product===p.id?' on':''}${p.price===null?' is-off':''}" data-merch-prod="${p.id}" ${p.price===null?'disabled':''}>${merchMock(p.id,p.id==='hat'?'#16150F':(p.id==='tee'?MERCH_COLORS[m.color][1]:'#F4F2EC'),img)}<b>${p.name}</b><span>${p.price===null?'unavailable':'from $'+p.price.toFixed(2)}</span></button>`).join('')}</div>
+      <div class="dx-detail">
         ${merchMock(prod.id,colorHex,img,'big')}
-        <div class="merch-conf">
-          <b class="merch-code">${prod.code}</b>
+        <div class="dx-conf">
+          <b class="dx-conf-name">${prod.code}</b>
           <p>${prod.desc}</p>
-          ${prod.id!=='hat'?`<div class="merch-label">Colour · ${MERCH_COLORS[m.color][0]}</div>
-          <div class="swatches">${MERCH_COLORS.map((c,i)=>`<button class="sw ${i===m.color?'on':''}" style="background:${c[1]}" data-merch-color="${i}" title="${c[0]}" aria-label="${c[0]}"></button>`).join('')}</div>`:''}
-          <div class="merch-label">Size</div>
-          <div class="sizes">${(prod.id==='hat'?['One size']:MERCH_SIZES).map(s=>`<button class="size ${m.size===s?'on':''}" data-merch-size="${s}">${s}</button>`).join('')}</div>
-          <div class="merch-buy"><b>$${(prod.price||0).toFixed(2)}</b><span class="qty"><button data-merch-qty="-1">−</button><i>${m.qty}</i><button data-merch-qty="1">+</button></span><button class="basket-btn" data-merch-add="1">${ci.check} Add to basket</button></div>
+          ${prod.id!=='hat'?`<div class="dx-conf-label">Colour · ${MERCH_COLORS[m.color][0]}</div>
+          <div class="dx-swatches">${MERCH_COLORS.map((c,i)=>`<button type="button" class="dx-sw${i===m.color?' on':''}" style="background:${c[1]}" data-merch-color="${i}" title="${c[0]}" aria-label="${c[0]}"></button>`).join('')}</div>`:''}
+          <div class="dx-conf-label">Size</div>
+          <div class="dx-sizes">${(prod.id==='hat'?['One size']:MERCH_SIZES).map(s=>`<button type="button" class="dx-size${m.size===s?' on':''}" data-merch-size="${s}">${s}</button>`).join('')}</div>
+          <div class="dx-buy"><b>$${(prod.price||0).toFixed(2)}</b><span class="dx-qty"><button type="button" data-merch-qty="-1" aria-label="One fewer">−</button><i>${m.qty}</i><button type="button" data-merch-qty="1" aria-label="One more">+</button></span><button type="button" class="dx-add" data-merch-add="1">${L('bag')}Add to basket</button></div>
         </div>
       </div>
-      <h3 class="merch-step">3 · Basket</h3>
-      ${basket.length?`<div class="basket">${basket.map((b,i)=>`<div class="basket-row">${merchMock(b.prod,b.color,b.img,'mini')}<span class="basket-desc"><b>${b.name}</b> · ${escapeHtml(b.colorName)} · ${b.size} ×${b.qty}</span><b>$${(b.price*b.qty).toFixed(2)}</b></div>`).join('')}<div class="basket-row total"><span>Total</span><b>$${basket.reduce((t,b)=>t+b.price*b.qty,0).toFixed(2)}</b></div>${m.note?`<div class="merch-pay">${ci.key} Please pay for your agent in order to order merch.</div>`:`<button class="btn btn-primary" data-merch-checkout="1">Checkout →</button>`}</div>`:`<p class="merch-empty">Nothing yet — add something above.</p>`}
+      <h3 class="dx-step">3 · Basket</h3>
+      ${basket.length?`<div class="dx-basket">${basket.map(b=>`<div class="dx-basket-row">${merchMock(b.prod,b.color,b.img,'mini')}<span class="dx-basket-desc"><b>${b.name}</b> · ${escapeHtml(b.colorName)} · ${b.size} ×${b.qty}</span><b>$${(b.price*b.qty).toFixed(2)}</b></div>`).join('')}<div class="dx-basket-row is-total"><span>Total</span><b>$${basket.reduce((t,b)=>t+b.price*b.qty,0).toFixed(2)}</b></div>${m.note?`<div class="dx-paynote">${ci.key} Please pay for your agent in order to order merch.</div>`:`<button type="button" class="dx-pill is-white" data-merch-checkout="1">Checkout →</button>`}</div>`:`<p class="dx-muted">Nothing yet — add something above.</p>`}
+      </div>
     </div>`;
   }
   function marketScreen(){
-    const tab=(k,label)=>{const locked=LOCKED_TABS[k];return `<button class="nav-tab ${state.tab===k?'active':''}${locked?' is-locked':''}" data-tab="${k}"${locked?` aria-disabled="true" title="${escapeHtml(locked)}"`:''}>${ic[k==='market'?'market':k]}<span>${label}</span>${locked?ic.lock:''}${locked&&state.lockNote===k?`<i class="lock-note">${escapeHtml(locked)}</i>`:''}</button>`;};
-    const body = state.tab==='chats'?chatsView():state.tab==='analytics'?analyticsView():state.tab==='config'?configView():state.tab==='market'?marketplaceView():state.tab==='merch'?merchView():profilesBoard();
-    return `<div class="app${state.tab==='chats'?' is-chats':''}">
-      <header class="app-nav">
-        <div class="ws"><img class="ws-logo ${state.selectedImage?'ws-avatar-img':''}" src="${state.selectedImage||'/agent-hatchers-logo.png'}" alt=""><span>${escapeHtml(co())}</span><i class="ws-chev">${ic.chev}</i></div>
-        <nav class="nav-tabs">${tab('profiles','Profiles')}${tab('chats','Chats')}${tab('analytics','Analytics')}${tab('market','Marketplace')}</nav>
-        <div class="nav-right"><button class="create-btn" data-create="1">${ic.plus}<span>Create</span></button><span class="nav-avatar">${initials(co())}</span></div>
+    const t=state.tab;
+    const body=t==='home'?homeView():t==='chats'?chatsView():t==='feed'?feedView():t==='analytics'?analyticsView():t==='config'?configView():t==='market'?marketplaceView():t==='merch'?merchView():profilesBoard();
+    const sec=DX_SECTIONS.find(s=>s.k===t)||DX_SECTIONS[1];
+    const foot=SHARE_TOKEN
+      ?`<div class="dx-foot is-share"><span class="dx-foot-txt">Like what you see? This is what your team could look like.</span><div class="dx-foot-btns">${state.selectedImage?`<button type="button" class="dx-pill" data-action="download">${L('download')}<span>Download your image</span></button>`:''}<a class="dx-pill" href="${escapeHtml(location.pathname)}">Hatch your own agent →</a><button type="button" class="dx-pill is-white" data-action="book" data-source="share">Book a call →</button></div></div>`
+      :`<div class="dx-foot"><div class="dx-foot-btns"><button type="button" class="dx-pill" data-action="back">${L('back')}<span>Back</span></button><button type="button" class="dx-pill" data-action="reset">${L('redo')}<span>Start over</span></button><button type="button" class="dx-pill" data-action="next"><span>Connect your agent</span>${L('arrowRight')}</button>${state.selectedImage?`<button type="button" class="dx-pill" data-action="download">${L('download')}<span>Download your image</span></button>`:''}</div><button type="button" class="dx-pill is-white" data-action="book" data-source="dashboard">Book a call →</button></div>`;
+    return `<div class="dx" data-tab-on="${t}">
+      <header class="dx-top">
+        <button type="button" class="dx-ws" data-noop="1" aria-label="Switch workspace"><span class="dx-ws-av"><img src="${escapeHtml(yourAvatar())}" alt=""><i></i></span><span class="dx-ws-name">${escapeHtml(co())}</span>${L('upDown')}</button>
+        <div class="dx-top-r"><button type="button" class="dx-create" data-create="1">${L('plus')}<span>Create</span></button><span class="dx-me" aria-label="Account">${escapeHtml(firstInitial())}</span></div>
       </header>
-      ${body}
-      ${SHARE_TOKEN
-        ?`<div class="board-foot share-foot"><span class="share-foot-txt">Like what you see? This is what your team could look like.</span><div class="foot-nav">${state.selectedImage?`<button class="btn btn-secondary dl-foot" data-action="download">${ci.download}<span>Download your image</span></button>`:''}<a class="btn btn-secondary" href="${escapeHtml(location.pathname)}">Hatch your own agent →</a><button class="btn btn-primary" data-action="book" data-source="share">Book a call →</button></div></div>`
-        :`<div class="board-foot"><div class="foot-nav">${button('← Back','back',true)}${button('Start over','reset',true)}${button('Connect your agent →','next',true)}${state.selectedImage?`<button class="btn btn-secondary dl-foot" data-action="download">${ci.download}<span>Download your image</span></button>`:''}</div><button class="btn btn-primary" data-action="book" data-source="dashboard">Book a call →</button></div>`}
+      <div class="dx-body">
+        ${dxSidebar()}
+        <main class="dx-main">${t==='merch'||t==='feed'?'':`<div class="dx-mhead">${sec.label}</div>`}${body}</main>
+      </div>
+      ${foot}
+      ${dxTabbar()}
     </div>`;
   }
+  // The dashboard's first run with no box yet (OnboardingPage.tsx + NoBoxYet.tsx): the mark and
+  // "It's time to hatch…", then one raised panel — Book a call, or "I have my own box", which
+  // opens the inline Connect Your Agent form (ConnectStep.tsx).
+  const CONNECT_FIELDS=[['ci-base','link','Base URL','https://your-host.ts.net:8642'],['ci-key','key','API key','hc_…',true],['ci-dash','server','Dashboard URL','https://your-host.ts.net:9119'],['ci-token','ticket','Session token','dashboard session token',true]];
   function connectScreen(){
-    if(state.done){return `<main class="connect-shell"><section class="onboard-card"><div class="onboard-head"><span class="onboard-ic ok">${ci.check}</span><h2>Instance created</h2></div><p class="onboard-lead">Thanks, ${escapeHtml(co())}. Your dashboard is connected — book a call and we’ll bring ${escapeHtml(state.name||'your agent')} online.</p><nav class="connect-nav center"><button class="btn btn-primary" data-action="book" data-source="connected">Book a call →</button>${button('Start over','reset',true)}</nav></section></main>`;}
-    return `<main class="connect-shell">
-      <section class="onboard-card">
-        <div class="onboard-head"><span class="onboard-ic">${ci.server}</span><h2>Connect your Hermes instance</h2></div>
-        <p class="onboard-lead">This dashboard talks to your Hermes box. Connect it and it can start reading your profiles, skills and sessions.</p>
-        <p class="onboard-eyebrow">What you’ll need</p>
-        <ul class="onboard-list">
-          <li>${ci.link}<div><div class="req-label">Base URL</div><div class="req-detail">Your Hermes core API — the OpenAI-compatible server, port 8642 by default.</div></div></li>
-          <li>${ci.key}<div><div class="req-label">API key</div><div class="req-detail">API_SERVER_KEY from ~/.hermes/.env on that box.</div></div></li>
-          <li>${ci.server}<div><div class="req-label">Dashboard URL and session token <span class="opt">optional</span></div><div class="req-detail">Needed for profiles, skills and sessions — everything except chat.</div></div></li>
-        </ul>
-        <button class="btn onboard-btn" data-action="open-connect">Connect this instance ${ci.arrow}</button>
-      </section>
-      <div class="connect-cta"><span class="cta-left">${ci.cal} No agent yet? Let Agent Hatchers hatch one for you.</span><button class="btn cta-book" data-action="book" data-source="connect">Book a call</button></div>
-      <nav class="connect-nav">${button('← Back','back',true)}</nav>
-    </main>`;
+    const name=escapeHtml(state.name||'your agent');
+    let panel;
+    if(state.done)panel=`<div class="ob-nobox"><span class="ob-ok">${L('check')}Connected</span><h2>${name} is connected</h2><p>Thanks, ${escapeHtml(co())}. Book a call and we’ll bring ${name} online.</p><button type="button" class="ob-pill" data-action="book" data-source="connected">Book a call</button><button type="button" class="ob-link" data-action="reset">Start over</button></div>`;
+    else if(state.ownBox)panel=`<div class="ob-connect"><h2>Connect Your Agent</h2>${CONNECT_FIELDS.map(([id,icon,label,ph,secret])=>`<label class="ob-cf" for="${id}"><span class="ob-cf-l">${L(icon)}${label}</span><input id="${id}" type="${secret?'password':'text'}" placeholder="${escapeHtml(ph)}" autocomplete="off" spellcheck="false" autocapitalize="none"></label>`).join('')}<button type="button" class="ob-save" data-action="connect-save">Save and test connection</button></div>`;
+    else panel=`<div class="ob-nobox"><h2>${name}’s computer isn’t set up yet</h2><p>Already working with us? It appears here once it’s ready. New here? Book a call and we’ll set one up for you.</p><button type="button" class="ob-pill" data-action="book" data-source="connect">Book a call</button><button type="button" class="ob-link" data-action="own-box">I have my own box</button></div>`;
+    return `<div class="ob ob-connect-page"><header class="ob-top"><div class="ob-brand"><img src="/hatchy-pop.webp" alt=""><span>Agent Hatchers</span></div><button type="button" class="ob-link" data-action="back">${L('back')}Back to the dashboard</button></header><main class="ob-cmain"><div class="ob-chead"><img src="${escapeHtml(state.selectedImage||'/hatchy-pop.webp')}" alt=""><h1>It’s time to hatch ${name}</h1></div><div class="ob-panel">${panel}</div></main></div>`;
   }
   // ---------- Book a call (Calendly) ----------
   // The one real next step once a prospect has met their agent. Every "Book a call" in the
@@ -990,10 +1172,6 @@
   // the middle of the screen with the purple swirl before settling into the Active group.
   const CP_STEPS=[['Planning','Planning the agent…'],['Drafting','Drafting agent…'],['Equipping','Wiring up its tools…'],['Configuring','Configuring…'],['Illustrating','Drawing its portrait…']];
   const cpi={
-    chat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M12 8v5M9.5 10.5h5"/></svg>',
-    profile:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2M3 12h18"/></svg>',
-    skill:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.4 2.4-2.6-2.6z"/></svg>',
-    integration:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v4M15 3v4M7 7h10v4a5 5 0 01-10 0zM12 16v5"/></svg>',
     spark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg>',
     open:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 13v6H5V6h6"/></svg>',
     tick:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
@@ -1029,23 +1207,24 @@
     document.body.appendChild(pop);setTimeout(()=>pop.classList.add('show'),10);
     setTimeout(()=>{pop.classList.remove('show');setTimeout(()=>pop.remove(),300)},4600);
   }
+  // An agent made from Create → New Agent: an egg while it hatches, then a card like the rest.
   function profileCard(p){
     if(p.status==='running'){
-      return `<article class="p-card p-new is-busy" data-profile="${p.id}"><div class="p-thumb thumb-new is-loading"><div class="hatch-loader"><img class="loader-egg" src="/egg-closed.webp" alt=""><span class="loader-txt" data-profile-txt="${p.id}">${CP_STEPS[p.step][0]}…</span></div></div><div class="p-meta"><div class="p-name">${escapeHtml(p.name)} <i class="dot dot-wait"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span><span class="p-tag tag-new">Hatching</span></div></div></article>`;
+      return `<article class="dx-card is-busy" data-profile="${p.id}">${cardPicture('np-'+p.id,`<div class="hatch-loader"><img class="loader-egg" src="/egg-closed.webp" alt=""><span class="loader-txt" data-profile-txt="${p.id}">${CP_STEPS[p.step][0]}…</span></div>`,'','is-loading')}<div class="dx-card-meta"><div class="dx-card-name"><h3>${escapeHtml(p.name)}</h3><i class="dx-gw"></i></div><div class="dx-chips"><span class="dx-chip">Hatching</span></div></div></article>`;
     }
-    return `<article class="p-card p-new" data-profile="${p.id}" tabindex="0"><div class="p-thumb thumb-new is-generated"><img src="${escapeHtml(p.img)}" alt="${escapeHtml(p.name)}"></div><div class="p-meta"><div class="p-name">${escapeHtml(p.name)} <i class="dot"></i></div><div class="p-sub"><span class="p-owner">${escapeHtml(co())}</span>${teamTag(p.profile?.team||'Operations')}<span class="p-tag tag-new">New</span></div></div></article>`;
+    return `<article class="dx-card is-new" data-profile="${p.id}" tabindex="0" role="button" aria-label="Open ${escapeHtml(p.name)}"><span class="dx-new">New</span>${cardPicture('np-'+p.id,`<img src="${escapeHtml(p.img)}" alt="${escapeHtml(p.name)}">`,'active','is-generated')}<div class="dx-card-meta"><div class="dx-card-name"><h3>${escapeHtml(p.name)}</h3><i class="dx-gw on"></i></div><div class="dx-chips">${teamChip(p.profile?.team||'Operations')}</div></div></article>`;
   }
   function openCreateMenu(btn){
     const old=document.querySelector('.create-menu');if(old){old.remove();return;}
     const menu=document.createElement('div');menu.className='create-menu';menu.setAttribute('role','menu');
-    menu.innerHTML=[['chat','New Chat'],['profile','New Profile'],['skill','New Skill'],['integration','New Integration']].map(([k,l])=>`<button type="button" role="menuitem" data-cm="${k}">${cpi[k]}<span>${l}</span></button>`).join('');
+    menu.innerHTML=[['chat','New Chat'],['profile','New Agent'],['skill','New Skill']].map(([k,l])=>`<button type="button" role="menuitem" data-cm="${k}">${L({chat:'chatPlus',profile:'bot',skill:'wrench'}[k])}<span>${l}</span></button>`).join('');
     btn.parentElement.appendChild(menu);
     const close=()=>{menu.remove();document.removeEventListener('mousedown',outside);document.removeEventListener('keydown',esc);};
     const outside=e=>{if(!menu.contains(e.target)&&e.target!==btn&&!btn.contains(e.target))close();};
     const esc=e=>{if(e.key==='Escape')close();};
     document.addEventListener('mousedown',outside);document.addEventListener('keydown',esc);
     menu.querySelectorAll('[data-cm]').forEach(b=>b.onclick=()=>{const k=b.dataset.cm;close();
-      if(k==='profile'){if(profilesUsed()>=FREE_PROFILES)payPop(`You’ve hatched your ${FREE_PROFILES} free profiles — please pay for your agent to add more.`);else openCreateProfile();}
+      if(k==='profile'){if(profilesUsed()>=FREE_PROFILES)payPop(`You’ve hatched your ${FREE_PROFILES} free agents — please pay for your agent to add more.`);else openCreateProfile();}
       else if(k==='chat'){state.tab='chats';render();}
       else payPop(`Please pay for your agent to add a new ${k}.`);
     });
@@ -1056,12 +1235,12 @@
     const ava=state.selectedImage||'/hatchy-pop.webp';
     backdrop.innerHTML=`<section class="modal cp-modal" role="dialog" aria-modal="true" aria-labelledby="cp-title"><button class="close cp-close" aria-label="Close">×</button>
       <div class="cp-ava"><img src="${escapeHtml(ava)}" alt=""></div>
-      <h2 id="cp-title">Create a Profile</h2>
+      <h2 id="cp-title">Create an Agent</h2>
       <label class="cp-label" for="cp-name">What should we call this agent?</label>
       <input class="name-field cp-field" id="cp-name" maxlength="40" autocomplete="off" placeholder="e.g. Research Assistant">
       <label class="cp-label" for="cp-desc">What is this agent going to do?</label>
       <div class="mic-field cp-mic"><textarea class="look-field cp-field cp-area" id="cp-desc" maxlength="500" placeholder="e.g. A research assistant that reads PDFs in my downloads folder and summarizes them into weekly briefings."></textarea><button type="button" class="mic-btn" data-mic="cp-desc" aria-label="Dictate what this agent will do">${micSvg}</button></div>
-      <button type="button" class="btn btn-primary cp-submit" id="cp-submit" disabled>Create Profile</button></section>`;
+      <button type="button" class="btn btn-primary cp-submit" id="cp-submit" disabled>Create Agent</button></section>`;
     document.body.appendChild(backdrop);
     const close=()=>backdrop.remove();
     const name=backdrop.querySelector('#cp-name'),desc=backdrop.querySelector('#cp-desc'),submit=backdrop.querySelector('#cp-submit');
@@ -1176,7 +1355,7 @@
   function revealProfile(p){
     document.querySelectorAll('.cp-reveal').forEach(r=>r.remove());
     const el=document.createElement('div');el.className='cp-reveal';
-    el.innerHTML=`<div class="cp-swirl"></div><div class="cp-swirl cp-swirl2"></div><div class="cp-reveal-art"><img src="${escapeHtml(p.img)}" alt=""></div><div class="cp-reveal-card"><span class="cp-reveal-eyebrow">New profile</span><b>${escapeHtml(p.name)}</b><span>Hatched and ready to work</span></div>`;
+    el.innerHTML=`<div class="cp-swirl"></div><div class="cp-swirl cp-swirl2"></div><div class="cp-reveal-art"><img src="${escapeHtml(p.img)}" alt=""></div><div class="cp-reveal-card"><span class="cp-reveal-eyebrow">New agent</span><b>${escapeHtml(p.name)}</b><span>Hatched and ready to work</span></div>`;
     document.body.appendChild(el);
     requestAnimationFrame(()=>el.classList.add('show'));
     const go=()=>{el.classList.remove('show');el.classList.add('out');setTimeout(()=>el.remove(),500);};
@@ -1187,12 +1366,13 @@
     const pr=p.profile||fallbackProfile(p);
     const backdrop=document.createElement('div');backdrop.className='modal-backdrop';
     const mates=pr.mates.map(mid=>{const m=agentById(mid);if(!m)return '';const av=state.marketImages[m.id]||m.portrait;return `<button class="mate" data-mate="${m.id}"><span class="mate-ava"><img src="${escapeHtml(av)}" alt=""></span><span class="mate-meta"><b>${m.name}</b><i>${m.team}</i></span></button>`;}).join('');
-    backdrop.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-labelledby="np-title"><div class="modal-top"><div><span class="eyebrow">Agent profile</span><h2 id="np-title">${escapeHtml(p.name)}</h2></div><button class="close" aria-label="Close">×</button></div>
-      <p>${escapeHtml(pr.summary)}</p>
-      <div class="profile-cols"><div><h3>What this agent can do for ${escapeHtml(co())}</h3><p class="tailored-note"><span class="tailored-pill">Tailored</span>Worked out from your description${pr.source==='ai'?' by a model that read it':''}.</p><div class="checks">${pr.outcomes.map(o=>`<div class="check"><i>✓</i><span>${escapeHtml(o)}</span></div>`).join('')}</div></div><div class="profile-art"><img src="${escapeHtml(p.img)}" alt="${escapeHtml(p.name)}"></div></div>
-      ${mcpSection(escapeHtml(p.name),pr.mcps,[...pr.mates.flatMap(id=>AGENT_CATS[id]||[]),...pr.mcps.map(toolCat)])}
-      <h3>Works well with</h3><p>Agents that share hand-offs with ${escapeHtml(p.name)} — hatch them together as a team.</p><div class="mate-row">${mates}</div>
-      <div class="actions np-actions"><button type="button" class="btn btn-primary" data-np="chat">Open chat →</button><button type="button" class="btn btn-secondary" data-np="delete">Delete profile</button></div></section>`;
+    backdrop.className='modal-backdrop dx-peek-wrap';
+    backdrop.innerHTML=`<aside class="dx-peek" role="dialog" aria-modal="true" aria-labelledby="np-title"><header class="dx-peek-h"><img class="dx-peek-av" src="${escapeHtml(p.img)}" alt=""><div class="dx-peek-t"><h2 id="np-title">${escapeHtml(p.name)}</h2><p>${escapeHtml(pr.team||'Operations')}</p></div><button class="close dx-peek-x" aria-label="Close">${L('x')}</button></header>
+      <div class="dx-peek-body"><p class="dx-peek-sum">${escapeHtml(pr.summary)}</p>
+      <section><h3>What it will do for ${escapeHtml(co())}</h3><p class="tailored-note"><span class="tailored-pill">Tailored</span>Worked out from your description${pr.source==='ai'?' by a model that read it':''}.</p><div class="checks">${pr.outcomes.map(o=>`<div class="check"><i>✓</i><span>${escapeHtml(o)}</span></div>`).join('')}</div></section>
+      <section>${mcpSection(escapeHtml(p.name),pr.mcps,[...pr.mates.flatMap(id=>AGENT_CATS[id]||[]),...pr.mcps.map(toolCat)])}</section>
+      <section><h3>Works well with</h3><p>Agents that share hand-offs with ${escapeHtml(p.name)} — hatch them together as a team.</p><div class="mate-row">${mates}</div></section></div>
+      <footer class="dx-peek-f is-two"><button type="button" data-np="chat">Open chat →</button><button type="button" class="is-dark" data-np="delete">Delete agent</button></footer></aside>`;
     document.body.appendChild(backdrop);
     const close=()=>backdrop.remove();
     backdrop.querySelector('.close').onclick=close;backdrop.onclick=e=>{if(e.target===backdrop)close()};
@@ -1258,34 +1438,6 @@
     document.body.appendChild(backdrop);draw('form');
     document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc)}},{once:true});
   }
-  function openConnectDialog(){
-    const STEPS=[
-      {key:'name',title:'Name it',lead:'What should this Hermes box be called in the switcher?'},
-      {key:'connect',title:'Connect',lead:'The core API this dashboard chats through. Both fields are needed.'},
-      {key:'dashboard',title:'Dashboard',lead:'The dashboard backend serves profiles, skills and sessions. You can add it later.'}
-    ];
-    const d={step:0,name:state.name||'',baseUrl:'',apiKey:'',dashUrl:'',token:'',reveal:{},core:'',dash:''};
-    const backdrop=document.createElement('div');backdrop.className='modal-backdrop';document.body.appendChild(backdrop);
-    const cf=(id,ic,label,ph,val,secret)=>{const has=(val||'').length>0;const masked=secret&&!d.reveal[id]&&has;return `<div class="cf"><label class="cf-label" for="${id}">${ic}${label}</label><div class="cf-wrap"><input class="cf-input" id="${id}" type="${masked?'password':'text'}" placeholder="${escapeHtml(ph)}" value="${escapeHtml(val)}" autocomplete="off" spellcheck="false" autocapitalize="none">${secret?`<button type="button" class="cf-eye" data-eye="${id}" tabindex="-1" aria-label="Show ${label}">${d.reveal[id]?ci.eyeOff:ci.eye}</button>`:''}</div></div>`;};
-    function read(){const g=id=>{const el=backdrop.querySelector('#'+id);return el?el.value:undefined;};let v;if((v=g('ci-name'))!==undefined)d.name=v;if((v=g('ci-base'))!==undefined)d.baseUrl=v;if((v=g('ci-key'))!==undefined)d.apiKey=v;if((v=g('ci-dash'))!==undefined)d.dashUrl=v;if((v=g('ci-token'))!==undefined)d.token=v;}
-    function draw(){
-      const s=STEPS[d.step],last=d.step===STEPS.length-1;
-      const rail=STEPS.map((st,i)=>`<li class="rail-item ${i<d.step?'done':''} ${i===d.step?'active':''}"><span class="rail-dot">${i<d.step?ci.check:i+1}</span><span class="rail-title">${st.title}</span></li>`).join('');
-      let body='';
-      if(s.key==='name')body=`<div class="cf"><label class="cf-label plain" for="ci-name">Company name</label><input class="cf-input" id="ci-name" placeholder="work" value="${escapeHtml(d.name)}" maxlength="64" autocomplete="off" spellcheck="false"><p class="cf-hint">Only you see this. It labels the box in the instance menu.</p></div>`;
-      if(s.key==='connect')body=`${cf('ci-base',ci.link,'Base URL','https://your-host.ts.net:8642',d.baseUrl)}<p class="cf-hint">Your Hermes core API — the OpenAI-compatible server, port 8642 by default.</p>${cf('ci-key',ci.key,'API key','hc_…',d.apiKey,true)}<p class="cf-hint">From <code>API_SERVER_KEY</code> in <code>~/.hermes/.env</code> on that box.</p><div class="cf-test"><button type="button" class="btn btn-outline" data-test="core">${d.core==='ok'?ci.check+' Connected':'Test Connection'}</button>${d.core==='ok'?'<span class="probe-ok">Connection successful.</span>':''}</div>`;
-      if(s.key==='dashboard')body=`${cf('ci-dash',ci.server,'Dashboard URL','https://your-host.ts.net:9119',d.dashUrl)}<p class="cf-hint">Used for profiles, skills and sessions — everything except chat.</p>${cf('ci-token',ci.key,'Session token','dashboard session token',d.token,true)}<p class="cf-hint">From <code>window.__HERMES_SESSION_TOKEN__</code> in the Hermes dashboard page source.</p><div class="cf-test"><button type="button" class="btn btn-outline" data-test="dash">${d.dash==='ok'?ci.check+' Reachable':'Test Dashboard'}</button>${d.dash==='ok'?'<span class="probe-ok">Dashboard reachable.</span>':''}</div><p class="cf-note">The dashboard switches onto this instance once it is created.</p>`;
-      backdrop.innerHTML=`<section class="modal connect-modal" role="dialog" aria-modal="true"><div class="modal-top"><ol class="step-rail">${rail}</ol><button class="close" aria-label="Close">×</button></div><p class="dlg-lead">${s.lead}</p><div class="dlg-form">${body}</div><div class="dlg-actions">${d.step>0?'<button type="button" class="btn btn-secondary" data-dlg="back">Back</button>':'<span></span>'}<button type="button" class="btn btn-primary" data-dlg="${last?'create':'next'}">${last?'Create instance':'Continue'}</button></div></section>`;
-      backdrop.querySelector('.close').onclick=close;
-      backdrop.querySelectorAll('[data-eye]').forEach(b=>b.onclick=()=>{read();d.reveal[b.dataset.eye]=!d.reveal[b.dataset.eye];draw();});
-      backdrop.querySelectorAll('[data-test]').forEach(b=>b.onclick=()=>{read();b.textContent='Testing…';const which=b.dataset.test;setTimeout(()=>{d[which==='core'?'core':'dash']='ok';draw();},700);});
-      backdrop.querySelectorAll('[data-dlg]').forEach(b=>b.onclick=()=>{read();const a=b.dataset.dlg;if(a==='back'){d.step=Math.max(0,d.step-1);draw();}else if(a==='next'){d.step=Math.min(STEPS.length-1,d.step+1);draw();}else if(a==='create'){close();state.name=d.name||state.name;state.done=true;render();celebrate();}});
-    }
-    function close(){backdrop.remove();}
-    backdrop.onclick=e=>{if(e.target===backdrop)close();};
-    document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc);}},{once:true});
-    draw();
-  }
   // "What this agent can do for <company>" — the same five promises every agent makes, but
   // written around the prospect's company name and the kind of business they told us about.
   const TAILORED={
@@ -1305,7 +1457,9 @@
   // the claims and treatment-plan agents, not a returns desk it doesn't have.
   function matesFor(agent){const stock=WORKS_WITH[agent.id]||[];if(!agent.bespoke||!state.team)return stock;const team=(state.team.ids||[]).filter(id=>id!==agent.id);return [...new Set([...stock.filter(id=>team.includes(id)),...team])].slice(0,3);}
   function tailoredOutcomes(agent){if(agent.bespoke&&Array.isArray(agent.outcomes)&&agent.outcomes.length>=4)return agent.outcomes;const fn=TAILORED[agent.id];return fn?fn(co(),state.biz||'your business'):agent.outcomes;}
-  function showAgent(id){const agent=agentById(id);if(!agent)return;const tailoredLead=state.team?.lines?.[agent.id]?.does||'';const backdrop=document.createElement('div');backdrop.className='modal-backdrop';backdrop.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-labelledby="agent-title"><div class="modal-top"><div><span class="eyebrow">Agent profile</span><h2 id="agent-title">${agent.name}</h2></div><button class="close" aria-label="Close agent profile">×</button></div><p>${agent.summary}</p><div class="profile-cols"><div><h3>What this agent can do for ${escapeHtml(co())}</h3><p class="tailored-note"><span class="tailored-pill">Tailored</span>Written for a ${escapeHtml(state.biz||'business')}${state.industry&&state.industry!==OTHER?` in ${escapeHtml(state.industry.toLowerCase())}`:''}.${tailoredLead?` <b>${escapeHtml(tailoredLead)}</b>`:''}</p><div class="checks">${tailoredOutcomes(agent).map(o=>`<div class="check"><i>✓</i><span>${escapeHtml(o)}</span></div>`).join('')}</div></div><div class="profile-art"><img src="${escapeHtml(state.marketImages[agent.id]||agent.portrait)}" alt="${agent.name}"></div></div>${mcpSection(escapeHtml(agent.name),agent.mcps,AGENT_CATS[agent.base||agent.id])}<h3>Works well with</h3><p>Agents that share hand-offs with ${agent.name} — hatch them together as a team.</p><div class="mate-row">${matesFor(agent).map(mid=>{const m=agentById(mid);if(!m)return '';const av=state.marketImages[m.id]||m.portrait;return `<button class="mate" data-mate="${m.id}"><span class="mate-ava"><img src="${escapeHtml(av)}" alt=""></span><span class="mate-meta"><b>${m.name}</b><i>${m.team}</i></span></button>`;}).join('')}</div></section>`;document.body.appendChild(backdrop);const close=()=>backdrop.remove();backdrop.querySelector('.close').onclick=close;backdrop.querySelectorAll('[data-mate]').forEach(b=>b.onclick=()=>{close();showAgent(b.dataset.mate);});backdrop.onclick=e=>{if(e.target===backdrop)close()};document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc)}},{once:true});}
+  // An agent's details open as the dashboard's side peek (Marketplace AgentPeek.tsx): portrait,
+  // name and line up top, what it will do, its connectors and hand-offs, Install at the foot.
+  function showAgent(id){const agent=agentById(id);if(!agent)return;const tailoredLead=state.team?.lines?.[agent.id]?.does||'';const backdrop=document.createElement('div');backdrop.className='modal-backdrop dx-peek-wrap';backdrop.innerHTML=`<aside class="dx-peek" role="dialog" aria-modal="true" aria-labelledby="agent-title"><header class="dx-peek-h"><img class="dx-peek-av" src="${escapeHtml(state.marketImages[agent.id]||agent.portrait)}" alt=""><div class="dx-peek-t"><h2 id="agent-title">${agent.name}</h2><p>${escapeHtml(agent.team)}</p></div><button class="close dx-peek-x" aria-label="Close agent profile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></header><div class="dx-peek-body"><p class="dx-peek-sum">${agent.summary}</p><section><h3>What it will do for ${escapeHtml(co())}</h3><p class="tailored-note"><span class="tailored-pill">Tailored</span>Written for a ${escapeHtml(state.biz||'business')}${state.industry&&state.industry!==OTHER?` in ${escapeHtml(state.industry.toLowerCase())}`:''}.${tailoredLead?` <b>${escapeHtml(tailoredLead)}</b>`:''}</p><div class="checks">${tailoredOutcomes(agent).map(o=>`<div class="check"><i>✓</i><span>${escapeHtml(o)}</span></div>`).join('')}</div></section><section>${mcpSection(escapeHtml(agent.name),agent.mcps,AGENT_CATS[agent.base||agent.id])}</section><section><h3>Works well with</h3><p>Agents that share hand-offs with ${agent.name} — hatch them together as a team.</p><div class="mate-row">${matesFor(agent).map(mid=>{const m=agentById(mid);if(!m)return '';const av=state.marketImages[m.id]||m.portrait;return `<button class="mate" data-mate="${m.id}"><span class="mate-ava"><img src="${escapeHtml(av)}" alt=""></span><span class="mate-meta"><b>${m.name}</b><i>${m.team}</i></span></button>`;}).join('')}</div></section></div><footer class="dx-peek-f">${peekFooter(agent)}</footer></aside>`;document.body.appendChild(backdrop);const close=()=>backdrop.remove();backdrop.querySelector('.close').onclick=close;backdrop.querySelectorAll('[data-mate]').forEach(b=>b.onclick=()=>{close();showAgent(b.dataset.mate);});backdrop.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{close();addAgent(b.dataset.add);});backdrop.onclick=e=>{if(e.target===backdrop)close()};document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc)}},{once:true});}
   function celebrate(){const c=document.createElement('div');c.className='confetti';for(let i=0;i<38;i++){const s=document.createElement('span');s.style.left=`${Math.random()*100}%`;s.style.background=['#216bac','#c1dce8','#ffb36b','#59c6ad'][i%4];s.style.animationDelay=`${Math.random()*.5}s`;c.appendChild(s)}document.body.appendChild(c);setTimeout(()=>c.remove(),2400)}
 
   let activeRec=null;
@@ -1359,60 +1513,6 @@
     }catch(e){return [];}
   }
   const mergeColors=(...lists)=>{const out=[];lists.flat().forEach(h=>{if(!h)return;const rgb=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));if(!out.some(o=>Math.hypot(o.rgb[0]-rgb[0],o.rgb[1]-rgb[1],o.rgb[2]-rgb[2])<42))out.push({h,rgb});});return out.slice(0,5).map(o=>o.h);};
-  // ---- Team tag colours ----
-  // Every team pill (Operations, Sales, Marketing…) gets its own tint, but all of them are
-  // drawn from the hatched character's own colours (sampled from the chosen design, falling
-  // back to the pasted website's brand colours) so the dashboard reads as one palette.
-  // Up to three sampled colours act as anchors. Teams fall into five colour groups (Documents
-  // sits with Finance, Logistics with Operations) and each group claims its own hue: the
-  // main sampled colour first, the others snapping to the nearest of five slots spaced 72°
-  // around the wheel, so five pale pill tints read as five plainly different colours rather
-  // than a pink next to a pinker pink. No palette yet → the stock green pill.
-  const TEAM_GROUPS=[['Operations','Logistics'],['Sales'],['Marketing'],['Support'],['Finance','Documents']];
-  const TEAM_HUE_GAP=360/TEAM_GROUPS.length;                   // 72° — five slots fill the wheel
-  let teamPalette={key:'',colors:[]};
-  let teamHueCache={key:'',hues:null};
-  function hexToHsl(h){const [r,g,b]=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2;if(mx===mn)return [0,0,l];const d=mx-mn,s=l>.5?d/(2-mx-mn):d/(mx+mn);const hh=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;return [hh*60,s,l];}
-  const hslCss=(h,s,l)=>`hsl(${Math.round(((h%360)+360)%360)} ${Math.round(s*100)}% ${Math.round(l*100)}%)`;
-  const hueDist=(a,b)=>{const d=Math.abs(((a%360)+360)%360-((b%360)+360)%360);return Math.min(d,360-d);};
-  // One [hue, saturation] per colour group — deterministic, so pills never shuffle. Five slots
-  // 72° apart starting at the main anchor fill the wheel exactly; the other sampled colours
-  // claim whichever free slot sits nearest their own hue, remaining groups take what's left.
-  function assignTeamHues(anchors){
-    const [h0,s0]=anchors[0];
-    const slots=TEAM_GROUPS.map((_,i)=>({h:h0+i*TEAM_HUE_GAP,s:s0,claimed:false}));
-    anchors.slice(1,3).forEach(([h,s])=>{
-      const free=slots.slice(1).filter(x=>!x.claimed);if(!free.length)return;
-      const best=free.reduce((a,b)=>hueDist(b.h,h)<hueDist(a.h,h)?b:a);best.s=s;best.claimed=true;
-    });
-    const claimed=slots.slice(1).filter(x=>x.claimed),rest=slots.slice(1).filter(x=>!x.claimed);
-    return TEAM_GROUPS.map((_,i)=>{const sl=i===0?slots[0]:(claimed.shift()||rest.shift());return [sl.h,sl.s];});
-  }
-  function teamColors(team){
-    const raw=teamPalette.colors.length?teamPalette.colors:((state.brand&&state.brand.colors)||[]);
-    if(!raw.length)return null;
-    const key=raw.join(',');
-    if(teamHueCache.key!==key){
-      // two shades of the same orange are one anchor, not two — keep anchors at least 25° apart
-      const anchors=[];raw.map(hexToHsl).forEach(c=>{if(!anchors.some(o=>hueDist(o[0],c[0])<25))anchors.push(c);});
-      teamHueCache={key,hues:assignTeamHues(anchors)};
-    }
-    const i=Math.max(0,TEAM_GROUPS.findIndex(g=>g.includes(team)));
-    const [h,s]=teamHueCache.hues[i];
-    const sat=Math.min(.72,Math.max(.42,s));
-    return {fg:hslCss(h,sat,.34),bg:hslCss(h,Math.min(.9,sat+.15),.93)};
-  }
-  function teamTag(team){const c=teamColors(team);return `<span class="p-tag tag-team"${c?` style="color:${c.fg};background:${c.bg}"`:''}>${escapeHtml(team)}</span>`;}
-  async function ensureTeamPalette(){
-    const src=state.selectedImage||'';const key=src?src.length+':'+src.slice(-48):'';
-    if(key===teamPalette.key)return;
-    teamPalette={key,colors:[]};
-    if(!src)return;
-    const colors=await dominantColors(src,3);
-    if(teamPalette.key!==key)return;                               // the look changed mid-sample
-    teamPalette.colors=colors;
-    if(colors.length&&state.step>=4)render();
-  }
   async function attachPhoto(file){
     if(!file||!/^image\//.test(file.type)){state.refError='That file isn’t an image.';renderReference();return;}
     state.refError='';state.refBusy=true;renderReference();
@@ -1634,7 +1734,8 @@
       if(a==='generate'){const input=document.getElementById('agent-name');const name=input.value.trim();if(!name){input.focus();input.setAttribute('aria-invalid','true');return}state.name=name;const coIn=document.getElementById('agent-co');if(coIn)state.company=coIn.value.trim();const bizIn=document.getElementById('agent-biz');state.biz=bizIn?bizIn.value.trim():'';const lookTa=document.getElementById('agent-look');state.look=(lookTa&&lookTa.value.trim())||(hasReference()?'a friendly robot mascot':'a friendly rounded robot in blue and white');generateAgents()}
       if(a==='redesign'){if(hatchesLeft()){state.step=2;render()}else hatchPop()}
       if(a==='edit-look'){openEditLook()}
-      if(a==='open-connect'){openConnectDialog()}
+      if(a==='own-box'){state.ownBox=true;render();document.getElementById('ci-base')?.focus();}
+      if(a==='connect-save'){el.textContent='Connecting…';el.disabled=true;setTimeout(()=>{state.ownBox=false;state.done=true;render();celebrate();},900);}
       if(a==='book'){openBooking(el.dataset.source||'prototype')}
       if(a==='download'){downloadPop()}
       if(a==='chat-send'){const box=document.getElementById('chat-box');const t=box?box.value.trim():'';if(!t)return;const i=state.chatActive??8;
@@ -1654,7 +1755,7 @@
         const s=state.slots[state.variant];
         state.selectedImage=(s&&s.image)||state.selectedImage||((state.slots.find(x=>x&&x.image)||{}).image)||'';
         document.querySelectorAll('.confetti').forEach(c=>c.remove());if(window.ahTrack)ahTrack('DemoComplete');state.step=4;render();generateMarket()}
-      if(a==='reset'){researchPopStop();state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.website='';state.tools=[];state.toolsOpen=false;state.look='';state.team=null;state.teamBusy=false;state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.marketImages={};state.marketStarted=false;state.added=[];state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.downloadOffered=false;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='reset'){researchPopStop();state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.website='';state.tools=[];state.toolsOpen=false;state.look='';state.team=null;state.teamBusy=false;state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.ownBox=false;state.marketImages={};state.marketStarted=false;state.added=[];state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.downloadOffered=false;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-egg]').forEach(el=>{
       // Select a design the moment it's hatched — direct DOM updates only, so picking
@@ -1732,15 +1833,30 @@
     root.querySelectorAll('[data-tab]').forEach(el=>el.onclick=()=>{
       const k=el.dataset.tab;
       if(LOCKED_TABS[k]){state.lockNote=k;render();clearTimeout(lockNoteTimer);lockNoteTimer=setTimeout(()=>{state.lockNote='';render();},2600);return;}
-      state.tab=k;render();
+      state.tab=k;state.pickerOpen=false;render();
     });
-    root.querySelectorAll('[data-chat]').forEach(el=>el.onclick=()=>{state.chatActive=+el.dataset.chat;render();});
+    // A chat row (the agent picker, Home's "what next" options) opens that agent's chat.
+    root.querySelectorAll('[data-chat]').forEach(el=>{const go=()=>{state.chatActive=+el.dataset.chat;state.pickerOpen=false;if(el.dataset.tab)state.tab=el.dataset.tab;render();};el.onclick=go;el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}};});
+    root.querySelectorAll('[data-dx-fold]').forEach(el=>el.onclick=()=>{state.sideFold={...(state.sideFold||{}),[foldKind()]:!sideFolded()};render();});
+    root.querySelectorAll('[data-dx-newchat]').forEach(el=>el.onclick=()=>{state.tab='chats';state.pickerOpen=false;render();document.getElementById('chat-box')?.focus();});
+    root.querySelectorAll('[data-dx-picker]').forEach(el=>el.onclick=()=>{state.pickerOpen=!state.pickerOpen;render();document.getElementById('dx-pick-q')?.focus();});
+    const pickQ=document.getElementById('dx-pick-q');if(pickQ){pickQ.oninput=()=>{const q=pickQ.value.trim().toLowerCase();root.querySelectorAll('.dx-pick-row').forEach(r=>{r.hidden=!!q&&!r.textContent.toLowerCase().includes(q);});};pickQ.onkeydown=e=>{if(e.key==='Escape'){state.pickerOpen=false;render();}};}
+    if(root._closePicker)document.removeEventListener('pointerdown',root._closePicker);   // one listener across re-renders
+    root._closePicker=e=>{if(state.pickerOpen&&!e.target.closest('.dx-pick')){state.pickerOpen=false;render();}};
+    document.addEventListener('pointerdown',root._closePicker);
+    // Ideas under an empty chat, and Home's composer, send into the chat like a typed message.
+    const sendToChat=(text,agent)=>{if(agent!==undefined)state.chatActive=agent;state.tab='chats';render();const box=document.getElementById('chat-box');if(!box)return;box.value=text;root.querySelector('[data-action="chat-send"]')?.click();};
+    root.querySelectorAll('[data-idea]').forEach(el=>el.onclick=()=>sendToChat(el.dataset.idea));
+    const homeAsk=document.getElementById('home-ask');
+    root.querySelectorAll('[data-dx-home-send]').forEach(el=>el.onclick=()=>{const t=homeAsk?homeAsk.value.trim():'';if(!t){homeAsk?.focus();return;}sendToChat(t,0);});
+    if(homeAsk)homeAsk.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();root.querySelector('[data-dx-home-send]')?.click();}};
+    root.querySelectorAll('[data-dx-ask]').forEach(el=>el.onclick=()=>homeAsk?.focus());
     const th=document.getElementById('chat-thread');if(th)th.scrollTop=th.scrollHeight;
     const cb=document.getElementById('chat-box');if(cb)cb.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();root.querySelector('[data-action="chat-send"]').click();}};
-    const yours=root.querySelector('.p-card.is-yours');if(yours){yours.style.cursor='pointer';yours.onclick=()=>openEditLook();yours.tabIndex=0;yours.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openEditLook()}};}
+    const yours=root.querySelector('.dx-card.is-yours');if(yours){yours.style.cursor='pointer';yours.onclick=()=>openEditLook();yours.tabIndex=0;yours.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openEditLook()}};}
     root.querySelectorAll('[data-add]').forEach(b=>{b.onclick=e=>{e.stopPropagation();addAgent(b.dataset.add);};b.onkeydown=e=>e.stopPropagation();});
     root.querySelectorAll('[data-agent]').forEach(el=>{el.onclick=()=>showAgent(el.dataset.agent);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();showAgent(el.dataset.agent)}};});
-    const search=document.getElementById('market-search');if(search)search.oninput=()=>{const q=search.value.trim().toLowerCase();let visible=0;root.querySelectorAll('.p-card[data-search]').forEach(c=>{const show=!q||c.dataset.search.includes(q);c.hidden=!show;if(show)visible++;});const yours=root.querySelector('.p-card.is-yours');if(yours)yours.hidden=!!q;root.querySelectorAll('.board-group').forEach(g=>{g.hidden=![...g.querySelectorAll('.p-card')].some(c=>!c.hidden);});const empty=document.getElementById('board-empty');if(empty)empty.hidden=visible>0;};
+    const search=document.getElementById('market-search');if(search)search.oninput=()=>{const q=search.value.trim().toLowerCase();let visible=0;root.querySelectorAll('.dx-card[data-search]').forEach(c=>{const show=!q||c.dataset.search.includes(q);c.hidden=!show;if(show)visible++;});const yours=root.querySelector('.dx-card.is-yours');if(yours)yours.hidden=!!q;root.querySelectorAll('.dx-group').forEach(g=>{const shown=[...g.querySelectorAll('.dx-card')].filter(c=>!c.hidden);g.hidden=!shown.length;const n=g.querySelector('.dx-count');if(n)n.textContent=shown.length;});const empty=document.getElementById('board-empty');if(empty)empty.hidden=visible>0;};
     const input=document.getElementById('agent-name');if(input)input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('agent-biz')?.focus()}};
   }
   root.dataset.build=BUILD;console.info('Agent Hatchers prototype · build '+BUILD);
