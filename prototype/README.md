@@ -125,6 +125,9 @@ The flow and marketplace live in `prototype/app.js`; visual styling lives in
 `prototype/styles.css`. Update those shared files once to change every prospect page.
 Contract tests (from repo root): `python3 -m unittest discover -s prototype/tests -v`.
 Selection regressions (Node 18+): `node --test prototype/tests/industry-selection.test.cjs`.
+Research regressions (Playwright, served repo root as below): `node prototype/tests/research-browser.cjs`
+— the researched team must survive the prospect editing "Type of company" while research is still
+running, and a failed first run is retried (with the company name) when they hatch.
 
 Rendered desktop/mobile check (Playwright and Chromium installed): serve the repo root with
 `python3 -m http.server 8768 --bind 127.0.0.1`, then run

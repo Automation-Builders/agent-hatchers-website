@@ -31,9 +31,11 @@ function applyCors(res, origin) {
   res.setHeader('Access-Control-Allow-Headers', 'content-type');
 }
 
-async function callModel({ system, user, ...params }) {
+// `timeoutMs` aborts a call that would outlive the function; the budget in team-research.js sets it.
+async function callModel({ system, user, timeoutMs, ...params }) {
   const upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
+    signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
     headers: {
       'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
       'Content-Type': 'application/json',
