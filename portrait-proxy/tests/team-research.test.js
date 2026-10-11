@@ -187,3 +187,37 @@ test('a model that throws or returns prose never crashes the pipeline', async ()
   assert.equal(parseJson('```json\n{"a":1}\n```').a, 1);
   assert.equal(parseJson('Here you go: {"a":2} hope that helps').a, 2);
 });
+
+// A clock the fake model moves forward, so the 60-second budget can be tested without waiting.
+function slowModel(script, msPerCall) {
+  let now = 0;
+  const { calls, callModel } = fakeModel(script);
+  return { calls, clock: () => now, callModel: async p => { now += msPerCall; return callModel(p); } };
+}
+
+test('slow research is cut off so the design still runs inside the function limit', async () => {
+  const bad = { ok: true, status: 200, error: null, text: 'no json here' };
+  const { calls, clock, callModel } = slowModel([bad, bad, bad, ok(DENTAL_TEAM)], 15000);
+  const out = await researchTeam(normaliseInput({ business: 'dental clinic', roster: ROSTER }), { callModel, clock, researchModel: 'm', designModel: 'm', webSearch: true });
+  assert.equal(out.ok, true);
+  assert.equal(out.researched, false);
+  // one research call fits in its ~21s share; the full design tries at 15s, then the lean one
+  // takes over once less than 30s is left (and the model's bad drafts are retried)
+  assert.deepEqual(out.trace.map(t => t.stage), ['research', 'design', 'design-lean', 'design-lean']);
+  assert.ok(calls.every(c => c.timeoutMs > 0 && c.timeoutMs <= 52000));
+});
+
+test('with plenty of time the design asks for the marketplace extras too', async () => {
+  const { calls, clock, callModel } = slowModel([ok(DENTAL_BRIEF), ok(DENTAL_TEAM)], 5000);
+  const out = await researchTeam(normaliseInput({ business: 'dental clinic', roster: ROSTER }), { callModel, clock, researchModel: 'm', designModel: 'm', webSearch: true });
+  assert.equal(out.ok, true);
+  assert.match(calls[1].system, /MORE agents for its marketplace/);
+  assert.equal(out.trace[1].stage, 'design');
+});
+
+test('the lean design prompt asks for the team only', () => {
+  const input = normaliseInput({ business: 'dental clinic', roster: ROSTER });
+  const lean = buildDesignPrompt(input, null, { more: false }).system;
+  assert.doesNotMatch(lean, /"more"/);
+  assert.match(lean, /exactly 6 entries/);
+});

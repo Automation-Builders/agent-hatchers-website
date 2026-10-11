@@ -136,7 +136,9 @@ export function briefToText(brief) {
 }
 
 // ---------- Stage 2: design the agents from the brief ----------
-export function buildDesignPrompt(input, brief) {
+// `more: false` is the lean version: the six-agent team only. It answers in roughly a third of
+// the time, so it is what the design step falls back to when the clock is short.
+export function buildDesignPrompt(input, brief, { more = true } = {}) {
   const co = input.company || 'the business';
   const system =
     `You are a sharp operations consultant who has worked inside hundreds of small businesses. You are ` +
@@ -146,28 +148,28 @@ export function buildDesignPrompt(input, brief) {
       `No research brief is available, so reason carefully yourself about what this specific kind of business ` +
       `does all week, who it hires, what software it runs on and where its hours and money leak.\n\n`) +
     `Design the ${MAX_TEAM} agents that would make the biggest difference to THIS business, most valuable ` +
-    `first, and then ${MAX_MORE} MORE agents for its marketplace — the next jobs down the list, each just as ` +
-    `specific (a seasonal job, a compliance chore, a supplier, a channel, a report someone builds by hand). ` +
+    (more ? `first, and then ${MAX_MORE} MORE agents for its marketplace — the next jobs down the list, each just as ` +
+      `specific (a seasonal job, a compliance chore, a supplier, a channel, a report someone builds by hand). ` : `first. `) +
     `Each agent is a ROLE in this business — the job a person there is doing by hand today — not a ` +
     `department. Name it for that job, in words the owner would use. Good: "Recall & Rebooking Agent", ` +
     `"Quote Chaser Agent", "HICAPS Claims Agent", "Tender Deadline Agent", "Job Card Agent". Bad (too generic, ` +
     `never use these or anything like them): "Support Agent", "Operations Agent", "Sales Agent", "Marketing ` +
     `Agent", "Document Agent".\n\n` +
     `Every agent must be pinned to the closest BASE from this catalog (exact id — it decides the agent's ` +
-    `artwork, category and which agents it hands work to; each base at most once within "team", repeats ` +
-    `allowed in "more"):\n` +
+    `artwork, category and which agents it hands work to; each base at most once within "team"` +
+    (more ? `, repeats allowed in "more"):\n` : `):\n`) +
     input.roster.map(a => `- id "${a.id}" — ${a.name}: ${a.summary}`).join('\n') +
     (input.tools.length ? `\n\n${co} already uses: ${input.tools.join(', ')}. Build around those — name them in "mcps" first and prefer them over rivals.` : '') +
     (input.connectors.length ? `\n\nConnectors the product already has logos for (use these exact names when one fits; add real industry-specific systems by name when the job needs them): ${input.connectors.join(', ')}` : '') +
     `\n\nReturn ONLY a JSON object, no prose, no markdown, shaped exactly like:\n` +
-    `{"intro":"...","team":[{"base":"catalog id","name":"... Agent","does":"...","job":"...","outcomes":["...","...","...","...","..."],"mcps":["..."],"scene":"..."}],"more":[{...same shape...}]}\n` +
+    `{"intro":"...","team":[{"base":"catalog id","name":"... Agent","does":"...","job":"...","outcomes":["...","...","...","...","..."],"mcps":["..."],"scene":"..."}]${more ? ',"more":[{...same shape...}]' : ''}}\n` +
     `Rules:\n` +
     `- "intro": one sentence (max 28 words) that shows you understand this particular business — a concrete ` +
     `observation about its week, not a compliment, not generic.\n` +
     `- "team": exactly ${MAX_TEAM} entries, distinct bases, best first, no two agents doing the same job.\n` +
-    `- "more": exactly ${MAX_MORE} further entries, same shape and same specificity, none overlapping a "team" ` +
-    `role or each other. Spread them across the business's week: front desk, money, suppliers, staff, ` +
-    `compliance, marketing channels, seasonal peaks, reporting.\n` +
+    (more ? `- "more": exactly ${MAX_MORE} further entries, same shape and same specificity, none overlapping a "team" ` +
+      `role or each other. Spread them across the business's week: front desk, money, suppliers, staff, ` +
+      `compliance, marketing channels, seasonal peaks, reporting.\n` : '') +
     `- "name": 2-4 words ending in "Agent", specific to this business's work. Never the catalog names.\n` +
     `- "does": one sentence (max 22 words), plain everyday English, second person ("your"), naming the real ` +
     `customers, jobs, paperwork, stock or systems THIS business deals with. No jargon, no "AI", no "leverage".\n` +
@@ -234,9 +236,27 @@ export function validateTeam(obj, roster) {
 // ---------- Orchestration ----------
 // `callModel({system, user, ...params})` → { ok, status, error, text }. Injected so tests
 // can fake the model. `webSearch` adds OpenRouter's web plugin to the research call.
-export async function researchTeam(input, { callModel, researchModel, designModel, webSearch = true, log = null }) {
+// The Vercel function is killed at 60s, and a killed function sends the prospect back to the
+// generic stock team. So the whole job runs on a budget: research may use the first part of it
+// (and is skipped once that is spent — the designer can work without a brief), every model call
+// gets a hard `timeoutMs`, and when too little time is left for the full sixteen-agent design
+// the lean six-agent design runs instead.
+export const BUDGET_MS = 52000;
+const RESEARCH_SHARE = 0.4;      // research stops being started after ~21s of the budget
+const FULL_DESIGN_MIN_MS = 30000; // below this, design asks for the team only
+const MIN_CALL_MS = 6000;         // not worth starting a call with less than this left
+
+// `callModel({system, user, timeoutMs, ...params})` → { ok, status, error, text }. Injected so
+// tests can fake the model. `webSearch` adds OpenRouter's web plugin to the research call.
+export async function researchTeam(input, { callModel, researchModel, designModel, webSearch = true, log = null, budgetMs = BUDGET_MS, clock = Date.now }) {
+  const started = clock();
+  const left = () => budgetMs - (clock() - started);
   const trace = [];
   const note = (stage, r, valid) => trace.push({ stage, model: r.model, status: r.status, len: (r.text || '').length, error: r.error || null, valid: !!valid });
+  const call = async (prompt, params, timeoutMs) => {
+    try { return await callModel({ ...prompt, ...params, timeoutMs }); }
+    catch (e) { return { ok: false, status: 0, error: String(e && e.message || e), text: '' }; }
+  };
 
   // Stage 1 — research (web-grounded first, plain second). Failure here just means the
   // designer works without a brief; it never blocks a team.
@@ -248,9 +268,11 @@ export async function researchTeam(input, { callModel, researchModel, designMode
   if (webSearch) researchAttempts.push({ model: researchModel, max_tokens: 8000, plugins: [{ id: 'web', max_results: 5 }], reasoning: { effort: 'low' } });
   researchAttempts.push({ model: researchModel, max_tokens: 8000, reasoning: { effort: 'low' }, response_format: { type: 'json_object' } });
   researchAttempts.push({ model: researchModel, max_tokens: 8000 });
+  const researchUntil = budgetMs * RESEARCH_SHARE;
   for (const params of researchAttempts) {
-    let r;
-    try { r = await callModel({ ...research, ...params }); } catch (e) { r = { ok: false, status: 0, error: String(e && e.message || e), text: '', model: params.model }; }
+    const spare = researchUntil - (budgetMs - left());
+    if (spare < MIN_CALL_MS) break;
+    const r = await call(research, params, spare);
     brief = r.ok ? validateBrief(parseJson(r.text)) : null;
     note('research', { ...r, model: params.model }, brief);
     if (brief) break;
@@ -258,17 +280,18 @@ export async function researchTeam(input, { callModel, researchModel, designMode
 
   // Stage 2 — design. Reasoning models can spend the budget thinking and return nothing
   // visible, so escalate: strict JSON mode first, then plain, then default reasoning.
-  const design = buildDesignPrompt(input, brief);
   const designAttempts = [
     { model: designModel, max_tokens: 14000, reasoning: { effort: 'low' }, response_format: { type: 'json_object' } },
     { model: designModel, max_tokens: 14000, reasoning: { effort: 'low' } },
     { model: designModel, max_tokens: 14000 }
   ];
   for (const params of designAttempts) {
-    let r;
-    try { r = await callModel({ ...design, ...params }); } catch (e) { r = { ok: false, status: 0, error: String(e && e.message || e), text: '', model: params.model }; }
+    const remaining = left();
+    if (remaining < MIN_CALL_MS) break;
+    const full = remaining >= FULL_DESIGN_MIN_MS;
+    const r = await call(buildDesignPrompt(input, brief, { more: full }), params, remaining);
     const out = r.ok ? validateTeam(parseJson(r.text), input.roster) : null;
-    note('design', { ...r, model: params.model }, out);
+    note(full ? 'design' : 'design-lean', { ...r, model: params.model }, out);
     if (out) {
       if (log) log({ ok: true, trace });
       return { ok: true, ...out, brief, researched: !!brief, trace };

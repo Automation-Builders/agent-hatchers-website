@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 77;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 78;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -117,9 +117,14 @@
   // base with its own name, one-liner, outcomes, tools and portrait scene; v1 responses (id +
   // does + job only) still work and just keep the stock names. `extra` carries the industry
   // label and connector list from the caller.
+  // Each research run gets a number; only the newest one may set the team. (It used to be
+  // keyed on the business text, so editing "Type of company" on the create screen — or the
+  // field's 60-character cut of a longer intro answer — threw a slow answer away and left the
+  // prospect with the generic stock team.)
+  let teamRun=0;
   async function researchTeam(biz,research=biz,extra={}){
-    state.team=null;state.teamBusy=true;
-    const started=Date.now();const mine=biz;
+    state.team=null;state.teamBusy=true;state.teamFor=biz;
+    const started=Date.now();const run=++teamRun;
     const eligible=eligibleAgents();
     const roster=eligible.map(a=>({id:a.id,name:a.name,summary:a.summary}));
     let result=null;
@@ -153,8 +158,31 @@
     }
     // Let the research read as research — never flash the answer in under two seconds.
     const wait=Math.max(0,2400-(Date.now()-started));if(wait) await sleep(wait);
-    if(state.biz!==mine) return;   // they changed their mind mid-think
+    if(run!==teamRun) return;   // a newer run (they changed the business) owns the result
     state.team=result;state.teamBusy=false;
+  }
+
+  // The create screen's "Type of company" can differ from the first answer, and by then the
+  // company name is known too. Research again when the business really changed (not just the
+  // field cutting a long answer short) or when the first run fell back to the stock team.
+  const bizKey=t=>String(t||'').toLowerCase().replace(/\s+/g,' ').trim();
+  function needsResearch(){
+    if(VIEW_ONLY||!state.biz)return false;
+    const now=bizKey(state.biz),was=bizKey(state.teamFor);
+    const changed=!was||!(was===now||was.startsWith(now));
+    return changed||(!state.teamBusy&&state.team&&state.team.source==='fallback');
+  }
+  function rerunResearch(){
+    const ind=industryOf(state.industry);
+    const connectors=[...new Set(catalog.flatMap(a=>a.mcps).concat(TOOLS.map(t=>t.n)))];
+    researchTeam(state.biz,ind&&ind.label!==OTHER?`${state.biz} (${ind.label.toLowerCase()})`:state.biz,{industry:ind&&ind.label!==OTHER?ind.label:'',connectors}).then(()=>{if(state.teamBusy)return;teamLanded();});
+  }
+  // A team that lands after the dashboard is up: redraw with its names, and draw portraits for
+  // any of its agents (and marketplace extras) that don't have one yet.
+  function teamLanded(){
+    if(state.step<4||VIEW_ONLY)return;
+    render();
+    if(state.marketStarted){state.marketStarted=false;generateMarket();}
   }
 
   const button = (label, action, secondary=false) => `<button class="btn ${secondary?'btn-secondary':'btn-primary'}" data-action="${action}">${label}</button>`;
@@ -338,8 +366,10 @@
 
   // ---------- Session capture: a small copy of each hatch goes to our store ----------
   // So the team can see what prospects actually did: business, team, chosen look, marketplace
-  // portraits, created profiles and chat turns — all images as ~240–320px JPEG thumbnails, and
-  // never the person's reference photo. Throttled to one upload per 12s; failures are silent.
+  // portraits, created profiles and chat turns — images as JPEG copies sharp enough to show in
+  // review and share links (the chosen look 768px, the rest 512px; 240px read as pixelated on
+  // the dashboard's cards), and never the person's reference photo. Throttled to one upload per
+  // 12s; failures are silent.
   const sessionEndpoint = config.sessionEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-session');
   // Review mode: the team opens a saved session from sessions.html as /prototype/?session=<sid>.
   // The stored snapshot (thumbnails and all) is poured into the dashboard read-only — nothing
@@ -354,7 +384,10 @@
   const cleanTools=t=>Array.isArray(t)?[...new Set(t.map(x=>String(x).replace(/\s+/g,' ').trim().slice(0,30)).filter(Boolean))].slice(0,40):[];
   const uid=()=>(crypto.randomUUID?crypto.randomUUID():'s-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10));
   const thumbCache=new Map();
-  async function thumb(src,max=320){if(!src||!/^data:/.test(src))return '';const k=max+':'+src.slice(0,80)+src.length;if(thumbCache.has(k))return thumbCache.get(k);const t=await downscale(src,max,true);thumbCache.set(k,t);return t;}
+  async function thumb(src,max=512){if(!src||!/^data:/.test(src))return '';const k=max+':'+src.slice(0,80)+src.length;if(thumbCache.has(k))return thumbCache.get(k);const t=await downscale(src,max,true,.9);thumbCache.set(k,t);return t;}
+  // The chosen look also becomes the sessions page's card picture, which the store keeps only
+  // up to 120,000 characters — so take the sharpest copy that fits whole.
+  async function heroThumb(src){for(const max of [768,640,512,384]){const t=await thumb(src,max);if(t.length<=118000)return t;}return thumb(src,320);}
   let syncTimer=null,lastSync=0,syncing=false,syncDirty=false;
   function syncSession(){
     if(!captureOn||state.step<1||!state.sid)return;
@@ -364,19 +397,22 @@
   async function pushSession(){
     if(syncing){syncDirty=true;return;}
     syncing=true;syncDirty=false;lastSync=Date.now();
-    try{const payload=await buildCapture();await fetch(sessionEndpoint,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});}catch(e){}
+    try{let payload=await buildCapture();
+      // The store refuses bodies over 4 MB: a big team falls back to smaller marketplace copies.
+      if(JSON.stringify(payload).length>3600000)payload=await buildCapture(320);
+      await fetch(sessionEndpoint,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});}catch(e){}
     syncing=false;if(syncDirty)syncSession();
   }
-  async function buildCapture(){
+  async function buildCapture(cardMax=512){
     const slots=await Promise.all(state.slots.map(s=>s&&s.image?thumb(s.image):Promise.resolve('')));
-    const market={};for(const [k,v] of Object.entries(state.marketImages||{})){const t=await thumb(v,240);if(t)market[k]=t;}
-    const profiles=await Promise.all(state.profiles.filter(p=>p.status==='complete'||p.status==='deleted').map(async p=>({name:p.name,desc:p.desc,status:p.status,img:await thumb(p.img,240),profile:p.profile||null})));
+    const market={};for(const [k,v] of Object.entries(state.marketImages||{})){const t=await thumb(v,cardMax);if(t)market[k]=t;}
+    const profiles=await Promise.all(state.profiles.filter(p=>p.status==='complete'||p.status==='deleted').map(async p=>({name:p.name,desc:p.desc,status:p.status,img:await thumb(p.img,cardMax),profile:p.profile||null})));
     let chatNames=[];try{chatNames=chatProfiles().all.map(x=>x.name);}catch(e){}
     return {sid:state.sid,v:1,build:BUILD,page:location.pathname,startedAt:state.startedAt,savedAt:Date.now(),ua:navigator.userAgent.slice(0,160),
       company:co(),name:state.name,biz:state.biz,industry:state.industry,website:state.website||'',tools:state.tools||[],look:state.look,step:state.step,tab:state.tab,done:state.done,editUses:state.editUses,
       brand:state.brand?{name:state.brand.name,url:state.brand.url,colors:state.brand.colors}:null,hadPhoto:!!state.refPhoto,
       team:state.team?{ids:state.team.ids,intro:state.team.intro,source:state.team.source,researched:!!state.team.researched,lines:state.team.lines,agents:state.team.agents||{},extras:state.team.extras||[]}:null,
-      variant:state.variant,selectedImage:await thumb(state.selectedImage),slots,market,profiles,chats:state.chatExtra||{},chatNames};
+      variant:state.variant,selectedImage:await heroThumb(state.selectedImage),slots,market,profiles,chats:state.chatExtra||{},chatNames};
   }
 
   // ---------- Session persistence: come back to the hatch you left ----------
@@ -576,7 +612,7 @@
     return screen({cls:'is-intro',title:'What can our agents do for you?',sub:'Tell us what your business does and we’ll work out which agents would actually help.',body:`<div class="ob-art" aria-hidden="true">${hatch5()}</div>${form}`,actions:pill('Next','team')});
   }
   // Screen 2 — the agents for that business, what each does, and how they hand work on.
-  function nameScreen(){return screen({title:'Create your agent',sub:'Give it a name, tell us your type of company, and describe how it should look. You’ll pick specialist agents (sales, invoices, support…) from the marketplace next.',body:`<div class="ob-form"><label class="field-label" for="agent-co">Company name</label><input class="name-field" id="agent-co" maxlength="40" autocomplete="off" placeholder="Company name — e.g. Tanssu" value="${escapeHtml(state.company||config.company||'')}" aria-label="Company name"><label class="field-label" for="agent-name">Agent name</label><input class="name-field" id="agent-name" maxlength="28" autocomplete="off" placeholder="Agent name — e.g. Pip, Scout or Atlas" value="${escapeHtml(state.name)}" aria-label="Agent name"><label class="field-label" for="agent-biz">Type of company</label><input class="name-field" id="agent-biz" maxlength="60" autocomplete="off" placeholder="e.g. dental clinic, online clothing shop, plumber" value="${escapeHtml(state.biz)}" aria-label="Type of company"><label class="field-label" for="agent-look">Image description</label><div class="mic-field"><textarea class="look-field" id="agent-look" placeholder="e.g. a friendly rounded robot holding a suitcase — or leave it to the photo / website below" aria-label="Image description">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div>${referenceBlock()}</div>`,actions:pill('Hatch 3 designs','generate')+pill('Back','back',true)});}
+  function nameScreen(){return screen({title:'Create your agent',sub:'Give it a name, tell us your type of company, and describe how it should look. You’ll pick specialist agents (sales, invoices, support…) from the marketplace next.',body:`<div class="ob-form"><label class="field-label" for="agent-co">Company name</label><input class="name-field" id="agent-co" maxlength="40" autocomplete="off" placeholder="Company name — e.g. Tanssu" value="${escapeHtml(state.company||config.company||'')}" aria-label="Company name"><label class="field-label" for="agent-name">Agent name</label><input class="name-field" id="agent-name" maxlength="28" autocomplete="off" placeholder="Agent name — e.g. Pip, Scout or Atlas" value="${escapeHtml(state.name)}" aria-label="Agent name"><label class="field-label" for="agent-biz">Type of company</label><input class="name-field" id="agent-biz" maxlength="120" autocomplete="off" placeholder="e.g. dental clinic, online clothing shop, plumber" value="${escapeHtml(state.biz)}" aria-label="Type of company"><label class="field-label" for="agent-look">Image description</label><div class="mic-field"><textarea class="look-field" id="agent-look" placeholder="e.g. a friendly rounded robot holding a suitcase — or leave it to the photo / website below" aria-label="Image description">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div>${referenceBlock()}</div>`,actions:pill('Hatch 3 designs','generate')+pill('Back','back',true)});}
   function designScreen(){return screen({title:`Describe how ${escapeHtml(state.name)} should look`,sub:'Write a short, practical description and we’ll hatch three designs for you to choose from.',body:`<div class="ob-form"><div class="mic-field"><textarea class="look-field" id="agent-look" maxlength="600" placeholder="e.g. a friendly rounded robot medic in blue and white, holding a checklist" aria-label="Describe the avatar">${escapeHtml(state.look)}</textarea><button type="button" class="mic-btn" data-mic="agent-look" aria-label="Dictate image description">${micSvg}</button></div>${referenceBlock()}</div>`,actions:pill('Hatch 3 designs','generate')+pill('Back','back',true)});}
   // The same continuous split-egg hatch as the welcome screen, one per design.
   // Rendered stateful: a slot that already hatched shows its design (.done skips the
@@ -1488,12 +1524,12 @@
   }
   const loadImg = src => new Promise((ok,bad)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=bad;im.src=src;});
   // Shrink to `max` px on the long edge so a phone photo doesn't ship 8 MB to the proxy.
-  async function downscale(src,max=768,jpeg=false){
+  async function downscale(src,max=768,jpeg=false,quality=.86){
     try{
       const im=await loadImg(src);const k=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));
       const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.naturalWidth*k));c.height=Math.max(1,Math.round(im.naturalHeight*k));
-      c.getContext('2d').drawImage(im,0,0,c.width,c.height);
-      return jpeg?c.toDataURL('image/jpeg',.86):c.toDataURL('image/png');
+      const g=c.getContext('2d');g.imageSmoothingQuality='high';g.drawImage(im,0,0,c.width,c.height);
+      return jpeg?c.toDataURL('image/jpeg',quality):c.toDataURL('image/png');
     }catch(e){return src;}
   }
   // Dominant non-grey colours of an image (logo pixels beat CSS guesses for the true brand colour).
@@ -1615,6 +1651,7 @@
   // Re-skin every marketplace agent in the chosen look, each dressed for its own job.
   // Cheap fingerprint of a data URI — enough to tell one hatched character from another.
   function imageKey(src){src=String(src||'');let h=5381;for(let i=0;i<src.length;i+=7)h=((h*33)^src.charCodeAt(i))>>>0;return src.length+':'+h.toString(36);}
+  const drawing=new Set();   // portraits being drawn right now
   async function generateMarket(){
     if(state.marketStarted) return;
     const baked = config.bakedMarket||{};
@@ -1635,6 +1672,8 @@
     if(state.marketRefKey&&state.marketRefKey!==refKey){state.marketImages={};}
     state.marketRefKey=refKey;
     const draw=async (agent,idx)=>{
+      if(drawing.has(agent.id))return;drawing.add(agent.id);
+      try{
       let img = state.marketImages[agent.id] || baked[agent.id];
       if(!img && useLive) img = await fetchImage({brief:state.look,name:agent.name,role:agent.scene,image:ref,company:co(),industry:industryLabel,variant:state.variant||0});
       const minMs=1100+idx*500;const wait=Math.max(0,minMs-(Date.now()-started));if(wait)await sleep(wait);  // let the loader show
@@ -1642,6 +1681,7 @@
       state.marketImages[agent.id]=img;saveSession();
       const thumb = root.querySelector(`[data-thumb="${agent.id}"]`);
       if(thumb){thumb.innerHTML=`<img src="${escapeHtml(img)}" alt="${escapeHtml(agent.name)}">`;thumb.classList.remove('is-loading');thumb.classList.add('is-generated');}
+      }finally{drawing.delete(agent.id);}
     };
     await Promise.all(agents.slice(0,10).map(draw));
     await Promise.all(agents.slice(10).map((a,i)=>draw(a,i+10)));
@@ -1729,9 +1769,9 @@
         // Research normally lands while they're still naming the agent; if they beat it to the
         // dashboard, redraw so the team shows its real names rather than the stock ones.
         researchPopStart();
-        researchTeam(biz,text&&ind&&ind.noun?`${text} (${ind.label.toLowerCase()})`:biz,{industry:ind&&ind.label!==OTHER?ind.label:'',connectors}).then(()=>{if(state.teamBusy)return;researchPopDone(state.team);if(state.step>=4&&!VIEW_ONLY)render();});
+        researchTeam(biz,text&&ind&&ind.noun?`${text} (${ind.label.toLowerCase()})`:biz,{industry:ind&&ind.label!==OTHER?ind.label:'',connectors}).then(()=>{if(state.teamBusy)return;researchPopDone(state.team);teamLanded();});
         render()}
-      if(a==='generate'){const input=document.getElementById('agent-name');const name=input.value.trim();if(!name){input.focus();input.setAttribute('aria-invalid','true');return}state.name=name;const coIn=document.getElementById('agent-co');if(coIn)state.company=coIn.value.trim();const bizIn=document.getElementById('agent-biz');state.biz=bizIn?bizIn.value.trim():'';const lookTa=document.getElementById('agent-look');state.look=(lookTa&&lookTa.value.trim())||(hasReference()?'a friendly robot mascot':'a friendly rounded robot in blue and white');generateAgents()}
+      if(a==='generate'){const input=document.getElementById('agent-name');const name=input.value.trim();if(!name){input.focus();input.setAttribute('aria-invalid','true');return}state.name=name;const coIn=document.getElementById('agent-co');if(coIn)state.company=coIn.value.trim();const bizIn=document.getElementById('agent-biz');state.biz=bizIn?bizIn.value.trim():'';const lookTa=document.getElementById('agent-look');state.look=(lookTa&&lookTa.value.trim())||(hasReference()?'a friendly robot mascot':'a friendly rounded robot in blue and white');if(needsResearch())rerunResearch();generateAgents()}
       if(a==='redesign'){if(hatchesLeft()){state.step=2;render()}else hatchPop()}
       if(a==='edit-look'){openEditLook()}
       if(a==='own-box'){state.ownBox=true;render();document.getElementById('ci-base')?.focus();}
