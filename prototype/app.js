@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 78;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 79;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -507,6 +507,14 @@
     bar.innerHTML=share
       ?`<span>A preview hatched for <b>${escapeHtml(d.company||'you')}</b> by Agent Hatchers${d.name?` — meet ${escapeHtml(d.name)}`:''}</span><a href="${escapeHtml(location.pathname)}">Hatch your own →</a>`
       :`<span>Reviewing <b>${escapeHtml(d.company||'an unnamed company')}</b>${d.name?` · ${escapeHtml(d.name)}`:''} — read-only: nothing here is saved, generated or counted${state.unpicked?` · they hatched designs but never picked one, so this shows design ${state.variant+1}`:''}</span><a href="/prototype/sessions.html">Back to sessions</a>`;
+    if(!share){
+      const dismiss=document.createElement('button');
+      dismiss.type='button';dismiss.className='review-dismiss';
+      dismiss.setAttribute('aria-label','Dismiss review banner');
+      dismiss.title='Dismiss banner (review stays read-only)';dismiss.textContent='×';
+      dismiss.addEventListener('click',()=>bar.remove());
+      bar.appendChild(dismiss);
+    }
   }
   function welcomeBack(){
     const pop=document.createElement('div');pop.className='create-pop wb-pop';pop.innerHTML=state.rehatch?`${ci.check}<span>Welcome back${state.name?`, ${escapeHtml(state.name)} is still here`:''}. Your earlier designs were made before a fix, so hatch them again — one press.</span>`:`${ci.check}<span>Picked up where you left off${state.name?` with ${escapeHtml(state.name)}`:''}. <b>Start over</b> is in the footer if you want a fresh hatch.</span>`;

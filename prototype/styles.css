@@ -800,6 +800,11 @@ h1{font-weight:800}h2{font-weight:700}
 
 /* Review mode: the team looking at a saved session (app.js reviewSession) */
 .review-bar{position:sticky;top:0;z-index:70;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;background:#1a1d21;color:#fff;font:600 .84rem 'Inter',system-ui,sans-serif;padding:9px 16px;text-align:center}
+/* Keep internal review controls clear of the fixed right-hand detail drawer. */
+.review-bar:not(.share-bar){width:min(560px,100%);z-index:30;justify-content:flex-start;text-align:left;padding-right:52px;border-radius:0 0 12px 0}
+.review-dismiss{position:absolute;right:6px;top:6px;width:38px;height:38px;border:0;border-radius:8px;background:rgba(255,255,255,.14);color:#fff;font:24px/1 system-ui;display:grid;place-items:center}
+.review-dismiss:hover{background:rgba(255,255,255,.26)}
+.review-dismiss:focus-visible{outline:2px solid #ffd166;outline-offset:2px}
 .review-bar b{color:#ffd166}
 .review-bar a{color:#fff;background:rgba(255,255,255,.14);border-radius:999px;padding:5px 12px;text-decoration:none;white-space:nowrap}
 .review-bar a:hover{background:rgba(255,255,255,.26)}
