@@ -1351,7 +1351,7 @@ html.lenis,html.lenis body{height:auto;}
       <p>You accept these Terms when you tick the box at sign-up or pay for a Subscription. If you sign up for a business, you confirm you are authorised to bind that business, and "you" means that business. If we agree a written order form or proposal with you, it applies together with these Terms and prevails if they conflict.</p>
       <h3>1.3 Other applicable terms</h3>
       <p>Our <a href="privacy-policy.html">Privacy Policy</a> explains how we handle personal information under the Privacy Act 1988 (Cth) and the Australian Privacy Principles.</p>
-      <p>To provide the Services we use these service providers, which may process Your Data: Akamai (Linode) for servers, Google Cloud for storage, Tailscale for secure networking, Stripe for payments, and OpenRouter and OpenAI for AI models. We will tell you before adding a provider that stores Your Data.</p>
+      <p>To provide the Services we use these service providers, which may process Your Data: Akamai (Linode) for servers, Google Cloud for storage, Tailscale for secure networking, Stripe for payments, and OpenRouter for AI models. OpenRouter passes each AI request to the model provider that answers it. We will tell you before adding a provider that stores Your Data.</p>
       <h3>1.4 Changes to these Terms</h3>
       <blockquote>We may update these Terms by giving you at least 30 days' notice by email.</blockquote>
       <p>If you do not agree with a change, you can cancel your Subscription under clause 9.1 before the change takes effect. If you keep using the Services after the change takes effect, you accept the updated Terms.</p>
@@ -1379,7 +1379,7 @@ html.lenis,html.lenis body{height:auto;}
       <h3>3.3 Account security</h3>
       <p>You are responsible for keeping your login details confidential and for what is done through your account.</p>
       <h3>3.4 Your data</h3>
-      <p>You own the data, files and content you or your Agents put into the Platform (<strong>Your Data</strong>). You give us permission to host, process and use Your Data only to provide the Services to you. We will not use Your Data to train AI models.</p>
+      <p>You own the data, files and content you or your Agents put into the Platform (<strong>Your Data</strong>). You give us permission to host, process and use Your Data only to provide the Services to you. We will not use Your Data to train AI models, and we set up our AI provider (OpenRouter) so that the model providers it uses are not permitted to train on Your Data. If that ever changes, we will tell you and you can cancel under clause 9.1.</p>
       <p>We keep Your Data on a server and in storage set up for your business alone, encrypted in transit and at rest. We recommend you keep your own copies of important data. We are not responsible for data held in your own third-party systems, such as your email, accounting or CRM software.</p>
       <h3>3.5 Client warranties</h3>
       <p>You confirm that you have the right to give us the materials you provide, that the tasks you ask Agents to perform are lawful, and that your use of the Services will not expose us to claims from third parties.</p>
@@ -1404,7 +1404,7 @@ html.lenis,html.lenis body{height:auto;}
       <h3>5.2 Billing</h3>
       <p>The Subscription runs month to month and renews automatically. We bill the Subscription fee monthly in advance, starting on the day your Subscription begins, by automatically charging the payment method you give us through our payment provider (Stripe). There is no free trial: you pay from the day your Subscription begins. You authorise us to make these charges until your Subscription ends. You must keep your payment details up to date.</p>
       <h3>5.2A Failed payments</h3>
-      <p>If a payment fails, we will tell you by email and retry the charge. If payment is still outstanding 7 days after our first notice, we may suspend the Services until it is paid.</p>
+      <p>If a payment fails, we will tell you by email and retry the charge. If payment is still outstanding 14 days after our first notice, we may suspend the Services until it is paid.</p>
       <h3>5.3 Refunds</h3>
       <p>If you cancel, you keep access until the end of the period you have paid for and we do not refund part-months. This does not limit any refund you are entitled to under the Australian Consumer Law, including where the Services have a major failure.</p>
       <h3>5.4 Out-of-scope work</h3>
@@ -1412,7 +1412,8 @@ html.lenis,html.lenis body{height:auto;}
       <h3>5.5 Fair use</h3>
       <p>The Subscription includes a server and storage sized for ordinary business use. If your use goes well beyond that, we will talk with you about options before making any change or charging anything extra.</p>
       <h3>5.6 AI usage</h3>
-      <p>AI model usage is not included in the Subscription fee. We pass it on to you at cost, without markup, and bill it monthly in arrears with your Subscription. Usage varies with how much your Agents work. You can set a monthly spending limit, and we will tell you before usage exceeds it.</p>
+      <p>AI model usage is not included in the Subscription fee. We pass it on to you at cost, without markup, and bill it monthly in arrears with your Subscription. Usage varies with how much your Agents work. We send an itemised usage statement with each bill.</p>
+      <p>We agree a monthly AI spending limit with you when you sign up, and you can change it at any time. We will tell you when usage reaches 80% of the limit. At the limit, your Agents pause AI work until the next billing month, unless you raise the limit.</p>
       <h3>5.7 Price changes</h3>
       <p>We may change the Subscription fee by giving you at least 30 days' notice by email. The new fee applies from your first billing date after the notice period ends. If you do not agree with the new fee, you can cancel your Subscription before it takes effect and you will not be charged the new fee.</p>
     </section>
@@ -1445,8 +1446,8 @@ html.lenis,html.lenis body{height:auto;}
       <h3>7.1 Non-excludable rights</h3>
       <p>These terms do not exclude rights under the Competition and Consumer Act 2010 (Cth) or other non-excludable legislation.</p>
       <h3>7.2 Liability caps</h3>
-      <p>To the maximum legal extent, the company excludes implied warranties and conditions, limits consumer guarantee liability to resupply or replacement cost, excludes indirect or consequential loss liability, and caps total liability to the fees you paid us in the 3 months before the claim arose.</p>
-      <p>Each party is liable for loss it causes through its own fraud or wilful misconduct.</p>
+      <p>To the maximum legal extent, the company excludes implied warranties and conditions, limits consumer guarantee liability to resupply or replacement cost, excludes indirect or consequential loss liability, and caps total liability to the fees you paid us in the 12 months before the claim arose.</p>
+      <p>Nothing in these Terms limits either party's liability for its own fraud or wilful misconduct, for death or personal injury caused by its negligence, or for anything else the law does not allow to be limited.</p>
     </section>
 
     <section>
