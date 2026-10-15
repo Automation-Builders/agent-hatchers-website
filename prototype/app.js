@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 79;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 80;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -1906,6 +1906,9 @@
     root.querySelectorAll('[data-agent]').forEach(el=>{el.onclick=()=>showAgent(el.dataset.agent);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();showAgent(el.dataset.agent)}};});
     const search=document.getElementById('market-search');if(search)search.oninput=()=>{const q=search.value.trim().toLowerCase();let visible=0;root.querySelectorAll('.dx-card[data-search]').forEach(c=>{const show=!q||c.dataset.search.includes(q);c.hidden=!show;if(show)visible++;});const yours=root.querySelector('.dx-card.is-yours');if(yours)yours.hidden=!!q;root.querySelectorAll('.dx-group').forEach(g=>{const shown=[...g.querySelectorAll('.dx-card')].filter(c=>!c.hidden);g.hidden=!shown.length;const n=g.querySelector('.dx-count');if(n)n.textContent=shown.length;});const empty=document.getElementById('board-empty');if(empty)empty.hidden=visible>0;};
     const input=document.getElementById('agent-name');if(input)input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('agent-biz')?.focus()}};
+    // Keep what's typed on the create screen in state as it's typed, so Back → Next and a reload
+    // (the session snapshot) bring it back. Before, only "Hatch 3 designs" copied it into state.
+    [['agent-co','company'],['agent-name','name'],['agent-look','look']].forEach(([id,k])=>{const el=document.getElementById(id);if(el)el.addEventListener('input',()=>{state[k]=el.value;saveSession();});});
   }
   root.dataset.build=BUILD;console.info('Agent Hatchers prototype · build '+BUILD);
   if(VIEW_ONLY)reviewSession();
