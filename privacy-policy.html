@@ -1357,7 +1357,7 @@ html.lenis,html.lenis body{height:auto;}
         <li><strong>Contact information</strong> — emails, phone numbers, addresses</li>
         <li><strong>Account credentials</strong> — login information and account identifiers</li>
         <li><strong>Financial records</strong> — payment methods, invoices, transaction histories</li>
-        <li><strong>Usage metrics</strong> — automation logs, reports, analytical data</li>
+        <li><strong>Usage metrics</strong> — Agent activity logs, usage reports and analytics data</li>
         <li><strong>System data</strong> — IP addresses, browser specifications, operating systems, device identifiers</li>
         <li><strong>User-submitted content</strong> — form entries, communications, file uploads</li>
         <li><strong>Business system access</strong> — temporary viewing of client systems (CRMs, ERPs, databases) during service delivery — not permanently retained</li>
@@ -1388,7 +1388,7 @@ html.lenis,html.lenis body{height:auto;}
       <p>Information serves these purposes:</p>
       <ul>
         <li>Configuring and maintaining services</li>
-        <li>Supporting automation troubleshooting</li>
+        <li>Troubleshooting and supporting your Agents</li>
         <li>Accessing client technologies for agreed service delivery</li>
         <li>Processing billing and account management</li>
         <li>Sending updates, support communications, and notices</li>
@@ -1403,7 +1403,7 @@ html.lenis,html.lenis body{height:auto;}
       <h3>5.1 Data Logging and Storage</h3>
       <p>When we set up Hermes for your business, it runs on a dedicated Linode server that we operate for your business alone, with a private Google Cloud Storage bucket for your business that sits in our Google Cloud account. These store the content your agents work with (for example documents, emails and files you connect or upload) and the agents' working memory (the notes, preferences and history that let them do the job consistently). Your team's profile pictures are kept in a separate bucket that can be viewed publicly, so your sign-in page can show them before anyone signs in.</p>
       <p>We keep this information for as long as you use the service. If you leave, you can request a support-assisted handover of your data and Agent configuration within the exit period in our <a href="terms-of-service.html">Terms of Service</a>. A handover does not include server handover or migration. We then delete your server and storage as described in those Terms. Recovery images held by our hosting provider may remain for up to 21 days after deletion, and deleted storage data may remain recoverable for our storage provider's soft-delete period. Billing and account records are kept where the law requires.</p>
-      <p>Where an automation runs inside a platform you already use (such as HubSpot, a CRM or an ERP), that data stays in that platform, and we access it only to configure and maintain the automation.</p>
+      <p>When you connect an app you already use (such as your email, CRM or accounting software), the data in that app stays there under that app's own terms. Your Agents read or change it only with the permissions approved for that connection, and anything they bring into the Platform is stored on your server.</p>
       <p>We also keep administrative records (billing, accounts and projects).</p>
       <h3>5.2 Internal Maintenance Records</h3>
       <p>Technical incident records contain only metadata: error types, affected integrations, timestamps, and corrective actions.</p>
@@ -1416,7 +1416,7 @@ html.lenis,html.lenis body{height:auto;}
       <p>Information may be shared with:</p>
       <ul>
         <li>Employees, contractors, and service providers involved in delivery</li>
-        <li>Third-party automation platforms and cloud services where automations operate</li>
+        <li>Apps you connect to your Agents, and the cloud and AI providers listed on our <a href="providers.html">service providers page</a></li>
         <li>Regulators, law enforcement, and government bodies (when legally required)</li>
         <li>Professional advisors (legal, accounting services)</li>
         <li>Parties involved in merger, sale, or acquisition scenarios</li>
@@ -1427,7 +1427,7 @@ html.lenis,html.lenis body{height:auto;}
     <section>
       <h2>7. Security and Compliance</h2>
       <p>The company applies reasonable technical and organisational measures to protect information from misuse, loss, or unauthorised access.</p>
-      <p>Security depends in part on third-party platform safeguards (Make, Zapier, HubSpot). Customers must review those platforms' privacy and security documentation independently.</p>
+      <p>Security also depends on the safeguards of our service providers and of the apps you connect. We recommend you review the privacy and security documentation of the apps you connect.</p>
       <p>Your server's disk and your storage are encrypted at rest. Our team reaches your server only over a private, encrypted network, using individual non-administrator accounts, and each connection is logged with who connected, from which device and when. Data sent to AI providers and connected apps is protected by those services' own security, such as HTTPS.</p>
       <p>A small, named group of our support staff can access your server when needed to provide support. We access only what is needed for that work, and we ask for your approval before looking at the content of your data, except in urgent security or outage situations, which we explain afterwards. Our <a href="terms-of-service.html">Terms of Service</a> (clause 5.4) set out how this works.</p>
     </section>
