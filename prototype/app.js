@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 80;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 81;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -942,14 +942,17 @@
     }
     return fallbackReply(question);
   }
+  // Only used when the chat server can't be reached. Small talk and "how do you work" get a
+  // plain assistant answer; anything else gets a short, honest reply using THIS business's
+  // researched team (never the stock catalogue's tools, which may not fit the business).
   function fallbackReply(question){
     const text=question.toLowerCase();
-    const scored=catalog.map(a=>({a,s:a.keywords.reduce((n,k)=>n+(text.includes(k)?1:0),0)})).sort((x,y)=>y.s-x.s);
-    const picks=scored.filter(x=>x.s>0).slice(0,2).map(x=>x.a);
-    const mates=picks.length?picks:catalog.slice(0,2);
-    const names=mates.map(m=>m.name).join(' and ');
-    const tools=[...new Set(mates.flatMap(m=>m.mcps))].slice(0,4).join(', ');
-    return `Good question — here is how I would run it down. First I would pull the full context from your connected systems (${tools}) so we are not guessing, then send the customer a clear answer with the exact link or next step, and log the fix so nobody has to ask twice. For this one I would loop in ${names} — this is exactly their lane, and they would pick it up from me mid-thread. If I were fully connected to ${co()}'s stack, the answer would already be on its way back to your customer.`;
+    if(/^(hi|hey|hello|yo|g'?day|sup|thanks|thank you|cheers|ok|okay)\b|\b(how (do|does|did) (you|u|this|it) work|who are (you|u)|what are (you|u)|what (can|do) (you|u) do|what is this|how does this work)\b/.test(text))
+      return `Hi! I'm ${state.name||'your agent'}, ${co()}'s AI agent. You message me like you would a colleague — here, in Slack or by email — and I get the work done through the tools you connect, like your inbox, calendar and business apps. I check with you before anything important goes out, and hand jobs to the rest of the team when they're in their lane. What would you like a hand with?`;
+    const team=liveCatalog().filter(Boolean);
+    const scored=team.map(a=>({a,s:(a.keywords||[]).reduce((n,k)=>n+(text.includes(k)?1:0),0)})).sort((x,y)=>y.s-x.s);
+    const pick=(scored.find(x=>x.s>0)||{}).a;
+    return `Happy to help with that. Once I'm connected to ${co()}'s inbox and apps I'd pull up the details, sort it out and check the result with you before anything goes out${pick?` — and I'd bring in ${pick.name}, since that's right in their lane`:''}. Tell me a bit more about what you need and I'll walk you through how I'd handle it.`;
   }
   // The ideas under an empty chat (Configuration → Chat ideas in the dashboard).
   const CHAT_IDEAS=['Summarise my inbox','Draft replies to customer emails','Chase unpaid invoices','Send me a morning briefing','Plan my day'];

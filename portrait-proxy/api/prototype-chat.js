@@ -44,7 +44,7 @@ export default async function handler(req, res) {
     summary: String(a.summary || '').slice(0, 160),
     mcps: Array.isArray(a.mcps) ? a.mcps.slice(0, 6).map(m => String(m).slice(0, 30)) : []
   })) : [];
-  if (question.length < 5) { res.status(400).json({ error: 'question too short' }); return; }
+  if (question.length < 2) { res.status(400).json({ error: 'question too short' }); return; }
   // Prior turns of this conversation (client sends up to the last 10), so follow-up
   // replies stay consistent with what the agent already said.
   const history = (Array.isArray(body.history) ? body.history : [])
@@ -54,19 +54,32 @@ export default async function handler(req, res) {
   const turn = Math.max(1, Math.min(10, parseInt(body.turn, 10) || 1));
 
   const rosterText = roster.map(a => `- ${a.name}: ${a.summary} (connects to: ${a.mcps.join(', ')})`).join('\n');
+  // Chit-chat and questions about the agent itself ("hi", "how do u work", "who are you",
+  // "what can you do") get answered the way ChatGPT, Claude or Hatchy would: plainly, briefly,
+  // in first person — no task playbook, no forced teammate hand-off, no "if I were connected".
+  const casual = /^(hi|hey|hello|yo|g'?day|sup|thanks|thank you|cheers|ok|okay)\b|\b(how (do|does|did) (you|u|this|it) work|who are (you|u)|what are (you|u)|what (can|do) (you|u) do|what is this|how does this work|are (you|u) (a |an )?(real|human|bot|ai))\b/i.test(question);
   const system =
-    `You are "${agent}", an AI agent working inside ${company}` +
-    `${business ? `, a ${business}` : ''}. A team member just messaged you. ` +
-    `Answer their actual question with genuinely useful, specific, expert help — concrete steps, ` +
-    `real product/tool names, practical detail. Be warm and confident, like a sharp colleague. ` +
-    `Where it helps, say which teammate agents you would loop in (by exact name) and what you'd ` +
-    `hand them, and mention the real connectors you'd use. Your teammate agents:\n${rosterText}\n` +
+    `You are "${agent}", an AI agent built by Agent Hatchers for ${company}` +
+    `${business ? `, a ${business}` : ''}. Someone from ${company} is chatting with you. ` +
+    `Talk like a great AI assistant (think ChatGPT or Claude): natural, friendly, direct, and ` +
+    `answer exactly what was asked - nothing more. ` +
+    (casual
+      ? `This message is small talk or a question about you, so answer it plainly in 2-4 short ` +
+        `sentences: you're their AI agent, they message you like a colleague in chat, Slack or ` +
+        `email, you work through the tools they connect (email, calendar, their apps) to get jobs ` +
+        `done, check in before anything important goes out, and can hand work to the rest of the ` +
+        `team when it's in their lane. Then ask what they'd like a hand with. Do not invent ` +
+        `systems they use, do not list teammates, no sales pitch. `
+      : `For a real task or question, give genuinely useful, specific help - concrete steps and ` +
+        `practical detail. Only if it truly helps, name a teammate agent (exact name) you'd hand ` +
+        `part of it to. Don't invent the specific software ${company} uses; say "your" email, CRM ` +
+        `etc. unless they told you. Your teammate agents:\n${rosterText}\n`) +
     `Rules: plain text only (no markdown symbols, no asterisks, no headers; short dashes for lists ` +
-    (turn === 1
-      ? `are fine). 120-190 words. End with one crisp sentence saying what you would already be doing ` +
-        `right now if you were fully connected.`
-      : `are fine). 60-160 words. This is an ongoing conversation - continue naturally, stay ` +
-        `consistent with what you already said, and don't repeat your earlier framing or closing line.`);
+    `are fine). ` +
+    (casual ? `Under 70 words.`
+      : turn === 1 ? `60-170 words.`
+      : `40-150 words. This is an ongoing conversation - continue naturally and stay consistent ` +
+        `with what you already said.`);
 
   async function callModel(params) {
     const upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -116,7 +129,7 @@ export default async function handler(req, res) {
       const r = await callModel(params);
       trace.push({ params: Object.keys(params).join('+'), status: r.status, finish: r.finish, len: r.text.length, error: r.error, usage: r.usage });
       // a good reply is non-trivially long and didn't stop because it ran out of budget
-      if (r.ok && r.text.length >= 300 && r.finish !== 'length') {
+      if (r.ok && r.text.length >= (casual ? 40 : 160) && r.finish !== 'length') {
         res.status(200).json({ reply: r.text, v: 4, finish: r.finish, usage: r.usage });
         return;
       }
