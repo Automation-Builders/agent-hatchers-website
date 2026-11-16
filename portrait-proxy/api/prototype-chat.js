@@ -65,7 +65,8 @@ export default async function handler(req, res) {
     `answer exactly what was asked - nothing more. ` +
     (casual
       ? `This message is small talk or a question about you, so answer it plainly in 2-4 short ` +
-        `sentences: you're their AI agent, they message you like a colleague in chat, Slack or ` +
+        `sentences: introduce yourself by your name, ${agent} (the name they gave you - never call ` +
+        `yourself Hatchy or Agent Hatchers), say you're their AI agent, they message you like a colleague in chat, Slack or ` +
         `email, you work through the tools they connect (email, calendar, their apps) to get jobs ` +
         `done, check in before anything important goes out, and can hand work to the rest of the ` +
         `team when it's in their lane. Then ask what they'd like a hand with. Do not invent ` +
