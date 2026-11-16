@@ -21,11 +21,14 @@
 // The store is PRIVATE: nothing is readable by URL; every read goes through here and the key
 // (or, for one explicitly shared session, its share token).
 // Needs a Blob store connected to the project (BLOB_READ_WRITE_TOKEN) and SESSIONS_KEY set.
+// Prospect email: set RESEND_API_KEY (and verify agenthatchers.com in Resend) so a prospect who
+// leaves their email on the hatch screen is sent their share link — see lib/agent-email.js.
 // Slack notifications: set SLACK_BOT_TOKEN (recommended — posts to #prototype-sessions)
 // or SLACK_WEBHOOK_URL (legacy incoming webhook) to get pings on new sessions, hatches and connections.
 // SLACK_CHANNEL defaults to C0CCA9T995K when using the bot token.
 import { put, list, get, del } from '@vercel/blob';
 import { randomBytes } from 'node:crypto';
+import { sendAgentEmail, emailKey } from '../lib/agent-email.js';
 
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
   'https://agenthatchers.com,https://www.agenthatchers.com,http://localhost:8799')
@@ -42,6 +45,7 @@ function applyCors(res, origin) {
 const clean = (v, n) => String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
 const AGENT_NAMES = { logistics: 'Logistics', sales: 'Sales', documents: 'Documents', invoices: 'Invoices', support: 'Support', website: 'Website', operations: 'Operations', marketing: 'Marketing', returns: 'Returns', inventory: 'Inventory' };
 const SESSIONS_PAGE = process.env.SESSIONS_PAGE || 'https://agenthatchers.com/prototype/sessions.html';
+const SITE = process.env.SITE_ORIGIN || 'https://agenthatchers.com';
 const SLACK_CHANNEL = process.env.SLACK_CHANNEL || 'C0CCA9T995K';
 async function slackPing(kind, index) {
   const botToken = process.env.SLACK_BOT_TOKEN;
@@ -58,6 +62,7 @@ async function slackPing(kind, index) {
     : `:hatching_chick: *${index.company || 'Someone'}* just hatched an agent in the prototype`;
   const lines = [
     index.you || index.email ? `*Who:* ${[index.you, index.email].filter(Boolean).join(' · ')}` : '',
+    kind === 'contact' && index.mailed ? `*Email:* ${index.mailed.ok ? 'sent them their agent link' : `not sent (${index.mailed.reason})`}` : '',
     index.name ? `*Agent:* ${index.name}` : '',
     index.biz ? `*Business:* ${index.biz}${index.industry ? ` (${index.industry})` : ''}` : '',
     team ? `*Team proposed:* ${team}` : '',
@@ -125,6 +130,26 @@ async function listAll(prefix) {
     out.push(...page.blobs); cursor = page.hasMore ? page.cursor : undefined;
   } while (cursor);
   return out;
+}
+// The prospect left an email on the hatch screen: give the session a public share link (the
+// same one sessions.html would mint) and email it to them. One email per address per day, so
+// the open POST can't be used to mail someone over and over.
+const MAIL_GAP = 24 * 60 * 60 * 1000;
+async function mailAgentLink(index, req) {
+  const mailKey = `sessions-mail/${emailKey(index.email)}.json`;
+  let last = null;
+  try { last = await readJson(mailKey); } catch { last = null; }
+  if (last && Date.now() - last.at < MAIL_GAP) { index.mailed = { at: Date.now(), ok: false, reason: 'already emailed that address today' }; return; }
+  if (!(index.share && index.share.token)) {
+    index.share = { token: newToken(), createdAt: Date.now(), by: 'auto (prospect email)', views: 0 };
+    await putJson(`sessions-share/${index.share.token}.json`, { sid: index.sid, createdAt: index.share.createdAt, by: index.share.by });
+    await logAction('share', index.sid, req, index);
+  }
+  const page = /^\/prototype\/[A-Za-z0-9/_-]*$/.test(index.page || '') ? index.page : '/prototype/';
+  const url = `${SITE}${page}?share=${index.share.token}`;
+  const r = await sendAgentEmail(index.email, { you: index.you, company: index.company, agentName: index.name, url });
+  index.mailed = { at: Date.now(), ok: r.sent, reason: r.sent ? '' : r.reason };
+  if (r.sent) { try { await putJson(mailKey, { at: Date.now(), sid: index.sid }); } catch { /* the email still went */ } }
 }
 async function readJson(pathname) {
   const r = await get(pathname, { access: 'private', useCache: false });
@@ -327,6 +352,8 @@ export default async function handler(req, res) {
     if (index.step >= 4 && !index.pinged.hatched) { index.pinged.hatched = true; pings.push('hatched'); }
     if (index.done && !index.pinged.connected) { index.pinged.connected = true; pings.push('connected'); }
     await put(`sessions/${sid}.json`, raw, { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });
+    if (prev && prev.mailed) index.mailed = prev.mailed;
+    if (pings.includes('contact')) await mailAgentLink(index, req);
     await put(`sessions-index/${sid}.json`, JSON.stringify(index), { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });
     for (const kind of pings) await slackPing(kind, index);
     res.setHeader('Cache-Control', 'no-store');
