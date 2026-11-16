@@ -51,10 +51,13 @@ async function slackPing(kind, index) {
   const team = (index.teamIds || []).map(id => AGENT_NAMES[id] || id).join(', ');
   const head = kind === 'connected'
     ? `:electric_plug: *${index.company || 'Someone'}* just connected an instance in the prototype`
+    : kind === 'contact'
+    ? `:wave: *${index.you || 'Someone'}* from *${index.company || 'an unnamed company'}* left their details in the prototype`
     : kind === 'created'
     ? `:hatching_chick: *${index.company || 'Someone'}* just hatched an agent in the prototype`
     : `:hatching_chick: *${index.company || 'Someone'}* just hatched an agent in the prototype`;
   const lines = [
+    index.you || index.email ? `*Who:* ${[index.you, index.email].filter(Boolean).join(' · ')}` : '',
     index.name ? `*Agent:* ${index.name}` : '',
     index.biz ? `*Business:* ${index.biz}${index.industry ? ` (${index.industry})` : ''}` : '',
     team ? `*Team proposed:* ${team}` : '',
@@ -304,7 +307,8 @@ export default async function handler(req, res) {
   const index = {
     sid, savedAt: Number(body.savedAt) || Date.now(), startedAt: Number(body.startedAt) || null,
     page: clean(body.page, 120), build: Number(body.build) || null,
-    company: clean(body.company, 80), name: clean(body.name, 40), biz: clean(body.biz, 80), industry: clean(body.industry, 60),
+    company: clean(body.company, 80), you: clean(body.you, 60), email: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(clean(body.email, 120)) ? clean(body.email, 120).toLowerCase() : '',
+    name: clean(body.name, 40), biz: clean(body.biz, 80), industry: clean(body.industry, 60),
     look: clean(body.look, 160), tools: Array.isArray(body.tools) ? body.tools.slice(0, 40).map(s => clean(s, 30)).filter(Boolean) : [], step: Number(body.step) || 0, tab: clean(body.tab, 20), done: !!body.done,
     teamIds: Array.isArray(body.team && body.team.ids) ? body.team.ids.slice(0, 10).map(s => clean(s, 30)) : [],
     teamSource: clean(body.team && body.team.source, 12), hadPhoto: !!body.hadPhoto, brand: body.brand ? clean(body.brand.name || body.brand.url, 80) : '',
@@ -319,6 +323,7 @@ export default async function handler(req, res) {
     if (prev && prev.share) index.share = prev.share;             // a saved-again session stays shared
     const pings = [];
     if (!prev && !index.pinged.created) { index.pinged.created = true; pings.push('created'); }
+    if (index.email && !index.pinged.contact) { index.pinged.contact = true; pings.push('contact'); }
     if (index.step >= 4 && !index.pinged.hatched) { index.pinged.hatched = true; pings.push('hatched'); }
     if (index.done && !index.pinged.connected) { index.pinged.connected = true; pings.push('connected'); }
     await put(`sessions/${sid}.json`, raw, { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });

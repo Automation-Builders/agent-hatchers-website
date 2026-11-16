@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 82;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 83;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -17,7 +17,7 @@
     {id:'website',icon:'◇',name:'Website Agent',industries:['all'],keywords:['website','content','publish','webflow','wordpress','page','blog','copy','web','online'],summary:'Keeps website content accurate, on-brand and ready for approval before publishing.',portrait:'/hatchy-website.webp',team:'Marketing',scene:'It is a website agent wearing a comfy hoodie and headphones around its neck, at a dual-monitor desk in a loft studio at night editing a colourful online storefront, with sticky notes on the window and a small cactus by the keyboard.',mcps:['GitHub','Webflow','WordPress','Google Drive','Slack'],outcomes:['Draft new website pages','Update approved copy and details','Check pages for stale information','Prepare search-friendly metadata','Publish only after human approval']},
     {id:'operations',icon:'✓',name:'Operations Agent',industries:['professional-services','construction','healthcare','all'],keywords:['operations','workflow','project','task','deadline','schedule','coordination','process','compliance','ops','clinic','manufacturing'],summary:'Coordinates repeatable workflows and keeps teams informed when work changes state.',portrait:'/hatchy-routing.webp',team:'Operations',scene:'It is an operations agent wearing a project-manager lanyard and holding a marker, standing at a wall-sized kanban board covered in swim-lanes and sticky notes in a bright planning room, with interlocking gears drawn on a whiteboard behind it.',mcps:['Monday.com','Asana','Notion','Slack','Microsoft Teams'],outcomes:['Turn requests into structured work','Monitor deadlines and blockers','Prepare daily operating summaries','Chase missing information','Escalate exceptions to the right person']}
   ];
-  const state = {step:0,name:'',biz:'',industry:'',website:'',tools:[],toolsOpen:false,look:'',team:null,teamBusy:false,refPhoto:'',brand:null,refBusy:false,refError:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketRefKey:'',marketStarted:false,added:[],tab:'profiles',chatActive:0,chatExtra:{},chatTyping:{},company:'',editUses:0,profiles:[],sid:'',startedAt:0,merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
+  const state = {step:0,you:'',email:'',contactSaved:false,name:'',biz:'',industry:'',website:'',tools:[],toolsOpen:false,look:'',team:null,teamBusy:false,refPhoto:'',brand:null,refBusy:false,refError:'',slots:[],variant:null,selectedImage:'',done:false,marketImages:{},marketRefKey:'',marketStarted:false,added:[],tab:'profiles',chatActive:0,chatExtra:{},chatTyping:{},company:'',editUses:0,profiles:[],sid:'',startedAt:0,merch:{robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false}};
   const root = document.getElementById('prototype-app');
   const co = () => state.company || config.company || 'Your Company';
   const DESIGN_AXES={
@@ -409,7 +409,7 @@
     const profiles=await Promise.all(state.profiles.filter(p=>p.status==='complete'||p.status==='deleted').map(async p=>({name:p.name,desc:p.desc,status:p.status,img:await thumb(p.img,cardMax),profile:p.profile||null})));
     let chatNames=[];try{chatNames=chatProfiles().all.map(x=>x.name);}catch(e){}
     return {sid:state.sid,v:1,build:BUILD,page:location.pathname,startedAt:state.startedAt,savedAt:Date.now(),ua:navigator.userAgent.slice(0,160),
-      company:co(),name:state.name,biz:state.biz,industry:state.industry,website:state.website||'',tools:state.tools||[],look:state.look,step:state.step,tab:state.tab,done:state.done,editUses:state.editUses,
+      company:co(),you:state.you||'',email:state.contactSaved?state.email:'',name:state.name,biz:state.biz,industry:state.industry,website:state.website||'',tools:state.tools||[],look:state.look,step:state.step,tab:state.tab,done:state.done,editUses:state.editUses,
       brand:state.brand?{name:state.brand.name,url:state.brand.url,colors:state.brand.colors}:null,hadPhoto:!!state.refPhoto,
       team:state.team?{ids:state.team.ids,intro:state.team.intro,source:state.team.source,researched:!!state.team.researched,lines:state.team.lines,agents:state.team.agents||{},extras:state.team.extras||[]}:null,
       variant:state.variant,selectedImage:await heroThumb(state.selectedImage),slots,market,profiles,chats:state.chatExtra||{},chatNames};
@@ -429,7 +429,7 @@
     saveTimer=setTimeout(()=>{
       if(state.step<1){return;}
       if(!state.sid){state.sid=uid();state.startedAt=Date.now();}
-      const snap={v:1,build:BUILD,sid:state.sid,startedAt:state.startedAt,savedAt:Date.now(),step:state.step,name:state.name,company:state.company,biz:state.biz,industry:state.industry,tools:state.tools||[],look:state.look,team:state.team,axes:state.axes||null,refPhoto:state.refPhoto,brand:state.brand,
+      const snap={v:1,build:BUILD,sid:state.sid,startedAt:state.startedAt,savedAt:Date.now(),step:state.step,you:state.you,email:state.email,contactSaved:!!state.contactSaved,name:state.name,company:state.company,biz:state.biz,industry:state.industry,tools:state.tools||[],look:state.look,team:state.team,axes:state.axes||null,refPhoto:state.refPhoto,brand:state.brand,
         slots:state.slots.map(s=>s&&s.status==='ready'?{status:'ready',image:s.image||''}:null),variant:state.variant,selectedImage:state.selectedImage,done:state.done,
         marketImages:state.marketImages,marketRefKey:state.marketRefKey,added:state.added||[],tab:state.tab,chatActive:state.chatActive,chatExtra:state.chatExtra,editUses:state.editUses,downloadOffered:!!state.downloadOffered,
         profiles:state.profiles.filter(p=>p.status==='complete'||p.status==='deleted').map(p=>({id:p.id,name:p.name,desc:p.desc,img:p.img,step:p.step,status:p.status,profile:p.profile||null,dismissed:!!p.dismissed}))};
@@ -441,7 +441,7 @@
   async function restoreSession(){
     const snap=await loadSession();
     if(!snap||snap.v!==1||!(snap.step>=1))return false;
-    const fields=['sid','startedAt','name','company','biz','industry','tools','look','team','axes','refPhoto','brand','variant','selectedImage','done','marketImages','marketRefKey','added','tab','chatActive','chatExtra','editUses','downloadOffered'];
+    const fields=['sid','startedAt','you','email','contactSaved','name','company','biz','industry','tools','look','team','axes','refPhoto','brand','variant','selectedImage','done','marketImages','marketRefKey','added','tab','chatActive','chatExtra','editUses','downloadOffered'];
     fields.forEach(k=>{if(snap[k]!==undefined)state[k]=snap[k];});
     state.tools=cleanTools(state.tools);
     state.slots=(snap.slots||[]).map(s=>s&&s.status==='ready'?{status:'ready',image:s.image||''}:null);
@@ -757,7 +757,31 @@
     const picked=state.variant!==null&&state.slots[state.variant]&&state.slots[state.variant].status==='ready';
     return `${pill('Use this avatar','market')}${picked||settled?`<div class="ob-pair">${picked?pill('Tweak this design','edit-look',true):''}${settled?pill('Redesign','redesign',true):''}</div>`:''}`;
   }
-  function hatchScreen(){return `<section class="ob-screen hatch-zone"><h1 class="ob-h">Hatching ${escapeHtml(state.name||'your agent')}…</h1><p class="ob-sub">Three takes on your description. Click your favourite — it becomes ${escapeHtml(state.name||'your agent')}’s avatar.</p><div class="ob-body"><div class="hatch-row" aria-live="polite">${[0,1,2].map(eggScene).join('')}</div></div><div class="ob-actions hatch-actions">${hatchActionsBar()}</div></section>`;}
+  // ---------- Who is this? ----------
+  // Prospects filled in the whole flow but we never knew who they were. The hatch is the one
+  // moment they're waiting with nothing to do and already invested, so a small card under the
+  // eggs asks for a name and email in exchange for a link back to their agent. Optional — it
+  // never blocks the hatch — and once given it collapses to a thank-you line.
+  const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  const firstName=()=>String(state.you||'').trim().split(/\s+/)[0]||'';
+  function whoCard(){
+    if(VIEW_ONLY)return '';
+    if(state.contactSaved)return `<p class="who-done">${ci.check}<span>Thanks${firstName()?`, ${escapeHtml(firstName())}`:''} — we’ll send ${escapeHtml(state.name||'your agent')} to <b>${escapeHtml(state.email)}</b>.</span></p>`;
+    return `<form class="who-card" id="who-card" novalidate><p class="who-h">Where should we send ${escapeHtml(state.name||'your agent')}?</p><p class="who-sub">Leave your details while the eggs crack and we’ll email you a link back to your agent.</p><div class="who-row"><input class="name-field" id="who-name" maxlength="60" autocomplete="name" placeholder="Your name" value="${escapeHtml(state.you)}" aria-label="Your name"><input class="name-field" id="who-email" type="email" maxlength="120" autocomplete="email" inputmode="email" placeholder="you@company.com" value="${escapeHtml(state.email)}" aria-label="Your email"><button type="submit" class="who-btn">Save</button></div></form>`;
+  }
+  function bindWho(){
+    const f=document.getElementById('who-card');if(!f)return;
+    const n=f.querySelector('#who-name'),e=f.querySelector('#who-email');
+    n.oninput=()=>{state.you=n.value;};e.oninput=()=>{state.email=e.value;e.removeAttribute('aria-invalid');};
+    f.onsubmit=ev=>{ev.preventDefault();const email=e.value.trim();
+      if(!EMAIL_RE.test(email)){e.setAttribute('aria-invalid','true');e.focus();return;}
+      state.you=n.value.trim();state.email=email;state.contactSaved=true;
+      try{if(window.ahTrack)window.ahTrack('Lead',{source:'prototype-hatch'});}catch(x){}
+      f.outerHTML=whoCard();saveSession();
+      // send it now rather than on the 12s throttle — this is the one field we can't lose
+      if(captureOn&&state.sid){clearTimeout(syncTimer);pushSession();}};
+  }
+  function hatchScreen(){return `<section class="ob-screen hatch-zone"><h1 class="ob-h">Hatching ${escapeHtml(state.name||'your agent')}…</h1><p class="ob-sub">Three takes on your description. Click your favourite — it becomes ${escapeHtml(state.name||'your agent')}’s avatar.</p><div class="ob-body"><div class="hatch-row" aria-live="polite">${[0,1,2].map(eggScene).join('')}</div>${whoCard()}</div><div class="ob-actions hatch-actions">${hatchActionsBar()}</div></section>`;}
   function initials(str){return String(str||'AH').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();}
   const marketLoader='<div class="hatch-loader"><img class="loader-egg" src="/egg-closed.webp" alt=""><span class="loader-txt">Hatching…</span></div>';
   // Review/share of a session that never reached the dashboard: its team portraits were never
@@ -1187,6 +1211,7 @@
   function bookingUrl(){
     const p=new URLSearchParams({hide_event_type_details:'1',hide_gdpr_banner:'1',background_color:'f4f1ea',text_color:'16150f',primary_color:'216bac',embed_domain:location.hostname,embed_type:'Inline',utm_source:'agenthatchers',utm_medium:'prototype',utm_campaign:'demo'});
     const who=[state.company,state.name].filter(Boolean).join(' / ');if(who)p.set('utm_content',who.slice(0,80));
+    if(state.contactSaved){if(state.you)p.set('name',state.you);p.set('email',state.email);}
     // A visitor who came from a Hatchery ad (utm_content=ah-xxxxx, remembered by /assets/utm.js) keeps
     // that ad's tags, so the booking is credited to the ad rather than labelled as a demo.
     const ad=window.ahUtm?window.ahUtm(new URLSearchParams()):null;
@@ -1771,6 +1796,7 @@
     refreshBar();
   }
   function bind(){
+    bindWho();
     root.querySelectorAll('[data-action]').forEach(el=>el.onclick=()=>{
       const a=el.dataset.action;
       if(a==='back'){state.step=state.step===2?0:Math.max(0,state.step-1);render()}
@@ -1806,7 +1832,7 @@
         const s=state.slots[state.variant];
         state.selectedImage=(s&&s.image)||state.selectedImage||((state.slots.find(x=>x&&x.image)||{}).image)||'';
         document.querySelectorAll('.confetti').forEach(c=>c.remove());if(window.ahTrack)ahTrack('DemoComplete');state.step=4;render();generateMarket()}
-      if(a==='reset'){researchPopStop();state.step=0;state.name='';state.company='';state.biz='';state.industry='';state.website='';state.tools=[];state.toolsOpen=false;state.look='';state.team=null;state.teamBusy=false;state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.ownBox=false;state.marketImages={};state.marketStarted=false;state.added=[];state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.downloadOffered=false;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
+      if(a==='reset'){researchPopStop();state.step=0;state.you='';state.email='';state.contactSaved=false;state.name='';state.company='';state.biz='';state.industry='';state.website='';state.tools=[];state.toolsOpen=false;state.look='';state.team=null;state.teamBusy=false;state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.ownBox=false;state.marketImages={};state.marketStarted=false;state.added=[];state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.downloadOffered=false;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
     root.querySelectorAll('[data-egg]').forEach(el=>{
       // Select a design the moment it's hatched — direct DOM updates only, so picking
