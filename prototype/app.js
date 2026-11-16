@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 81;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 82;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -940,15 +940,15 @@
         if(res.status===400)break;
       }catch(e){/* retry then fall back */}
     }
-    return fallbackReply(question);
+    return fallbackReply(question,agentName);
   }
   // Only used when the chat server can't be reached. Small talk and "how do you work" get a
   // plain assistant answer; anything else gets a short, honest reply using THIS business's
   // researched team (never the stock catalogue's tools, which may not fit the business).
-  function fallbackReply(question){
+  function fallbackReply(question,agentName){
     const text=question.toLowerCase();
     if(/^(hi|hey|hello|yo|g'?day|sup|thanks|thank you|cheers|ok|okay)\b|\b(how (do|does|did) (you|u|this|it) work|who are (you|u)|what are (you|u)|what (can|do) (you|u) do|what is this|how does this work)\b/.test(text))
-      return `Hi! I'm ${state.name||'your agent'}, ${co()}'s AI agent. You message me like you would a colleague — here, in Slack or by email — and I get the work done through the tools you connect, like your inbox, calendar and business apps. I check with you before anything important goes out, and hand jobs to the rest of the team when they're in their lane. What would you like a hand with?`;
+      return `Hi! I'm ${agentName||state.name||'your agent'}, ${co()}'s AI agent. You message me like you would a colleague — here, in Slack or by email — and I get the work done through the tools you connect, like your inbox, calendar and business apps. I check with you before anything important goes out, and hand jobs to the rest of the team when they're in their lane. What would you like a hand with?`;
     const team=liveCatalog().filter(Boolean);
     const scored=team.map(a=>({a,s:(a.keywords||[]).reduce((n,k)=>n+(text.includes(k)?1:0),0)})).sort((x,y)=>y.s-x.s);
     const pick=(scored.find(x=>x.s>0)||{}).a;
