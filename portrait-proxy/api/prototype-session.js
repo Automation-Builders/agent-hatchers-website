@@ -21,8 +21,9 @@
 // The store is PRIVATE: nothing is readable by URL; every read goes through here and the key
 // (or, for one explicitly shared session, its share token).
 // Needs a Blob store connected to the project (BLOB_READ_WRITE_TOKEN) and SESSIONS_KEY set.
-// Optional: SLACK_WEBHOOK_URL — a Slack incoming webhook that gets pinged the first time a
-// session reaches the dashboard (a finished hatch) and again if they connect an instance.
+// Slack notifications: set SLACK_BOT_TOKEN (recommended — posts to #prototype-sessions)
+// or SLACK_WEBHOOK_URL (legacy incoming webhook) to get pings on new sessions, hatches and connections.
+// SLACK_CHANNEL defaults to C0CCA9T995K when using the bot token.
 import { put, list, get, del } from '@vercel/blob';
 import { randomBytes } from 'node:crypto';
 
@@ -41,13 +42,17 @@ function applyCors(res, origin) {
 const clean = (v, n) => String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
 const AGENT_NAMES = { logistics: 'Logistics', sales: 'Sales', documents: 'Documents', invoices: 'Invoices', support: 'Support', website: 'Website', operations: 'Operations', marketing: 'Marketing', returns: 'Returns', inventory: 'Inventory' };
 const SESSIONS_PAGE = process.env.SESSIONS_PAGE || 'https://agenthatchers.com/prototype/sessions.html';
+const SLACK_CHANNEL = process.env.SLACK_CHANNEL || 'C0CCA9T995K';
 async function slackPing(kind, index) {
-  const url = process.env.SLACK_WEBHOOK_URL;
-  if (!url) return;
+  const botToken = process.env.SLACK_BOT_TOKEN;
+  const webhookUrl = process.env.SLACK_WEBHOOK_URL;
+  if (!botToken && !webhookUrl) return;
   const mins = index.startedAt ? Math.max(1, Math.round((index.savedAt - index.startedAt) / 60000)) : null;
   const team = (index.teamIds || []).map(id => AGENT_NAMES[id] || id).join(', ');
   const head = kind === 'connected'
     ? `:electric_plug: *${index.company || 'Someone'}* just connected an instance in the prototype`
+    : kind === 'created'
+    ? `:hatching_chick: *${index.company || 'Someone'}* just hatched an agent in the prototype`
     : `:hatching_chick: *${index.company || 'Someone'}* just hatched an agent in the prototype`;
   const lines = [
     index.name ? `*Agent:* ${index.name}` : '',
@@ -57,14 +62,24 @@ async function slackPing(kind, index) {
     index.brand ? `*Website used:* ${index.brand}` : '',
     mins ? `*Time on page:* ${mins} min` : ''
   ].filter(Boolean).join('\n');
-  const body = {
+  const message = {
     text: `${head.replace(/[*:_]/g, '')}${index.name ? ` — ${index.name}` : ''}`,
     blocks: [
       { type: 'section', text: { type: 'mrkdwn', text: head + (lines ? '\n' + lines : '') } },
       { type: 'context', elements: [{ type: 'mrkdwn', text: `<${SESSIONS_PAGE}|Open the sessions page> · ${index.page || ''}` }] }
     ]
   };
-  try { await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); } catch { /* a missed ping is not worth failing the save */ }
+  if (botToken) {
+    try {
+      await fetch('https://slack.com/api/chat.postMessage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${botToken}` },
+        body: JSON.stringify({ ...message, channel: SLACK_CHANNEL })
+      });
+    } catch { /* a missed ping is not worth failing the save */ }
+  } else {
+    try { await fetch(webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(message) }); } catch { /* a missed ping is not worth failing the save */ }
+  }
 }
 const TRASH_DAYS = Number(process.env.TRASH_DAYS) || 30;
 const SHARE_RE = /^[A-Za-z0-9_-]{16,64}$/;
@@ -72,9 +87,20 @@ const newToken = () => randomBytes(18).toString('base64url');   // 24 url-safe c
 const VIEW_PING_GAP = 60 * 60 * 1000;                            // one Slack ping per shared link per hour
 const putJson = (pathname, obj) => put(pathname, JSON.stringify(obj), { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });
 async function slackNote(text) {
-  const url = process.env.SLACK_WEBHOOK_URL;
-  if (!url) return;
-  try { await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) }); } catch { /* not worth failing the call */ }
+  const botToken = process.env.SLACK_BOT_TOKEN;
+  const webhookUrl = process.env.SLACK_WEBHOOK_URL;
+  if (!botToken && !webhookUrl) return;
+  if (botToken) {
+    try {
+      await fetch('https://slack.com/api/chat.postMessage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${botToken}` },
+        body: JSON.stringify({ channel: SLACK_CHANNEL, text })
+      });
+    } catch { /* not worth failing the call */ }
+  } else {
+    try { await fetch(webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) }); } catch { /* not worth failing the call */ }
+  }
 }
 function actor(req) {
   const by = clean((req.query && req.query.by) || req.headers['x-sessions-by'], 40);
@@ -292,6 +318,7 @@ export default async function handler(req, res) {
     index.pinged = Object.assign({}, prev && prev.pinged);
     if (prev && prev.share) index.share = prev.share;             // a saved-again session stays shared
     const pings = [];
+    if (!prev && !index.pinged.created) { index.pinged.created = true; pings.push('created'); }
     if (index.step >= 4 && !index.pinged.hatched) { index.pinged.hatched = true; pings.push('hatched'); }
     if (index.done && !index.pinged.connected) { index.pinged.connected = true; pings.push('connected'); }
     await put(`sessions/${sid}.json`, raw, { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });
