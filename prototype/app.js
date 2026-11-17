@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 83;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 84;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -752,36 +752,48 @@
   function hatchActionsBar(){
     const settled=state.slots.length&&state.slots.every(Boolean);
     const anyReady=state.slots.some(s=>s&&s.status==='ready');
-    if(!anyReady) return `<p class="hatch-status"><i></i>Hatching your designs… click your favourite as soon as it pops out.</p>`;
+    if(!anyReady) return `<p class="hatch-status"><i></i>Hatching your designs…${gated()?'':' click your favourite as soon as it pops out.'}</p>`;
+    if(gated()) return `<p class="hatch-status is-gate">Add your name and email above to meet ${escapeHtml(state.name||'your agent')}.</p>`;
     // A picked design can be tweaked right here ("nearly there, but…") before it becomes the avatar.
     const picked=state.variant!==null&&state.slots[state.variant]&&state.slots[state.variant].status==='ready';
     return `${pill('Use this avatar','market')}${picked||settled?`<div class="ob-pair">${picked?pill('Tweak this design','edit-look',true):''}${settled?pill('Redesign','redesign',true):''}</div>`:''}`;
   }
   // ---------- Who is this? ----------
   // Prospects filled in the whole flow but we never knew who they were. The hatch is the one
-  // moment they're waiting with nothing to do and already invested, so a small card under the
-  // eggs asks for a name and email in exchange for a link back to their agent. Optional — it
-  // never blocks the hatch — and once given it collapses to a thank-you line.
+  // moment they're waiting with nothing to do and already invested, so a card under the eggs
+  // asks for a name and email. Since build 84 (Noah, 18 Nov 2026) it is the gate: the designs
+  // hatch behind frosted glass and can't be picked until the details are in. Review/share
+  // links and the team's ?unlimited=1 browsers skip the gate. The notice under the fields is
+  // the Privacy Act collection notice (APP 5) — keep it in step with privacy-policy.html §2.1.
   const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   const firstName=()=>String(state.you||'').trim().split(/\s+/)[0]||'';
+  const gated=()=>!VIEW_ONLY&&!state.contactSaved&&!unlimited();
   function whoCard(){
     if(VIEW_ONLY)return '';
     if(state.contactSaved)return `<p class="who-done">${ci.check}<span>Thanks${firstName()?`, ${escapeHtml(firstName())}`:''} — we’ll send ${escapeHtml(state.name||'your agent')} to <b>${escapeHtml(state.email)}</b>.</span></p>`;
-    return `<form class="who-card" id="who-card" novalidate><p class="who-h">Where should we send ${escapeHtml(state.name||'your agent')}?</p><p class="who-sub">Leave your details while the eggs crack and we’ll email you a link back to your agent.</p><div class="who-row"><input class="name-field" id="who-name" maxlength="60" autocomplete="name" placeholder="Your name" value="${escapeHtml(state.you)}" aria-label="Your name"><input class="name-field" id="who-email" type="email" maxlength="120" autocomplete="email" inputmode="email" placeholder="you@company.com" value="${escapeHtml(state.email)}" aria-label="Your email"><button type="submit" class="who-btn">Save</button></div></form>`;
+    return `<form class="who-card" id="who-card" novalidate><p class="who-h">Who’s ${escapeHtml(state.name||'your agent')} for?</p><p class="who-sub">Pop in your name and email to meet ${escapeHtml(state.name||'your agent')}. We’ll also email you a link back to it.</p><div class="who-row"><input class="name-field" id="who-name" maxlength="60" autocomplete="name" placeholder="Your name" value="${escapeHtml(state.you)}" aria-label="Your name"><input class="name-field" id="who-email" type="email" maxlength="120" autocomplete="email" inputmode="email" placeholder="you@company.com" value="${escapeHtml(state.email)}" aria-label="Your email"><button type="submit" class="who-btn">Meet ${escapeHtml(state.name||'it')}</button></div><p class="who-note">We use your details to send your agent and follow up about Agent Hatchers. Opt out any time. <a href="/privacy-policy.html#demo" target="_blank" rel="noopener">Privacy Policy</a></p></form>`;
   }
+  function nudgeWho(){const f=document.getElementById('who-card');if(!f)return;
+    f.classList.remove('nudge');void f.offsetWidth;f.classList.add('nudge');
+    const n=f.querySelector('#who-name'),e=f.querySelector('#who-email');(n.value.trim()?e:n).focus();}
   function bindWho(){
     const f=document.getElementById('who-card');if(!f)return;
     const n=f.querySelector('#who-name'),e=f.querySelector('#who-email');
     n.oninput=()=>{state.you=n.value;};e.oninput=()=>{state.email=e.value;e.removeAttribute('aria-invalid');};
+    n.addEventListener('input',()=>n.removeAttribute('aria-invalid'));
     f.onsubmit=ev=>{ev.preventDefault();const email=e.value.trim();
+      if(!n.value.trim()){n.setAttribute('aria-invalid','true');n.focus();return;}
       if(!EMAIL_RE.test(email)){e.setAttribute('aria-invalid','true');e.focus();return;}
       state.you=n.value.trim();state.email=email;state.contactSaved=true;
       try{if(window.ahTrack)window.ahTrack('Lead',{source:'prototype-hatch'});}catch(x){}
       f.outerHTML=whoCard();saveSession();
+      // lift the frosted glass and hand over the pick/Use buttons
+      const row=root.querySelector('.hatch-row');if(row)row.classList.remove('is-veiled');
+      const bar=root.querySelector('.hatch-actions');if(bar){bar.innerHTML=hatchActionsBar();bind();}
       // send it now rather than on the 12s throttle — this is the one field we can't lose
       if(captureOn&&state.sid){clearTimeout(syncTimer);pushSession();}};
   }
-  function hatchScreen(){return `<section class="ob-screen hatch-zone"><h1 class="ob-h">Hatching ${escapeHtml(state.name||'your agent')}…</h1><p class="ob-sub">Three takes on your description. Click your favourite — it becomes ${escapeHtml(state.name||'your agent')}’s avatar.</p><div class="ob-body"><div class="hatch-row" aria-live="polite">${[0,1,2].map(eggScene).join('')}</div>${whoCard()}</div><div class="ob-actions hatch-actions">${hatchActionsBar()}</div></section>`;}
+  function hatchScreen(){return `<section class="ob-screen hatch-zone"><h1 class="ob-h">Hatching ${escapeHtml(state.name||'your agent')}…</h1><p class="ob-sub">Three takes on your description. Click your favourite — it becomes ${escapeHtml(state.name||'your agent')}’s avatar.</p><div class="ob-body"><div class="hatch-row${gated()?' is-veiled':''}" aria-live="polite">${[0,1,2].map(eggScene).join('')}</div>${whoCard()}</div><div class="ob-actions hatch-actions">${hatchActionsBar()}</div></section>`;}
   function initials(str){return String(str||'AH').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();}
   const marketLoader='<div class="hatch-loader"><img class="loader-egg" src="/egg-closed.webp" alt=""><span class="loader-txt">Hatching…</span></div>';
   // Review/share of a session that never reached the dashboard: its team portraits were never
@@ -1825,7 +1837,7 @@
         const agentName=(chatProfiles().all[i]||{}).name||state.name||'your agent';
         fetchChatReply(t,agentName,history,prior+1).then(reply=>{state.chatTyping[i]=false;state.chatExtra[i]=(state.chatExtra[i]||[]).concat([['them',reply]]);if(state.tab==='chats'){render();scrollFocus();}});
       }
-      if(a==='market'){
+      if(a==='market'){if(gated()){nudgeWho();return;}
         // No explicit pick → default to the first design that actually has an image, and
         // always fall back to ANY generated image so the avatar/logo/market ref never go blank.
         if(state.variant===null){const i=state.slots.findIndex(s=>s&&s.image);state.variant=i>=0?i:0}
@@ -1838,6 +1850,7 @@
       // Select a design the moment it's hatched — direct DOM updates only, so picking
       // one egg never restarts the others' hatch animations.
       const pick=()=>{const i=+el.dataset.egg;const s=state.slots[i];if(!s||s.status!=='ready')return;
+        if(gated()){nudgeWho();return;}
         state.variant=i;state.selectedImage=s.image||'';
         root.querySelectorAll('[data-egg]').forEach(c=>{const on=+c.dataset.egg===i;c.classList.toggle('selected',on);c.setAttribute('aria-pressed',on)});
         const bar=root.querySelector('.hatch-actions');if(bar){bar.innerHTML=hatchActionsBar();bind();}};

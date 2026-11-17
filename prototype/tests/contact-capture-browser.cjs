@@ -2,7 +2,8 @@
 // server at PROTOTYPE_TEST_URL (default http://127.0.0.1:8768). No remote calls allowed.
 // 16 Nov 2026: prospects finished the flow without leaving a name or email. The hatch screen
 // now asks; this checks the card shows, rejects a bad email, sends the details with the
-// session save, and keeps them across a reload.
+// session save, and keeps them across a reload. Build 84: the details are the gate — the
+// designs stay frosted and can't be picked or used until they're in.
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
 (async()=>{
@@ -23,6 +24,15 @@ const assert=require('node:assert/strict');
     await page.fill('#agent-co','Pipe Pros');await page.fill('#agent-name','Pip');await page.fill('#agent-look','a robot plumber with a wrench');
     await page.click('[data-action="generate"]');
     await page.waitForSelector('#who-card');
+    assert.ok(await page.$('.hatch-row.is-veiled'),'designs start veiled');
+    await page.waitForSelector('.egg-cell.is-ready',{timeout:20000});await page.waitForTimeout(1500);
+    assert.equal(await page.$('[data-action="market"]'),null,'no Use this avatar while gated');
+    await page.click('.egg-cell.is-ready');
+    assert.equal(await page.$('.egg-cell.selected'),null,'gated design cannot be picked');
+    assert.equal(await page.evaluate(()=>document.activeElement.id),'who-name','pick nudges to the name field');
+    await page.click('.who-btn');
+    assert.equal(await page.getAttribute('#who-name','aria-invalid'),'true','name required');
+    assert.ok(await page.$('.who-note a[href="/privacy-policy.html#demo"]'),'collection notice links the policy');
     await page.fill('#who-name','Jane Doe');await page.fill('#who-email','jane@pipepros');
     await page.click('.who-btn');
     assert.equal(await page.getAttribute('#who-email','aria-invalid'),'true','bad email rejected');
@@ -31,6 +41,9 @@ const assert=require('node:assert/strict');
     await page.waitForSelector('.who-done');
     assert.match(await page.textContent('.who-done'),/Thanks, Jane.*Jane@PipePros\.com\.au/);
     if(shot)await page.screenshot({path:shot});
+    assert.equal(await page.$('.hatch-row.is-veiled'),null,'veil lifts on save');
+    await page.waitForSelector('[data-action="market"]');
+    await page.click('.egg-cell.is-ready');assert.ok(await page.$('.egg-cell.selected'),'pickable after save');
     await page.waitForTimeout(1500);
     const last=saves[saves.length-1];
     assert.ok(last,'session pushed');assert.equal(last.you,'Jane Doe');assert.equal(last.email,'Jane@PipePros.com.au');

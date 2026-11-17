@@ -1637,3 +1637,13 @@ body.dx-on{background:#0a0a0a;color:#fff}
 .ob .who-done svg{width:16px;height:16px;flex:0 0 16px;fill:none;stroke:#4ade80;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 .ob .who-done b{color:var(--v4-fg);font-weight:600}
 @media(max-width:560px){.ob .who-row{flex-wrap:wrap}.ob .who-row .name-field{flex:1 1 100%}.ob .who-btn{width:100%}}
+/* build 84: the designs hatch behind frosted glass until the prospect says who they are */
+.ob .hatch-row .hx6-pop{transition:filter .7s ease}
+.ob .hatch-row.is-veiled .egg-cell.is-ready .hx6-pop{filter:blur(14px) saturate(.8)}
+.ob .hatch-row.is-veiled .egg-cell{cursor:default}
+.ob .hatch-row.is-veiled .egg-tick{display:none}
+.ob .who-note{margin:10px 2px 0;font:400 12px/17px 'Inter',system-ui,sans-serif;color:var(--v4-faint)}
+.ob .who-note a{color:var(--v4-muted);text-decoration:underline}
+.ob .who-card.nudge{animation:whoNudge .45s ease}
+@keyframes whoNudge{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.ob .hatch-status.is-gate{color:var(--v4-fg-2,#cfcfcf)}

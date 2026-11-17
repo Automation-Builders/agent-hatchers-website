@@ -13,6 +13,11 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 export const emailKey = email => createHash('sha256').update(String(email).trim().toLowerCase()).digest('hex').slice(0, 32);
 
+// Spam Act 2003: the email promotes a call, so it identifies the sender and carries a working
+// opt-out. Unsubscribe replies land with Noah (reply-to) — honour them within 5 working days.
+export const SENDER = 'Agent Hatchers Pty Ltd (ACN 690 308 242), Engine House, Floor 1/28-30 William St, Balaclava VIC 3182';
+const FOOT_TEXT = `You're getting this because you asked us to send your agent from agenthatchers.com. Don't want to hear from us again? Reply "unsubscribe" and we won't email you again. ${SENDER}.`;
+
 export function buildAgentEmail({ you, company, agentName, url, bookUrl = 'https://calendly.com/noah-agenthatchers/30min' }) {
   const first = String(you || '').trim().split(/\s+/)[0] || '';
   const agent = String(agentName || '').trim() || 'your agent';
@@ -32,7 +37,7 @@ export function buildAgentEmail({ you, company, agentName, url, bookUrl = 'https
     'Noah',
     'Agent Hatchers',
     '',
-    "You're getting this because you asked us to send your agent from agenthatchers.com. Just reply if you didn't."
+    FOOT_TEXT
   ].join('\n');
   const btn = (href, label, primary) => `<a href="${esc(href)}" style="display:inline-block;padding:13px 24px;border-radius:999px;font:600 15px/1 Arial,Helvetica,sans-serif;text-decoration:none;${primary ? 'background:#216bac;color:#ffffff' : 'background:#eef4f8;color:#16150f'}">${esc(label)}</a>`;
   const html = `<!doctype html><html><body style="margin:0;padding:0;background:#f4f1ea">
@@ -46,7 +51,7 @@ export function buildAgentEmail({ you, company, agentName, url, bookUrl = 'https
 <tr><td style="padding:16px 32px 0">${btn(bookUrl, 'Book a call', false)}</td></tr>
 <tr><td style="padding:28px 32px 32px;font:400 16px/1.6 Arial,Helvetica,sans-serif;color:#16150f">Noah<br><span style="color:#8a8a80">Agent Hatchers</span></td></tr>
 </table>
-<p style="max-width:520px;margin:16px auto 0;font:400 12px/1.5 Arial,Helvetica,sans-serif;color:#8a8a80">You’re getting this because you asked us to send your agent from agenthatchers.com. Just reply if you didn’t.</p>
+<p style="max-width:520px;margin:16px auto 0;font:400 12px/1.5 Arial,Helvetica,sans-serif;color:#8a8a80">${esc(FOOT_TEXT)} <a href="https://agenthatchers.com/privacy-policy.html" style="color:#8a8a80">Privacy Policy</a></p>
 </td></tr></table></body></html>`;
   return { subject, html, text };
 }
