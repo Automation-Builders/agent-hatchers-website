@@ -13,6 +13,14 @@ test('email names the person, agent and company and carries the share link', () 
   assert.match(m.html, /Pip has hatched, Jane/);
 });
 
+test('email identifies the sender and offers an unsubscribe (Spam Act)', () => {
+  const m = buildAgentEmail(details);
+  for (const body of [m.text, m.html]) {
+    assert.match(body, /Agent Hatchers Pty Ltd \(ACN 690 308 242\)/);
+    assert.match(body, /Reply (&quot;|")unsubscribe/);
+  }
+});
+
 test('email escapes whatever the prospect typed', () => {
   const m = buildAgentEmail({ ...details, you: '<b>x', agentName: '<script>' });
   assert.ok(!m.html.includes('<script>'));
