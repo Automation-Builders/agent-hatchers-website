@@ -186,7 +186,9 @@ export default async function handler(req, res) {
         req.query.by = 'visitor';
         await logAction('view', sid, req, index || { company: clean(full.company, 80), name: clean(full.name, 40), step: Number(full.step) || 0 });
         if (ping) await slackNote(`:eyes: Someone opened the shared prototype for *${(index && index.company) || clean(full.company, 80) || 'an unnamed company'}*${index && index.name ? ` (${index.name})` : ''}${ip ? ` · from ${ip}` : ''}`);
-        res.setHeader('Cache-Control', 'no-store'); res.status(200).json(full);
+        // The link gets forwarded: the prospect's name, email and browser stay with the team.
+        const { you, email, ua, ...shown } = full;
+        res.setHeader('Cache-Control', 'no-store'); res.status(200).json(shown);
       } catch (e) { res.status(502).json({ error: 'Could not read this preview: ' + (e && e.message) }); }
       return;
     }
