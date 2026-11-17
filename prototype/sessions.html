@@ -174,7 +174,7 @@
     const q=$('q').value.trim().toLowerCase();
     const rows=all.filter(s=>!q||`${s.company} ${s.you||''} ${s.email||''} ${s.biz} ${s.name} ${s.industry} ${s.brand} ${(s.tools||[]).join(' ')}`.toLowerCase().includes(q));
     const hatched=all.filter(s=>s.step>=4).length,profiles=all.reduce((n,s)=>n+(s.profileCount||0),0),chats=all.reduce((n,s)=>n+(s.chatTurns||0),0);
-    $('stats').innerHTML=[['Sessions',all.length],['Reached the dashboard',hatched],['Left their email',all.filter(s=>s.email).length],['Profiles created',profiles],['Chat messages',chats],['Last activity',all[0]?ago(all[0].savedAt):'—']].map(([l,v])=>`<div class="stat"><b>${esc(v)}</b><span>${l}</span></div>`).join('');
+    $('stats').innerHTML=[['Sessions',all.length],['Reached the dashboard',hatched],['Left their email',all.filter(s=>s.email).length],['Unsubscribed',all.filter(s=>s.unsubscribed).length],['Profiles created',profiles],['Chat messages',chats],['Last activity',all[0]?ago(all[0].savedAt):'—']].map(([l,v])=>`<div class="stat"><b>${esc(v)}</b><span>${l}</span></div>`).join('');
     $('stats').hidden=false;$('tools').hidden=false;$('n').textContent=rows.length+' shown';
     $('empty').hidden=rows.length>0;if(!rows.length)$('empty').textContent=all.length?'No sessions match.':'No sessions yet — they appear as soon as a prospect gets past the first screen.';
     $('list').innerHTML=rows.map(card).join('');
@@ -192,7 +192,7 @@
     return `<article class="card${fresh.has(s.sid)?' fresh':''}" data-sid="${esc(s.sid)}">
       <div class="thumb">${s.thumb?`<img src="${esc(s.thumb)}" alt="">`:(s.step>=3?'hatching':'no hatch')}</div>
       <div><div class="title">${esc(s.company||'Unnamed company')}${s.name?`<small>· ${esc(s.name)}</small>`:''}</div>
-        ${s.email?`<div class="sub who"><b>${esc(s.you||'')}</b>${s.you?' · ':''}<a href="mailto:${esc(s.email)}">${esc(s.email)}</a></div>`:''}
+        ${s.email?`<div class="sub who"><b>${esc(s.you||'')}</b>${s.you?' · ':''}<a href="mailto:${esc(s.email)}">${esc(s.email)}</a>${s.unsubscribed?` · <span class="pill grey" title="Unsubscribed ${esc(fmt(s.unsubscribed))} — don't email">unsubscribed</span>`:''}</div>`:''}
         <div class="sub">${esc(s.biz||'no business typed')}${s.industry?` · ${esc(s.industry)}`:''}${s.brand?` · from ${esc(s.brand)}`:''}${s.tools&&s.tools.length?` · uses ${esc(s.tools.slice(0,4).join(', '))}${s.tools.length>4?` +${s.tools.length-4}`:''}`:''}</div>
         <div class="pills">${fresh.has(s.sid)?'<span class="pill new">updated</span>':''}<span class="pill ${s.step>=4?'ok':s.step>=3?'':'grey'}">${STEPS[s.step]||'Step '+s.step}${s.step===4&&s.tab?` · ${esc(s.tab)}`:''}</span>${s.share?`<span class="pill warn" title="Shared by ${esc(s.share.by||'?')} ${esc(ago(s.share.createdAt))}">shared · ${s.share.views||0} view${s.share.views===1?'':'s'}${s.share.lastViewAt?`, last ${esc(ago(s.share.lastViewAt))}`:''}</span>`:''}${s.done?'<span class="pill ok">Connected</span>':''}${team?`<span class="pill grey">Team: ${esc(team)}</span>`:''}${s.profileCount?`<span class="pill">${s.profileCount} profile${s.profileCount===1?'':'s'} created</span>`:''}${s.chatTurns?`<span class="pill">${s.chatTurns} chat message${s.chatTurns===1?'':'s'}</span>`:''}${s.hadPhoto?'<span class="pill warn">used a photo</span>':''}</div></div>
       <div class="side"><div class="when"><b>${esc(ago(s.savedAt))}</b>${esc(fmt(s.savedAt))}${dur(s)?`<br>${esc(dur(s))} on the page`:''}</div>

@@ -14,11 +14,13 @@ export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 export const emailKey = email => createHash('sha256').update(String(email).trim().toLowerCase()).digest('hex').slice(0, 32);
 
 // Spam Act 2003: the email promotes a call, so it identifies the sender and carries a working
-// opt-out. Unsubscribe replies land with Noah (reply-to) — honour them within 5 working days.
+// opt-out — a one-click unsubscribe link (lib/unsubscribe.js) plus List-Unsubscribe headers so
+// Gmail/Apple Mail show their own Unsubscribe button. A reply saying "unsubscribe" still
+// reaches Noah as a fallback.
 export const SENDER = 'Agent Hatchers Pty Ltd (ACN 690 308 242), Engine House, Floor 1/28-30 William St, Balaclava VIC 3182';
-const FOOT_TEXT = `You're getting this because you asked us to send your agent from agenthatchers.com. Don't want to hear from us again? Reply "unsubscribe" and we won't email you again. ${SENDER}.`;
+const WHY = "You're getting this because you asked us to send your agent from agenthatchers.com.";
 
-export function buildAgentEmail({ you, company, agentName, url, bookUrl = 'https://calendly.com/noah-agenthatchers/30min' }) {
+export function buildAgentEmail({ you, company, agentName, url, unsub = '', bookUrl = 'https://calendly.com/noah-agenthatchers/30min' }) {
   const first = String(you || '').trim().split(/\s+/)[0] || '';
   const agent = String(agentName || '').trim() || 'your agent';
   const co = String(company || '').trim();
@@ -37,7 +39,8 @@ export function buildAgentEmail({ you, company, agentName, url, bookUrl = 'https
     'Noah',
     'Agent Hatchers',
     '',
-    FOOT_TEXT
+    `${WHY} Don't want to hear from us again? ${unsub ? `Unsubscribe: ${unsub}` : 'Reply "unsubscribe" and we won\'t email you again.'}`,
+    `${SENDER}.`
   ].join('\n');
   const btn = (href, label, primary) => `<a href="${esc(href)}" style="display:inline-block;padding:13px 24px;border-radius:999px;font:600 15px/1 Arial,Helvetica,sans-serif;text-decoration:none;${primary ? 'background:#216bac;color:#ffffff' : 'background:#eef4f8;color:#16150f'}">${esc(label)}</a>`;
   const html = `<!doctype html><html><body style="margin:0;padding:0;background:#f4f1ea">
@@ -51,7 +54,7 @@ export function buildAgentEmail({ you, company, agentName, url, bookUrl = 'https
 <tr><td style="padding:16px 32px 0">${btn(bookUrl, 'Book a call', false)}</td></tr>
 <tr><td style="padding:28px 32px 32px;font:400 16px/1.6 Arial,Helvetica,sans-serif;color:#16150f">Noah<br><span style="color:#8a8a80">Agent Hatchers</span></td></tr>
 </table>
-<p style="max-width:520px;margin:16px auto 0;font:400 12px/1.5 Arial,Helvetica,sans-serif;color:#8a8a80">${esc(FOOT_TEXT)} <a href="https://agenthatchers.com/privacy-policy.html" style="color:#8a8a80">Privacy Policy</a></p>
+<p style="max-width:520px;margin:16px auto 0;font:400 12px/1.5 Arial,Helvetica,sans-serif;color:#8a8a80">${esc(WHY)} Don’t want to hear from us again? ${unsub ? `<a href="${esc(unsub)}" style="color:#8a8a80">Unsubscribe</a>.` : 'Reply “unsubscribe” and we won’t email you again.'}<br>${esc(SENDER)}. <a href="https://agenthatchers.com/privacy-policy.html" style="color:#8a8a80">Privacy Policy</a></p>
 </td></tr></table></body></html>`;
   return { subject, html, text };
 }
@@ -61,6 +64,8 @@ export async function sendAgentEmail(to, details, { fetchImpl = fetch, env = pro
   if (!env.RESEND_API_KEY) return { sent: false, reason: 'no RESEND_API_KEY' };
   if (!EMAIL_RE.test(String(to || ''))) return { sent: false, reason: 'bad address' };
   const { subject, html, text } = buildAgentEmail(details);
+  // RFC 8058 one-click: mail apps POST "List-Unsubscribe=One-Click" to the same URL.
+  const headers = details.unsub ? { 'List-Unsubscribe': `<${details.unsub}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } : undefined;
   try {
     const r = await fetchImpl('https://api.resend.com/emails', {
       method: 'POST',
@@ -68,7 +73,7 @@ export async function sendAgentEmail(to, details, { fetchImpl = fetch, env = pro
       body: JSON.stringify({
         from: env.EMAIL_FROM || 'Agent Hatchers <hello@agenthatchers.com>',
         to: [to], reply_to: env.EMAIL_REPLY_TO || 'noah@agenthatchers.com',
-        subject, html, text
+        subject, html, text, ...(headers ? { headers } : {})
       })
     });
     const body = await r.json().catch(() => ({}));
