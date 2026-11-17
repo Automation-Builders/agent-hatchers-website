@@ -17,7 +17,7 @@ test('email identifies the sender and offers an unsubscribe (Spam Act)', () => {
   const m = buildAgentEmail(details);
   for (const body of [m.text, m.html]) {
     assert.match(body, /Agent Hatchers Pty Ltd \(ACN 690 308 242\)/);
-    assert.match(body, /Reply (&quot;|")unsubscribe/);
+    assert.match(body, /Reply (&quot;|"|“)unsubscribe/);
   }
 });
 
@@ -72,4 +72,15 @@ test('bad address is refused before calling out', async () => {
 
 test('throttle key ignores case and spaces', () => {
   assert.equal(emailKey(' Jane@PipePros.com.au '), emailKey('jane@pipepros.com.au'));
+});
+
+test('with an unsubscribe link: footer link and one-click headers', async () => {
+  const unsub = 'https://agent-hatchers-portrait-proxy.vercel.app/api/unsubscribe?s=abc&e=f&t=x';
+  const m = buildAgentEmail({ ...details, unsub });
+  assert.ok(m.text.includes(`Unsubscribe: ${unsub}`));
+  assert.ok(m.html.includes('>Unsubscribe</a>'));
+  let body;
+  await sendAgentEmail('jane@pipepros.com.au', { ...details, unsub }, { env: { RESEND_API_KEY: 'k' }, fetchImpl: async (u, init) => { body = JSON.parse(init.body); return new Response('{"id":"1"}'); } });
+  assert.equal(body.headers['List-Unsubscribe'], `<${unsub}>`);
+  assert.equal(body.headers['List-Unsubscribe-Post'], 'List-Unsubscribe=One-Click');
 });

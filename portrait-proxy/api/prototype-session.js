@@ -29,6 +29,7 @@
 import { put, list, get, del } from '@vercel/blob';
 import { randomBytes } from 'node:crypto';
 import { sendAgentEmail, emailKey } from '../lib/agent-email.js';
+import { unsubUrl, unsubPath } from '../lib/unsubscribe.js';
 
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
   'https://agenthatchers.com,https://www.agenthatchers.com,http://localhost:8799')
@@ -137,6 +138,7 @@ async function listAll(prefix) {
 const MAIL_GAP = 24 * 60 * 60 * 1000;
 async function mailAgentLink(index, req) {
   const mailKey = `sessions-mail/${emailKey(index.email)}.json`;
+  if (await readJson(unsubPath(emailKey(index.email))).catch(() => null)) { index.mailed = { at: Date.now(), ok: false, reason: 'they unsubscribed earlier' }; return; }
   let last = null;
   try { last = await readJson(mailKey); } catch { last = null; }
   if (last && Date.now() - last.at < MAIL_GAP) { index.mailed = { at: Date.now(), ok: false, reason: 'already emailed that address today' }; return; }
@@ -147,7 +149,7 @@ async function mailAgentLink(index, req) {
   }
   const page = /^\/prototype\/[A-Za-z0-9/_-]*$/.test(index.page || '') ? index.page : '/prototype/';
   const url = `${SITE}${page}?share=${index.share.token}`;
-  const r = await sendAgentEmail(index.email, { you: index.you, company: index.company, agentName: index.name, url });
+  const r = await sendAgentEmail(index.email, { you: index.you, company: index.company, agentName: index.name, url, unsub: unsubUrl(index.sid, index.email) });
   index.mailed = { at: Date.now(), ok: r.sent, reason: r.sent ? '' : r.reason };
   if (r.sent) { try { await putJson(mailKey, { at: Date.now(), sid: index.sid }); } catch { /* the email still went */ } }
 }
@@ -355,6 +357,7 @@ export default async function handler(req, res) {
     if (index.done && !index.pinged.connected) { index.pinged.connected = true; pings.push('connected'); }
     await put(`sessions/${sid}.json`, raw, { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });
     if (prev && prev.mailed) index.mailed = prev.mailed;
+    if (prev && prev.unsubscribed) index.unsubscribed = prev.unsubscribed;
     if (pings.includes('contact')) await mailAgentLink(index, req);
     await put(`sessions-index/${sid}.json`, JSON.stringify(index), { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });
     for (const kind of pings) await slackPing(kind, index);
