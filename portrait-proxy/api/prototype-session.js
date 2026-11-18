@@ -65,7 +65,7 @@ async function slackPing(kind, index) {
   const lines = [
     index.you || index.email ? `*Who:* ${[index.you, index.email].filter(Boolean).join(' · ')}` : '',
     kind === 'contact' && index.mailed ? `*Email:* ${index.mailed.ok ? 'sent them their agent link' : `not sent (${index.mailed.reason})`}` : '',
-    kind === 'contact' && index.listed ? `*Mailing list:* ${index.listed.ok ? 'added to Resend contacts' : `not added (${index.listed.reason})`}` : '',
+    kind === 'contact' && index.listed ? `*Mailing list:* ${index.listed.ok ? (index.listed.reason || 'added to Resend contacts, segment "Prototype leads"') : `not added (${index.listed.reason})`}` : '',
     index.name ? `*Agent:* ${index.name}` : '',
     index.biz ? `*Business:* ${index.biz}${index.industry ? ` (${index.industry})` : ''}` : '',
     team ? `*Team proposed:* ${team}` : '',

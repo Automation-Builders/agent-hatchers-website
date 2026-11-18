@@ -32,6 +32,7 @@ test('endpoint: GET changes nothing, POST adds to the list, sends then skip', as
   globalThis.fetch = async (url, init = {}) => {
     url = String(url);
     if (url.includes('/emails')) { sent.push(JSON.parse(init.body)); return new Response('{"id":"e"}'); }
+    if (url.endsWith('/segments')) return new Response(init.method === 'POST' ? '{"id":"seg"}' : '{"data":[]}');
     if (url.includes('/contacts')) { contacts.push({ url, method: init.method, body: init.body ? JSON.parse(init.body) : null }); return new Response(init.method === 'GET' ? '{"unsubscribed":false}' : '{"id":"c"}'); }
     slack.push(init.body); return new Response('{}');
   };
