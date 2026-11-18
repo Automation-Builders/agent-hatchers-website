@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 84;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 85;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -789,11 +789,12 @@
       f.outerHTML=whoCard();saveSession();
       // lift the frosted glass and hand over the pick/Use buttons
       const row=root.querySelector('.hatch-row');if(row)row.classList.remove('is-veiled');
+      const sub=root.querySelector('.hatch-zone .ob-sub');if(sub)sub.textContent=`Three takes on your description. Click your favourite — it becomes ${state.name||'your agent'}’s avatar.`;
       const bar=root.querySelector('.hatch-actions');if(bar){bar.innerHTML=hatchActionsBar();bind();}
       // send it now rather than on the 12s throttle — this is the one field we can't lose
       if(captureOn&&state.sid){clearTimeout(syncTimer);pushSession();}};
   }
-  function hatchScreen(){return `<section class="ob-screen hatch-zone"><h1 class="ob-h">Hatching ${escapeHtml(state.name||'your agent')}…</h1><p class="ob-sub">Three takes on your description. Click your favourite — it becomes ${escapeHtml(state.name||'your agent')}’s avatar.</p><div class="ob-body"><div class="hatch-row${gated()?' is-veiled':''}" aria-live="polite">${[0,1,2].map(eggScene).join('')}</div>${whoCard()}</div><div class="ob-actions hatch-actions">${hatchActionsBar()}</div></section>`;}
+  function hatchScreen(){return `<section class="ob-screen hatch-zone"><h1 class="ob-h">Hatching ${escapeHtml(state.name||'your agent')}…</h1><p class="ob-sub">Three takes on your description. ${gated()?`Add your name and email below to see them, then pick your favourite.`:`Click your favourite — it becomes ${escapeHtml(state.name||'your agent')}’s avatar.`}</p><div class="ob-body"><div class="hatch-row${gated()?' is-veiled':''}" aria-live="polite">${[0,1,2].map(eggScene).join('')}</div>${whoCard()}</div><div class="ob-actions hatch-actions">${hatchActionsBar()}</div></section>`;}
   function initials(str){return String(str||'AH').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();}
   const marketLoader='<div class="hatch-loader"><img class="loader-egg" src="/egg-closed.webp" alt=""><span class="loader-txt">Hatching…</span></div>';
   // Review/share of a session that never reached the dashboard: its team portraits were never
@@ -1336,7 +1337,7 @@
     submit.onclick=()=>{const n=name.value.trim();if(!n){name.focus();return;}
       const p={id:'np'+(++cpSeq),name:n,desc:desc.value.trim(),img:'',step:0,status:'running',cancelled:false};
       state.profiles.push(p);noteProfileUsed();close();
-      notifHidden=false;notifOpen=true;drawNotifs();
+      notifHidden=false;notifOpen=!phoneNotif();drawNotifs();
       if(state.step===4&&state.tab==='profiles')render();
       runProfileJob(p);
     };
@@ -1374,7 +1375,19 @@
     tray.querySelectorAll('[data-nc-x]').forEach(b=>b.onclick=()=>{const p=state.profiles.find(q=>q.id===b.dataset.ncX);if(!p)return;if(p.status==='running')cancelProfile(p);else p.dismissed=true;drawNotifs();});
     tray.querySelectorAll('[data-nc-cancel]').forEach(b=>b.onclick=()=>{const p=state.profiles.find(q=>q.id===b.dataset.ncCancel);if(p)cancelProfile(p);drawNotifs();});
     tray.querySelectorAll('[data-nc-open]').forEach(b=>b.onclick=()=>{const p=state.profiles.find(q=>q.id===b.dataset.ncOpen);if(p)showProfile(p);});
+    placeNotif(tray);
   }
+  // Phones: the tray starts collapsed and sits above the dashboard footer (Book a call) and the
+  // bottom tab bar, so it never covers them.
+  const phoneNotif=()=>window.matchMedia('(max-width:640px)').matches;
+  function placeNotif(tray){
+    tray=tray||document.getElementById('notif');if(!tray)return;
+    if(!phoneNotif()){tray.style.bottom='';tray.style.maxHeight='';return;}
+    const tops=[...document.querySelectorAll('.dx-foot,.dx-tabbar')].filter(e=>e.offsetParent).map(e=>e.getBoundingClientRect().top).filter(t=>t>0&&t<window.innerHeight);
+    const gap=tops.length?window.innerHeight-Math.min(...tops):0;
+    tray.style.bottom=(gap+8)+'px';tray.style.maxHeight=`calc(100vh - ${gap+80}px)`;
+  }
+  window.addEventListener('resize',()=>placeNotif());
   function cancelProfile(p){p.cancelled=true;p.status='cancelled';if(state.step===4&&state.tab==='profiles')render();}
   // What a new profile can do, which connectors it needs and who it hands work to — a text
   // model reasons about the description (prototype-profile), else a keyword-built profile.
