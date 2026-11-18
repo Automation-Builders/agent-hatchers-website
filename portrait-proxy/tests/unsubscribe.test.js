@@ -28,8 +28,13 @@ test('endpoint: GET changes nothing, POST adds to the list, sends then skip', as
     list: async () => ({ blobs: [], hasMore: false }), del: async ps => ps.forEach(p => store.delete(p))
   }});
   Object.assign(process.env, { SESSIONS_KEY: 'secret', BLOB_READ_WRITE_TOKEN: 'x', RESEND_API_KEY: 'k', SLACK_BOT_TOKEN: 's' });
-  const sent = [], slack = [];
-  globalThis.fetch = async (url, init) => { if (String(url).includes('resend')) { sent.push(JSON.parse(init.body)); return new Response('{"id":"e"}'); } slack.push(init.body); return new Response('{}'); };
+  const sent = [], slack = [], contacts = [];
+  globalThis.fetch = async (url, init = {}) => {
+    url = String(url);
+    if (url.includes('/emails')) { sent.push(JSON.parse(init.body)); return new Response('{"id":"e"}'); }
+    if (url.includes('/contacts')) { contacts.push({ url, method: init.method, body: init.body ? JSON.parse(init.body) : null }); return new Response(init.method === 'GET' ? '{"unsubscribed":false}' : '{"id":"c"}'); }
+    slack.push(init.body); return new Response('{}');
+  };
   const { default: session } = await import('../api/prototype-session.js');
   const { default: unsub } = await import('../api/unsubscribe.js');
   const call = (h, req) => new Promise(ok => { const res = { setHeader() {}, status(c) { this.c = c; return this; }, json(b) { ok({ c: this.c, b }); }, send(b) { ok({ c: this.c, b }); }, end() { ok({ c: this.c }); } }; h({ headers: {}, query: {}, socket: {}, ...req }, res); });
@@ -51,6 +56,8 @@ test('endpoint: GET changes nothing, POST adds to the list, sends then skip', as
   assert.ok(store.has(`sessions-unsub/${query.e}.json`));
   assert.ok(JSON.parse(store.get('sessions-index/aaaaaaaa-0001.json')).unsubscribed);
   assert.ok(slack.some(b => b.includes('unsubscribed from our emails')));
+  assert.ok(contacts.some(c => c.method === 'POST' && c.body.email === 'jane@pipepros.com.au' && c.body.first_name === 'Jane'), 'added to the mailing list');
+  assert.ok(contacts.some(c => c.method === 'PATCH' && c.body && c.body.unsubscribed === true && c.url.endsWith(encodeURIComponent('jane@pipepros.com.au'))), 'unsubscribed in Resend too');
 
   await save({ sid: 'aaaaaaaa-0001', email: 'jane@pipepros.com.au', step: 4 });
   assert.ok(JSON.parse(store.get('sessions-index/aaaaaaaa-0001.json')).unsubscribed, 'a later save keeps the flag');
