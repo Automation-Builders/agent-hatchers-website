@@ -17,7 +17,7 @@ export const emailKey = email => createHash('sha256').update(String(email).trim(
 // opt-out — a one-click unsubscribe link (lib/unsubscribe.js) plus List-Unsubscribe headers so
 // Gmail/Apple Mail show their own Unsubscribe button. A reply saying "unsubscribe" still
 // reaches Noah as a fallback.
-export const SENDER = 'Agent Hatchers Pty Ltd (ACN 690 308 242), Engine House, Floor 1/28-30 William St, Balaclava VIC 3182';
+export const SENDER = 'Agent Hatchers Pty Ltd (ACN 690 308 242), Level 1, 184 Clarendon Street, South Melbourne VIC 3205';
 const WHY = "You're getting this because you asked us to send your agent from agenthatchers.com.";
 
 export function buildAgentEmail({ you, company, agentName, url, unsub = '', bookUrl = 'https://calendly.com/noah-agenthatchers/30min' }) {
