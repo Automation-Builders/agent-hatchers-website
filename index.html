@@ -2519,7 +2519,7 @@ html.lenis,html.lenis body{height:auto;}
       <div class="modal-actions">
         <button type="submit" class="btn btn-primary">Continue <span class="arrow">→</span></button>
       </div>
-      <p class="modal-note">By continuing you agree to our <a href="privacy-policy.html">Privacy Policy</a>. We use this to prep for the call. Nothing else.</p>
+      <p class="modal-note">We use this to prep for the call and to keep you posted about Agent Hatchers. Opt out any time. <a href="privacy-policy.html#booking">Privacy Policy</a></p>
     </form>
 
     <!-- Step 2: Calendly iframe (revealed after submit) -->
@@ -2543,6 +2543,8 @@ const CALENDLY_URL = 'https://calendly.com/noah-agenthatchers/30min';
 // node must allow this origin via "Allowed Origins (CORS)". Workflow must be Active.
 // Leave '' to disable network calls.
 const LEAD_WEBHOOK = 'https://n8n.automationbuilders.ai/webhook/5e644b5e-d54e-4a7e-83ea-ea1666b199f6';
+// Mailing list: booking leads also become Resend contacts (segment "Booked a call").
+const LIST_ENDPOINT = 'https://agent-hatchers-portrait-proxy.vercel.app/api/lead';
 
 /* ── HELPERS ── */
 function $(id){return document.getElementById(id);}
@@ -3343,6 +3345,8 @@ bookingForm.addEventListener('submit', async e => {
     source:  bookingSource
   };
   postLead('booking', data); // fire-and-forget — never block the calendar on the webhook
+  // …and onto the mailing list (Resend contacts, "Booked a call") — see portrait-proxy/api/lead.js
+  fetch(LIST_ENDPOINT, { method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify({ name: data.name, email: data.email, source: data.source }), keepalive: true }).catch(()=>{});
   if (window.ahTrack) ahTrack('Lead', { source: bookingSource }); // Meta: name/email step done — the name and email are never sent
 
   // Build Calendly URL with prefill + theme params so the iframe matches the site.

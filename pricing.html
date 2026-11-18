@@ -1308,7 +1308,7 @@ html.lenis,html.lenis body{height:auto;}
       <div class="modal-actions">
         <button type="submit" class="btn btn-primary">Continue <span class="arrow">→</span></button>
       </div>
-      <p class="modal-note">By continuing you agree to our <a href="privacy-policy.html">Privacy Policy</a>. We use this to prep for the call. Nothing else.</p>
+      <p class="modal-note">We use this to prep for the call and to keep you posted about Agent Hatchers. Opt out any time. <a href="privacy-policy.html#booking">Privacy Policy</a></p>
     </form>
 
     <!-- Step 2: Calendly iframe (revealed after submit) -->
@@ -1347,6 +1347,7 @@ $('bookingClose').addEventListener('click',function(){closeModal(bookingModal);}
 bookingForm.addEventListener('submit',async function(e){e.preventDefault();
  var data={name:$('bName').value.trim(),email:$('bEmail').value.trim(),urgency:$('bUrgency').value,source:bookingSource};
  postLead('booking',data);
+ fetch('https://agent-hatchers-portrait-proxy.vercel.app/api/lead',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({name:data.name,email:data.email,source:data.source}),keepalive:true}).catch(function(){}); /* mailing list: Resend contacts, "Booked a call" */
  if(window.ahTrack)ahTrack('Lead',{source:bookingSource}); /* meta pixel: name/email step done — name and email are never sent */
  var p=new URLSearchParams();if(data.name)p.set('name',data.name);if(data.email)p.set('email',data.email);
  p.set('hide_event_type_details','1');p.set('hide_gdpr_banner','1');p.set('background_color','f4f1ea');p.set('text_color','16150f');p.set('primary_color','216bac');p.set('embed_domain',location.hostname);p.set('embed_type','Inline'); /* so Calendly posts calendly.* events to this page */
