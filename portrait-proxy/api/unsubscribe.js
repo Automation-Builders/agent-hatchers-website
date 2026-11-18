@@ -8,6 +8,7 @@
 // See lib/unsubscribe.js for the token and lib/agent-email.js for where the link goes.
 import { put, get } from '@vercel/blob';
 import { checkUnsubToken, unsubPath } from '../lib/unsubscribe.js';
+import { markUnsubscribed } from '../lib/resend-contacts.js';
 
 const SID_RE = /^[a-z0-9-]{8,64}$/i, KEY_RE = /^[0-9a-f]{32}$/;
 const SLACK_CHANNEL = process.env.SLACK_CHANNEL || 'C0CCA9T995K';
@@ -55,6 +56,7 @@ export default async function handler(req, res) {
       await putJson(unsubPath(key), { at, sid });
       const index = await readJson(`sessions-index/${sid}.json`);
       if (index) { index.unsubscribed = at; await putJson(`sessions-index/${sid}.json`, index); }
+      if (index && index.email) await markUnsubscribed(index.email);   // off the Resend mailing list too
       await slackNote(`:no_bell: ${(index && (index.you || index.email)) || 'A prospect'}${index && index.company ? ` from *${index.company}*` : ''} unsubscribed from our emails`);
     }
     res.status(200).send(done);
