@@ -222,5 +222,23 @@ class PrototypeContractTests(unittest.TestCase):
         self.assertIn('data-action="download"', self.app)
         self.assertIn(".dl-modal", self.css)
 
+    def test_trial_hands_the_agent_to_sign_up_with_only_a_token(self):
+        # 19 Nov 2026 (playground-to-box step 6): "Start 30-day free trial" is the main action on
+        # the dashboard footer and the Connect screen, and comes back when a free limit is hit.
+        # The page saves the session, asks the proxy for a one-time link and goes there; the
+        # address carries only the token, never the email or business details.
+        self.assertIn('data-action="trial" data-source="dashboard"', self.app)
+        self.assertIn('data-action="trial" data-source="connect"', self.app)
+        self.assertIn("if(a==='trial'){startTrial(el,", self.app)
+        trial = self.app.split("async function startTrial(el,source){")[1].split("// Faithful port")[0]
+        self.assertIn("await pushSession();", trial)
+        self.assertIn("body:JSON.stringify({sid:state.sid})", trial)
+        self.assertIn("location.href=j.url;", trial)
+        self.assertNotIn("email", trial)
+        self.assertIn("replace('prototype-portrait','playground-handoff')", self.app)
+        self.assertIn("const offer=!VIEW_ONLY&&!!state.selectedImage;", self.app)
+        handoff = (ROOT.parent / "portrait-proxy" / "api" / "playground-handoff.js").read_text()
+        self.assertIn("x-handoff-key", handoff)
+
 if __name__ == "__main__":
     unittest.main()

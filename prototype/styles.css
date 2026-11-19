@@ -637,6 +637,8 @@ h1{font-weight:800}h2{font-weight:700}
 /* Create-button paywall popover */
 .create-pop{position:fixed;top:70px;right:24px;z-index:60;display:flex;align-items:center;gap:10px;max-width:340px;background:#fff;border:1px solid #f3dfae;border-left:4px solid #c07f1f;border-radius:14px;box-shadow:0 18px 44px rgba(20,25,35,.18);padding:13px 16px;font:600 .88rem 'Inter',system-ui;color:#7a5410;opacity:0;transform:translateY(-8px);transition:opacity .25s,transform .25s}
 .create-pop.show{opacity:1;transform:none}
+.create-pop a{color:inherit;text-decoration:underline}
+.create-pop .pop-trial{margin-top:8px;border:0;border-radius:999px;padding:8px 14px;background:#216bac;color:#fff;font:600 .82rem 'Inter',system-ui;cursor:pointer}
 .create-pop svg{width:18px;height:18px;flex:0 0 auto;stroke:#c07f1f;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 /* chat: typing indicator + recommended-agent chips under a real reply */
 
