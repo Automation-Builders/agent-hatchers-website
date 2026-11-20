@@ -12,24 +12,12 @@
 // lives in ../lib/team-research.js so it can be tested with a fake model.
 
 import { normaliseInput, researchTeam } from '../lib/team-research.js';
+import { applyCors, guard } from '../lib/guard.js';
 
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
-  'https://agenthatchers.com,https://www.agenthatchers.com,http://localhost:8799')
-  .split(',').map(s => s.trim()).filter(Boolean);
 const TEAM_MODEL = process.env.OPENROUTER_TEAM_MODEL || process.env.OPENROUTER_CHAT_MODEL || 'google/gemini-3.7-flash';
 const RESEARCH_MODEL = process.env.OPENROUTER_RESEARCH_MODEL || TEAM_MODEL;
 // OpenRouter's web plugin (about US$0.02 per research call at 5 results). TEAM_WEB_SEARCH=0 turns it off.
 const WEB_SEARCH = process.env.TEAM_WEB_SEARCH !== '0';
-
-function applyCors(res, origin) {
-  const allow = ALLOWED_ORIGINS.includes('*')
-    ? '*'
-    : (ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]);
-  res.setHeader('Access-Control-Allow-Origin', allow);
-  res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'content-type');
-}
 
 // `timeoutMs` aborts a call that would outlive the function; the budget in team-research.js sets it.
 async function callModel({ system, user, timeoutMs, ...params }) {
@@ -60,7 +48,7 @@ async function callModel({ system, user, timeoutMs, ...params }) {
 }
 
 export default async function handler(req, res) {
-  applyCors(res, req.headers.origin || '');
+  applyCors(req, res);
   if (req.method === 'OPTIONS') { res.status(204).end(); return; }
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }
   if (!process.env.OPENROUTER_API_KEY) { res.status(500).json({ error: 'Server is missing OPENROUTER_API_KEY' }); return; }
@@ -70,6 +58,7 @@ export default async function handler(req, res) {
   const input = normaliseInput(body);
   if (input.business.length < 2 && !input.industry) { res.status(400).json({ error: 'business too short' }); return; }
   if (input.roster.length < 3) { res.status(400).json({ error: 'roster missing' }); return; }
+  if (!(await guard(req, res, 'team'))) return;
 
   try {
     const out = await researchTeam(input, {

@@ -6,24 +6,13 @@
 // would loop in. The prototype shows the paywall from the second message onward.
 // The OpenRouter key lives ONLY in this function's environment.
 
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
-  'https://agenthatchers.com,https://www.agenthatchers.com,http://localhost:8799')
-  .split(',').map(s => s.trim()).filter(Boolean);
+import { applyCors, guard } from '../lib/guard.js';
+
 // Text model — cheap + smart. Override with OPENROUTER_CHAT_MODEL.
 const CHAT_MODEL = process.env.OPENROUTER_CHAT_MODEL || 'google/gemini-3.7-flash';
 
-function applyCors(res, origin) {
-  const allow = ALLOWED_ORIGINS.includes('*')
-    ? '*'
-    : (ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]);
-  res.setHeader('Access-Control-Allow-Origin', allow);
-  res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'content-type');
-}
-
 export default async function handler(req, res) {
-  applyCors(res, req.headers.origin || '');
+  applyCors(req, res);
   if (req.method === 'OPTIONS') { res.status(204).end(); return; }
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }
   if (!process.env.OPENROUTER_API_KEY) {
@@ -45,6 +34,7 @@ export default async function handler(req, res) {
     mcps: Array.isArray(a.mcps) ? a.mcps.slice(0, 6).map(m => String(m).slice(0, 30)) : []
   })) : [];
   if (question.length < 2) { res.status(400).json({ error: 'question too short' }); return; }
+  if (!(await guard(req, res, 'chat'))) return;
   // Prior turns of this conversation (client sends up to the last 10), so follow-up
   // replies stay consistent with what the agent already said.
   const history = (Array.isArray(body.history) ? body.history : [])
