@@ -15,6 +15,9 @@
     },
     "api/prototype-session.js": {
       "maxDuration": 30
+    },
+    "api/playground-handoff.js": {
+      "maxDuration": 30
     }
   }
 }

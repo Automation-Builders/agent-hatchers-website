@@ -157,3 +157,28 @@ Deletes are soft: the two blobs move to `sessions-trash/` and `sessions-trash-in
 what's recoverable with a Restore button (`PUT ?key=…&sid=…&by=<name>`, also logged and pinged).
 Anything older than `TRASH_DAYS` (default 30) is purged the next time the trash is listed
 (`GET ?key=…&trash=1`).
+
+## `api/playground-handoff.js` — playground to sign-up (Nov 2026)
+
+"Start 30-day free trial" in the prototype hands the hatched agent to sign-up on
+agenthatchers.ai. The page saves the session, then `POST {sid}` here returns
+`{ ok, url, expiresAt }`, with `url` = `https://agenthatchers.ai/register?v=4&setup=<token>`.
+A cleaned copy of the session (setup snapshot v1, `lib/handoff.js`) is frozen at
+`handoffs/<token>.json` in the private Blob store.
+
+The dashboard server claims it once: `POST {token}` with header `x-handoff-key: <HANDOFF_SECRET>`
+returns `{ ok, snapshot }`. A second claim is `410 used`, an old link `410 expired`. The claim
+drops the snapshot from the store.
+
+The snapshot holds the company (name, business, industry, website, tools), the main agent
+(name, look prompt, chosen image as a JPEG data URI, brand colours) and the researched team as a
+recommended list. It never holds the email, the visitor's name, chats, profiles or photos: the
+dashboard account's verified email is the owner.
+
+| Name | Required | Value |
+|---|---|---|
+| `HANDOFF_SECRET` | **yes** | 32+ random characters, the same value as `PLAYGROUND_HANDOFF_SECRET` on the dashboard server |
+| `HANDOFF_TTL_HOURS` | no | how long an unclaimed link works (default 24, max 72) |
+| `DASHBOARD_SIGNUP_URL` | no | default `https://agenthatchers.ai/register?v=4` |
+
+Without `HANDOFF_SECRET` the endpoint answers 503 and the page offers sign-up without the setup.
