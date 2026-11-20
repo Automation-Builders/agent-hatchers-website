@@ -6,24 +6,44 @@ Each prospect receives an unlisted GitHub Pages route at `/prototype/<company-sl
 
 Every page runs the same hatching experience (shared code in `app.js` / `styles.css`):
 
-1. **What can our agents do for you?** — one box: the prospect types what their business
-   does (or taps an example). Written for people who have never used an AI agent.
-2. **Your team** — the five/six agents that fit that business, one plain-English line each,
-   and a "how they work together" hand-off chain. Ends with "Ready to hatch your first agent?".
-3. **Create a profile** — company, agent name, type of company (prefilled) and the look.
-4. **Hatch** — three eggs hatch into three different designs; click one to pick it.
-5. **Dashboard** — a mimic of the live dashboard (`Hermes-Dashboard`, its v4 look: black,
-   pills, left sidebar), populated with the hatched character. Same sections in the same order
-   as the dashboard's sidebar: Home (the morning briefing), Agents, Chats, Feed (Soon),
-   Analytics (locked here), Config, Marketplace and Merch. Phones get the bottom tab bar.
-6. **Connect** — the dashboard's first-run screen for an account with no box yet
-   ("It's time to hatch…", Book a call, or "I have my own box" for the inline Connect Your Agent
-   form).
+1. **What can our agents do for you?** — industry, what the business does, website and tools.
+   Written for people who have never used an AI agent. (The separate "Your team" screen was
+   removed in September; the researched team now shows up in the dashboard.)
+2. **Create a profile** — company, agent name, type of company (prefilled) and the look.
+3. **Hatch** — three eggs hatch into three different designs behind frosted glass until the
+   prospect gives a name and email; then they click one to pick it.
+4. **Dashboard** — a mimic of the live dashboard (`Hermes-Dashboard`, its v5 look: light or dark
+   to match the visitor's computer, cool greys, Hatch Blue, Geist, a 72px labelled side rail and
+   thin cards), populated with the hatched character. The sections follow the dashboard's admin
+   sidebar in its order: Home, Agents, Chats, Analytics (locked here), Marketplace, Merch and
+   Feed (Soon); Connect apps at the foot opens the Config page (the dashboard's Settings → Apps).
+   The dashboard's Team and Marketing have no page here, and a real customer sees only Home, Chats
+   and Team. Phones get the bottom tab bar.
+5. **Connect** — the dashboard's first-run screen for an account with no box yet
+   ("It's time to hatch…", Start 30-day free trial, Book a call, or "I have my own box" for the
+   inline Connect Your Agent form).
 
-Steps 1–4 and Connect wear the dashboard's v4 onboarding frame (`SelfServeChrome.tsx`: black page,
-big centred heading, full-width pills); their styles are the `.ob` block at the end of
-`styles.css`. `dashboard-sync.json` records the Hermes-Dashboard commit the prototype was last
-matched to — the daily sync routine reads it and opens a PR when the dashboard changes.
+Steps 1–3 and Connect wear the dashboard's onboarding frame (`SelfServeChrome.tsx`: big centred
+heading, full-width pills) in the same v5 palette; their styles are the `.ob` block at the end of
+`styles.css`. Both blocks take their colours from the v5 tokens on `body.dx-on`, copied from
+the dashboard's `client/src/v4theme.css`, and the Geist font in `assets/fonts/geist/` is the
+dashboard's own file.
+
+## Keeping the dashboard copy in sync
+
+`dashboard-sync.json` records the Hermes-Dashboard commit the playground was last matched to
+(`dashboardCommit`, `syncedAt`) and the dashboard files it copies (`watch`). Nothing re-syncs it
+automatically. Hermes-Dashboard's `playground-copy` check reads `watch` on every dashboard pull
+request and, when one changes a watched file, labels the PR `playground-copy` and comments with
+the files. That is the signal to re-match the playground:
+
+1. Compare the flagged screens on agenthatchers.ai with the playground, at 1280px and 390px.
+2. Change the matching view in `app.js` and its rules in the `.dx` / `.ob` blocks; keep each
+   view's comment naming the component it copies.
+3. Update `dashboardCommit`, `syncedAt` and, if a copied file moved, `watch`.
+
+If the check stops appearing on dashboard PRs that touch these files, it is broken: look at
+`.github/workflows/playground-copy.yml` in Hermes-Dashboard.
 
 When the dashboard finishes generating (every marketplace and "Other profiles" portrait is
 drawn), a **Download your image** pop hands the prospect their hatched character as a PNG
@@ -49,7 +69,8 @@ page falls back to keyword ranking with the stock names.
 The dashboard markup is `marketScreen()` and the views it picks from (`homeView`,
 `profilesBoard`, `chatsView`, `marketplaceView`, …) in `app.js`; its styles are the `.dx` block at
 the end of `styles.css`, built from the dashboard's own tokens (`client/src/v4theme.css`). Each
-view names the dashboard component it copies — check that file when the dashboard changes.
+view names the dashboard component it copies — check that file when the dashboard changes, and
+keep the list in `dashboard-sync.json` (`watch`) in step with those comments.
 As in the dashboard, a Marketplace card opens the agent's side peek and **Install** lives there;
 Create offers New Chat, New Agent and New Skill.
 
