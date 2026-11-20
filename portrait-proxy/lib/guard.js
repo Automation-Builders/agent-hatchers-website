@@ -20,8 +20,10 @@
 //            Once the playground verifies an email, use a hash of the verified email here
 //            instead of the localStorage id (see `subjectOf`), and the limits keep their meaning.
 //   staff    a signed pass in `x-ah-pass`, minted on the sessions page with the SESSIONS_KEY
-//            (`mintStaffPass`). Staff are not limited and not counted against the daily cap; the
-//            spending cap on the OpenRouter key still applies to everyone.
+//            (`mintStaffPass`, 30 days for a team browser or 12 hours for a demo on someone
+//            else's computer). Signed with STAFF_PASS_SECRET only; rotating it revokes every pass.
+//            Staff are not limited and not counted against the daily cap; the spending cap on
+//            the OpenRouter key still applies to everyone.
 //
 // Counters live in Upstash Redis (Vercel Marketplace), read through its REST API with plain
 // fetch, so there is no new dependency. Locally and in tests (no VERCEL env) an in-memory map
@@ -32,9 +34,9 @@
 // the OpenRouter key bounds the money either way.
 // Slack is also told when the day's estimated spend passes 80% and 100% of the cap.
 //
-// Limits are per UTC day unless a class sets `window` (seconds). Override any number without a
-// code change with RATE_LIMITS, e.g. RATE_LIMITS='{"portrait":{"visitor":120}}', and the global
-// cap with DAILY_SPEND_CAP_CENTS.
+// Limits are per day (Australian Eastern time) unless a class sets `window` (seconds). Override
+// any number without a code change with RATE_LIMITS, e.g. RATE_LIMITS='{"portrait":{"visitor":120}}',
+// the global cap with DAILY_SPEND_CAP_CENTS and the per-IP spend with IP_SPEND_CAP_CENTS.
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 export const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
@@ -48,18 +50,24 @@ export const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
 // re-dressed in the chosen look), and a kept look edit redraws the marketplace again, so the
 // portrait numbers are sized for a visitor who uses all three hatches and all three edits.
 export const DEFAULT_LIMITS = {
-  portrait: { visitor: 180, ip: 400, cents: 8, paid: true },
+  portrait: { visitor: 180, ip: 200, cents: 8, paid: true },
   team:     { visitor: 10,  ip: 30,  cents: 4, paid: true },
   profile:  { visitor: 6,   ip: 15,  cents: 2, paid: true },
   chat:     { visitor: 150, ip: 300, cents: 1, paid: true },   // 5 free turns per thread, 20+ threads
   brand:    { visitor: 10,  ip: 30 },
-  session:  { ip: 600, window: 3600 },   // the page saves at most once every 12 s per tab
+  session:  { ip: 1200, window: 3600 },  // the page saves at most once every 12 s per tab
   ping:     { ip: 30 },                   // Slack milestone pings from session saves
   mail:     { ip: 10 },                   // prospect emails + mailing-list adds from session saves
   lead:     { ip: 5 },
   handoff:  { ip: 20 },
 };
 const DEFAULT_CAP_CENTS = 5000;           // US$50 a day across all paid endpoints
+// One IP can spend at most this much a day, so a couple of addresses can't use up the shared cap
+// for every prospect. Sized for one visitor who uses every free hatch, edit, profile and chat.
+const DEFAULT_IP_CAP_CENTS = 1500;
+// "A day" runs midnight to midnight Australian Eastern Standard Time (UTC+10), where our
+// prospects are, not UTC, which would reset at 10-11am Sydney time.
+const DAY_OFFSET_MS = 10 * 3600000;
 
 const MESSAGES = {
   visitor: 'You’ve reached today’s free limit for the playground. Start your 30-day free trial to keep going, or come back tomorrow.',
@@ -75,10 +83,12 @@ function limits() {
   for (const [k, v] of Object.entries(DEFAULT_LIMITS)) out[k] = { ...v, ...(over[k] && typeof over[k] === 'object' ? over[k] : {}) };
   return out;
 }
-const capCents = () => {
-  const n = Number(process.env.DAILY_SPEND_CAP_CENTS);
-  return Number.isFinite(n) && n >= 0 ? n : DEFAULT_CAP_CENTS;
+const centsEnv = (name, dflt) => {
+  const n = Number(process.env[name]);
+  return process.env[name] !== undefined && process.env[name] !== '' && Number.isFinite(n) && n >= 0 ? n : dflt;
 };
+const capCents = () => centsEnv('DAILY_SPEND_CAP_CENTS', DEFAULT_CAP_CENTS);
+const ipCapCents = () => centsEnv('IP_SPEND_CAP_CENTS', DEFAULT_IP_CAP_CENTS);
 
 // ---------- CORS (headers only; the guard below is what refuses) ----------
 export function applyCors(req, res, methods = 'POST,OPTIONS', extraHeaders = '') {
@@ -123,18 +133,21 @@ export function subjectOf(req) {
 }
 
 // ---------- staff pass ----------
-const PASS_DAYS = 30;
+const PASS_HOURS = 30 * 24;
+// Its own secret, never SESSIONS_KEY (which travels in query strings). Without it no pass is
+// minted or accepted, and the limits apply to everyone, team included.
 const passSecret = () => {
-  const s = process.env.STAFF_PASS_SECRET || process.env.SESSIONS_KEY || '';
-  return s.length >= 16 ? s : '';
+  const s = process.env.STAFF_PASS_SECRET || '';
+  return s.length >= 32 ? s : '';
 };
 const sign = (secret, data) => createHmac('sha256', secret).update('ah-staff-pass:' + data).digest('base64url');
-// `v1.<payload>.<sig>`, payload = base64url JSON { n: name, exp: ms }. Rotating the secret (or
-// SESSIONS_KEY when no STAFF_PASS_SECRET is set) revokes every pass at once.
-export function mintStaffPass(name, now = Date.now(), days = PASS_DAYS) {
+// `v1.<payload>.<sig>`, payload = base64url JSON { n: name, exp: ms }. Rotating
+// STAFF_PASS_SECRET revokes every pass at once.
+export function mintStaffPass(name, now = Date.now(), hours = PASS_HOURS) {
   const secret = passSecret();
   if (!secret) return null;
-  const exp = now + days * 86400000;
+  const h = Math.max(1, Math.min(PASS_HOURS, Number(hours) || PASS_HOURS));
+  const exp = now + h * 3600000;
   const payload = Buffer.from(JSON.stringify({ n: String(name || '').slice(0, 40), exp })).toString('base64url');
   return { pass: `v1.${payload}.${sign(secret, payload)}`, exp };
 }
@@ -174,7 +187,7 @@ async function incr(store, items, now) {
     method: 'POST',
     headers: { Authorization: `Bearer ${store.token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(cmds),
-    signal: AbortSignal.timeout(2500),
+    signal: AbortSignal.timeout(1500),
   });
   if (!r.ok) throw new Error(`store ${r.status}`);
   const out = await r.json();
@@ -187,7 +200,7 @@ async function incr(store, items, now) {
 }
 
 // ---------- the check ----------
-const dayStart = now => Math.floor(now / 86400000) * 86400000;
+const dayStart = now => Math.floor((now + DAY_OFFSET_MS) / 86400000) * 86400000 - DAY_OFFSET_MS;
 // Decide whether this request may go ahead. Never writes to `res`.
 //   → { ok:true, staff? } or { ok:false, status:429|503, scope, retryAfter, message }
 export async function allow(req, cls, { now = Date.now() } = {}) {
@@ -231,19 +244,23 @@ async function count(store, req, cls, rule, now) {
   // hammering past its limit can't use up everyone's day.
   if (rule.cents) {
     const day = dayStart(now);
-    const [spent] = await incr(store, [{ key: `spend:${day}`, by: rule.cents, ttl: Math.ceil((day + 86400000 - now) / 1000) + 3600 }], now);
+    const dayTtl = Math.ceil((day + 86400000 - now) / 1000) + 3600;
+    const dayLeft = Math.max(1, Math.ceil((day + 86400000 - now) / 1000));
+    // First what this IP has spent today, then the shared total. A call refused here is not
+    // added to the shared total.
+    const [ipSpent] = await incr(store, [{ key: `spend-ip:${ip}:${day}`, by: rule.cents, ttl: dayTtl }], now);
+    if (ipSpent > ipCapCents()) return { ok: false, status: 429, scope: 'ip', retryAfter: dayLeft, message: MESSAGES.ip };
+    const [spent] = await incr(store, [{ key: `spend:${day}`, by: rule.cents, ttl: dayTtl }], now);
     const cap = capCents();
     // The counter only goes up, so exactly one call crosses each line: that call tells Slack.
     for (const [share, text] of [[0.8, 'has used 80% of'], [1, 'has reached']]) {
       const line = cap * share;
       if (!store.memory && cap > 0 && spent - rule.cents < line && spent >= line) {
         await notify(`:money_with_wings: The playground ${text} today’s estimated AI budget (US$${(cap / 100).toFixed(0)}).` +
-          (share === 1 ? ' Free use is paused until 00:00 UTC; team demo passes still work.' : ''));
+          (share === 1 ? ' Free use is paused until midnight (Sydney); team demo passes still work.' : ''));
       }
     }
-    if (spent > cap) {
-      return { ok: false, status: 429, scope: 'daily', retryAfter: Math.max(1, Math.ceil((day + 86400000 - now) / 1000)), message: MESSAGES.daily };
-    }
+    if (spent > cap) return { ok: false, status: 429, scope: 'daily', retryAfter: dayLeft, message: MESSAGES.daily };
   }
   return { ok: true };
 }
@@ -254,12 +271,12 @@ async function notify(text) {
   try {
     if (bot) {
       await fetch('https://slack.com/api/chat.postMessage', {
-        method: 'POST', signal: AbortSignal.timeout(2500),
+        method: 'POST', signal: AbortSignal.timeout(1500),
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${bot}` },
         body: JSON.stringify({ channel: process.env.SLACK_CHANNEL || 'C0CCA9T995K', text }),
       });
     } else if (hook) {
-      await fetch(hook, { method: 'POST', signal: AbortSignal.timeout(2500), headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) });
+      await fetch(hook, { method: 'POST', signal: AbortSignal.timeout(1500), headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) });
     }
   } catch { /* a missed note is not worth failing the call */ }
 }

@@ -6,6 +6,7 @@ delete process.env.KV_REST_API_URL; delete process.env.KV_REST_API_TOKEN;
 delete process.env.UPSTASH_REDIS_REST_URL; delete process.env.UPSTASH_REDIS_REST_TOKEN;
 process.env.OPENROUTER_API_KEY = 'test-key';
 process.env.SESSIONS_KEY = 'a-long-test-sessions-key';
+process.env.STAFF_PASS_SECRET = 'p'.repeat(40);
 
 const guardLib = await import('../lib/guard.js');
 const { allow, clientIp, subjectOf, mintStaffPass, verifyStaffPass, _resetMemory } = guardLib;
@@ -22,7 +23,7 @@ const call = (handler, r) => new Promise(ok => {
   const res = { h: {}, setHeader(k, v) { this.h[k.toLowerCase()] = v; }, status(c) { this.c = c; return this; }, json(b) { ok({ c: this.c, b, h: this.h }); }, end() { ok({ c: this.c, h: this.h }); }, send(b) { ok({ c: this.c, b, h: this.h }); } };
   handler(r, res);
 });
-const fresh = (limits) => { _resetMemory(); upstream = []; process.env.RATE_LIMITS = JSON.stringify(limits || {}); delete process.env.DAILY_SPEND_CAP_CENTS; };
+const fresh = (limits) => { _resetMemory(); upstream = []; process.env.RATE_LIMITS = JSON.stringify(limits || {}); delete process.env.DAILY_SPEND_CAP_CENTS; delete process.env.IP_SPEND_CAP_CENTS; };
 
 const roster = [1, 2, 3, 4].map(i => ({ id: 'a' + i, name: 'Agent ' + i, summary: 'does things' }));
 const ENDPOINTS = {
@@ -80,9 +81,9 @@ test('the global daily cap refuses everyone once the estimated spend is used up,
   assert.equal(third.ok, false); assert.equal(third.scope, 'daily'); assert.equal(third.status, 429);
 });
 
-test('limits reset the next UTC day', async () => {
+test('limits reset at midnight Australian Eastern time (14:00 UTC), not midnight UTC', async () => {
   fresh({ team: { visitor: 1, ip: 1 } });
-  const day = Date.UTC(2026, 10, 20, 23, 59);
+  const day = Date.UTC(2026, 10, 20, 13, 59);   // 23:59 in Brisbane
   assert.equal((await allow(req(), 'team', { now: day })).ok, true);
   assert.equal((await allow(req(), 'team', { now: day + 30000 })).ok, false);
   assert.equal((await allow(req(), 'team', { now: day + 120000 })).ok, true);
@@ -101,6 +102,31 @@ test('a staff pass lifts the limits; a forged, expired or URL-made one does not'
   assert.ok(payload);
   assert.equal((await allow(req(), 'portrait')).ok, true);
   assert.equal((await allow(req({ 'x-ah-pass': forged }), 'portrait')).ok, false);
+});
+
+test('one IP can only spend its own share of the day, and refused calls do not eat the shared cap', async () => {
+  fresh({ portrait: { visitor: 100, ip: 100, cents: 8 } });
+  process.env.IP_SPEND_CAP_CENTS = '16';
+  process.env.DAILY_SPEND_CAP_CENTS = '24';
+  const a = { 'x-vercel-forwarded-for': '203.0.113.50' }, b = { 'x-vercel-forwarded-for': '203.0.113.51' };
+  assert.equal((await allow(req(a), 'portrait')).ok, true);
+  assert.equal((await allow(req(a), 'portrait')).ok, true);
+  for (let i = 0; i < 4; i++) { const r = await allow(req(a), 'portrait'); assert.equal(r.ok, false); assert.equal(r.scope, 'ip'); }
+  assert.equal((await allow(req(b), 'portrait')).ok, true, 'the other IP still has the last 8 cents of the day');
+  assert.equal((await allow(req(b), 'portrait')).scope, 'daily');
+});
+
+test('a 12-hour pass for someone else\'s computer expires after 12 hours; no pass without STAFF_PASS_SECRET', async () => {
+  const t0 = Date.now();
+  const short = mintStaffPass('Noah', t0, 12);
+  assert.ok(verifyStaffPass(short.pass, t0 + 11 * 3600000));
+  assert.equal(verifyStaffPass(short.pass, t0 + 13 * 3600000), null);
+  const secret = process.env.STAFF_PASS_SECRET;
+  try {
+    delete process.env.STAFF_PASS_SECRET;
+    assert.equal(mintStaffPass('Noah'), null, 'SESSIONS_KEY alone does not sign passes');
+    assert.equal(verifyStaffPass(short.pass), null);
+  } finally { process.env.STAFF_PASS_SECRET = secret; }
 });
 
 test('on Vercel with no counter store the paid endpoints refuse (503) and the free ones carry on', async () => {

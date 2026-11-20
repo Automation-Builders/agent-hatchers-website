@@ -10,7 +10,7 @@
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 
-const MAX_HOPS = 4;
+const MAX_HOPS = 8;
 
 function v4Private(ip) {
   const p = ip.split('.').map(Number);
@@ -37,9 +37,18 @@ export function isPrivateAddress(ip) {
     return v4Private(`${hi >> 8}.${hi & 255}.${lo >> 8}.${lo & 255}`);
   }
   if (s === '::' || s === '::1') return true;
+  // Forms that carry an IPv4 address inside: IPv4-compatible (::a.b.c.d / ::7f00:1),
+  // ::ffff:0:a.b.c.d, 6to4 (2002:AABB:CCDD::). Check the IPv4 part.
+  const tail4 = /^(?:0*:)*:?(?:ffff:0:)?(\d+\.\d+\.\d+\.\d+)$/.exec(s);
+  if (tail4) return v4Private(tail4[1]);
+  const compat = /^::([0-9a-f]{1,4}):([0-9a-f]{1,4})$/.exec(s);
+  if (compat) { const hi = parseInt(compat[1], 16), lo = parseInt(compat[2], 16); return v4Private(`${hi >> 8}.${hi & 255}.${lo >> 8}.${lo & 255}`); }
+  const sixToFour = /^2002:([0-9a-f]{1,4}):([0-9a-f]{1,4})(?::|$)/.exec(s);
+  if (sixToFour) { const hi = parseInt(sixToFour[1], 16), lo = parseInt(sixToFour[2], 16); if (v4Private(`${hi >> 8}.${hi & 255}.${lo >> 8}.${lo & 255}`)) return true; }
   const first = parseInt(s.split(':')[0] || '0', 16);
   return (first & 0xfe00) === 0xfc00 ||           // fc00::/7 unique local
     (first & 0xffc0) === 0xfe80 ||                 // fe80::/10 link-local
+    (first & 0xffc0) === 0xfec0 ||                 // fec0::/10 old site-local
     (first & 0xff00) === 0xff00 ||                 // multicast
     s.startsWith('64:ff9b:') ||                    // NAT64 can reach IPv4 private ranges
     s.startsWith('2001:db8:');

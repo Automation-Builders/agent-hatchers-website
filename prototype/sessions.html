@@ -85,9 +85,11 @@
   $('demo').onclick=async()=>{
     if(passExp()>Date.now()){try{localStorage.removeItem(PASS_KEY);}catch(e){}drawDemo();toast('Demo mode is off. This browser has the normal free limits again.');return;}
     const by=who();if(!by){alert('Put your name in the box at the top first — demo passes are logged.');$('by').focus();return;}
-    try{const r=await fetch(ENDPOINT+'?key='+encodeURIComponent($('key').value.trim())+'&by='+encodeURIComponent(by)+'&pass=1',{cache:'no-store'});const j=await r.json().catch(()=>({}));
+    // On someone else's computer (a demo at a prospect's office) the pass lasts 12 hours, not 30 days.
+    const own=confirm('Is this your own computer?\n\nOK: demo mode for 30 days.\nCancel: 12 hours only, for a demo on someone else\u2019s computer (remember to clear the sessions key there too).');
+    try{const r=await fetch(ENDPOINT+'?key='+encodeURIComponent($('key').value.trim())+'&by='+encodeURIComponent(by)+'&pass=1'+(own?'':'&hours=12'),{cache:'no-store'});const j=await r.json().catch(()=>({}));
       if(!r.ok||!j.pass)throw new Error(j.error||('HTTP '+r.status));
-      localStorage.setItem(PASS_KEY,j.pass);drawDemo();toast('Demo mode is on in this browser for 30 days: hatch, redesign, add profiles and chat without the free limits.');
+      localStorage.setItem(PASS_KEY,j.pass);drawDemo();toast(`Demo mode is on in this browser for ${own?'30 days':'12 hours'}: hatch, redesign, add profiles and chat without the free limits.`);
     }catch(e){alert('Could not turn on demo mode: '+e.message);}
   };
   drawDemo();

@@ -129,20 +129,22 @@ async function listAll(prefix) {
 // same one sessions.html would mint) and email it to them. One email per address per day, so
 // the open POST can't be used to mail someone over and over.
 const MAIL_GAP = 24 * 60 * 60 * 1000;
+// Returns false when the per-IP limit held it back, so the caller can try again on a later save.
 async function mailAgentLink(index, req) {
   const mailKey = `sessions-mail/${emailKey(index.email)}.json`;
-  // The save is public, so cap how many new addresses one IP can mail or list per day.
-  if (!(await allow(req, 'mail')).ok) {
-    const skipped = { at: Date.now(), ok: false, reason: 'too many new emails from one address today' };
-    index.listed = skipped; index.mailed = skipped; return;
+  let last = null;
+  try { last = await readJson(mailKey); } catch { last = null; }
+  // The save is public, so cap how many new addresses one IP can mail or list per day. An address
+  // already emailed today doesn't count (it won't be emailed again anyway).
+  if (!(last && Date.now() - last.at < MAIL_GAP) && !(await allow(req, 'mail')).ok) {
+    index.mailed = { at: Date.now(), ok: false, reason: 'held back: too many new emails from one connection today; tries again on a later save' };
+    return false;
   }
   // onto the mailing list first, so the contact exists whatever happens to the email
   const listed = await upsertContact({ email: index.email, you: index.you, company: index.company });
   index.listed = { at: Date.now(), ok: listed.ok, reason: listed.reason };
   if (await readJson(unsubPath(emailKey(index.email))).catch(() => null)) { index.mailed = { at: Date.now(), ok: false, reason: 'they unsubscribed earlier' }; return; }
   if (await contactUnsubscribed(index.email)) { index.mailed = { at: Date.now(), ok: false, reason: 'they unsubscribed in Resend' }; return; }
-  let last = null;
-  try { last = await readJson(mailKey); } catch { last = null; }
   if (last && Date.now() - last.at < MAIL_GAP) { index.mailed = { at: Date.now(), ok: false, reason: 'already emailed that address today' }; return; }
   if (!(index.share && index.share.token)) {
     index.share = { token: newToken(), createdAt: Date.now(), by: 'auto (prospect email)', views: 0 };
@@ -204,8 +206,9 @@ export default async function handler(req, res) {
     if (req.query && req.query.pass) {
       const { by } = actor(req);
       if (!by) { res.status(400).json({ error: 'Say who you are first — demo passes are logged (by=<your name>)' }); return; }
-      const minted = mintStaffPass(by);
-      if (!minted) { res.status(500).json({ error: 'Set STAFF_PASS_SECRET (16+ characters) to mint demo passes' }); return; }
+      // 30 days for a team member's own browser; `hours=12` for a demo on someone else's computer.
+      const minted = mintStaffPass(by, Date.now(), Number(req.query.hours) || undefined);
+      if (!minted) { res.status(500).json({ error: 'Set STAFF_PASS_SECRET (32+ random characters) on the proxy to mint demo passes' }); return; }
       await logAction('pass', 'demo-pass', req, { company: 'their browser', name: '', step: null });
       res.setHeader('Cache-Control', 'no-store'); res.status(200).json({ ok: true, by, ...minted });
       return;
@@ -365,7 +368,7 @@ export default async function handler(req, res) {
     index.pinged = Object.assign({}, prev && prev.pinged);
     if (prev && prev.share) index.share = prev.share;             // a saved-again session stays shared
     const pings = [];
-    if (!prev && !index.pinged.created) { index.pinged.created = true; pings.push('created'); }
+    if ((!prev && !index.pinged.created) || index.pinged.created === false) { index.pinged.created = true; pings.push('created'); }   // false = held back by the ping limit earlier
     if (index.email && !index.pinged.contact) { index.pinged.contact = true; pings.push('contact'); }
     if (index.step >= 4 && !index.pinged.hatched) { index.pinged.hatched = true; pings.push('hatched'); }
     if (index.done && !index.pinged.connected) { index.pinged.connected = true; pings.push('connected'); }
@@ -373,10 +376,13 @@ export default async function handler(req, res) {
     if (prev && prev.mailed) index.mailed = prev.mailed;
     if (prev && prev.unsubscribed) index.unsubscribed = prev.unsubscribed;
     if (prev && prev.listed) index.listed = prev.listed;
-    if (pings.includes('contact')) await mailAgentLink(index, req);
+    // Pings and emails held back by a per-IP limit are not marked done, so a later save retries.
+    const pingOk = pings.length ? (await allow(req, 'ping')).ok : true;
+    if (!pingOk) for (const k of pings) if (k !== 'contact') index.pinged[k] = false;
+    if (pings.includes('contact') && (await mailAgentLink(index, req)) === false) index.pinged.contact = false;
     await put(`sessions-index/${sid}.json`, JSON.stringify(index), { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });
     // New session ids are free to make, so the pings one IP can trigger are capped too.
-    if (pings.length && (await allow(req, 'ping')).ok) for (const kind of pings) await slackPing(kind, index);
+    if (pingOk) for (const kind of pings) if (kind !== 'contact' || index.pinged.contact) await slackPing(kind, index);
     res.setHeader('Cache-Control', 'no-store');
     res.status(200).json({ ok: true, sid, bytes: raw.length });
   } catch (e) {

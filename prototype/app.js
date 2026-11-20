@@ -66,12 +66,19 @@
   const staffPass=()=>{try{const p=localStorage.getItem(PASS_KEY)||'';const exp=JSON.parse(atob(p.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).exp;return exp>Date.now()?p:'';}catch(e){return '';}};
   const passHeaders=h=>{const p=staffPass();if(p)h['x-ah-pass']=p;return h;};
   const proxyHeaders=()=>passHeaders({'Content-Type':'application/json','x-ah-visitor':visitorId});
+  // POST to a proxy endpoint with the visitor id and pass. If the browser blocks that (a proxy
+  // older than build 87 allows only content-type, e.g. mid-deploy or after a rollback), try once
+  // more with the plain header so the playground keeps working; the proxy then counts by IP.
+  async function proxyPost(url,payload,extra){
+    try{return await fetch(url,{method:'POST',headers:proxyHeaders(),body:JSON.stringify(payload),...(extra||{})});}
+    catch(e){if(extra&&extra.signal&&extra.signal.aborted)throw e;return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),...(extra||{})});}
+  }
   // The proxy refused: today's free limit is used up (429) or can't be checked (503). Say so
   // once (calls arrive in bursts) and tell the caller not to retry.
   let limitShownAt=0;
   function limitHit(res,body){
     if(res.status!==429&&res.status!==503)return false;
-    if(Date.now()-limitShownAt>8000){limitShownAt=Date.now();payPop((body&&body.error)||'You’ve reached today’s free limit for the playground.');}
+    if(res.status===429&&Date.now()-limitShownAt>8000){limitShownAt=Date.now();payPop((body&&body.error)||'You’ve reached today’s free limit for the playground.');}
     return true;
   }
   const recommended = new Set(config.recommendedAgents||[]);
@@ -147,7 +154,7 @@
     for(let attempt=0;attempt<2&&!result;attempt++){
       if(attempt) await sleep(600);
       try{
-        const res=await fetch(teamEndpoint,{method:'POST',headers:proxyHeaders(),body:JSON.stringify({business:research,industry:extra.industry||'',company:state.company||config.company||'',website:state.website||'',tools:state.tools||[],connectors:extra.connectors||[],roster})});
+        const res=await proxyPost(teamEndpoint,{business:research,industry:extra.industry||'',company:state.company||config.company||'',website:state.website||'',tools:state.tools||[],connectors:extra.connectors||[],roster});
         const body=await res.json().catch(()=>({}));
         if(res.ok&&body&&Array.isArray(body.team)&&body.team.length>=4){
           const lines={};const ids=[];const agents={};
@@ -987,7 +994,7 @@
     for(let attempt=0;attempt<2;attempt++){
       if(attempt) await sleep(700);
       try{
-        const res=await fetch(chatEndpoint,{method:'POST',headers:proxyHeaders(),body:JSON.stringify({question,agent:agentName,company:co(),business:state.biz,roster,history:history||[],turn:turn||1})});
+        const res=await proxyPost(chatEndpoint,{question,agent:agentName,company:co(),business:state.biz,roster,history:history||[],turn:turn||1});
         const body=await res.json().catch(()=>({}));
         if(res.ok&&body&&body.reply)return String(body.reply);
         if(res.status===429||res.status===503)return String((body&&body.error)||'You’ve reached today’s free chat limit for the playground.');
@@ -1465,7 +1472,7 @@
       if(attempt)await sleep(600);
       try{
         const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),25000);
-        const res=await fetch(profileEndpoint,{method:'POST',headers:proxyHeaders(),body:JSON.stringify({name:p.name,description:p.desc,company:co(),business:state.biz,roster,connectors,tools:state.tools||[]}),signal:ctl.signal});
+        const res=await proxyPost(profileEndpoint,{name:p.name,description:p.desc,company:co(),business:state.biz,roster,connectors,tools:state.tools||[]},{signal:ctl.signal});
         clearTimeout(t);
         const body=await res.json().catch(()=>({}));
         if(res.ok&&body&&Array.isArray(body.outcomes)&&body.outcomes.length>=4){
@@ -1672,7 +1679,7 @@
     url=String(url||'').trim();if(!url)return;
     state.refError='';state.refBusy=true;renderReference();
     try{
-      const res=await fetch(brandEndpoint,{method:'POST',headers:proxyHeaders(),body:JSON.stringify({url})});
+      const res=await proxyPost(brandEndpoint,{url});
       const body=await res.json().catch(()=>({}));
       if(!res.ok||!body||!body.name)throw new Error((body&&body.error)||'lookup failed');
       const logo=body.logo?await downscale(body.logo,512):'';
@@ -1742,7 +1749,7 @@
     for(let attempt=0;attempt<3;attempt++){
       if(attempt) await sleep(900*attempt);
       try{
-        const res = await fetch(portraitEndpoint,{method:'POST',headers:proxyHeaders(),body:JSON.stringify(params)});
+        const res = await proxyPost(portraitEndpoint,params);
         const body = await res.json().catch(()=>({}));
         if(res.ok && body && body.image) return String(body.image);
         if(res.status===400||limitHit(res,body)) break; // bad input or a used-up limit won't improve with retries
