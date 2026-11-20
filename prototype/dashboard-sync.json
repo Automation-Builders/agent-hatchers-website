@@ -1,5 +1,35 @@
 {
   "dashboardRepo": "Automation-Builders/Hermes-Dashboard",
-  "dashboardCommit": "c94d11d86477e010a3efd4e0f32536d301a971ec",
-  "syncedAt": "2026-10-09"
+  "dashboardCommit": "831cad0bc49fd7c7f3ce194bd6103997f4c99342",
+  "syncedAt": "2026-11-20",
+  "look": "v5",
+  "watch": [
+    "LibreChat/client/src/v4theme.css",
+    "LibreChat/client/src/components/Nav/sectionNav.ts",
+    "LibreChat/client/src/components/Nav/V4Sidebar.tsx",
+    "LibreChat/client/src/components/Nav/MobileTabBar.tsx",
+    "LibreChat/client/src/components/Nav/Nav.tsx",
+    "LibreChat/client/src/components/Nav/AgentPicker.tsx",
+    "LibreChat/client/src/components/Hermes/HomePage.tsx",
+    "LibreChat/client/src/components/Hermes/HomeAgentChip.tsx",
+    "LibreChat/client/src/components/Hermes/HomeActivity.tsx",
+    "LibreChat/client/src/components/Hermes/HomeRecentChats.tsx",
+    "LibreChat/client/src/components/Hermes/home.css",
+    "LibreChat/client/src/components/Hermes/TeammateChatHeader.tsx",
+    "LibreChat/client/src/components/Chat/ChatView.tsx",
+    "LibreChat/client/src/components/Chat/chats.css",
+    "LibreChat/client/src/components/Agents/Marketplace.tsx",
+    "LibreChat/client/src/components/Marketplace/MarketplacePage.tsx",
+    "LibreChat/client/src/components/Marketplace/AgentCard.tsx",
+    "LibreChat/client/src/components/Marketplace/AgentPeek.tsx",
+    "LibreChat/client/src/components/Feed/FeedPage.tsx",
+    "LibreChat/client/src/components/Analytics/AnalyticsPage.tsx",
+    "LibreChat/client/src/components/Settings/ConfigurationPage.tsx",
+    "LibreChat/client/src/components/Merch/MerchPage.tsx",
+    "LibreChat/client/src/components/Onboarding/OnboardingPage.tsx",
+    "LibreChat/client/src/components/Onboarding/NoBoxYet.tsx",
+    "LibreChat/client/src/components/Onboarding/ConnectStep.tsx",
+    "LibreChat/client/src/components/Onboarding/SelfServe/SelfServeChrome.tsx",
+    "LibreChat/client/src/components/Onboarding/SelfServe/HatchingTeam.tsx"
+  ]
 }
