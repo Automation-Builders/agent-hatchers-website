@@ -5,9 +5,8 @@
 // The OpenRouter key lives ONLY in this function's environment variable and never
 // reaches the browser. See README.md for deploy + env setup.
 
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
-  'https://agenthatchers.com,https://www.agenthatchers.com,http://localhost:8799')
-  .split(',').map(s => s.trim()).filter(Boolean);
+import { applyCors, guard } from '../lib/guard.js';
+
 // Default: Nano Banana 2 (higher quality). Override with OPENROUTER_MODEL — e.g.
 // google/gemini-3.1-flash-lite-image for cheaper/faster but rougher output. Note: text
 // models like google/gemini-3.7-flash do NOT generate images and will not work here.
@@ -15,16 +14,6 @@ const MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-3.1-flash-image';
 // NOTE: an earlier version forced three fixed palettes (blue / teal / indigo) here, which
 // made every run produce the same-coloured trio of robots. Colours now follow the brief;
 // when the brief names none, the model may choose freely — so designs genuinely vary.
-
-function applyCors(res, origin) {
-  const allow = ALLOWED_ORIGINS.includes('*')
-    ? '*'
-    : (ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]);
-  res.setHeader('Access-Control-Allow-Origin', allow);
-  res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'content-type');
-}
 
 // OpenRouter's image endpoint returns data[0].b64_json; some models route through
 // the chat shape (choices[0].message.images). Handle both so a model swap can't break us.
@@ -43,7 +32,7 @@ function extractImage(data) {
 }
 
 export default async function handler(req, res) {
-  applyCors(res, req.headers.origin || '');
+  applyCors(req, res);
 
   if (req.method === 'OPTIONS') { res.status(204).end(); return; }
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }
@@ -75,6 +64,7 @@ export default async function handler(req, res) {
   const brandHero = brand && isDataImg(brand.hero) ? brand.hero : '';
   const hasInsp = !!(photo || brandColors.length || brandLogo || brandHero);
   if (!ref && !hasInsp && brief.length < 8) { res.status(400).json({ error: 'brief too short' }); return; }
+  if (!(await guard(req, res, 'portrait'))) return;
 
   // Ordered attachments for the inspiration prompt so the text can refer to "image 1/2/3".
   const inspImages = [];

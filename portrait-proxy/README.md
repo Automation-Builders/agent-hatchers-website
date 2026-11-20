@@ -90,13 +90,54 @@ as `inspiration:{ photo, brand:{ name, colors, logo, hero } }`, which switches t
 "design a new robot in this brand's colours / like this person" mode (distinct from `image`,
 which re-dresses an existing character). No API key is needed for the lookup itself.
 
-## Cost & abuse notes
+## Free limits and cost (`lib/guard.js`, build 87, Nov 2026)
 
-- Each call costs one OpenRouter image generation; a full hatch generates **3**.
-- CORS is restricted to `ALLOWED_ORIGINS`, which stops other websites' browsers from calling
-  it, but not raw `curl`. Since the prototype URLs are unlisted and low-traffic this is usually
-  fine; if you ever see abuse, add Vercel rate limiting / a WAF rule, or set a spend cap on the
-  OpenRouter key.
+Every endpoint is public and the repo is public, so CORS is not protection: it only tells
+browsers which sites may read the answer, and `curl` ignores it. The limits are enforced here.
+Every endpoint calls `guard(req, res, '<class>')` from `lib/guard.js` before it spends anything
+(OpenRouter, Resend, Slack or Blob). Past a limit, the call gets **429** with a message the page
+shows, and nothing upstream is called.
+
+- **Who is counted:** the caller's IP as Vercel reports it (IPv6 by /64), and the page's random
+  visitor id (`x-ah-visitor`, from localStorage). Both are counted and either one over its limit
+  refuses. A script can change the visitor id but not its IP, so the IP limit is the one that
+  holds. A call with no visitor id gets the visitor limit per IP. When the playground verifies
+  emails, `subjectOf()` should return a hash of the verified email instead.
+- **Daily cap:** each paid call adds an estimated cost (`cents` in `DEFAULT_LIMITS`) to one counter
+  per UTC day. Past `DAILY_SPEND_CAP_CENTS` (default 2000 = US$20) every visitor is refused until
+  the next UTC day. Calls refused by their own limit are not added, so one caller can't use up
+  everyone's day. The spending cap on the OpenRouter key is the hard backstop above this.
+- **Cost per hatch:** one hatch is up to ~29 image calls (3 designs, then the marketplace and the six
+  other profiles are re-dressed in the chosen look). A kept look edit redraws the marketplace again.
+  The portrait limits are sized for a visitor who uses all three hatches and all three edits.
+- **Team demos:** the sessions page's **Demo mode** button mints a signed 30-day pass
+  (`GET prototype-session?key=…&by=<name>&pass=1`, logged) and stores it in that browser. The page
+  sends it as `x-ah-pass`. A valid pass skips the per-visitor and per-IP limits and the daily cap.
+  Rotating `STAFF_PASS_SECRET` (or `SESSIONS_KEY` if that is unset) revokes every pass. The old
+  `?unlimited=1` switch is gone.
+- **Website lookup:** `lib/public-url.js` resolves every hop, redirects included, and refuses
+  private, loopback and link-local addresses (`127.0.0.1.nip.io` is refused).
+
+Default limits per UTC day (session saves: per hour):
+
+| Class | Endpoint | Per visitor | Per IP |
+|---|---|---|---|
+| `portrait` | prototype-portrait | 180 | 400 |
+| `team` | prototype-team | 10 | 30 |
+| `profile` | prototype-profile | 6 | 15 |
+| `chat` | prototype-chat | 80 | 200 |
+| `brand` | prototype-brand | 10 | 30 |
+| `session` | prototype-session POST | — | 400 an hour |
+| `ping` / `mail` | Slack pings / prospect emails and list adds from session saves | — | 30 / 3 |
+| `lead` | lead | — | 5 |
+| `handoff` | playground-handoff (page side) | — | 20 |
+
+| Name | Required | Value |
+|---|---|---|
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | **yes** | Upstash Redis REST credentials. Connect Upstash from Vercel → Storage / Marketplace to this project and these are injected (`UPSTASH_REDIS_REST_URL` / `_TOKEN` also work). Without them, on Vercel the paid endpoints answer 503 and the free ones run uncounted. |
+| `DAILY_SPEND_CAP_CENTS` | no | estimated US cents per UTC day across paid calls (default 2000) |
+| `RATE_LIMITS` | no | JSON override, e.g. `{"portrait":{"visitor":120,"ip":300}}` |
+| `STAFF_PASS_SECRET` | no | 16+ random characters for demo passes; falls back to `SESSIONS_KEY` |
 
 ## `api/prototype-profile.js` (build 41, Sep 2026)
 

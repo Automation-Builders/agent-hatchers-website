@@ -6,26 +6,17 @@
 // The page then shows the palette/logo and hands them to prototype-portrait as
 // "inspiration" so the hatched robot wears the brand's colours and motif.
 
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
-  'https://agenthatchers.com,https://www.agenthatchers.com,http://localhost:8799')
-  .split(',').map(s => s.trim()).filter(Boolean);
+import { applyCors, guard } from '../lib/guard.js';
+import { fetchPublic } from '../lib/public-url.js';
+
 const UA = 'Mozilla/5.0 (compatible; AgentHatchersBot/1.0; +https://agenthatchers.com)';
 const HTML_LIMIT = 1_500_000;   // bytes of HTML we bother reading
 const CSS_LIMIT = 400_000;      // per stylesheet
 const IMG_LIMIT = 2_500_000;    // per image
 const MAX_SHEETS = 4;
 
-function applyCors(res, origin) {
-  const allow = ALLOWED_ORIGINS.includes('*')
-    ? '*'
-    : (ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]);
-  res.setHeader('Access-Control-Allow-Origin', allow);
-  res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'content-type');
-}
-
-// Only public http(s) hosts — never let a prospect point us at localhost / private ranges.
+// A first, cheap filter on what was typed. The real check is fetchPublic (lib/public-url.js),
+// which also catches names that resolve to private addresses and redirects to them.
 function normaliseUrl(raw) {
   let s = String(raw || '').trim();
   if (!s) return null;
@@ -43,7 +34,8 @@ async function fetchWithTimeout(url, ms, opts = {}) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);
   try {
-    return await fetch(url, { redirect: 'follow', signal: ctrl.signal, ...opts,
+    // fetchPublic resolves every hop (redirects included) and refuses private addresses.
+    return await fetchPublic(url, { signal: ctrl.signal,
       headers: { 'User-Agent': UA, 'Accept': opts.accept || '*/*', 'Accept-Language': 'en', ...(opts.headers || {}) } });
   } finally { clearTimeout(t); }
 }
@@ -154,7 +146,7 @@ async function fetchImageDataUri(url, base) {
 }
 
 export default async function handler(req, res) {
-  applyCors(res, req.headers.origin || '');
+  applyCors(req, res);
   if (req.method === 'OPTIONS') { res.status(204).end(); return; }
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }
 
@@ -163,6 +155,7 @@ export default async function handler(req, res) {
   body = body || {};
   const target = normaliseUrl(body.url);
   if (!target) { res.status(400).json({ error: 'Please enter a public website address, e.g. tanssu.com' }); return; }
+  if (!(await guard(req, res, 'brand'))) return;
 
   let html = '', finalUrl = target.href;
   try {
