@@ -25,8 +25,12 @@
 //
 // Counters live in Upstash Redis (Vercel Marketplace), read through its REST API with plain
 // fetch, so there is no new dependency. Locally and in tests (no VERCEL env) an in-memory map
-// stands in. On Vercel without a store the paid endpoints answer 503 rather than run unlimited;
-// the free ones (session save, lead, handoff, website lookup) carry on.
+// stands in. On Vercel with NO store configured the paid endpoints answer 503: that is a setup
+// mistake and should show on the preview. If a configured store fails at run time, counting
+// falls back to this instance's memory (still stops a script hammering a warm function) and
+// Slack is told, so an Upstash hiccup doesn't take the playground down; the spending cap on
+// the OpenRouter key bounds the money either way.
+// Slack is also told when the day's estimated spend passes 80% and 100% of the cap.
 //
 // Limits are per UTC day unless a class sets `window` (seconds). Override any number without a
 // code change with RATE_LIMITS, e.g. RATE_LIMITS='{"portrait":{"visitor":120}}', and the global
@@ -47,15 +51,15 @@ export const DEFAULT_LIMITS = {
   portrait: { visitor: 180, ip: 400, cents: 8, paid: true },
   team:     { visitor: 10,  ip: 30,  cents: 4, paid: true },
   profile:  { visitor: 6,   ip: 15,  cents: 2, paid: true },
-  chat:     { visitor: 80,  ip: 200, cents: 1, paid: true },
+  chat:     { visitor: 150, ip: 300, cents: 1, paid: true },   // 5 free turns per thread, 20+ threads
   brand:    { visitor: 10,  ip: 30 },
-  session:  { ip: 400, window: 3600 },   // the page saves at most once every 12 s per tab
+  session:  { ip: 600, window: 3600 },   // the page saves at most once every 12 s per tab
   ping:     { ip: 30 },                   // Slack milestone pings from session saves
-  mail:     { ip: 3 },                    // prospect emails + mailing-list adds from session saves
+  mail:     { ip: 10 },                   // prospect emails + mailing-list adds from session saves
   lead:     { ip: 5 },
   handoff:  { ip: 20 },
 };
-const DEFAULT_CAP_CENTS = 2000;           // US$20 a day across all paid endpoints
+const DEFAULT_CAP_CENTS = 5000;           // US$50 a day across all paid endpoints
 
 const MESSAGES = {
   visitor: 'You’ve reached today’s free limit for the playground. Start your 30-day free trial to keep going, or come back tomorrow.',
@@ -197,6 +201,20 @@ export async function allow(req, cls, { now = Date.now() } = {}) {
     console.error(JSON.stringify({ fn: 'guard', cls, error: 'no counter store configured (KV_REST_API_URL / KV_REST_API_TOKEN)' }));
     return rule.paid ? { ok: false, status: 503, scope: 'store', retryAfter: 60, message: MESSAGES.store } : { ok: true, unchecked: true };
   }
+  try {
+    return await count(store, req, cls, rule, now);
+  } catch (e) {
+    console.error(JSON.stringify({ fn: 'guard', cls, error: String(e && e.message), fallback: 'memory' }));
+    if (now - storeAlertAt > 3600000) {
+      storeAlertAt = now;
+      await notify(`:warning: Playground limits: the counter store failed (${String(e && e.message).slice(0, 80)}). Counting per function instance until it recovers.`);
+    }
+    return count({ memory: true }, req, cls, rule, now);
+  }
+}
+let storeAlertAt = 0;
+
+async function count(store, req, cls, rule, now) {
   const window = Number(rule.window) > 0 ? Number(rule.window) * 1000 : 86400000;
   const start = rule.window ? Math.floor(now / window) * window : dayStart(now);
   const ttl = Math.ceil((start + window - now) / 1000) + 60;
@@ -206,24 +224,44 @@ export async function allow(req, cls, { now = Date.now() } = {}) {
   if (rule.ip) items.push({ scope: 'ip', key: `rl:${cls}:ip:${ip}:${start}`, by: 1, ttl, limit: rule.ip });
   // `sub:` keeps a header-less caller's visitor counter apart from its IP counter.
   if (rule.visitor) items.push({ scope: 'visitor', key: `rl:${cls}:sub:${subjectOf(req)}:${start}`, by: 1, ttl, limit: rule.visitor });
-  try {
-    const totals = await incr(store, items, now);
-    const hit = items.find((it, i) => totals[i] > it.limit);
-    if (hit) return { ok: false, status: 429, scope: hit.scope, retryAfter, message: MESSAGES[hit.scope] };
-    // Only calls that passed their own limits count toward the shared cap, so one caller
-    // hammering past its limit can't use up everyone's day.
-    if (rule.cents) {
-      const day = dayStart(now);
-      const [spent] = await incr(store, [{ key: `spend:${day}`, by: rule.cents, ttl: Math.ceil((day + 86400000 - now) / 1000) + 3600 }], now);
-      if (spent > capCents()) {
-        return { ok: false, status: 429, scope: 'daily', retryAfter: Math.max(1, Math.ceil((day + 86400000 - now) / 1000)), message: MESSAGES.daily };
+  const totals = await incr(store, items, now);
+  const hit = items.find((it, i) => totals[i] > it.limit);
+  if (hit) return { ok: false, status: 429, scope: hit.scope, retryAfter, message: MESSAGES[hit.scope] };
+  // Only calls that passed their own limits count toward the shared cap, so one caller
+  // hammering past its limit can't use up everyone's day.
+  if (rule.cents) {
+    const day = dayStart(now);
+    const [spent] = await incr(store, [{ key: `spend:${day}`, by: rule.cents, ttl: Math.ceil((day + 86400000 - now) / 1000) + 3600 }], now);
+    const cap = capCents();
+    // The counter only goes up, so exactly one call crosses each line: that call tells Slack.
+    for (const [share, text] of [[0.8, 'has used 80% of'], [1, 'has reached']]) {
+      const line = cap * share;
+      if (!store.memory && cap > 0 && spent - rule.cents < line && spent >= line) {
+        await notify(`:money_with_wings: The playground ${text} today’s estimated AI budget (US$${(cap / 100).toFixed(0)}).` +
+          (share === 1 ? ' Free use is paused until 00:00 UTC; team demo passes still work.' : ''));
       }
     }
-    return { ok: true };
-  } catch (e) {
-    console.error(JSON.stringify({ fn: 'guard', cls, error: String(e && e.message) }));
-    return rule.paid ? { ok: false, status: 503, scope: 'store', retryAfter: 60, message: MESSAGES.store } : { ok: true, unchecked: true };
+    if (spent > cap) {
+      return { ok: false, status: 429, scope: 'daily', retryAfter: Math.max(1, Math.ceil((day + 86400000 - now) / 1000)), message: MESSAGES.daily };
+    }
   }
+  return { ok: true };
+}
+
+// A short Slack note to the channel the session pings use. Never fails the request.
+async function notify(text) {
+  const bot = process.env.SLACK_BOT_TOKEN, hook = process.env.SLACK_WEBHOOK_URL;
+  try {
+    if (bot) {
+      await fetch('https://slack.com/api/chat.postMessage', {
+        method: 'POST', signal: AbortSignal.timeout(2500),
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${bot}` },
+        body: JSON.stringify({ channel: process.env.SLACK_CHANNEL || 'C0CCA9T995K', text }),
+      });
+    } else if (hook) {
+      await fetch(hook, { method: 'POST', signal: AbortSignal.timeout(2500), headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) });
+    }
+  } catch { /* a missed note is not worth failing the call */ }
 }
 
 // allow() and, when refused, answer the request. Returns true when the endpoint may go on.

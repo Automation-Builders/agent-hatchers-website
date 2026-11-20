@@ -113,32 +113,81 @@ test('on Vercel with no counter store the paid endpoints refuse (503) and the fr
   } finally { delete process.env.VERCEL; }
 });
 
-test('the Upstash REST store is used when configured, and a store error fails closed for paid calls', async () => {
-  fresh();
-  process.env.KV_REST_API_URL = 'https://kv.example.test'; process.env.KV_REST_API_TOKEN = 'tok';
-  const seen = [];
-  const counts = new Map();
-  const realFetch = globalThis.fetch;
-  globalThis.fetch = async (url, init) => {
-    seen.push(String(url));
+// A stand-in for Upstash's /pipeline endpoint; Slack posts are recorded separately.
+function fakeUpstash() {
+  const counts = new Map(), seen = [], slack = [];
+  const fetchImpl = async (url, init) => {
+    url = String(url);
+    if (url.includes('slack')) { slack.push(JSON.parse(init.body).text); return new Response('{"ok":true}'); }
+    seen.push(url);
     const cmds = JSON.parse(init.body);
     return new Response(JSON.stringify(cmds.map(c => {
       if (c[0] === 'SET') { if (!counts.has(c[1])) counts.set(c[1], 0); return { result: 'OK' }; }
       counts.set(c[1], counts.get(c[1]) + Number(c[2])); return { result: counts.get(c[1]) };
     })), { status: 200 });
   };
-  try {
-    process.env.RATE_LIMITS = JSON.stringify({ chat: { visitor: 1, ip: 5 } });
+  return { fetchImpl, seen, slack };
+}
+const withStore = async fn => {
+  const realFetch = globalThis.fetch;
+  process.env.KV_REST_API_URL = 'https://kv.example.test'; process.env.KV_REST_API_TOKEN = 'tok';
+  process.env.SLACK_BOT_TOKEN = 'xoxb-test';
+  try { await fn(); } finally {
+    globalThis.fetch = realFetch;
+    delete process.env.KV_REST_API_URL; delete process.env.KV_REST_API_TOKEN; delete process.env.SLACK_BOT_TOKEN;
+  }
+};
+
+test('the Upstash REST store is used when configured', async () => {
+  fresh({ chat: { visitor: 1, ip: 5 } });
+  await withStore(async () => {
+    const up = fakeUpstash(); globalThis.fetch = up.fetchImpl;
     assert.equal((await allow(req(), 'chat')).ok, true);
     assert.equal((await allow(req(), 'chat')).scope, 'visitor');
-    assert.ok(seen.every(u => u === 'https://kv.example.test/pipeline'));
-    globalThis.fetch = async () => new Response('nope', { status: 500 });
-    assert.equal((await allow(req(), 'chat')).status, 503);
+    assert.ok(up.seen.length && up.seen.every(u => u === 'https://kv.example.test/pipeline'));
+  });
+});
+
+test('if the store fails at run time, counting carries on in memory and Slack is told once', async () => {
+  fresh({ chat: { visitor: 2, ip: 5 } });
+  await withStore(async () => {
+    const slack = [];
+    globalThis.fetch = async (url, init) => {
+      if (String(url).includes('slack')) { slack.push(JSON.parse(init.body).text); return new Response('{}'); }
+      return new Response('nope', { status: 500 });
+    };
+    const codes = [];
+    for (let i = 0; i < 3; i++) codes.push((await allow(req(), 'chat')).ok);
+    assert.deepEqual(codes, [true, true, false], 'still limited while the store is down');
     assert.equal((await allow(req(), 'lead')).ok, true);
-  } finally {
-    globalThis.fetch = realFetch;
-    delete process.env.KV_REST_API_URL; delete process.env.KV_REST_API_TOKEN;
+    assert.equal(slack.length, 1);
+    assert.match(slack[0], /counter store failed/);
+  });
+});
+
+test('Slack hears when the day passes 80% and 100% of the budget, once each', async () => {
+  fresh({ portrait: { visitor: 100, ip: 100, cents: 10 } });
+  process.env.DAILY_SPEND_CAP_CENTS = '50';
+  await withStore(async () => {
+    const up = fakeUpstash(); globalThis.fetch = up.fetchImpl;
+    const results = [];
+    for (let i = 0; i < 7; i++) results.push((await allow(req({ 'x-ah-visitor': 'visitor-' + i + 'xxxx' }), 'portrait')).ok);
+    assert.deepEqual(results, [true, true, true, true, true, false, false]);
+    assert.equal(up.slack.length, 2);
+    assert.match(up.slack[0], /80%/);
+    assert.match(up.slack[1], /reached/);
+  });
+});
+
+test('a team browser is not limited on session saves and emails either', async () => {
+  fresh({ mail: { ip: 1 }, session: { ip: 1, window: 3600 } });
+  const { pass } = mintStaffPass('Noah');
+  for (let i = 0; i < 5; i++) {
+    assert.equal((await allow(req({ 'x-ah-pass': pass }), 'mail')).ok, true);
+    assert.equal((await allow(req({ 'x-ah-pass': pass }), 'session')).ok, true);
   }
+  assert.equal((await allow(req(), 'mail')).ok, true);
+  assert.equal((await allow(req(), 'mail')).ok, false);
 });
 
 test('who is counted: Vercel IP headers, IPv6 grouped by /64, visitor id only when well-formed', () => {

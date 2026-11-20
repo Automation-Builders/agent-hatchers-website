@@ -64,7 +64,8 @@
   const VISITOR_KEY='ah-visitor', PASS_KEY='ah-staff-pass';
   const visitorId=(()=>{let v='';try{v=localStorage.getItem(VISITOR_KEY)||'';if(!/^[A-Za-z0-9_-]{8,64}$/.test(v)){v=crypto.randomUUID?crypto.randomUUID():'v-'+Date.now().toString(36)+Math.random().toString(36).slice(2,12);localStorage.setItem(VISITOR_KEY,v);}}catch(e){v=v||'v-'+Date.now().toString(36)+Math.random().toString(36).slice(2,12);}return v;})();
   const staffPass=()=>{try{const p=localStorage.getItem(PASS_KEY)||'';const exp=JSON.parse(atob(p.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).exp;return exp>Date.now()?p:'';}catch(e){return '';}};
-  const proxyHeaders=()=>{const h={'Content-Type':'application/json','x-ah-visitor':visitorId};const p=staffPass();if(p)h['x-ah-pass']=p;return h;};
+  const passHeaders=h=>{const p=staffPass();if(p)h['x-ah-pass']=p;return h;};
+  const proxyHeaders=()=>passHeaders({'Content-Type':'application/json','x-ah-visitor':visitorId});
   // The proxy refused: today's free limit is used up (429) or can't be checked (503). Say so
   // once (calls arrive in bursts) and tell the caller not to retry.
   let limitShownAt=0;
@@ -415,7 +416,7 @@
     try{let payload=await buildCapture();
       // The store refuses bodies over 4 MB: a big team falls back to smaller marketplace copies.
       if(JSON.stringify(payload).length>3600000)payload=await buildCapture(320);
-      await fetch(sessionEndpoint,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});}catch(e){}
+      await fetch(sessionEndpoint,{method:'POST',headers:passHeaders({'Content-Type':'text/plain'}),body:JSON.stringify(payload)});}catch(e){}
     syncing=false;if(syncDirty)syncSession();
   }
   async function buildCapture(cardMax=512){
@@ -1281,7 +1282,7 @@
       clearTimeout(syncTimer);
       for(let i=0;syncing&&i<50;i++)await new Promise(r=>setTimeout(r,200));
       await pushSession();
-      const r=await fetch(handoffEndpoint,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({sid:state.sid})});
+      const r=await fetch(handoffEndpoint,{method:'POST',headers:passHeaders({'Content-Type':'text/plain'}),body:JSON.stringify({sid:state.sid})});
       const j=await r.json().catch(()=>({}));
       if(!r.ok||!j.url)throw new Error(j.error||'handoff '+r.status);
       location.href=j.url;

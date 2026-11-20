@@ -12,7 +12,7 @@ const LIMIT_MSG='You’ve reached today’s free limit for the playground. Start
   const origin=process.env.PROTOTYPE_TEST_URL||'http://127.0.0.1:8768';
   const browser=await chromium.launch({headless:true,...(process.env.CHROME?{executablePath:process.env.CHROME}:{channel:'chromium'})});
   try{
-    const errors=[];const portraits=[];let allowed=3;
+    const errors=[];const portraits=[];const saves=[];let allowed=3;
     const mock=route=>{const req=route.request();const u=new URL(req.url());
       if(u.origin===origin)return route.continue();
       if(req.method()==='OPTIONS')return route.fulfill({status:204,headers:{'access-control-allow-origin':origin,'access-control-allow-headers':'content-type,x-ah-visitor,x-ah-pass','access-control-allow-methods':'POST,OPTIONS'}});
@@ -23,6 +23,7 @@ const LIMIT_MSG='You’ve reached today’s free limit for the playground. Start
         if(allowed-->0)return route.fulfill({status:200,contentType:'application/json',headers:cors,body:JSON.stringify({image:PNG})});
         return route.fulfill({status:429,contentType:'application/json',headers:{...cors,'retry-after':'3600'},body:JSON.stringify({error:LIMIT_MSG,limit:'portrait',scope:'visitor',retryAfter:3600})});
       }
+      if(/prototype-session/.test(u.pathname)&&req.method()==='POST')saves.push({demo:allowed>50,pass:req.headers()['x-ah-pass']||''});
       if(/prototype-session/.test(u.pathname))return route.fulfill({status:200,contentType:'application/json',headers:cors,body:'{"ok":true}'});
       return route.fulfill({status:400,contentType:'application/json',headers:cors,body:'{}'});};
     const open=async init=>{const context=await browser.newContext({viewport:{width:1280,height:900}});
@@ -75,7 +76,11 @@ const LIMIT_MSG='You’ve reached today’s free limit for the playground. Start
     assert.equal(!!(await page.$('.hatch-row.is-veiled')),false,'a demo browser is not held behind the email gate');
     const withPass=portraits.slice(before);
     assert.ok(withPass.length>=3&&withPass.every(h=>h['x-ah-pass']===pass),'demo pass sent with every call');
+    await page.waitForTimeout(13000);   // the page saves at most every 12 s
+    const visitorSaves=saves.filter(x=>!x.demo),demoSaves=saves.filter(x=>x.demo);
+    assert.ok(visitorSaves.length&&visitorSaves.every(x=>!x.pass),'a visitor\'s session save carries no pass');
+    assert.ok(demoSaves.length&&demoSaves.every(x=>x.pass===pass),'a demo browser\'s session save carries its pass');
     assert.deepEqual(errors,[]);
-    console.log(JSON.stringify({visitorId:'sent',unlimitedParam:'ignored',refusedPortraits:refused,limitPops:pops,demoPass:'sent'}));
+    console.log(JSON.stringify({visitorId:'sent',unlimitedParam:'ignored',refusedPortraits:refused,limitPops:pops,demoPass:'sent',sessionSaves:{visitor:visitorSaves.length,demo:demoSaves.length}}));
   }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exit(1);});

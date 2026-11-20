@@ -104,15 +104,16 @@ shows, and nothing upstream is called.
   holds. A call with no visitor id gets the visitor limit per IP. When the playground verifies
   emails, `subjectOf()` should return a hash of the verified email instead.
 - **Daily cap:** each paid call adds an estimated cost (`cents` in `DEFAULT_LIMITS`) to one counter
-  per UTC day. Past `DAILY_SPEND_CAP_CENTS` (default 2000 = US$20) every visitor is refused until
-  the next UTC day. Calls refused by their own limit are not added, so one caller can't use up
+  per UTC day. Past `DAILY_SPEND_CAP_CENTS` (default 5000 = US$50) every visitor is refused until
+  the next UTC day, and Slack is told at 80% and at 100%. Calls refused by their own limit are not added, so one caller can't use up
   everyone's day. The spending cap on the OpenRouter key is the hard backstop above this.
 - **Cost per hatch:** one hatch is up to ~29 image calls (3 designs, then the marketplace and the six
   other profiles are re-dressed in the chosen look). A kept look edit redraws the marketplace again.
   The portrait limits are sized for a visitor who uses all three hatches and all three edits.
 - **Team demos:** the sessions page's **Demo mode** button mints a signed 30-day pass
   (`GET prototype-session?key=…&by=<name>&pass=1`, logged) and stores it in that browser. The page
-  sends it as `x-ah-pass`. A valid pass skips the per-visitor and per-IP limits and the daily cap.
+  sends it as `x-ah-pass` (also on session saves and the trial handoff, so office demos and email
+  tests aren't held by the per-IP limits). A valid pass skips every limit and the daily cap.
   Rotating `STAFF_PASS_SECRET` (or `SESSIONS_KEY` if that is unset) revokes every pass. The old
   `?unlimited=1` switch is gone.
 - **Website lookup:** `lib/public-url.js` resolves every hop, redirects included, and refuses
@@ -125,17 +126,17 @@ Default limits per UTC day (session saves: per hour):
 | `portrait` | prototype-portrait | 180 | 400 |
 | `team` | prototype-team | 10 | 30 |
 | `profile` | prototype-profile | 6 | 15 |
-| `chat` | prototype-chat | 80 | 200 |
+| `chat` | prototype-chat | 150 | 300 |
 | `brand` | prototype-brand | 10 | 30 |
-| `session` | prototype-session POST | — | 400 an hour |
-| `ping` / `mail` | Slack pings / prospect emails and list adds from session saves | — | 30 / 3 |
+| `session` | prototype-session POST | — | 600 an hour |
+| `ping` / `mail` | Slack pings / prospect emails and list adds from session saves | — | 30 / 10 |
 | `lead` | lead | — | 5 |
 | `handoff` | playground-handoff (page side) | — | 20 |
 
 | Name | Required | Value |
 |---|---|---|
-| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | **yes** | Upstash Redis REST credentials. Connect Upstash from Vercel → Storage / Marketplace to this project and these are injected (`UPSTASH_REDIS_REST_URL` / `_TOKEN` also work). Without them, on Vercel the paid endpoints answer 503 and the free ones run uncounted. |
-| `DAILY_SPEND_CAP_CENTS` | no | estimated US cents per UTC day across paid calls (default 2000) |
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | **yes** | Upstash Redis REST credentials. Connect Upstash from Vercel → Storage / Marketplace to this project and these are injected (`UPSTASH_REDIS_REST_URL` / `_TOKEN` also work). Without them, on Vercel the paid endpoints answer 503 and the free ones run uncounted. If the store fails at run time, counting falls back to each function's memory and Slack is told. |
+| `DAILY_SPEND_CAP_CENTS` | no | estimated US cents per UTC day across paid calls (default 5000) |
 | `RATE_LIMITS` | no | JSON override, e.g. `{"portrait":{"visitor":120,"ip":300}}` |
 | `STAFF_PASS_SECRET` | no | 16+ random characters for demo passes; falls back to `SESSIONS_KEY` |
 
