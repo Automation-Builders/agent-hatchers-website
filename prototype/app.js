@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 87;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 86;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -58,29 +58,6 @@
   const brandEndpoint = config.brandEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-brand');
   const teamEndpoint = config.teamEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-team');
   const profileEndpoint = config.profileEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-profile');
-  // Build 87: the free limits are enforced by the proxy (portrait-proxy/lib/guard.js). Every AI
-  // call says which browser it comes from (a random id, so limits count per visitor) and, in a
-  // team member's browser, carries the demo pass from the sessions page.
-  const VISITOR_KEY='ah-visitor', PASS_KEY='ah-staff-pass';
-  const visitorId=(()=>{let v='';try{v=localStorage.getItem(VISITOR_KEY)||'';if(!/^[A-Za-z0-9_-]{8,64}$/.test(v)){v=crypto.randomUUID?crypto.randomUUID():'v-'+Date.now().toString(36)+Math.random().toString(36).slice(2,12);localStorage.setItem(VISITOR_KEY,v);}}catch(e){v=v||'v-'+Date.now().toString(36)+Math.random().toString(36).slice(2,12);}return v;})();
-  const staffPass=()=>{try{const p=localStorage.getItem(PASS_KEY)||'';const exp=JSON.parse(atob(p.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).exp;return exp>Date.now()?p:'';}catch(e){return '';}};
-  const passHeaders=h=>{const p=staffPass();if(p)h['x-ah-pass']=p;return h;};
-  const proxyHeaders=()=>passHeaders({'Content-Type':'application/json','x-ah-visitor':visitorId});
-  // POST to a proxy endpoint with the visitor id and pass. If the browser blocks that (a proxy
-  // older than build 87 allows only content-type, e.g. mid-deploy or after a rollback), try once
-  // more with the plain header so the playground keeps working; the proxy then counts by IP.
-  async function proxyPost(url,payload,extra){
-    try{return await fetch(url,{method:'POST',headers:proxyHeaders(),body:JSON.stringify(payload),...(extra||{})});}
-    catch(e){if(extra&&extra.signal&&extra.signal.aborted)throw e;return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),...(extra||{})});}
-  }
-  // The proxy refused: today's free limit is used up (429) or can't be checked (503). Say so
-  // once (calls arrive in bursts) and tell the caller not to retry.
-  let limitShownAt=0;
-  function limitHit(res,body){
-    if(res.status!==429&&res.status!==503)return false;
-    if(res.status===429&&Date.now()-limitShownAt>8000){limitShownAt=Date.now();payPop((body&&body.error)||'You’ve reached today’s free limit for the playground.');}
-    return true;
-  }
   const recommended = new Set(config.recommendedAgents||[]);
   // Eligibility is a business rule, not a ranking score. Names, robot styling,
   // tools and AI/config recommendations must never unlock a physical-goods role.
@@ -154,7 +131,7 @@
     for(let attempt=0;attempt<2&&!result;attempt++){
       if(attempt) await sleep(600);
       try{
-        const res=await proxyPost(teamEndpoint,{business:research,industry:extra.industry||'',company:state.company||config.company||'',website:state.website||'',tools:state.tools||[],connectors:extra.connectors||[],roster});
+        const res=await fetch(teamEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({business:research,industry:extra.industry||'',company:state.company||config.company||'',website:state.website||'',tools:state.tools||[],connectors:extra.connectors||[],roster})});
         const body=await res.json().catch(()=>({}));
         if(res.ok&&body&&Array.isArray(body.team)&&body.team.length>=4){
           const lines={};const ids=[];const agents={};
@@ -171,7 +148,7 @@
           (Array.isArray(body.more)?body.more:[]).forEach(t=>{const a=t&&eligible.find(x=>x.id===(t.base||t.id));if(!a||extras.length>=10)return;const o=bespoke(t,a);if(!o||names.has(o.name.toLowerCase()))return;names.add(o.name.toLowerCase());extras.push({...o,id:'more-'+(extras.length+1),base:a.id,job:String(t.job||'').slice(0,48)});});
           if(ids.length>=4) result={ids:ids.slice(0,6),lines,agents,extras,intro:String(body.intro||''),source:body.researched?'research':'ai',researched:!!body.researched};
         }
-        if(res.status===400||limitHit(res,body)) break;
+        if(res.status===400) break;
       }catch(e){/* retry then fall back */}
     }
     if(!result){
@@ -423,7 +400,7 @@
     try{let payload=await buildCapture();
       // The store refuses bodies over 4 MB: a big team falls back to smaller marketplace copies.
       if(JSON.stringify(payload).length>3600000)payload=await buildCapture(320);
-      await fetch(sessionEndpoint,{method:'POST',headers:passHeaders({'Content-Type':'text/plain'}),body:JSON.stringify(payload)});}catch(e){}
+      await fetch(sessionEndpoint,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});}catch(e){}
     syncing=false;if(syncDirty)syncSession();
   }
   async function buildCapture(cardMax=512){
@@ -786,7 +763,7 @@
   // moment they're waiting with nothing to do and already invested, so a card under the eggs
   // asks for a name and email. Since build 84 (Noah, 18 Nov 2026) it is the gate: the designs
   // hatch behind frosted glass and can't be picked until the details are in. Review/share
-  // links and browsers in demo mode (a staff pass) skip the gate. The notice under the fields is
+  // links and the team's ?unlimited=1 browsers skip the gate. The notice under the fields is
   // the Privacy Act collection notice (APP 5) — keep it in step with privacy-policy.html §2.1.
   const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   const firstName=()=>String(state.you||'').trim().split(/\s+/)[0]||'';
@@ -994,10 +971,9 @@
     for(let attempt=0;attempt<2;attempt++){
       if(attempt) await sleep(700);
       try{
-        const res=await proxyPost(chatEndpoint,{question,agent:agentName,company:co(),business:state.biz,roster,history:history||[],turn:turn||1});
+        const res=await fetch(chatEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question,agent:agentName,company:co(),business:state.biz,roster,history:history||[],turn:turn||1})});
         const body=await res.json().catch(()=>({}));
         if(res.ok&&body&&body.reply)return String(body.reply);
-        if(res.status===429||res.status===503)return String((body&&body.error)||'You’ve reached today’s free chat limit for the playground.');
         if(res.status===400)break;
       }catch(e){/* retry then fall back */}
     }
@@ -1289,7 +1265,7 @@
       clearTimeout(syncTimer);
       for(let i=0;syncing&&i<50;i++)await new Promise(r=>setTimeout(r,200));
       await pushSession();
-      const r=await fetch(handoffEndpoint,{method:'POST',headers:passHeaders({'Content-Type':'text/plain'}),body:JSON.stringify({sid:state.sid})});
+      const r=await fetch(handoffEndpoint,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({sid:state.sid})});
       const j=await r.json().catch(()=>({}));
       if(!r.ok||!j.url)throw new Error(j.error||'handoff '+r.status);
       location.href=j.url;
@@ -1324,11 +1300,14 @@
   // gets three of each, ever — the counts live in localStorage so "Start over" (which wipes
   // the IndexedDB session) doesn't hand out three more.
   const FREE=3, FREE_PROFILES=FREE, PROFILES_KEY='ah-new-profiles', HATCH_KEY='ah-hatches', LOOK_KEY='ah-look-edits';
-  // Team bypass (build 87): "Demo mode" on the sessions page stores a signed pass in this
-  // browser, and the proxy checks it on every call. The old ?unlimited=1 switch is gone: any
-  // visitor could type it, and the proxy now enforces the limits whatever the page thinks.
-  const unlimited=()=>!!staffPass();
-  try{localStorage.removeItem('ah-unlimited');}catch(e){}
+  // Team bypass: open /prototype/?unlimited=1 once and THIS browser keeps no free-use caps
+  // (hatches, redesigns, new profiles, chat turns); ?unlimited=0 puts them back. Prospects
+  // never see the flag, so the paywall still gates token spend for everyone else.
+  const UNLIMITED_KEY='ah-unlimited';
+  (()=>{try{const v=new URLSearchParams(location.search).get('unlimited');if(v==null)return;const on=!(v==='0'||v==='off');if(on)localStorage.setItem(UNLIMITED_KEY,'1');else localStorage.removeItem(UNLIMITED_KEY);
+    setTimeout(()=>{document.querySelectorAll('.create-pop').forEach(p=>p.remove());const pop=document.createElement('div');pop.className='create-pop wb-pop';pop.innerHTML=`${ci.check}<span><b>Free-use limits ${on?'off':'back on'}</b> in this browser${on?' — hatch, redesign, add profiles and chat without caps.':'.'}</span>`;document.body.appendChild(pop);setTimeout(()=>pop.classList.add('show'),10);setTimeout(()=>{pop.classList.remove('show');setTimeout(()=>pop.remove(),300)},5200);},900);
+  }catch(e){}})();
+  const unlimited=()=>{try{return localStorage.getItem(UNLIMITED_KEY)==='1';}catch(e){return false;}};
   const usage=k=>{if(unlimited())return 0;try{return parseInt(localStorage.getItem(k),10)||0;}catch(e){return 0;}};
   const bumpUsage=k=>{try{localStorage.setItem(k,String(usage(k)+1));}catch(e){}};
   const profilesUsed=()=>usage(PROFILES_KEY);
@@ -1472,7 +1451,7 @@
       if(attempt)await sleep(600);
       try{
         const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),25000);
-        const res=await proxyPost(profileEndpoint,{name:p.name,description:p.desc,company:co(),business:state.biz,roster,connectors,tools:state.tools||[]},{signal:ctl.signal});
+        const res=await fetch(profileEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:p.name,description:p.desc,company:co(),business:state.biz,roster,connectors,tools:state.tools||[]}),signal:ctl.signal});
         clearTimeout(t);
         const body=await res.json().catch(()=>({}));
         if(res.ok&&body&&Array.isArray(body.outcomes)&&body.outcomes.length>=4){
@@ -1480,7 +1459,7 @@
           if(!mates.length)mates.push(...fallbackProfile(p).mates);
           return {summary:String(body.summary||''),outcomes:body.outcomes.map(String).slice(0,5),mcps:(body.mcps||[]).map(String).slice(0,6),mates,team:String(body.team||'Operations'),source:'ai'};
         }
-        if(res.status===400||res.status===404||limitHit(res,body))break;
+        if(res.status===400||res.status===404)break;
       }catch(e){/* retry then fall back */}
     }
     return null;
@@ -1679,7 +1658,7 @@
     url=String(url||'').trim();if(!url)return;
     state.refError='';state.refBusy=true;renderReference();
     try{
-      const res=await proxyPost(brandEndpoint,{url});
+      const res=await fetch(brandEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});
       const body=await res.json().catch(()=>({}));
       if(!res.ok||!body||!body.name)throw new Error((body&&body.error)||'lookup failed');
       const logo=body.logo?await downscale(body.logo,512):'';
@@ -1749,10 +1728,10 @@
     for(let attempt=0;attempt<3;attempt++){
       if(attempt) await sleep(900*attempt);
       try{
-        const res = await proxyPost(portraitEndpoint,params);
+        const res = await fetch(portraitEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(params)});
         const body = await res.json().catch(()=>({}));
         if(res.ok && body && body.image) return String(body.image);
-        if(res.status===400||limitHit(res,body)) break; // bad input or a used-up limit won't improve with retries
+        if(res.status===400) break; // bad input won't improve with retries
       }catch(e){/* retry */}
     }
     return null;
