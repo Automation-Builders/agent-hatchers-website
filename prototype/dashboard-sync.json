@@ -1,12 +1,13 @@
 {
   "dashboardRepo": "Automation-Builders/Hermes-Dashboard",
-  "dashboardCommit": "831cad0bc49fd7c7f3ce194bd6103997f4c99342",
-  "syncedAt": "2026-11-20",
+  "dashboardCommit": "3be4cb98095526c8489d6792baeb3c950f557585",
+  "syncedAt": "2026-11-22",
   "look": "v5",
   "watch": [
     "LibreChat/client/src/v4theme.css",
     "LibreChat/client/src/components/Nav/sectionNav.ts",
     "LibreChat/client/src/components/Nav/V4Sidebar.tsx",
+    "LibreChat/client/src/components/Nav/v5Rail.css",
     "LibreChat/client/src/components/Nav/MobileTabBar.tsx",
     "LibreChat/client/src/components/Nav/Nav.tsx",
     "LibreChat/client/src/components/Nav/AgentPicker.tsx",

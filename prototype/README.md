@@ -14,9 +14,10 @@ Every page runs the same hatching experience (shared code in `app.js` / `styles.
    prospect gives a name and email; then they click one to pick it.
 4. **Dashboard** — a mimic of the live dashboard (`Hermes-Dashboard`, its v5 look: light or dark
    to match the visitor's computer, cool greys, Hatch Blue, Geist, a 72px labelled side rail and
-   thin cards), populated with the hatched character. The sections follow the dashboard's admin
-   sidebar in its order: Home, Agents, Chats, Analytics (locked here), Marketplace, Merch and
-   Feed (Soon); Connect apps at the foot opens the Config page (the dashboard's Settings → Apps).
+   thin cards), populated with the hatched character. The sidebar follows the dashboard's admin
+   sidebar: New chat (filled) and Search at the top, Home, then the admin pages under an "Admin"
+   heading — Agents, Analytics (locked here), Marketplace, Merch and Feed (Soon). Chats opens from
+   New chat; Connect apps at the foot opens the Config page (the dashboard's Settings → Apps).
    The dashboard's Team and Marketing have no page here, and a real customer sees only Home, Chats
    and Team. Phones get the bottom tab bar.
 5. **Connect** — the dashboard's first-run screen for an account with no box yet

@@ -1036,6 +1036,23 @@ body.dx-on{--v4-bg:#f6f7f9;--v4-panel:#fff;--v4-card:#fff;--v4-raised:#f0f2f5;--
 .dx-side.is-folded .dx-nav-label{max-width:64px;overflow:hidden;text-overflow:ellipsis}
 .dx-side.is-folded .dx-soon{display:none}
 .dx-lock-note{position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);z-index:30;white-space:nowrap;background:var(--v4-card);color:var(--v4-fg);border:1px solid var(--v4-line);font-style:normal;font-size:12px;line-height:16px;padding:8px 12px;border-radius:8px;box-shadow:var(--v4-shadow-popover);animation:dxIn .2s ease}
+/* v5Rail.css (22 Nov): New chat is the rail's one filled control; Search a small icon; the admin
+   pages sit under one "Admin" heading */
+.dx-rail-tools{display:flex;flex-direction:column;align-items:center;gap:4px}
+.dx-rail-tools .dx-fold{margin:0}
+.dx-rail-tools .dx-fold:first-child{margin-bottom:6px}
+.dx-side.is-folded .dx-nav-item.is-new{color:var(--v4-fg)}
+.dx-side.is-folded .dx-nav-item.is-new .dx-ic,.dx-side.is-folded .dx-nav-item.is-new:hover .dx-ic{background:var(--v4-accent);color:var(--v4-on-accent)}
+.dx-newpill{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:999px;background:var(--v4-accent);color:var(--v4-on-accent);font-weight:500;transition:background .15s,transform .15s}
+.dx-newpill:hover{background:var(--v4-accent-hover)}
+.dx-newpill:active{transform:scale(.98)}
+.dx-nav-item.is-search{margin-top:-4px;color:var(--v4-muted)}
+.dx-nav-item.is-search kbd{margin-left:auto;font:inherit;font-size:12px;color:var(--v4-faint)}
+.dx-admin{display:contents}
+.dx-admin-h{margin-top:12px;padding:0 12px 4px;font-size:11px;line-height:16px;font-weight:600;letter-spacing:.025em;text-transform:uppercase;color:var(--v4-faint)}
+.dx-side.is-folded .dx-admin-h{width:32px;margin:6px auto 0;padding:8px 0 0;border-top:1px solid var(--v4-line);font-size:9px;line-height:12px;text-align:center}
+.dx-side.is-folded .dx-side-foot{align-items:stretch}
+.dx-side.is-folded .dx-side-foot .dx-sep{margin:0 auto}
 .dx-side-foot{display:flex;flex-direction:column;gap:8px}
 .dx-connect{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-radius:999px;background:var(--v4-raised);color:var(--v4-fg);transition:background .15s,transform .15s}
 .dx-connect:hover{background:var(--v4-raised-hover)}
@@ -1228,7 +1245,7 @@ body.dx-on{--v4-bg:#f6f7f9;--v4-panel:#fff;--v4-card:#fff;--v4-raised:#f0f2f5;--
 .dx-hhead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
 .dx-hhead h1{font-size:28px;line-height:36px;font-weight:600;letter-spacing:-.01em}
 .dx-hhead p{margin-top:2px;color:var(--v4-fg-2)}
-.dx-hagent{display:flex;align-items:center;gap:10px;padding:8px 10px 8px 12px;border:1px solid var(--v4-line);border-radius:999px;background:var(--v4-card);min-width:0}
+.dx-hagent{display:none;align-items:center;gap:10px;padding:8px 10px 8px 12px;border:1px solid var(--v4-line);border-radius:999px;background:var(--v4-card);min-width:0}
 .dx-hagent img{width:28px;height:28px;border-radius:50%;object-fit:cover;background:var(--v4-raised)}
 .dx-hagent>span{display:flex;flex-direction:column;min-width:0}
 .dx-hagent b{font-weight:600}
@@ -1458,7 +1475,7 @@ body.dx-on{--v4-bg:#f6f7f9;--v4-panel:#fff;--v4-card:#fff;--v4-raised:#f0f2f5;--
   .dx-hcol{padding:16px 16px 24px;gap:16px}
   .dx-hhead{flex-direction:column}
   .dx-hhead h1{font-size:24px;line-height:32px}
-  .dx-hagent{max-width:100%}
+  .dx-hagent{display:flex;max-width:100%}
   .dx-steps,.dx-brief2{grid-template-columns:1fr}
   .dx-brief2>div+div{border-left:0;border-top:1px solid var(--v4-line)}
   .dx-stats{grid-template-columns:1fr 1fr}

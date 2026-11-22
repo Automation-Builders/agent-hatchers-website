@@ -876,17 +876,19 @@
     file:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>'
   };
   const L=(name,cls)=>`<svg class="lu${cls?' '+cls:''}" viewBox="0 0 24 24" aria-hidden="true">${LU[name]}</svg>`;
-  // Sidebar sections, in the dashboard's admin order (sectionNav.ts, 20 Nov): Config moved into
-  // Settings, reached here from Connect apps / Apps at the foot; Feed is "Soon" and sits last.
-  // Team and Marketing are left out: the playground has no page for them.
+  // Sections in the dashboard's order (sectionNav.ts, 22 Nov): Home, Chats, then the admin
+  // pages. The sidebar has no Chats row (New chat at the top opens it) and draws the admin pages
+  // under one "Admin" heading; the phone tab bar keeps Chats. Config moved into Settings and
+  // opens from Connect apps / Apps at the foot; Feed is "Soon". Team and Marketing are left out:
+  // the playground has no page for them.
   const DX_SECTIONS=[
     {k:'home',label:'Home',icon:'home'},
-    {k:'profiles',label:'Agents',icon:'bot'},
     {k:'chats',label:'Chats',icon:'chat'},
-    {k:'analytics',label:'Analytics',icon:'chart'},
-    {k:'market',label:'Marketplace',icon:'store'},
-    {k:'merch',label:'Merch',icon:'shirt'},
-    {k:'feed',label:'Feed',icon:'news',soon:true}
+    {k:'profiles',label:'Agents',icon:'bot',admin:true},
+    {k:'analytics',label:'Analytics',icon:'chart',admin:true},
+    {k:'market',label:'Marketplace',icon:'store',admin:true},
+    {k:'merch',label:'Merch',icon:'shirt',admin:true},
+    {k:'feed',label:'Feed',icon:'news',soon:true,admin:true}
   ];
 
   // The sidebar starts folded to the 72px labelled rail on every page, as V4Sidebar does since
@@ -896,24 +898,27 @@
   function sideFolded(){const f=state.sideFold||{};const k=foldKind();return k in f?!!f[k]:true;}
   const yourAvatar=()=>state.selectedImage||'/hatchy-pop.webp';
   const firstInitial=()=>(co().trim()[0]||'A').toUpperCase();
-  // ---- Sidebar (components/Nav/V4Sidebar.tsx + sectionNav.ts) ----
-  // Folded: icon tiles with their label underneath; the active one wears the accent tint.
-  // Open (280px): rows, with Search beside the toggle. Connect apps and the account sit at the foot.
+  // ---- Sidebar (components/Nav/V4Sidebar.tsx + v5Rail.css + sectionNav.ts) ----
+  // Folded: the toggle, New chat as the one filled tile, a small Search icon, then icon tiles
+  // with their label underneath (the current one wears the accent tint) and the admin pages
+  // under a small "Admin" rule. Open (280px): the same as rows, New chat as a filled pill and
+  // Search with its shortcut. Connect apps and the account sit at the foot.
   function dxSidebar(){
     const folded=sideFolded();
     const item=s=>{const locked=LOCKED_TABS[s.k];const on=state.tab===s.k;
       return `<button type="button" class="dx-nav-item${on?' on':''}${locked?' is-locked':''}" data-tab="${s.k}"${on?' aria-current="page"':''}${s.soon?` aria-label="${s.label} (coming soon)"`:''}><span class="dx-ic">${L(locked?'lock':s.icon)}</span><span class="dx-nav-label">${s.label}</span>${s.soon?'<span class="dx-soon">Soon</span>':''}${locked&&state.lockNote===s.k?`<i class="dx-lock-note">${escapeHtml(locked)}</i>`:''}</button>`;};
-    const railBtn=(icon,label,attr)=>`<button type="button" class="dx-nav-item" ${attr}><span class="dx-ic">${L(icon)}</span><span class="dx-nav-label">${label}</span></button>`;
+    const onChat=state.tab==='chats'?' aria-current="page"':'';
     const top=folded
-      ?`<button type="button" class="dx-fold" data-dx-fold aria-label="Expand sidebar" title="Expand sidebar" aria-expanded="false">${L('unfold')}</button>${state.tab==='chats'?'':railBtn('pen','New chat','data-dx-newchat')}${railBtn('search','Search','data-noop="1" title="Search (⌘K)"')}<hr class="dx-sep">`
-      :`<div class="dx-side-btns"><button type="button" class="dx-fold" data-dx-fold aria-label="Collapse sidebar" title="Collapse sidebar" aria-expanded="true">${L('fold')}</button><button type="button" class="dx-circle" aria-label="Search" title="Search (⌘K)" data-noop="1">${L('search')}</button></div>`;
+      ?`<div class="dx-rail-tools"><button type="button" class="dx-fold" data-dx-fold aria-label="Expand sidebar" title="Expand sidebar" aria-expanded="false">${L('unfold')}</button><button type="button" class="dx-nav-item is-new"${onChat} data-dx-newchat><span class="dx-ic">${L('pen')}</span><span class="dx-nav-label">New chat</span></button><button type="button" class="dx-fold" data-noop="1" aria-label="Search" title="Search (⌘K)">${L('search')}</button><hr class="dx-sep"></div>`
+      :`<div class="dx-side-btns"><button type="button" class="dx-fold" data-dx-fold aria-label="Collapse sidebar" title="Collapse sidebar" aria-expanded="true">${L('fold')}</button></div><button type="button" class="dx-newpill"${onChat} data-dx-newchat>${L('pen')}<span>New chat</span></button><button type="button" class="dx-nav-item is-search" data-noop="1">${L('search')}<span class="dx-nav-label">Search</span><kbd>⌘K</kbd></button>`;
+    const everyday=DX_SECTIONS.filter(s=>!s.admin&&s.k!=='chats'),admin=DX_SECTIONS.filter(s=>s.admin);
     return `<aside class="dx-side${folded?' is-folded':''}">
       <div class="dx-side-top">
         ${top}
-        <nav class="dx-nav" aria-label="Sections">${DX_SECTIONS.map(item).join('')}</nav>
+        <nav class="dx-nav" aria-label="Sections">${everyday.map(item).join('')}<div role="group" aria-labelledby="dx-admin-h" class="dx-admin"><span id="dx-admin-h" class="dx-admin-h">Admin</span>${admin.map(item).join('')}</div></nav>
       </div>
       <div class="dx-side-foot">
-        ${folded?railBtn('plug','Apps','data-tab="config" aria-label="Connect apps"'):`<button type="button" class="dx-connect" data-tab="config"><span>Connect apps</span><span class="dx-appdots">${mcpIcon('Gmail')}${mcpIcon('Google Calendar')}${mcpIcon('Google Drive')}</span></button>`}
+        ${folded?`<hr class="dx-sep"><button type="button" class="dx-nav-item" data-tab="config" aria-label="Connect apps" title="Connect apps"><span class="dx-ic">${L('plug')}</span><span class="dx-nav-label">Apps</span></button>`:`<button type="button" class="dx-connect" data-tab="config"><span>Connect apps</span><span class="dx-appdots">${mcpIcon('Gmail')}${mcpIcon('Google Calendar')}${mcpIcon('Google Drive')}</span></button>`}
         <div class="dx-acct"><span class="dx-me">${escapeHtml(firstInitial())}</span><span class="dx-acct-txt"><b>${escapeHtml(co())}</b><i>Workspace owner</i></span></div>
       </div>
     </aside>`;
@@ -1038,7 +1043,8 @@
     </div>`;
   }
   // ---- Home (/, components/Hermes/HomePage.tsx: HomeAgentChip, HomeActivity, HomeRecentChats) ----
-  // v5 layout: greeting, the agent chip, the composer with quick asks, "Get … working for you",
+  // v5 layout: greeting (the agent chip beside it on phones only; desktop moved it into the
+  // account menu), the composer with quick asks, "Get … working for you",
   // four counts, Needs you beside the conversations chart, the Briefing (overnight / today),
   // then Recent chats and Recurring jobs. Lines are written around the researched team.
   const BRIEF={
@@ -1201,7 +1207,7 @@
   function marketScreen(){
     const t=state.tab;
     const body=t==='home'?homeView():t==='chats'?chatsView():t==='feed'?feedView():t==='analytics'?analyticsView():t==='config'?configView():t==='market'?marketplaceView():t==='merch'?merchView():profilesBoard();
-    const sec=DX_SECTIONS.find(s=>s.k===t)||(t==='config'?{label:'Settings'}:DX_SECTIONS[1]);
+    const sec=DX_SECTIONS.find(s=>s.k===t)||{label:t==='config'?'Settings':'Agents'};
     const foot=SHARE_TOKEN
       ?`<div class="dx-foot is-share"><span class="dx-foot-txt">Like what you see? This is what your team could look like.</span><div class="dx-foot-btns">${state.selectedImage?`<button type="button" class="dx-pill" data-action="download">${L('download')}<span>Download your image</span></button>`:''}<a class="dx-pill" href="${escapeHtml(location.pathname)}">Hatch your own agent →</a><button type="button" class="dx-pill is-white" data-action="book" data-source="share">Book a call →</button></div></div>`
       :`<div class="dx-foot"><div class="dx-foot-btns"><button type="button" class="dx-pill" data-action="back">${L('back')}<span>Back</span></button><button type="button" class="dx-pill" data-action="reset">${L('redo')}<span>Start over</span></button><button type="button" class="dx-pill" data-action="next"><span>Connect your agent</span>${L('arrowRight')}</button>${state.selectedImage?`<button type="button" class="dx-pill" data-action="download">${L('download')}<span>Download your image</span></button>`:''}<button type="button" class="dx-pill" data-action="book" data-source="dashboard"><span>Book a call</span></button></div><button type="button" class="dx-pill is-white" data-action="trial" data-source="dashboard">Start 30-day free trial →</button></div>`;
