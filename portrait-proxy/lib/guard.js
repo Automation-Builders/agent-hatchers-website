@@ -27,11 +27,11 @@
 //
 // Counters live in Upstash Redis (Vercel Marketplace), read through its REST API with plain
 // fetch, so there is no new dependency. Locally and in tests (no VERCEL env) an in-memory map
-// stands in. On Vercel with NO store configured the paid endpoints answer 503: that is a setup
-// mistake and should show on the preview. If a configured store fails at run time, counting
-// falls back to this instance's memory (still stops a script hammering a warm function) and
-// Slack is told, so an Upstash hiccup doesn't take the playground down; the spending cap on
-// the OpenRouter key bounds the money either way.
+// stands in. With no store connected yet, or if the store fails at run time, counting falls
+// back to each function instance's memory and Slack is told (once an hour per instance). That
+// still stops a plain script hammering a warm function, but parallel or spread-out calls can
+// slip past, so the spending cap on the OpenRouter key is what bounds the money until Upstash
+// is connected. Connecting it needs no redeploy of this code to take effect beyond env vars.
 // Slack is also told when the day's estimated spend passes 80% and 100% of the cap.
 //
 // Limits are per day (Australian Eastern time) unless a class sets `window` (seconds). Override
@@ -73,7 +73,6 @@ const MESSAGES = {
   visitor: 'You’ve reached today’s free limit for the playground. Start your 30-day free trial to keep going, or come back tomorrow.',
   ip: 'You’ve reached today’s free limit for the playground. Start your 30-day free trial to keep going, or come back tomorrow.',
   daily: 'The playground is very busy today, so free designs are paused until tomorrow. Start your 30-day free trial to keep going.',
-  store: 'The playground can’t check its free limits right now. Please try again in a minute.',
 };
 
 function limits() {
@@ -170,7 +169,7 @@ function storeConfig() {
   const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || '';
   const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || '';
   if (url && token) return { url: url.replace(/\/+$/, ''), token };
-  return process.env.VERCEL ? null : { memory: true };
+  return { memory: true, unconfigured: !!process.env.VERCEL };
 }
 // Add `by` to each key (creating it with its TTL first) and return the new totals, in order.
 async function incr(store, items, now) {
@@ -210,22 +209,25 @@ export async function allow(req, cls, { now = Date.now() } = {}) {
   if (staff) return { ok: true, staff: staff.name || true };
 
   const store = storeConfig();
-  if (!store) {
-    console.error(JSON.stringify({ fn: 'guard', cls, error: 'no counter store configured (KV_REST_API_URL / KV_REST_API_TOKEN)' }));
-    return rule.paid ? { ok: false, status: 503, scope: 'store', retryAfter: 60, message: MESSAGES.store } : { ok: true, unchecked: true };
+  if (store.unconfigured) {
+    console.error(JSON.stringify({ fn: 'guard', cls, error: 'no counter store configured (KV_REST_API_URL / KV_REST_API_TOKEN); counting in memory' }));
+    if (now - alertAt.unconfigured > 3600000) {
+      alertAt.unconfigured = now;
+      await notify(':warning: Playground limits are counting per function instance: no Upstash store is connected to portrait-proxy yet (KV_REST_API_URL / KV_REST_API_TOKEN).');
+    }
   }
   try {
     return await count(store, req, cls, rule, now);
   } catch (e) {
     console.error(JSON.stringify({ fn: 'guard', cls, error: String(e && e.message), fallback: 'memory' }));
-    if (now - storeAlertAt > 3600000) {
-      storeAlertAt = now;
+    if (now - alertAt.failed > 3600000) {
+      alertAt.failed = now;
       await notify(`:warning: Playground limits: the counter store failed (${String(e && e.message).slice(0, 80)}). Counting per function instance until it recovers.`);
     }
     return count({ memory: true }, req, cls, rule, now);
   }
 }
-let storeAlertAt = 0;
+const alertAt = { unconfigured: 0, failed: 0 };   // one Slack note an hour per instance, per problem
 
 async function count(store, req, cls, rule, now) {
   const window = Number(rule.window) > 0 ? Number(rule.window) * 1000 : 86400000;

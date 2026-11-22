@@ -126,9 +126,11 @@ shows, and nothing upstream is called.
 - **Website lookup:** `lib/public-url.js` resolves every hop (up to 8 redirects) and refuses
   private, loopback and link-local addresses, including ones that carry an IPv4 address inside
   IPv6 (`127.0.0.1.nip.io` is refused).
-- **Counter store down:** with no store configured, on Vercel the paid endpoints answer 503 (a
-  setup mistake that shows on the preview). If the configured store fails at run time, counting
-  falls back to each function instance's memory and Slack is told, so the playground keeps working.
+- **Counter store:** the limits are exact only with Upstash connected. With no store yet, or if
+  it fails at run time, counting falls back to each function instance's memory and Slack is told.
+  The playground keeps working, and a plain script hammering the endpoints is still stopped, but
+  parallel or spread-out calls can get past. Until Upstash is connected, the OpenRouter key's
+  spending cap is what bounds the money.
 
 **Rollout order.** Build 87 of the page sends `x-ah-visitor`, which a proxy older than this one
 refuses in its CORS preflight. The page then retries with the plain header (counted per IP), so a
@@ -152,7 +154,7 @@ Default limits per day (session saves: per hour):
 
 | Name | Required | Value |
 |---|---|---|
-| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | **yes** | Upstash Redis REST credentials. Connect Upstash from Vercel → Storage / Marketplace to this project (Production and Preview) and these are injected (`UPSTASH_REDIS_REST_URL` / `_TOKEN` also work). |
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | strongly recommended | Upstash Redis REST credentials. Connect Upstash from Vercel → Storage / Marketplace to this project (Production and Preview) and these are injected (`UPSTASH_REDIS_REST_URL` / `_TOKEN` also work). |
 | `STAFF_PASS_SECRET` | for demo mode | 32+ random characters. Signs demo passes. Rotate it to revoke them all. |
 | `DAILY_SPEND_CAP_CENTS` | no | estimated US cents per day across all visitors (default 5000) |
 | `IP_SPEND_CAP_CENTS` | no | estimated US cents per day per IP (default 1500) |

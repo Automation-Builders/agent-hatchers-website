@@ -129,14 +129,19 @@ test('a 12-hour pass for someone else\'s computer expires after 12 hours; no pas
   } finally { process.env.STAFF_PASS_SECRET = secret; }
 });
 
-test('on Vercel with no counter store the paid endpoints refuse (503) and the free ones carry on', async () => {
-  fresh();
-  process.env.VERCEL = '1';
+test('on Vercel with no counter store connected yet, limits still count (in memory) and Slack is told once', async () => {
+  fresh({ portrait: { visitor: 2, ip: 5 } });
+  process.env.VERCEL = '1'; process.env.SLACK_BOT_TOKEN = 'xoxb-test';
+  const realFetch = globalThis.fetch, slack = [];
+  globalThis.fetch = async (url, init) => { if (String(url).includes('slack')) slack.push(JSON.parse(init.body).text); return new Response('{}'); };
   try {
-    const r = await allow(req(), 'portrait');
-    assert.equal(r.ok, false); assert.equal(r.status, 503);
+    const codes = [];
+    for (let i = 0; i < 3; i++) codes.push((await allow(req(), 'portrait')).ok);
+    assert.deepEqual(codes, [true, true, false], 'the playground keeps working and the limit still holds');
     assert.equal((await allow(req(), 'session')).ok, true);
-  } finally { delete process.env.VERCEL; }
+    assert.equal(slack.length, 1);
+    assert.match(slack[0], /no Upstash store/);
+  } finally { globalThis.fetch = realFetch; delete process.env.VERCEL; delete process.env.SLACK_BOT_TOKEN; }
 });
 
 // A stand-in for Upstash's /pipeline endpoint; Slack posts are recorded separately.
