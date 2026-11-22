@@ -1,6 +1,6 @@
 // Local rendered-page regression check. Requires Playwright + Chromium and a static
 // server at PROTOTYPE_TEST_URL (default http://127.0.0.1:8768). No remote calls allowed.
-// Build 87 (20 Nov 2026): the free limits moved to the proxy (portrait-proxy/lib/guard.js).
+// Build 88 (20 Nov 2026): the free limits moved to the proxy (portrait-proxy/lib/guard.js).
 // This checks that the page sends a stable visitor id on every AI call, that ?unlimited=1 no
 // longer lifts anything, that a 429 from the proxy shows the limit message once and is not
 // retried, and that a demo pass from the sessions page travels with the calls and lifts the gate.
@@ -56,7 +56,7 @@ const LIMIT_MSG='You’ve reached today’s free limit for the playground. Start
     const pops=await page.$$eval('.create-pop',els=>els.length);
     assert.ok(refused>0,'marketplace asked for portraits');
     assert.ok(pops<=1,'one message, not one per refused call');
-    // Each refused portrait is asked for once: before build 87 a failure was retried 3 times.
+    // Each refused portrait is asked for once: before build 88 a failure was retried 3 times.
     const names=portraits.slice(3).map(h=>h.name);
     assert.equal(new Set(names).size,names.length,'no portrait asked for twice after a 429');
     assert.ok(refused<=32,`no retry storm (${refused} refused calls)`);

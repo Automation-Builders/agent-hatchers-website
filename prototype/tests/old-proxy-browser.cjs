@@ -1,6 +1,6 @@
 // Local rendered-page regression check. Requires Playwright + Chromium and a static
 // server at PROTOTYPE_TEST_URL (default http://127.0.0.1:8768). No remote calls allowed.
-// Build 87 sends x-ah-visitor to the proxy. A proxy older than build 87 (mid-deploy, or after a
+// Build 88 sends x-ah-visitor to the proxy. A proxy older than build 88 (mid-deploy, or after a
 // Vercel rollback) allows only content-type, so the browser refuses those calls. The page must
 // then retry with the plain header and the playground must still hatch.
 // The refused preflight is simulated by failing every request that carries x-ah-visitor.

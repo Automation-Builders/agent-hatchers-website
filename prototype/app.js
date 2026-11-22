@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 87;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 88;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -58,7 +58,7 @@
   const brandEndpoint = config.brandEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-brand');
   const teamEndpoint = config.teamEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-team');
   const profileEndpoint = config.profileEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-profile');
-  // Build 87: the free limits are enforced by the proxy (portrait-proxy/lib/guard.js). Every AI
+  // Build 88: the free limits are enforced by the proxy (portrait-proxy/lib/guard.js). Every AI
   // call says which browser it comes from (a random id, so limits count per visitor) and, in a
   // team member's browser, carries the demo pass from the sessions page.
   const VISITOR_KEY='ah-visitor', PASS_KEY='ah-staff-pass';
@@ -67,7 +67,7 @@
   const passHeaders=h=>{const p=staffPass();if(p)h['x-ah-pass']=p;return h;};
   const proxyHeaders=()=>passHeaders({'Content-Type':'application/json','x-ah-visitor':visitorId});
   // POST to a proxy endpoint with the visitor id and pass. If the browser blocks that (a proxy
-  // older than build 87 allows only content-type, e.g. mid-deploy or after a rollback), try once
+  // without the server limits (#58) allows only content-type, e.g. mid-deploy or after a rollback), try once
   // more with the plain header so the playground keeps working; the proxy then counts by IP.
   async function proxyPost(url,payload,extra){
     try{return await fetch(url,{method:'POST',headers:proxyHeaders(),body:JSON.stringify(payload),...(extra||{})});}
@@ -1324,7 +1324,7 @@
   // gets three of each, ever — the counts live in localStorage so "Start over" (which wipes
   // the IndexedDB session) doesn't hand out three more.
   const FREE=3, FREE_PROFILES=FREE, PROFILES_KEY='ah-new-profiles', HATCH_KEY='ah-hatches', LOOK_KEY='ah-look-edits';
-  // Team bypass (build 87): "Demo mode" on the sessions page stores a signed pass in this
+  // Team bypass (build 88): "Demo mode" on the sessions page stores a signed pass in this
   // browser, and the proxy checks it on every call. The old ?unlimited=1 switch is gone: any
   // visitor could type it, and the proxy now enforces the limits whatever the page thinks.
   const unlimited=()=>!!staffPass();
