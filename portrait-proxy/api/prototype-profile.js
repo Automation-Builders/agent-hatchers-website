@@ -5,19 +5,10 @@
 //   → { summary, outcomes:[5], mcps:[3-6], mates:[2-3 catalog ids], team, v:1 }
 // The client falls back to a keyword-built profile if this is unreachable.
 
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
-  'https://agenthatchers.com,https://www.agenthatchers.com,http://localhost:8799')
-  .split(',').map(s => s.trim()).filter(Boolean);
+import { applyCors, guard } from '../lib/guard.js';
+
 const PROFILE_MODEL = process.env.OPENROUTER_PROFILE_MODEL || process.env.OPENROUTER_TEAM_MODEL || process.env.OPENROUTER_CHAT_MODEL || 'google/gemini-3.7-flash';
 const TEAMS = ['Growth', 'Operations', 'Finance', 'Creative', 'Support', 'Documents', 'Sales', 'Marketing', 'Logistics', 'Tech'];
-
-function applyCors(res, origin) {
-  const allow = ALLOWED_ORIGINS.includes('*') ? '*' : (ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]);
-  res.setHeader('Access-Control-Allow-Origin', allow);
-  res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'content-type');
-}
 
 function parseJson(text) {
   if (!text) return null;
@@ -29,7 +20,7 @@ function parseJson(text) {
 }
 
 export default async function handler(req, res) {
-  applyCors(res, req.headers.origin || '');
+  applyCors(req, res);
   if (req.method === 'OPTIONS') { res.status(204).end(); return; }
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }
   if (!process.env.OPENROUTER_API_KEY) { res.status(500).json({ error: 'Server is missing OPENROUTER_API_KEY' }); return; }
@@ -48,6 +39,7 @@ export default async function handler(req, res) {
   const tools = (Array.isArray(body.tools) ? body.tools : []).slice(0, 40).map(s => String(s).replace(/\s+/g, ' ').trim().slice(0, 30)).filter(Boolean);
   if (!name) { res.status(400).json({ error: 'name missing' }); return; }
   if (roster.length < 3) { res.status(400).json({ error: 'roster missing' }); return; }
+  if (!(await guard(req, res, 'profile'))) return;
   const ids = new Set(roster.map(a => a.id));
   const known = new Set(connectors.map(c => c.toLowerCase()));
 

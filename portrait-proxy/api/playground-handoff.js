@@ -11,21 +11,11 @@
 // secret (a share link reveals it), which is why the dashboard never sees or uses it.
 // Needs BLOB_READ_WRITE_TOKEN and HANDOFF_SECRET (at least 32 characters).
 import { put, get } from '@vercel/blob';
+import { applyCors, guard } from '../lib/guard.js';
 import {
   SID_RE, TOKEN_RE, buildSnapshot, hasAgent, newHandoffToken, handoffPath, signupUrl, ttlMs, checkSecret,
 } from '../lib/handoff.js';
 
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
-  'https://agenthatchers.com,https://www.agenthatchers.com,http://localhost:8799')
-  .split(',').map(s => s.trim()).filter(Boolean);
-
-function applyCors(res, origin) {
-  const allow = ALLOWED_ORIGINS.includes('*') ? '*' : (ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]);
-  res.setHeader('Access-Control-Allow-Origin', allow);
-  res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'content-type');
-}
 const putJson = (pathname, obj) => put(pathname, JSON.stringify(obj), { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });
 async function readJson(pathname) {
   try {
@@ -43,7 +33,7 @@ function body(req) {
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   const serverCall = req.headers['x-handoff-key'] !== undefined;
-  if (!serverCall) applyCors(res, req.headers.origin || '');
+  if (!serverCall) applyCors(req, res);
   if (req.method === 'OPTIONS') { res.status(204).end(); return; }
   if (req.method !== 'POST') { res.status(405).json({ error: 'method' }); return; }
   if (!process.env.HANDOFF_SECRET || String(process.env.HANDOFF_SECRET).length < 32) {
@@ -66,6 +56,7 @@ export default async function handler(req, res) {
     return;
   }
 
+  if (!(await guard(req, res, 'handoff'))) return;
   const sid = String(b.sid || '');
   if (!SID_RE.test(sid)) { res.status(400).json({ error: 'sid' }); return; }
   const session = await readJson(`sessions/${sid}.json`);

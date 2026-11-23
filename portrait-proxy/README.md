@@ -90,13 +90,82 @@ as `inspiration:{ photo, brand:{ name, colors, logo, hero } }`, which switches t
 "design a new robot in this brand's colours / like this person" mode (distinct from `image`,
 which re-dresses an existing character). No API key is needed for the lookup itself.
 
-## Cost & abuse notes
+## Free limits and cost (`lib/guard.js`, build 87, Nov 2026)
 
-- Each call costs one OpenRouter image generation; a full hatch generates **3**.
-- CORS is restricted to `ALLOWED_ORIGINS`, which stops other websites' browsers from calling
-  it, but not raw `curl`. Since the prototype URLs are unlisted and low-traffic this is usually
-  fine; if you ever see abuse, add Vercel rate limiting / a WAF rule, or set a spend cap on the
-  OpenRouter key.
+Every endpoint is public and the repo is public, so CORS is not protection: it only tells
+browsers which sites may read the answer, and `curl` ignores it. The limits are enforced here.
+Every endpoint calls `guard(req, res, '<class>')` from `lib/guard.js` before it spends anything
+(OpenRouter, Resend, Slack or Blob). Past a limit, the call gets **429** with a message the page
+shows, and nothing upstream is called.
+
+- **Who is counted:** the caller's IP as Vercel reports it (IPv6 by /64), and the page's random
+  visitor id (`x-ah-visitor`, from localStorage). Both are counted and either one over its limit
+  refuses. A script can change the visitor id but not its IP, so the IP limit is the one that
+  holds. A call with no visitor id gets the visitor limit per IP. When the playground verifies
+  emails, `subjectOf()` should return a hash of the verified email instead.
+- **A day** runs midnight to midnight Australian Eastern Standard Time (UTC+10), so limits reset
+  overnight for our prospects (00:00 AEST, 01:00 during daylight saving).
+- **Spend caps:** each paid call has an estimated cost (`cents` in `DEFAULT_LIMITS`). One IP may
+  spend `IP_SPEND_CAP_CENTS` a day (default 3000 = US$30, two visitors on one office network who each use every free hatch,
+  edit, profile and chat). All visitors together may spend `DAILY_SPEND_CAP_CENTS` a day (default
+  5000 = US$50). Past that, free use pauses until midnight and Slack is told at 80% and 100%.
+  Calls refused by their own limits are not added, and an image call that OpenRouter itself
+  refuses gets its estimate back (`refund()`), so a provider outage doesn't use up the day. It takes two or more addresses at full use to
+  pause the day. The spending cap on the OpenRouter key is the hard backstop above all of this.
+- **Cost per hatch:** one hatch is up to ~29 image calls (3 designs, then the marketplace and the six
+  other profiles are re-dressed in the chosen look). A kept look edit redraws the marketplace again.
+  The portrait limits are sized for a visitor who uses all three hatches and all three edits.
+- **Team demos:** the sessions page's **Demo mode** button mints a signed pass
+  (`GET prototype-session?key=…&by=<name>&pass=1[&hours=12]`, logged) and stores it in that
+  browser: 30 days on a team member's own computer, 12 hours on someone else's. The page sends it
+  as `x-ah-pass`, also on session saves and the trial handoff, so office demos and email tests
+  aren't held by the per-IP limits. A valid pass skips every limit and the daily cap. Passes are
+  signed with `STAFF_PASS_SECRET` only. Without it no pass works and everyone, team included, has
+  the visitor limits. Rotating it revokes every pass. The old `?unlimited=1` switch is gone.
+- **Held, not lost:** a prospect email or Slack ping held back by its per-IP limit is not marked
+  done, so the next save of that session (from another connection, or the next day) sends it.
+- **Website lookup:** `lib/public-url.js` resolves every hop (up to 8 redirects) and refuses
+  private, loopback and link-local addresses, including ones that carry an IPv4 address inside
+  IPv6 (`127.0.0.1.nip.io` is refused).
+- **Counter store:** the limits are exact only with Upstash connected. With no store yet, or if
+  it fails at run time, counting falls back to each function instance's memory. A failing store
+  tells Slack; a store that was never connected is only logged (each cold start would post again).
+  The playground keeps working, and a plain script hammering the endpoints is still stopped, but
+  parallel or spread-out calls can get past. Until Upstash is connected, the OpenRouter key's
+  spending cap is what bounds the money.
+
+**Website previews.** CORS also allows the website's own Vercel previews
+(`agent-hatchers-website-…-agenthatchers.vercel.app`), so a page change can be tried with the real
+AI before it merges. Those calls are counted and limited like any other. `ALLOWED_ORIGIN_PATTERN`
+overrides the pattern (`none` turns it off).
+
+**Rollout order.** Build 87 of the page sends `x-ah-visitor`, which a proxy older than this one
+refuses in its CORS preflight. The page then retries with the plain header (counted per IP), so a
+mid-deploy or rolled-back proxy only costs a second request. Still, ship the proxy first and the
+page second, and don't roll the proxy back past this change while the page is on build 87 without
+knowing that.
+
+Default limits per day (session saves: per hour):
+
+| Class | Endpoint | Per visitor | Per IP |
+|---|---|---|---|
+| `portrait` | prototype-portrait | 180 | 400 |
+| `team` | prototype-team | 10 | 30 |
+| `profile` | prototype-profile | 6 | 15 |
+| `chat` | prototype-chat | 150 | 300 |
+| `brand` | prototype-brand | 10 | 30 |
+| `session` | prototype-session POST | — | 1200 an hour |
+| `ping` / `mail` | Slack pings / prospect emails and list adds from session saves | — | 30 / 10 |
+| `lead` | lead | — | 5 |
+| `handoff` | playground-handoff (page side) | — | 20 |
+
+| Name | Required | Value |
+|---|---|---|
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | strongly recommended | Upstash Redis REST credentials. Connect Upstash from Vercel → Storage / Marketplace to this project (Production and Preview) and these are injected (`UPSTASH_REDIS_REST_URL` / `_TOKEN` also work). |
+| `STAFF_PASS_SECRET` | for demo mode | 32+ random characters. Signs demo passes. Rotate it to revoke them all. |
+| `DAILY_SPEND_CAP_CENTS` | no | estimated US cents per day across all visitors (default 5000) |
+| `IP_SPEND_CAP_CENTS` | no | estimated US cents per day per IP (default 3000) |
+| `RATE_LIMITS` | no | JSON override, e.g. `{"portrait":{"visitor":120,"ip":150}}` |
 
 ## `api/prototype-profile.js` (build 41, Sep 2026)
 
