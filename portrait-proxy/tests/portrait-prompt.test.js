@@ -34,3 +34,15 @@ test('a new design follows the subject the description names', async () => {
   assert.match(p, /a robot unless the description names another subject/);
   assert.match(p, /Show exactly ONE character/);
 });
+
+test('a card asked for a key colour gets that flat backdrop instead of white', async () => {
+  await call({ brief: 'x', name: 'Scout', role: 'Sales agent', image: 'data:image/png;base64,aGk=', bg: 'green' });
+  const p = promptText();
+  assert.match(p, /Solid flat pure green \(#00FF00\) chroma-key background/);
+  assert.doesNotMatch(p, /Plain solid white background/);
+});
+
+test('an unknown bg value keeps the white backdrop', async () => {
+  await call({ brief: 'x', name: 'Scout', role: 'Sales agent', image: 'data:image/png;base64,aGk=', bg: 'red' });
+  assert.match(promptText(), /Plain solid white background/);
+});

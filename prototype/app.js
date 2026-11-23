@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 90;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 91;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -414,7 +414,7 @@
   const cleanTools=t=>Array.isArray(t)?[...new Set(t.map(x=>String(x).replace(/\s+/g,' ').trim().slice(0,30)).filter(Boolean))].slice(0,40):[];
   const uid=()=>(crypto.randomUUID?crypto.randomUUID():'s-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10));
   const thumbCache=new Map();
-  async function thumb(src,max=512){if(!src||!/^data:/.test(src))return '';const k=max+':'+src.slice(0,80)+src.length;if(thumbCache.has(k))return thumbCache.get(k);const t=await downscale(src,max,true,.9);thumbCache.set(k,t);return t;}
+  async function thumb(src,max=512,alpha=false){if(!src||!/^data:/.test(src))return '';const k=alpha+':'+max+':'+src.slice(0,80)+src.length;if(thumbCache.has(k))return thumbCache.get(k);const t=await downscale(src,max,alpha?'image/webp':true,.9);thumbCache.set(k,t);return t;}
   // The chosen look also becomes the sessions page's card picture, which the store keeps only
   // up to 120,000 characters — so take the sharpest copy that fits whole.
   async function heroThumb(src){for(const max of [768,640,512,384]){const t=await thumb(src,max);if(t.length<=118000)return t;}return thumb(src,320);}
@@ -435,8 +435,8 @@
   }
   async function buildCapture(cardMax=512){
     const slots=await Promise.all(state.slots.map(s=>s&&s.image?thumb(s.image):Promise.resolve('')));
-    const market={};for(const [k,v] of Object.entries(state.marketImages||{})){const t=await thumb(v,cardMax);if(t)market[k]=t;}
-    const profiles=await Promise.all(state.profiles.filter(p=>p.status==='complete'||p.status==='deleted').map(async p=>({name:p.name,desc:p.desc,status:p.status,img:await thumb(p.img,cardMax),profile:p.profile||null})));
+    const market={};for(const [k,v] of Object.entries(state.marketImages||{})){const t=await thumb(v,cardMax,true);if(t)market[k]=t;}
+    const profiles=await Promise.all(state.profiles.filter(p=>p.status==='complete'||p.status==='deleted').map(async p=>({name:p.name,desc:p.desc,status:p.status,img:await thumb(p.img,cardMax,true),profile:p.profile||null})));
     let chatNames=[];try{chatNames=chatProfiles().all.map(x=>x.name);}catch(e){}
     return {sid:state.sid,v:1,build:BUILD,page:location.pathname,startedAt:state.startedAt,savedAt:Date.now(),ua:navigator.userAgent.slice(0,160),
       company:co(),you:state.you||'',email:state.contactSaved?state.email:'',name:state.name,biz:state.biz,industry:state.industry,website:state.website||'',tools:state.tools||[],look:state.look,step:state.step,tab:state.tab,done:state.done,editUses:state.editUses,
@@ -986,7 +986,7 @@
   }
   const teamChip=team=>`<span class="dx-chip is-team">${L('users')}${escapeHtml(team)}</span>`;
   function agentCard(agent,status){const gen=state.marketImages[agent.id];const loading=!gen&&willGenerate(agent);const unhatched=!gen&&VIEW_ONLY;const inner=gen?`<img src="${escapeHtml(gen)}" alt="${escapeHtml(agent.name)}">`:(loading?marketLoader:unhatched?marketUnhatched:`<img src="${agent.portrait}" alt="${escapeHtml(agent.name)}" loading="lazy">`);const live=status==='active';return `<article class="dx-card" data-agent="${agent.id}" data-search="${escapeHtml((agent.name+' '+agent.team).toLowerCase())}" tabindex="0" role="button" aria-label="Open ${escapeHtml(agent.name)}">${cardPicture(agent.id,inner,status,`${gen?'is-generated':''} ${loading||unhatched?'is-loading':''}`)}<div class="dx-card-meta"><div class="dx-card-name"><h3>${agent.name}</h3><i class="dx-gw${live?' on':''}"></i></div><div class="dx-chips">${teamChip(agent.team)}${live?`<span class="dx-chip">${sessionsOf(agent.id)} sessions</span>`:''}</div></div></article>`;}
-  function hatchedCard(){const vis=state.selectedImage?`<img src="${escapeHtml(state.selectedImage)}" alt="${escapeHtml(state.name)}">`:`<div class="thumb-bot">${bot('v'+(state.variant||0))}</div>`;return `<article class="dx-card is-yours is-new" tabindex="0" role="button" aria-label="Change ${escapeHtml(state.name||'your agent')}’s look"><span class="dx-new">New</span>${cardPicture('__you',vis,'active',state.selectedImage?'is-generated':'')}<div class="dx-card-meta"><div class="dx-card-name"><h3>${escapeHtml(state.name||'Your agent')}</h3><i class="dx-gw on"></i>${L('star','dx-star')}</div></div></article>`;}
+  function hatchedCard(){const img=state.marketImages._hero||state.selectedImage;const vis=img?`<img src="${escapeHtml(img)}" alt="${escapeHtml(state.name)}">`:`<div class="thumb-bot">${bot('v'+(state.variant||0))}</div>`;return `<article class="dx-card is-yours is-new" tabindex="0" role="button" aria-label="Change ${escapeHtml(state.name||'your agent')}’s look"><span class="dx-new">New</span>${cardPicture('__you',vis,'active',state.selectedImage?'is-generated':'')}<div class="dx-card-meta"><div class="dx-card-name"><h3>${escapeHtml(state.name||'Your agent')}</h3><i class="dx-gw on"></i>${L('star','dx-star')}</div></div></article>`;}
   function profilesBoard(){
     const running=runningAgents();
     const rec=topAgents().filter(a=>!RUNNING.includes(a.id));
@@ -1710,8 +1710,48 @@
       const im=await loadImg(src);const k=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));
       const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.naturalWidth*k));c.height=Math.max(1,Math.round(im.naturalHeight*k));
       const g=c.getContext('2d');g.imageSmoothingQuality='high';g.drawImage(im,0,0,c.width,c.height);
-      return jpeg?c.toDataURL('image/jpeg',quality):c.toDataURL('image/png');
+      return c.toDataURL(typeof jpeg==='string'?jpeg:jpeg?'image/jpeg':'image/png',quality);
     }catch(e){return src;}
+  }
+  // Remove the sampled chroma backdrop while preserving neutral/white character parts.
+  async function keyOut(src,key){
+    const im=await loadImg(src);const c=document.createElement('canvas');
+    c.width=im.naturalWidth;c.height=im.naturalHeight;
+    const g=c.getContext('2d');g.drawImage(im,0,0);
+    const pixels=g.getImageData(0,0,c.width,c.height),d=pixels.data;
+    const keyness=i=>key==='green'?d[i+1]-Math.max(d[i],d[i+2]):Math.min(d[i],d[i+2])-d[i+1];
+    const border=[];
+    for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++){
+      if(x===0||y===0||x===c.width-1||y===c.height-1)border.push(keyness((y*c.width+x)*4));
+    }
+    border.sort((a,b)=>a-b);
+    const mid=Math.floor(border.length/2),mBg=border.length%2?border[mid]:(border[mid-1]+border[mid])/2;
+    if(mBg<60)return src;
+    for(let i=0;i<d.length;i+=4){
+      const m=keyness(i),alpha=1-Math.max(0,Math.min(1,(m-.3*mBg)/(.5*mBg)));
+      d[i+3]=Math.round(d[i+3]*alpha);
+      if(m>0){if(key==='green')d[i+1]=Math.max(0,d[i+1]-m);
+        else{d[i]=Math.max(0,d[i]-m);d[i+2]=Math.max(0,d[i+2]-m);}}
+    }
+    g.putImageData(pixels,0,0);return c.toDataURL('image/png');
+  }
+  const keyCache=new Map();
+  async function pickKey(ref){
+    const id=imageKey(ref);if(keyCache.has(id))return keyCache.get(id);
+    const im=await loadImg(await downscale(ref,64));const c=document.createElement('canvas');
+    c.width=im.naturalWidth;c.height=im.naturalHeight;
+    const g=c.getContext('2d');g.drawImage(im,0,0);const d=g.getImageData(0,0,c.width,c.height).data;
+    let total=0,pink=0;
+    for(let i=0;i<d.length;i+=4){
+      if(d[i+3]<128||Math.min(d[i],d[i+1],d[i+2])>230)continue;
+      total++;if(Math.min(d[i],d[i+2])-d[i+1]>40)pink++;
+    }
+    const key=pink>total*.01?'green':'magenta';keyCache.set(id,key);return key;
+  }
+  // Failed keying leaves the original portrait available rather than losing a card.
+  async function keyedImage(params,key){
+    const img=await fetchImage({...params,bg:key});if(!img)return img;
+    try{return await keyOut(img,key);}catch(e){return img;}
   }
   // Dominant non-grey colours of an image (logo pixels beat CSS guesses for the true brand colour).
   async function dominantColors(src,n=3){
@@ -1829,10 +1869,8 @@
     const context = state.biz ? `an agent at a ${state.biz} company` : '';
     return fetchImage({brief:designBrief(variant),name:state.name,role:context,company:co(),industry:industryLabel,variant,inspiration:inspiration()});
   }
-  // A dashboard card: the SAME hatched character, dressed for one job, on a plain white background
-  // like the three designs (23 Nov: cards used to put it in a whole scene, at a desk or in a
-  // warehouse). Only the outfit and props survive from the catalog scene, the setting is dropped.
-  function cardRole(name,scene){
+  // A dashboard card keeps only the outfit and props; the proxy supplies the chroma backdrop.
+  function cardRole(name,scene,keyed=false){
     const kit=[];
     for(let part of String(scene||'').replace(/^It is an? [^,]*? agent,? /i,'').split(/,\s*/)){
       if(kit.length&&!/^(and )?(wearing|holding|carrying|with|dressed)\b/i.test(part))break;
@@ -1840,7 +1878,7 @@
       if(stop>0)part=part.slice(0,stop);
       if(/^(wearing|holding|carrying|with|dressed|and )/i.test(part))kit.push(part.trim());
     }
-    return `It is ${name}${kit.length?`, ${kit.join(', ')}`:''}. Plain solid white background: no room, desk, furniture, screens or scenery, just the character, full body and centred, like the original design. Keep it simple, at most one small prop.`;
+    return `It is ${name}${kit.length?`, ${kit.join(', ')}`:''}. ${keyed?'':'Plain solid white background: no room, desk, furniture, screens or scenery, just the character, full body and centred, like the original design. '}Keep it simple, at most one small prop.`;
   }
 
   // Re-skin every marketplace agent in the chosen look, each dressed for its own job.
@@ -1867,11 +1905,20 @@
     const refKey=imageKey(ref);
     if(state.marketRefKey&&state.marketRefKey!==refKey){state.marketImages={};}
     state.marketRefKey=refKey;
+    const key=ref?await pickKey(ref).catch(()=>'magenta'):'magenta';
+    const hero=async()=>{
+      if(state.marketImages._hero||!useLive||!ref)return;
+      const img=await keyedImage({brief:state.look,name:state.name,role:`It is ${state.name}, exactly as in the reference: same outfit and props, nothing added or removed.`,image:ref,variant:state.variant||0},key);
+      if(!img)return;
+      state.marketImages._hero=img;saveSession();
+      const thumb=root.querySelector('[data-thumb="__you"]');
+      if(thumb)thumb.innerHTML=`<img src="${escapeHtml(img)}" alt="${escapeHtml(state.name)}">`;
+    };
     const draw=async (agent,idx)=>{
       if(drawing.has(agent.id))return;drawing.add(agent.id);
       try{
       let img = state.marketImages[agent.id] || baked[agent.id];
-      if(!img && useLive) img = await fetchImage({brief:state.look,name:agent.name,role:cardRole(agent.name,agent.scene),image:ref,company:co(),industry:industryLabel,variant:state.variant||0});
+      if(!img && useLive) img = await keyedImage({brief:state.look,name:agent.name,role:cardRole(agent.name,agent.scene,true),image:ref,company:co(),industry:industryLabel,variant:state.variant||0},key);
       const minMs=1100+idx*500;const wait=Math.max(0,minMs-(Date.now()-started));if(wait)await sleep(wait);  // let the loader show
       if(!img){marketFailed.add(agent.id);const thumb=root.querySelector(`[data-thumb="${agent.id}"]`);if(thumb){thumb.innerHTML=`<img src="${agent.portrait}" alt="${escapeHtml(agent.name)}">`;thumb.classList.remove('is-loading');}return;}
       state.marketImages[agent.id]=img;saveSession();
@@ -1879,13 +1926,13 @@
       if(thumb){thumb.innerHTML=`<img src="${escapeHtml(img)}" alt="${escapeHtml(agent.name)}">`;thumb.classList.remove('is-loading');thumb.classList.add('is-generated');}
       }finally{drawing.delete(agent.id);}
     };
-    await Promise.all(agents.slice(0,10).map(draw));
+    await Promise.all([hero(),...agents.slice(0,10).map(draw)]);
     await Promise.all(agents.slice(10).map((a,i)=>draw(a,i+10)));
     // Then the six "Other profiles" for the Chats sidebar, same character, each in its own
     // costume. A failed call settles on the prospect's own avatar — never a stranger.
     await Promise.all(EXTRA_PROFILES.map(async p=>{
       let img=state.marketImages[p.id]||baked[p.id];
-      if(!img&&useLive) img=await fetchImage({brief:state.look,name:p.name,role:cardRole(p.name,p.scene),image:ref,company:co(),industry:industryLabel,variant:state.variant||0});
+      if(!img&&useLive) img=await keyedImage({brief:state.look,name:p.name,role:cardRole(p.name,p.scene,true),image:ref,company:co(),industry:industryLabel,variant:state.variant||0},key);
       state.marketImages[p.id]=img||state.selectedImage||p.portrait;saveSession();
       root.querySelectorAll(`[data-xav="${p.id}"]`).forEach(el=>{el.src=state.marketImages[p.id];el.classList.remove('egg');});
     }));

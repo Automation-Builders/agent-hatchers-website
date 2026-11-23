@@ -2,6 +2,8 @@
 
 Each prospect receives an unlisted GitHub Pages route at `/prototype/<company-slug>/`.
 
+Build 91 (24 Nov): dashboard cards use chroma-key cut-outs on dark surfaces, including the prospect’s own agent. Saved market and profile portraits keep transparency with WebP (PNG fallback).
+
 ## The flow
 
 Every page runs the same hatching experience (shared code in `app.js` / `styles.css`):
@@ -175,6 +177,11 @@ Rendered desktop/mobile check (Playwright and Chromium installed): serve the rep
 this repo, and `PLAYWRIGHT_BROWSERS_PATH` if its browser cache is non-default. The test loads
 the actual page/CSS/app, exposes closure state only in the intercepted test response, verifies
 cards, Add and IndexedDB restore, and blocks every non-local request (no paid APIs).
+
+Transparent-card regression (same server): `node prototype/tests/transparent-cards-browser.cjs`
+checks both chroma keys, colour preservation, key selection, saved alpha, and card/hero requests.
+For fixture screenshots at 1280px and 390px, set `PROTOTYPE_CARD_FIXTURES` to the directory
+containing `live-key.png` and `PROTOTYPE_SCREENSHOT_DIR` to an output directory.
 
 Release discovery: `.github/workflows/deploy.yml` publishes the repo root to GitHub Pages
 on pushes to `main` or manual dispatch. This repair is shared static JavaScript; it does not
