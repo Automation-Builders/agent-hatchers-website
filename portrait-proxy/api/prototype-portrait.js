@@ -49,7 +49,7 @@ export default async function handler(req, res) {
   const name = String(body.name || 'Agent').slice(0, 60);
   const role = String(body.role || '').slice(0, 200).trim();
   const variant = Math.max(0, Math.min(2, parseInt(body.variant, 10) || 0));
-  // A reference image turns this into an EDIT: keep the same character, re-dress + re-scene it.
+  // A reference image turns this into an EDIT: keep the same character, re-dress it on plain white.
   const ref = typeof body.image === 'string' && /^data:image\//.test(body.image) ? body.image : '';
   // Inspiration (create screen): a photo of a person and/or a website's brand cues. Unlike
   // `image`, these are NOT the character — they steer a brand-new design.
@@ -108,25 +108,27 @@ export default async function handler(req, res) {
       `${photo ? '' : 'Make this a distinctive, original character design. '}Polished, high-quality, sharp 3D cartoon ` +
       `render, crisp clean edges, no text, no watermark, no clutter.`
     : ref
-    ? `ONE robot only — this exact character, alone; no other robots, people or figures anywhere, not even in the background. Keep it EXACTLY the same character as the ` +
+    ? `ONE character only — this exact character, alone; no other robots, people or figures anywhere. Keep it EXACTLY the same character as the ` +
       `reference image — identical body shape, proportions, colours, materials, markings and face. ` +
       `Do not restyle, recolour or redesign it. ${role ? `${role} ` : ''}` +
-      `Re-dress the very same character for that job with one or two fitting accessories and clear ` +
-      `props/tools, and place it in a real setting that fits the work (a proper background scene, empty of anyone else). ` +
+      `Dress the very same character for that job with at most one small accessory and one small prop. ` +
+      `Plain solid white background, soft even studio lighting, full body and centred: no room, desk, furniture, ` +
+      `screens or scenery. Keep it simple. ` +
       `Polished, high-quality, sharp 3D cartoon render, the same character throughout, no text, no watermark.`
-    : `${brief}. A friendly 3D cartoon robot mascot character named "${name}". ` +
+    : `${brief}. A friendly 3D cartoon mascot character named "${name}": a robot unless the description ` +
+      `names another subject, in which case it is that subject. ` +
       `${role ? `${role} ` : ''}` +
-      `Give it one or two fitting accessories and one or two clear props that show what it does. ` +
+      `Give it at most one small accessory and one small prop that show what it does; keep it simple. ` +
       `Plain solid white background, soft even studio lighting, the character centred and full-body. ` +
-      `Use the colours the description asks for; if it names none, choose an appealing scheme of your ` +
-      `own — avoid defaulting to blue. Make this a distinctive, original character design. Polished, ` +
+      `Use the colours the description asks for; if it names none, use a restrained scheme: one main ` +
+      `colour plus one accent, soft muted tones (avoid defaulting to blue). Make this a distinctive, original character design. Polished, ` +
       `high-quality, sharp 3D cartoon mascot render, crisp clean edges, no text, no watermark, no clutter.`;
 
   // Any attached image (character reference or inspiration) goes through the chat shape,
   // which is the only OpenRouter route that accepts image input.
   // One character, one square frame: with a wide hero image or 'one of three designs' wording
   // the model happily returned a panorama of three or four robots side by side.
-  const ONE = ' Show exactly ONE robot, once, centred, full body, in a single square image — no repeated views, no side-by-side variants, no panels, no other characters or people.';
+  const ONE = ' Show exactly ONE character, once, centred, full body, in a single square image — no repeated views, no side-by-side variants, no panels, no other characters or people.';
   const finalPrompt = prompt + ONE;
   const attached = ref ? [ref] : inspImages;
   const upstreamUrl = attached.length

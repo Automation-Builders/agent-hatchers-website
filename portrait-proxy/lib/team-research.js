@@ -136,10 +136,13 @@ export function briefToText(brief) {
 }
 
 // ---------- Stage 2: design the agents from the brief ----------
-// `more: false` is the lean version: the six-agent team only. It answers in roughly a third of
-// the time, so it is what the design step falls back to when the clock is short.
-export function buildDesignPrompt(input, brief, { more = true } = {}) {
+// Two calls that run at the same time on the same brief: `part: 'team'` writes the six agents
+// the Agents cards wait for; `part: 'more'` writes the marketplace extras, which nobody sees until
+// the prospect opens the Marketplace. One call writing all sixteen made the six wait for the ten.
+export const MORE_ASK = MAX_MORE + 2;   // a couple spare: extras that repeat a team role are dropped
+export function buildDesignPrompt(input, brief, { part = 'team' } = {}) {
   const co = input.company || 'the business';
+  const more = part === 'more';
   const system =
     `You are a sharp operations consultant who has worked inside hundreds of small businesses. You are ` +
     `designing the AI agent team for ${subject(input)}. ${LOCALE_NOTE} ` +
@@ -147,29 +150,31 @@ export function buildDesignPrompt(input, brief, { more = true } = {}) {
       `RESEARCH BRIEF\n${briefToText(brief)}\n\n` :
       `No research brief is available, so reason carefully yourself about what this specific kind of business ` +
       `does all week, who it hires, what software it runs on and where its hours and money leak.\n\n`) +
-    `Design the ${MAX_TEAM} agents that would make the biggest difference to THIS business, most valuable ` +
-    (more ? `first, and then ${MAX_MORE} MORE agents for its marketplace — the next jobs down the list, each just as ` +
-      `specific (a seasonal job, a compliance chore, a supplier, a channel, a report someone builds by hand). ` : `first. `) +
+    (more ? `Its core team of ${MAX_TEAM} agents already covers the most valuable, most obvious jobs. Design ` +
+      `${MORE_ASK} MORE agents for its marketplace — the next jobs down the list, each just as specific and ` +
+      `narrower or less obvious than the core six (a seasonal job, a compliance chore, a supplier, a channel, a ` +
+      `report someone builds by hand). ` :
+      `Design the ${MAX_TEAM} agents that would make the biggest difference to THIS business, most valuable first. `) +
     `Each agent is a ROLE in this business — the job a person there is doing by hand today — not a ` +
     `department. Name it for that job, in words the owner would use. Good: "Recall & Rebooking Agent", ` +
     `"Quote Chaser Agent", "HICAPS Claims Agent", "Tender Deadline Agent", "Job Card Agent". Bad (too generic, ` +
     `never use these or anything like them): "Support Agent", "Operations Agent", "Sales Agent", "Marketing ` +
     `Agent", "Document Agent".\n\n` +
     `Every agent must be pinned to the closest BASE from this catalog (exact id — it decides the agent's ` +
-    `artwork, category and which agents it hands work to; each base at most once within "team"` +
-    (more ? `, repeats allowed in "more"):\n` : `):\n`) +
+    `artwork, category and which agents it hands work to; ` + (more ? `repeats allowed):\n` : `each base at most once):\n`) +
     input.roster.map(a => `- id "${a.id}" — ${a.name}: ${a.summary}`).join('\n') +
     (input.tools.length ? `\n\n${co} already uses: ${input.tools.join(', ')}. Build around those — name them in "mcps" first and prefer them over rivals.` : '') +
     (input.connectors.length ? `\n\nConnectors the product already has logos for (use these exact names when one fits; add real industry-specific systems by name when the job needs them): ${input.connectors.join(', ')}` : '') +
     `\n\nReturn ONLY a JSON object, no prose, no markdown, shaped exactly like:\n` +
-    `{"intro":"...","team":[{"base":"catalog id","name":"... Agent","does":"...","job":"...","outcomes":["...","...","...","...","..."],"mcps":["..."],"scene":"..."}]${more ? ',"more":[{...same shape...}]' : ''}}\n` +
+    (more ? `{"more":[{"base":"catalog id","name":"... Agent","does":"...","job":"...","outcomes":["...","...","...","...","..."],"mcps":["..."],"scene":"..."}]}\n` :
+      `{"intro":"...","team":[{"base":"catalog id","name":"... Agent","does":"...","job":"...","outcomes":["...","...","...","...","..."],"mcps":["..."],"scene":"..."}]}\n`) +
     `Rules:\n` +
-    `- "intro": one sentence (max 28 words) that shows you understand this particular business — a concrete ` +
-    `observation about its week, not a compliment, not generic.\n` +
-    `- "team": exactly ${MAX_TEAM} entries, distinct bases, best first, no two agents doing the same job.\n` +
-    (more ? `- "more": exactly ${MAX_MORE} further entries, same shape and same specificity, none overlapping a "team" ` +
-      `role or each other. Spread them across the business's week: front desk, money, suppliers, staff, ` +
-      `compliance, marketing channels, seasonal peaks, reporting.\n` : '') +
+    (more ? `- "more": exactly ${MORE_ASK} entries, none overlapping each other or the obvious core jobs. Spread them ` +
+      `across the business's week: front desk, money, suppliers, staff, compliance, marketing channels, seasonal ` +
+      `peaks, reporting.\n` :
+      `- "intro": one sentence (max 28 words) that shows you understand this particular business — a concrete ` +
+      `observation about its week, not a compliment, not generic.\n` +
+      `- "team": exactly ${MAX_TEAM} entries, distinct bases, best first, no two agents doing the same job.\n`) +
     `- "name": 2-4 words ending in "Agent", specific to this business's work. Never the catalog names.\n` +
     `- "does": one sentence (max 22 words), plain everyday English, second person ("your"), naming the real ` +
     `customers, jobs, paperwork, stock or systems THIS business deals with. No jargon, no "AI", no "leverage".\n` +
@@ -222,40 +227,49 @@ export function validateTeam(obj, roster) {
     if (team.length >= MAX_TEAM) break;
   }
   if (team.length < 4) return null;
-  // Marketplace extras: same bar, bases may repeat, never a team role again. Optional — a
-  // short or missing list just means the marketplace shows the stock catalog after the team.
+  return { team, intro: clean(obj.intro).slice(0, 240) };
+}
+
+// Marketplace extras: same bar as the team, bases may repeat, never a team role again. Optional —
+// a short or missing list just means the marketplace shows the stock catalog after the team.
+// ponytail: overlap with the team is caught by exact name or job only; a same role worded
+// differently can slip through. Compare outcomes/mcps if that shows up in real runs.
+export function validateMore(obj, roster, team) {
+  const byId = new Map(roster.map(a => [a.id, a]));
+  const stockNames = new Set(roster.map(a => a.name.toLowerCase()));
+  const usedNames = new Set(team.map(t => t.name.toLowerCase()));
+  const teamJobs = new Set(team.map(t => t.job.toLowerCase()));
   const more = [];
-  for (const t of (Array.isArray(obj.more) ? obj.more : [])) {
+  for (const t of (obj && Array.isArray(obj.more) ? obj.more : [])) {
+    if (teamJobs.has(clean(t && t.job).replace(/\.$/, '').toLowerCase())) continue;
     const a = cleanAgent(t, byId, stockNames, usedNames, null);
     if (a) more.push({ ...a, base: a.id, id: `more-${more.length + 1}` });
     if (more.length >= MAX_MORE) break;
   }
-  return { team, more, intro: clean(obj.intro).slice(0, 240) };
+  return more;
 }
 
 // ---------- Orchestration ----------
-// `callModel({system, user, ...params})` → { ok, status, error, text }. Injected so tests
-// can fake the model. `webSearch` adds OpenRouter's web plugin to the research call.
 // The Vercel function is killed at 60s, and a killed function sends the prospect back to the
 // generic stock team. So the whole job runs on a budget: research may use the first part of it
-// (and is skipped once that is spent — the designer can work without a brief), every model call
-// gets a hard `timeoutMs`, and when too little time is left for the full sixteen-agent design
-// the lean six-agent design runs instead.
+// (and is skipped once that is spent — the designer can work without a brief), and every model
+// call gets a hard `timeoutMs`. After research the team and the marketplace extras are designed
+// at the same time; `onTeam` hands the team over as soon as it is valid, before the extras land.
 export const BUDGET_MS = 52000;
 const RESEARCH_SHARE = 0.4;      // research stops being started after ~21s of the budget
-const FULL_DESIGN_MIN_MS = 30000; // below this, design asks for the team only
 const MIN_CALL_MS = 6000;         // not worth starting a call with less than this left
 
 // `callModel({system, user, timeoutMs, ...params})` → { ok, status, error, text }. Injected so
 // tests can fake the model. `webSearch` adds OpenRouter's web plugin to the research call.
-export async function researchTeam(input, { callModel, researchModel, designModel, webSearch = true, log = null, budgetMs = BUDGET_MS, clock = Date.now }) {
+export async function researchTeam(input, { callModel, researchModel, designModel, webSearch = true, log = null, onTeam = null, budgetMs = BUDGET_MS, clock = Date.now }) {
   const started = clock();
   const left = () => budgetMs - (clock() - started);
   const trace = [];
-  const note = (stage, r, valid) => trace.push({ stage, model: r.model, status: r.status, len: (r.text || '').length, error: r.error || null, valid: !!valid });
+  const note = (stage, r, valid, ms) => trace.push({ stage, model: r.model, status: r.status, len: (r.text || '').length, error: r.error || null, valid: !!valid, ms, at: clock() - started });
   const call = async (prompt, params, timeoutMs) => {
-    try { return await callModel({ ...prompt, ...params, timeoutMs }); }
-    catch (e) { return { ok: false, status: 0, error: String(e && e.message || e), text: '' }; }
+    const t0 = clock();
+    try { return { ...await callModel({ ...prompt, ...params, timeoutMs }), ms: clock() - t0 }; }
+    catch (e) { return { ok: false, status: 0, error: String(e && e.message || e), text: '', ms: clock() - t0 }; }
   };
 
   // Stage 1 — research (web-grounded first, plain second). Failure here just means the
@@ -274,7 +288,7 @@ export async function researchTeam(input, { callModel, researchModel, designMode
     if (spare < MIN_CALL_MS) break;
     const r = await call(research, params, spare);
     brief = r.ok ? validateBrief(parseJson(r.text)) : null;
-    note('research', { ...r, model: params.model }, brief);
+    note('research', { ...r, model: params.model }, brief, r.ms);
     if (brief) break;
   }
 
@@ -285,18 +299,27 @@ export async function researchTeam(input, { callModel, researchModel, designMode
     { model: designModel, max_tokens: 14000, reasoning: { effort: 'low' } },
     { model: designModel, max_tokens: 14000 }
   ];
-  for (const params of designAttempts) {
-    const remaining = left();
-    if (remaining < MIN_CALL_MS) break;
-    const full = remaining >= FULL_DESIGN_MIN_MS;
-    const r = await call(buildDesignPrompt(input, brief, { more: full }), params, remaining);
-    const out = r.ok ? validateTeam(parseJson(r.text), input.roster) : null;
-    note(full ? 'design' : 'design-lean', { ...r, model: params.model }, out);
-    if (out) {
-      if (log) log({ ok: true, trace });
-      return { ok: true, ...out, brief, researched: !!brief, trace };
+  // Runs the attempts for one part until `check` accepts an answer; null when none did in time.
+  const design = async (part, attempts, check) => {
+    for (const params of attempts) {
+      const remaining = left();
+      if (remaining < MIN_CALL_MS) break;
+      const r = await call(buildDesignPrompt(input, brief, { part }), params, remaining);
+      const out = r.ok ? check(parseJson(r.text)) : null;
+      note(part, { ...r, model: params.model }, out, r.ms);
+      if (out) return out;
     }
+    return null;
+  };
+  const moreRaw = design('more', designAttempts.slice(0, 2), obj => (obj && Array.isArray(obj.more) && obj.more.length ? obj : null));
+  const out = await design('team', designAttempts, obj => validateTeam(obj, input.roster));
+  if (!out) {
+    if (log) log({ ok: false, trace });
+    return { ok: false, trace };
   }
-  if (log) log({ ok: false, trace });
-  return { ok: false, trace };
+  const team = { ...out, brief, researched: !!brief };
+  if (onTeam) await onTeam(team);
+  const more = validateMore(await moreRaw, input.roster, out.team);
+  if (log) log({ ok: true, trace });
+  return { ok: true, ...team, more, trace };
 }
