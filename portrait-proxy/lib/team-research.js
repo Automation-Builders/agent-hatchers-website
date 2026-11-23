@@ -136,11 +136,11 @@ export function briefToText(brief) {
 }
 
 // ---------- Stage 2: design the agents from the brief ----------
-// Two calls that run at the same time on the same brief: `part: 'team'` writes the six agents
-// the Agents cards wait for; `part: 'more'` writes the marketplace extras, which nobody sees until
-// the prospect opens the Marketplace. One call writing all sixteen made the six wait for the ten.
-export const MORE_ASK = MAX_MORE + 2;   // a couple spare: extras that repeat a team role are dropped
-export function buildDesignPrompt(input, brief, { part = 'team' } = {}) {
+// Two calls on the same brief: `part: 'team'` writes the six agents the Agents cards wait for;
+// `part: 'more'` runs once the team is known and writes the marketplace extras around it, so no
+// extra does a team agent's job. One call writing all sixteen made the six wait for the ten.
+export const MORE_ASK = MAX_MORE + 2;   // a couple spare for extras that fail validation
+export function buildDesignPrompt(input, brief, { part = 'team', team = [] } = {}) {
   const co = input.company || 'the business';
   const more = part === 'more';
   const system =
@@ -150,10 +150,10 @@ export function buildDesignPrompt(input, brief, { part = 'team' } = {}) {
       `RESEARCH BRIEF\n${briefToText(brief)}\n\n` :
       `No research brief is available, so reason carefully yourself about what this specific kind of business ` +
       `does all week, who it hires, what software it runs on and where its hours and money leak.\n\n`) +
-    (more ? `Its core team of ${MAX_TEAM} agents already covers the most valuable, most obvious jobs. Design ` +
-      `${MORE_ASK} MORE agents for its marketplace — the next jobs down the list, each just as specific and ` +
-      `narrower or less obvious than the core six (a seasonal job, a compliance chore, a supplier, a channel, a ` +
-      `report someone builds by hand). ` :
+    (more ? `Its core team is already designed:\n` + team.map(t => `- ${t.name} (${t.job}): ${t.does}`).join('\n') +
+      `\n\nDesign ${MORE_ASK} MORE agents for its marketplace — the next jobs down the list, each just as specific. ` +
+      `None may do any part of a core team agent's job, even under another name: pick work the core team does not ` +
+      `touch (a seasonal job, a compliance chore, a supplier, a channel, a report someone builds by hand). ` :
       `Design the ${MAX_TEAM} agents that would make the biggest difference to THIS business, most valuable first. `) +
     `Each agent is a ROLE in this business — the job a person there is doing by hand today — not a ` +
     `department. Name it for that job, in words the owner would use. Good: "Recall & Rebooking Agent", ` +
@@ -169,7 +169,7 @@ export function buildDesignPrompt(input, brief, { part = 'team' } = {}) {
     (more ? `{"more":[{"base":"catalog id","name":"... Agent","does":"...","job":"...","outcomes":["...","...","...","...","..."],"mcps":["..."],"scene":"..."}]}\n` :
       `{"intro":"...","team":[{"base":"catalog id","name":"... Agent","does":"...","job":"...","outcomes":["...","...","...","...","..."],"mcps":["..."],"scene":"..."}]}\n`) +
     `Rules:\n` +
-    (more ? `- "more": exactly ${MORE_ASK} entries, none overlapping each other or the obvious core jobs. Spread them ` +
+    (more ? `- "more": exactly ${MORE_ASK} entries, none overlapping each other or the core team. Spread them ` +
       `across the business's week: front desk, money, suppliers, staff, compliance, marketing channels, seasonal ` +
       `peaks, reporting.\n` :
       `- "intro": one sentence (max 28 words) that shows you understand this particular business — a concrete ` +
@@ -232,8 +232,7 @@ export function validateTeam(obj, roster) {
 
 // Marketplace extras: same bar as the team, bases may repeat, never a team role again. Optional —
 // a short or missing list just means the marketplace shows the stock catalog after the team.
-// ponytail: overlap with the team is caught by exact name or job only; a same role worded
-// differently can slip through. Compare outcomes/mcps if that shows up in real runs.
+// The more prompt already lists the team; this is the safety net for an exact repeat.
 export function validateMore(obj, roster, team) {
   const byId = new Map(roster.map(a => [a.id, a]));
   const stockNames = new Set(roster.map(a => a.name.toLowerCase()));
@@ -253,11 +252,14 @@ export function validateMore(obj, roster, team) {
 // The Vercel function is killed at 60s, and a killed function sends the prospect back to the
 // generic stock team. So the whole job runs on a budget: research may use the first part of it
 // (and is skipped once that is spent — the designer can work without a brief), and every model
-// call gets a hard `timeoutMs`. After research the team and the marketplace extras are designed
-// at the same time; `onTeam` hands the team over as soon as it is valid, before the extras land.
+// call gets a hard `timeoutMs`. After research the team is designed; `onTeam` hands it over as
+// soon as it is valid, and only then are the marketplace extras designed around it.
 export const BUDGET_MS = 52000;
 const RESEARCH_SHARE = 0.4;      // research stops being started after ~21s of the budget
 const MIN_CALL_MS = 6000;         // not worth starting a call with less than this left
+// The team is answered by BUDGET_MS. The extras come after it, so they may run closer to the 60s
+// kill: losing them only means the marketplace shows the stock catalog after the team.
+const MORE_UNTIL_MS = 57000;
 
 // `callModel({system, user, timeoutMs, ...params})` → { ok, status, error, text }. Injected so
 // tests can fake the model. `webSearch` adds OpenRouter's web plugin to the research call.
@@ -300,18 +302,17 @@ export async function researchTeam(input, { callModel, researchModel, designMode
     { model: designModel, max_tokens: 14000 }
   ];
   // Runs the attempts for one part until `check` accepts an answer; null when none did in time.
-  const design = async (part, attempts, check) => {
+  const design = async (part, attempts, check, { team = [], until = budgetMs } = {}) => {
     for (const params of attempts) {
-      const remaining = left();
+      const remaining = until - (clock() - started);
       if (remaining < MIN_CALL_MS) break;
-      const r = await call(buildDesignPrompt(input, brief, { part }), params, remaining);
+      const r = await call(buildDesignPrompt(input, brief, { part, team }), params, remaining);
       const out = r.ok ? check(parseJson(r.text)) : null;
       note(part, { ...r, model: params.model }, out, r.ms);
       if (out) return out;
     }
     return null;
   };
-  const moreRaw = design('more', designAttempts.slice(0, 2), obj => (obj && Array.isArray(obj.more) && obj.more.length ? obj : null));
   const out = await design('team', designAttempts, obj => validateTeam(obj, input.roster));
   if (!out) {
     if (log) log({ ok: false, trace });
@@ -319,7 +320,9 @@ export async function researchTeam(input, { callModel, researchModel, designMode
   }
   const team = { ...out, brief, researched: !!brief };
   if (onTeam) await onTeam(team);
-  const more = validateMore(await moreRaw, input.roster, out.team);
+  const moreRaw = await design('more', designAttempts.slice(0, 2), obj => (obj && Array.isArray(obj.more) && obj.more.length ? obj : null),
+    { team: out.team, until: budgetMs + (MORE_UNTIL_MS - BUDGET_MS) });
+  const more = validateMore(moreRaw, input.roster, out.team);
   if (log) log({ ok: true, trace });
   return { ok: true, ...team, more, trace };
 }

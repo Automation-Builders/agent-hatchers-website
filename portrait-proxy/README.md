@@ -70,10 +70,12 @@ two model calls (logic in `lib/team-research.js`, tests in `tests/team-research.
    attempt adds OpenRouter's web plugin (`plugins:[{id:'web'}]`, ~US$0.02/call; set
    `TEAM_WEB_SEARCH=0` to turn it off); if that fails it retries without, and if research fails
    altogether the designer still runs (flagged `researched:false`).
-2. **Design** — two calls started together on the same brief. *Team*: six agents, each a named
-   role for this business ("Recall & Rebooking Agent", "HICAPS Claims Agent"), pinned to the
-   closest catalog `base` for artwork, category and hand-offs. *More*: ten marketplace extras,
-   the next jobs down the list (never a team name or job again). Stock catalog names are
+2. **Design** — two calls on the same brief. *Team*: six agents, each a named role for this
+   business ("Recall & Rebooking Agent", "HICAPS Claims Agent"), pinned to the closest catalog
+   `base` for artwork, category and hand-offs. *More*, once the team is known: ten marketplace
+   extras designed around it (the prompt lists the six, so none repeats a team job; an exact
+   name or job repeat is also dropped). The team is answered within 52 s; the extras may run
+   to 57 s, and if they miss, the marketplace shows the stock catalog after the team. Stock catalog names are
    rejected server-side. Until Nov 2026 one call wrote all sixteen and the six waited for the ten.
 
 Response: `{ intro, team:[{id, name, does, job, outcomes[5], mcps[3-5], scene}], more:[…],
