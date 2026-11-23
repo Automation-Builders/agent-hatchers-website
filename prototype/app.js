@@ -897,43 +897,64 @@
     mail:'<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
     file:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>'
   };
+  Object.assign(LU,{
+    squarePen:'<path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/>',
+    team:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    tick:'<path d="M20 6 9 17l-5-5"/>'
+  });
   const L=(name,cls)=>`<svg class="lu${cls?' '+cls:''}" viewBox="0 0 24 24" aria-hidden="true">${LU[name]}</svg>`;
-  // Sidebar sections, in the dashboard's order. Feed is "Soon" there too: customers see it
-  // locked and its page says it is coming. `short` is the phone tab bar's label.
+  // Sidebar sections, in the dashboard's order (Nav/sectionNav.ts): the everyday pages first
+  // (Home, Team), then the roster and how it is doing, with Feed last because nothing feeds it
+  // yet ("Soon"). Chats has no row of its own on desktop: New chat at the top of the rail goes
+  // to the same page. Config moved into Settings, reached from Apps and the account row at the
+  // rail's foot. The dashboard labels the second group "Admin"; a prospect is not one, so here
+  // it is only set apart by the rail's short rule.
   const DX_SECTIONS=[
-    {k:'home',label:'Home',icon:'home'},
+    {k:'home',label:'Home',icon:'home',everyday:true},
+    {k:'team',label:'Team',icon:'team',everyday:true,desktopOnly:true},
     {k:'profiles',label:'Agents',icon:'bot'},
-    {k:'chats',label:'Chats',icon:'chat'},
-    {k:'feed',label:'Feed',icon:'news',soon:true},
     {k:'analytics',label:'Analytics',icon:'chart'},
-    {k:'config',label:'Config',icon:'sliders'},
     {k:'market',label:'Marketplace',icon:'store'},
-    {k:'merch',label:'Merch',icon:'shirt'}
+    {k:'merch',label:'Merch',icon:'shirt'},
+    {k:'feed',label:'Feed',icon:'news',soon:true}
   ];
-  // Beside the chat list the sidebar starts folded to its icon rail (two lists side by side
-  // are too much); everywhere else it starts open. Home counts as a chat route, as it does in
-  // the dashboard. A toggle is remembered per kind, as V4Sidebar does.
+  const DX_CHATS={k:'chats',label:'Chats',icon:'chat'};
+  const DX_PAGE_LABEL={chats:'Chats',config:'Settings'};
+  // The rail starts folded to its 72px labelled frame on every page, as V4Sidebar does; a
+  // toggle is remembered per kind (beside the chat list, and everywhere else).
   const foldKind=()=>(state.tab==='chats'||state.tab==='home')?'chats':'other';
-  function sideFolded(){const f=state.sideFold||{};const k=foldKind();return k in f?!!f[k]:k==='chats';}
+  function sideFolded(){const f=state.sideFold||{};const k=foldKind();return k in f?!!f[k]:true;}
   const yourAvatar=()=>state.selectedImage||'/hatchy-pop.webp';
   const firstInitial=()=>(co().trim()[0]||'A').toUpperCase();
   function dxSidebar(){
     const folded=sideFolded();
     const item=s=>{const locked=LOCKED_TABS[s.k];const on=state.tab===s.k;
-      return `<button type="button" class="dx-nav-item${on?' on':''}${locked?' is-locked':''}" data-tab="${s.k}"${on?' aria-current="page"':''}${folded?` title="${s.label}" aria-label="${s.label}${s.soon?' (coming soon)':''}"`:s.soon?` aria-label="${s.label} (coming soon)"`:''}>${L(locked?'lock':s.icon)}<span class="dx-nav-label">${s.label}</span>${s.soon?'<span class="dx-soon">Soon</span>':''}${locked&&state.lockNote===s.k?`<i class="dx-lock-note">${escapeHtml(locked)}</i>`:''}</button>`;};
+      return `<button type="button" class="dx-nav-item${on?' on':''}${locked?' is-locked':''}" data-tab="${s.k}"${on?' aria-current="page"':''}${s.soon?` aria-label="${s.label} (coming soon)"`:''}>${L(locked?'lock':s.icon)}<span class="dx-nav-label">${s.label}</span>${s.soon?'<span class="dx-soon">Soon</span>':''}${locked&&state.lockNote===s.k?`<i class="dx-lock-note">${escapeHtml(locked)}</i>`:''}</button>`;};
+    const onChat=state.tab==='chats';
+    const fold=`<button type="button" class="dx-fold" data-dx-fold aria-label="${folded?'Expand sidebar':'Collapse sidebar'}" title="${folded?'Expand sidebar':'Collapse sidebar'}" aria-expanded="${!folded}">${L(folded?'unfold':'fold')}</button>`;
+    // New chat is the rail's one filled control; Search is secondary (a small icon on the rail).
+    const newChat=`<button type="button" class="dx-nav-item dx-newchat${onChat?' on':''}" data-dx-newchat${onChat?' aria-current="page"':''}>${L('squarePen')}<span class="dx-nav-label">New chat</span></button>`;
+    const search=folded
+      ?`<button type="button" class="dx-fold" aria-label="Search" title="Search (⌘K)" data-noop="1">${L('search')}</button>`
+      :`<button type="button" class="dx-nav-item dx-search-row" data-noop="1">${L('search')}<span class="dx-nav-label">Search</span><kbd>⌘K</kbd></button>`;
+    const everyday=DX_SECTIONS.filter(s=>s.everyday),rest=DX_SECTIONS.filter(s=>!s.everyday);
+    const onSet=state.tab==='config';
     return `<aside class="dx-side${folded?' is-folded':''}">
       <div class="dx-side-top">
-        <div class="dx-side-btns"><button type="button" class="dx-fold" data-dx-fold aria-label="${folded?'Expand sidebar':'Collapse sidebar'}" title="${folded?'Expand sidebar':'Collapse sidebar'}" aria-expanded="${!folded}">${L(folded?'unfold':'fold')}</button><button type="button" class="dx-circle" aria-label="Search" data-noop="1">${L('search')}</button><button type="button" class="dx-circle" aria-label="New chat" data-dx-newchat>${L('plus')}</button></div>
-        <nav class="dx-nav" aria-label="Sections">${DX_SECTIONS.map(item).join('')}</nav>
+        <div class="dx-rail-tools">${fold}${newChat}${search}${folded?'<span class="dx-rail-sep"></span>':''}</div>
+        <nav class="dx-nav" aria-label="Sections">${everyday.map(item).join('')}<span class="dx-rail-sep"></span>${rest.map(item).join('')}</nav>
       </div>
       <div class="dx-side-foot">
-        <button type="button" class="dx-connect" data-tab="config"${folded?' aria-label="Connect apps" title="Connect apps"':''}>${folded?L('plug'):`<span>Connect apps</span><span class="dx-appdots">${mcpIcon('Gmail')}${mcpIcon('Google Calendar')}${mcpIcon('Google Drive')}</span>`}</button>
-        <div class="dx-acct"><span class="dx-me">${escapeHtml(firstInitial())}</span><span class="dx-acct-txt"><b>${escapeHtml(co())}</b><i>Workspace owner</i></span></div>
+        ${folded?'<span class="dx-rail-sep"></span>':''}
+        <button type="button" class="dx-connect${folded?' dx-nav-item':''}${onSet?' on':''}" data-tab="config"${folded?' title="Connect apps"':''}>${folded?`${L('plug')}<span class="dx-nav-label">Apps</span>`:`<span>Connect apps</span><span class="dx-appdots">${mcpIcon('Gmail')}${mcpIcon('Google Calendar')}${mcpIcon('Google Drive')}</span>`}</button>
+        <button type="button" class="dx-acct" data-tab="config" aria-label="Account: ${escapeHtml(co())}"${folded?` title="${escapeHtml(co())}"`:''}><span class="dx-me">${escapeHtml(firstInitial())}</span><span class="dx-acct-txt"><b>${escapeHtml(co())}</b><i><u></u>${escapeHtml(state.name||'Your agent')} · Running</i></span></button>
       </div>
     </aside>`;
   }
+  // The phone bar keeps Chats (there is no rail to hold New chat) and leaves Team to the desktop.
   function dxTabbar(){
-    return `<nav class="dx-tabbar" aria-label="Sections">${DX_SECTIONS.map(s=>{const locked=LOCKED_TABS[s.k];return `<button type="button" class="dx-tab${state.tab===s.k?' on':''}${locked?' is-locked':''}" data-tab="${s.k}"${state.tab===s.k?' aria-current="page"':''}>${L(locked?'lock':s.icon)}<span>${s.label}</span>${locked&&state.lockNote===s.k?`<i class="dx-lock-note is-up">${escapeHtml(locked)}</i>`:''}</button>`;}).join('')}</nav>`;
+    const tabs=[DX_SECTIONS[0],DX_CHATS,...DX_SECTIONS.slice(1).filter(s=>!s.desktopOnly)];
+    return `<nav class="dx-tabbar" aria-label="Sections">${tabs.map(s=>{const locked=LOCKED_TABS[s.k];return `<button type="button" class="dx-tab${state.tab===s.k?' on':''}${locked?' is-locked':''}" data-tab="${s.k}"${state.tab===s.k?' aria-current="page"':''}>${L(locked?'lock':s.icon)}<span>${s.label}</span>${locked&&state.lockNote===s.k?`<i class="dx-lock-note is-up">${escapeHtml(locked)}</i>`:''}</button>`;}).join('')}</nav>`;
   }
   // ---- Agents (/agents, components/Agents/Marketplace.tsx gallery) ----
   // Picture-forward cards: a square portrait with the status riding its bottom edge, the name
@@ -1044,8 +1065,6 @@
         </div>
         <label class="dx-search">${L('search')}<input placeholder="Search messages" aria-label="Search messages"></label>
         ${firstAsk?`<div class="dx-hist"><div class="dx-hist-h"><span>Today</span><span>1</span></div><div class="dx-hist-item on">${L('checkCircle')}<span>${escapeHtml(firstAsk[1])}</span></div></div>`:''}
-        <span class="dx-grow"></span>
-        <button type="button" class="dx-mainlink${active===0?' on':''}" data-chat="0"><img src="${escapeHtml(yourAvatar())}" alt=""><span>${escapeHtml(state.name||'Your agent')}</span></button>
       </aside>
       <section class="dx-chat">
         <header class="dx-chat-h"><span class="dx-chat-h-av">${avOf(cur)}</span><div class="dx-chat-h-txt"><b>${escapeHtml(activeName)}${cur.title?` · ${escapeHtml(cur.title)}`:''}</b>${cur.does?`<span>${escapeHtml(cur.does)}</span>`:''}</div><span class="dx-atdesk"><i></i>At desk</span></header>
@@ -1054,9 +1073,11 @@
       </section>
     </div>`;
   }
-  // ---- Home (/, HomePage.tsx + HatchyPanel.tsx) — the morning briefing ----
-  // The agent's card on the left (status, Restart, memory, recurring jobs); in the middle the
-  // briefing — overnight / today — and "What would you like to do next?" as lettered options.
+  // ---- Home (/, HomePage.tsx + home.css) — the v5 Home ----
+  // One centred column of thin cards: the greeting and what happened overnight, the ask box
+  // with three starter chips, "Get <agent> working for you", four counts, Needs you beside the
+  // week's conversations, the briefing (Overnight / Today), then recent chats and recurring jobs.
+  // On phones the agent's chip sits in the header; on desktop the account row holds its status.
   const BRIEF={
     documents:['drafted 2 proposals from your templates','tidies today’s paperwork',['Approve the new client proposal?']],
     sales:['followed up 4 leads, booked 1 call','follows up the new enquiries',['Send the quote to your newest lead?']],
@@ -1071,30 +1092,55 @@
   };
   const JOBS=[['Check email','Daily, 7:00 am'],['Catch up on overnight Slack','Daily, 7:05 am'],['Check today’s calendar','Daily, 7:10 am'],['Plan today’s to-dos','Daily, 7:15 am'],['Suggest the top project and tasks','Daily, 7:20 am']];
   const clockAgo=h=>new Date(Date.now()-h*3600e3).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+  const HOME_CHIPS=[['Summarise my inbox','Summarise my inbox and tell me what needs a reply today'],['Follow up quotes','Follow up the quotes that have not had an answer'],['Plan my week','Plan my week from my calendar and open jobs']];
+  const HOME_WEEK=[4,6,5,7,8,5,7];   // sample conversations per day, today last
   function homeView(){
-    const name=state.name||'Your agent';
+    const name=state.name||'Your agent';const nm=escapeHtml(name);
     const team=[...runningAgents(),...topAgents().filter(a=>!RUNNING.includes(a.id))];
     const lineFor=a=>BRIEF[a.base||a.id]||BRIEF.operations;
-    const overnight=team.slice(0,4).map((a,i)=>`<li><b>${escapeHtml(a.name)}</b> ${lineFor(a)[0]}<span class="dx-faint"> · ${clockAgo([1,5,7,10][i])}</span></li>`).join('');
-    const today=team.slice(1,4).map(a=>`<li><b>${escapeHtml(a.name)}</b> ${lineFor(a)[1]}</li>`).join('');
-    const needs=team.slice(2,4).map(a=>({a,title:lineFor(a)[2][0]}));
-    const hour=new Date().getHours();const hello=hour<12?'Good morning':hour<18?'Good afternoon':'Good evening';
-    const opt=(i,html,attr)=>`<li><button type="button" class="dx-opt" ${attr}><span class="dx-opt-l">${String.fromCharCode(65+i)}</span><span class="dx-opt-t">${html}</span></button></li>`;
+    const face=a=>`<img class="dx-h5-av" src="${escapeHtml(state.marketImages[a.id]||a.portrait)}" alt="">`;
     const chatIndex=a=>1+state.profiles.filter(p=>p.status==='complete').length+team.indexOf(a);
-    return `<div class="dx-home">
-      <aside class="dx-hpanel">
-        <div class="dx-hcard"><button type="button" class="dx-hcard-fold" data-noop="1" aria-label="Collapse ${escapeHtml(name)}">${L('up')}</button><span class="dx-hcard-av"><img src="${escapeHtml(yourAvatar())}" alt=""></span><h2>${escapeHtml(name)}</h2><span class="dx-run"><i></i>Running</span><p>${escapeHtml(name)}’s computer keeps working when you close this tab.</p><button type="button" class="dx-pill" data-noop="1">Restart</button><button type="button" class="dx-pill is-wide" data-noop="1">${L('brain')}What ${escapeHtml(name)} remembers</button></div>
-        <section class="dx-jobs"><h2><span>Recurring jobs</span><span class="dx-faint">Examples</span></h2><ul>${JOBS.map(([j,w])=>`<li>${L('calClock')}<span><b>${j}</b><i>${w}</i></span></li>`).join('')}</ul></section>
-      </aside>
-      <div class="dx-hmain">
-        <div class="dx-hscroll"><main class="dx-hcol">
-          <div class="dx-hchip"><img src="${escapeHtml(yourAvatar())}" alt="">${escapeHtml(name)}</div>
-          <p class="dx-htime">Today ${new Date().toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})}</p>
-          <div class="dx-brief"><h1>${hello}.</h1><section><h2>Overnight</h2><ul>${overnight||'<li>Nothing finished overnight.</li>'}</ul></section><section><h2>Today</h2><ul>${today||'<li>Nothing in progress right now.</li>'}</ul></section></div>
-          <section class="dx-next" aria-label="Needs you"><h2>What would you like to do next?</h2><ul>${needs.map((n,i)=>opt(i,`${escapeHtml(n.title)}<span class="dx-faint"> · ${escapeHtml(n.a.name)}</span>`,`data-chat="${chatIndex(n.a)}" data-tab="chats"`)).join('')}${opt(needs.length,`Ask ${escapeHtml(name)} something new`,'data-dx-ask')}</ul></section>
-        </main></div>
-        <div class="dx-hcomp"><div class="dx-composer is-home"><input id="home-ask" placeholder="Message ${escapeHtml(name)}" autocomplete="off" aria-label="Message ${escapeHtml(name)}"><button type="button" class="dx-send is-on" data-dx-home-send aria-label="Send">${L('send')}</button></div></div>
+    const done=team.slice(0,4),doing=team.slice(1,4),needs=team.slice(2,4);
+    const hour=new Date().getHours();const hello=hour<12?'Good morning':hour<18?'Good afternoon':'Good evening';
+    const convos=HOME_WEEK.reduce((n,v)=>n+v,0);
+    const stat=(label,value,detail)=>`<div class="dx-h5-cell"><span class="dx-h5-lab">${label}</span><b>${value}</b><span class="dx-h5-det">${detail}</span></div>`;
+    const step=(n,title,line,btn,attr,isDone)=>`<li class="${isDone?'done':''}"><span class="dx-h5-tick">${isDone?L('tick'):n}</span><div><b>${title}</b><span>${line}</span></div>${btn?`<button type="button" class="dx-btn is-sm" ${attr}>${btn}</button>`:''}</li>`;
+    const days=HOME_WEEK.map((_,i)=>new Date(Date.now()-(HOME_WEEK.length-1-i)*864e5).toLocaleDateString(undefined,{weekday:'short'}));
+    const top=Math.max(...HOME_WEEK);
+    const chart=`<svg viewBox="0 0 420 190" role="img" aria-label="Conversations per day, last 7 days">${HOME_WEEK.map((v,i)=>{const h=Math.round(v/top*130);const x=24+i*56;return `<rect class="${i===HOME_WEEK.length-1?'now':''}" x="${x}" y="${150-h}" width="32" height="${h}" rx="4"/><text x="${x+16}" y="174" text-anchor="middle">${days[i]}</text>`;}).join('')}</svg>`;
+    const briefDone=done.map((a,i)=>`<li><span class="dx-h5-dot ok">${L('tick')}</span><p><b>${escapeHtml(a.name)}</b> ${lineFor(a)[0]}</p><time>${clockAgo([1,5,7,10][i])}</time></li>`).join('');
+    const briefNow=doing.map((a,i)=>`<li><span class="dx-h5-dot${i===0?' run':''}">${L('clock')}</span><p><b>${escapeHtml(a.name)}</b> ${lineFor(a)[1]}</p><span class="dx-badge${i===0?' is-accent':''}">${L('clock')}${i===0?'Running':'Ready'}</span></li>`).join('');
+    const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
+    return `<div class="dx-home5"><div class="dx-h5">
+      <header class="dx-h5-top"><div><h1>${hello}</h1><p>${nm} finished ${done.length} ${done.length===1?'job':'jobs'} overnight. ${needs.length} ${needs.length===1?'thing is':'things are'} waiting for you.</p></div>
+        <div class="dx-h5-chip"><img src="${escapeHtml(yourAvatar())}" alt=""><span><b>${nm}</b><i><u></u>Running</i></span></div></header>
+      <div class="dx-ask"><input id="home-ask" placeholder="Ask ${nm} to do something…" autocomplete="off" aria-label="Message ${nm}">
+        <div class="dx-ask-foot"><div class="dx-h5-chips">${HOME_CHIPS.map(([t,full])=>`<button type="button" class="dx-h5-chipbtn" title="${escapeHtml(full)}" data-idea="${escapeHtml(full)}" data-idea-agent="0">${t}</button>`).join('')}</div><button type="button" class="dx-send is-on" data-dx-home-send aria-label="Send">${L('send')}</button></div></div>
+      <section class="dx-card5 dx-gs" aria-label="Getting started"><div class="dx-gs-h"><h2>Get ${nm} working for you</h2><span class="dx-gs-bar"><i></i></span><span>2 of 4 done</span></div>
+        <ol>${step(1,'About you',`Tell ${nm} about your business`,'','',true)}${step(2,'Apps','Apps connected','','',true)}${step(3,'First job',`Give ${nm} a job`,'Try one','data-dx-ask',false)}${step(4,'Team',`Invite the people who work with ${nm}`,'Invite','data-tab="team"',false)}</ol></section>
+      <section class="dx-card5 dx-h5-strip" aria-label="Activity summary">${stat('Conversations',convos,'7 days')}${stat('Messages',convos*7+24,'7 days')}${stat('Done overnight',done.length,'last 24 h')}${stat('Recurring jobs',JOBS.length,'on')}</section>
+      <div class="dx-h5-two">
+        <section class="dx-card5" aria-label="Needs you"><div class="dx-card5-h"><h2>Needs you</h2><span>${needs.length} waiting</span></div>
+          ${needs.length?`<ul class="dx-h5-lst">${needs.map((a,i)=>`<li>${face(a)}<div class="t"><p><b>${escapeHtml(a.name)}</b> ${escapeHtml(lineFor(a)[2][0])}</p><span>Waiting for your review</span></div><button type="button" class="dx-btn is-sm${i===0?' is-primary':''}" data-chat="${chatIndex(a)}" data-tab="chats" aria-label="Review ${escapeHtml(a.name)}">Review</button></li>`).join('')}</ul>`:'<div class="dx-h5-empty">Nothing waiting on you.</div>'}</section>
+        <section class="dx-card5 dx-h5-chart" aria-label="Conversations"><div class="dx-card5-h"><h2>Conversations</h2><span class="dx-h5-seg"><button type="button" class="on" data-noop="1">7 days</button><button type="button" data-noop="1">30 days</button></span></div>${chart}</section>
       </div>
+      <section class="dx-card5" aria-label="Briefing"><div class="dx-card5-h"><h2>Briefing</h2><span>Updated ${new Date().toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})}</span></div>
+        <div class="dx-h5-brief"><section aria-label="Overnight"><h3>Overnight</h3><ul class="dx-h5-lst">${briefDone||'<li><p>Nothing finished overnight.</p></li>'}</ul></section><section aria-label="Today"><h3>Today</h3><ul class="dx-h5-lst">${briefNow||'<li><p>Nothing in progress right now.</p></li>'}</ul></section></div></section>
+      <div class="dx-h5-two is-even">
+        <section class="dx-card5" aria-label="Recent chats"><div class="dx-card5-h"><h2>Recent chats</h2><button type="button" class="dx-btn is-sm is-ghost" data-dx-newchat>All chats</button></div>
+          <ul class="dx-h5-lst">${team.slice(0,3).map((a,i)=>`<li class="is-link" role="button" tabindex="0" data-chat="${chatIndex(a)}" data-tab="chats">${face(a)}<p>${escapeHtml(cap(lineFor(a)[0]))}</p><time>${i===0?clockAgo(1):i===1?'Yesterday':new Date(Date.now()-3*864e5).toLocaleDateString(undefined,{weekday:'short'})}</time></li>`).join('')}</ul></section>
+        <section class="dx-card5" aria-label="Recurring jobs"><div class="dx-card5-h"><h2>Recurring jobs</h2><button type="button" class="dx-btn is-sm is-ghost" data-noop="1">${L('plus')}Add job</button></div>
+          <ul class="dx-h5-lst">${JOBS.slice(0,3).map(([j,w])=>`<li><span class="dx-h5-dot">${L('clock')}</span><div class="t"><p>${j}</p><span>${w} · Home</span></div></li>`).join('')}</ul></section>
+      </div>
+    </div></div>`;
+  }
+  // ---- Team (/team, TeamPage) — who is on this agent, and the owner's invite ----
+  function teamView(){
+    const nm=escapeHtml(state.name||'your agent');
+    return `<div class="dx-team"><header class="dx-team-h"><div><h1>Team</h1><p>Everyone here chats with the same agent and sees the same work.</p></div>
+        <div class="dx-team-r"><span class="dx-gs-bar is-seats"><i></i></span><span>1 of 10 people</span><button type="button" class="dx-btn is-primary" data-noop="1">${L('plus')}Invite</button></div></header>
+      <ul class="dx-card5 dx-team-lst"><li><span class="dx-team-av">${escapeHtml(firstInitial())}</span><div class="t"><b>${escapeHtml(co())}</b><span>You · chats with ${nm}</span></div><span class="dx-role">Owner</span></li></ul>
+      <p class="dx-team-note">Invite the people you work with. Each gets their own chats with ${nm}, and you choose what they can change.</p>
     </div>`;
   }
   // ---- Feed (/feed) — customers see "Coming soon" until real items flow ----
@@ -1118,14 +1164,15 @@
         <div class="dx-charts">${charts.map(([t,data])=>`<div class="dx-chart"><div class="dx-chart-h">${t}${L('info','dx-i')}</div>${areaChart(data)}</div>`).join('')}</div>
       </div></div>`;
   }
-  // ---- Config (/configuration, ConfigurationPage.tsx → Communications) ----
-  const CFG_SECTIONS=[['Communications','chats'],['Integrations','plug'],['Models','cpu'],['Users','users'],['Permissions','shield'],['Media','image'],['Branding','palette'],['Chat ideas','bulb'],['Connection','link']];
+  // ---- Settings (/settings, ConfigurationPage.tsx → Communications): Config's sections live here now ----
+  const CFG_GROUPS=[['Personal',[['Account','user'],['Notifications','bell']]],['Workspace',[['Apps','plug'],['Communications','chats'],['Models','cpu'],['Users','users'],['Permissions','shield'],['Media','image'],['Branding','palette'],['Chat ideas','bulb'],['Connection','link']]]];
+  Object.assign(LU,{user:'<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',bell:'<path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/>'});
   function configView(){
     const slackLogo='<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lg-slack"/></svg>';   // the real marks from the homepage sprite
     const teamsLogo='<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lg-teams"/></svg>';
     const wsAv=`<img src="${escapeHtml(yourAvatar())}" alt="">`;
     return `<div class="dx-split">
-      <aside class="dx-cfg-side">${CFG_SECTIONS.map(([n,icon],i)=>`<div class="dx-cfg-item${i===0?' on':''}" data-noop="1">${L(icon)}<span>${n}</span></div>`).join('')}</aside>
+      <aside class="dx-cfg-side"><h2 class="dx-cfg-title">Settings</h2>${CFG_GROUPS.map(([g,items])=>`<div class="dx-cfg-group">${g}</div>${items.map(([n,icon])=>`<div class="dx-cfg-item${n==='Communications'?' on':''}" data-noop="1">${L(icon)}<span>${n}</span></div>`).join('')}`).join('')}</aside>
       <div class="dx-cfg-main">
         <div class="dx-ph"><span class="dx-ph-ic">${L('chats')}</span><h1>Communications</h1></div>
         <div class="dx-cfg-label">Chat platform</div>
@@ -1210,8 +1257,8 @@
   }
   function marketScreen(){
     const t=state.tab;
-    const body=t==='home'?homeView():t==='chats'?chatsView():t==='feed'?feedView():t==='analytics'?analyticsView():t==='config'?configView():t==='market'?marketplaceView():t==='merch'?merchView():profilesBoard();
-    const sec=DX_SECTIONS.find(s=>s.k===t)||DX_SECTIONS[1];
+    const body=t==='home'?homeView():t==='chats'?chatsView():t==='feed'?feedView():t==='analytics'?analyticsView():t==='config'?configView():t==='team'?teamView():t==='market'?marketplaceView():t==='merch'?merchView():profilesBoard();
+    const sec={label:DX_PAGE_LABEL[t]||(DX_SECTIONS.find(s=>s.k===t)||{label:'Agents'}).label};
     const foot=SHARE_TOKEN
       ?`<div class="dx-foot is-share"><span class="dx-foot-txt">Like what you see? This is what your team could look like.</span><div class="dx-foot-btns">${state.selectedImage?`<button type="button" class="dx-pill" data-action="download">${L('download')}<span>Download your image</span></button>`:''}<a class="dx-pill" href="${escapeHtml(location.pathname)}">Hatch your own agent →</a><button type="button" class="dx-pill is-white" data-action="book" data-source="share">Book a call →</button></div></div>`
       :`<div class="dx-foot"><div class="dx-foot-btns"><button type="button" class="dx-pill" data-action="back">${L('back')}<span>Back</span></button><button type="button" class="dx-pill" data-action="reset">${L('redo')}<span>Start over</span></button><button type="button" class="dx-pill" data-action="next"><span>Connect your agent</span>${L('arrowRight')}</button>${state.selectedImage?`<button type="button" class="dx-pill" data-action="download">${L('download')}<span>Download your image</span></button>`:''}<button type="button" class="dx-pill" data-action="book" data-source="dashboard"><span>Book a call</span></button></div><button type="button" class="dx-pill is-white" data-action="trial" data-source="dashboard">Start 30-day free trial →</button></div>`;
@@ -1222,7 +1269,7 @@
       </header>
       <div class="dx-body">
         ${dxSidebar()}
-        <main class="dx-main">${t==='merch'||t==='feed'?'':`<div class="dx-mhead">${sec.label}</div>`}${body}</main>
+        <main class="dx-main">${t==='merch'||t==='feed'||t==='home'||t==='team'?'':`<div class="dx-mhead">${sec.label}</div>`}${body}</main>
       </div>
       ${foot}
       ${dxTabbar()}
@@ -2006,7 +2053,7 @@
     document.addEventListener('pointerdown',root._closePicker);
     // Ideas under an empty chat, and Home's composer, send into the chat like a typed message.
     const sendToChat=(text,agent)=>{if(agent!==undefined)state.chatActive=agent;state.tab='chats';render();const box=document.getElementById('chat-box');if(!box)return;box.value=text;root.querySelector('[data-action="chat-send"]')?.click();};
-    root.querySelectorAll('[data-idea]').forEach(el=>el.onclick=()=>sendToChat(el.dataset.idea));
+    root.querySelectorAll('[data-idea]').forEach(el=>el.onclick=()=>sendToChat(el.dataset.idea,el.dataset.ideaAgent!==undefined?+el.dataset.ideaAgent:undefined));
     const homeAsk=document.getElementById('home-ask');
     root.querySelectorAll('[data-dx-home-send]').forEach(el=>el.onclick=()=>{const t=homeAsk?homeAsk.value.trim():'';if(!t){homeAsk?.focus();return;}sendToChat(t,0);});
     if(homeAsk)homeAsk.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();root.querySelector('[data-dx-home-send]')?.click();}};
