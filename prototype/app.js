@@ -25,7 +25,7 @@
   const DESIGN_AXES={
     build:['compact and chibi, with a big round head and stubby limbs','tall and slender','chunky and sturdy','small and rounded, hovering just off the ground'],
     face:['two big expressive round eyes','a single friendly camera-lens eye','a wide glowing visor face','a pixel-matrix screen face with a smiley expression'],
-    finish:['glossy ceramic-like surfaces','soft matte vinyl like a designer toy','plush, slightly fuzzy textures','clean moulded plastic like a premium toy']
+    finish:['smooth glossy surfaces','a soft matte finish','smooth vinyl like a designer toy','clean moulded plastic like a premium toy']
   };
   const shuffle=a=>{const c=[...a];for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[c[i],c[j]]=[c[j],c[i]];}return c;};
   // With a reference photo the three designs must ALL be recognisably that person, so the
@@ -60,13 +60,20 @@
     // so their words are cut here, never the rule after them; a long description drops the
     // variety line before it loses words.
     const look=String(words||'').trim();
-    const vary=` Make this one distinctive: ${pick('build')}, ${pick('finish')}.`;
-    if(!look)return `A friendly robot with ${pick('face')}.${vary}`;
-    const rule=`". If they name a thing, animal or person, the character IS that: its whole body is that subject as a friendly 3D cartoon mascot, not a robot holding or wearing it, with only a light tech touch (glowing eyes or a small antenna) so it reads as an AI agent. If they name only colours, mood or style, make a friendly robot with ${pick('face')}.`;
-    const lead='The customer’s words for the look: "';
-    const room=590-lead.length-rule.length;
-    const tail=look.length<=room-vary.length?rule+vary:rule;
-    return lead+look.slice(0,590-lead.length-tail.length)+tail;
+    const vary=` Make it ${pick('build')}, ${pick('finish')}.`;
+    const simple=' Keep it simple: smooth rounded shapes, flat colours, few details, at most one small prop.';
+    if(!look)return `A friendly robot with ${pick('face')}.${simple}${vary}`;
+    const rule=`". If they name a thing, animal or person, the character IS that, as a friendly 3D cartoon mascot, not a robot holding or wearing it, with a light tech touch like glowing eyes. If they name only colours, mood or style, make a friendly robot with ${pick('face')}.${simple}`;
+    // Their words open the brief and close it: said once, a short subject ("an airplane") lost to
+    // the robot wording about one design in three on the live proxy.
+    const close=w=>` The character's body: ${w}.`;
+    const lead='The customer\u2019s words for the look: "';
+    const full=lead+look+rule+vary+close(look);
+    if(full.length<=590)return full;
+    const plain=lead+look+rule+close(look);
+    if(plain.length<=590)return plain;
+    // A long description: their words once, cut to fit, then the rule (never the other way round).
+    return lead+look.slice(0,590-lead.length-rule.length)+rule;
   }
 
   const industry = config.industry || 'professional-services';
@@ -1546,7 +1553,7 @@
     const ref=state.selectedImage||((state.slots.find(s=>s&&s.image)||{}).image)||'';
     const live=usePortraits&&config.marketPortraits!==false&&state.variant!==null&&!!ref;
     // The portrait starts drawing straight away so the Illustrating step rarely has to wait.
-    const job=p.desc?`Its job: ${p.desc.slice(0,140)}. Shown mid-task with fitting outfit and props.`:`It is ${p.name}, shown mid-task with fitting outfit and props.`;
+    const job=cardRole(p.name,p.desc?`dressed for this job: ${p.desc.slice(0,140)}`:'');
     const art=live?fetchImage({brief:state.look,name:p.name,role:job,image:ref,company:co(),industry:industryLabel,variant:state.variant||0}):Promise.resolve(null);
     const research=researchProfile(p).catch(()=>null);
     for(let i=0;i<CP_STEPS.length;i++){
@@ -1822,6 +1829,20 @@
     const context = state.biz ? `an agent at a ${state.biz} company` : '';
     return fetchImage({brief:designBrief(variant),name:state.name,role:context,company:co(),industry:industryLabel,variant,inspiration:inspiration()});
   }
+  // A dashboard card: the SAME hatched character, dressed for one job, on a plain white background
+  // like the three designs (23 Nov: cards used to put it in a whole scene, at a desk or in a
+  // warehouse). Only the outfit and props survive from the catalog scene, the setting is dropped.
+  function cardRole(name,scene){
+    const kit=[];
+    for(let part of String(scene||'').replace(/^It is an? [^,]*? agent,? /i,'').split(/,\s*/)){
+      if(kit.length&&!/^(and )?(wearing|holding|carrying|with|dressed)\b/i.test(part))break;
+      const stop=part.search(/ (and )?(standing|sitting|seated|leaning|perched|floating|walking|sprinting|counting|pointing|swinging|stamping|shouting|in|at|on|inside|along|above|under|behind|beside|surrounded)\b/i);
+      if(stop>0)part=part.slice(0,stop);
+      if(/^(wearing|holding|carrying|with|dressed|and )/i.test(part))kit.push(part.trim());
+    }
+    return `It is ${name}${kit.length?`, ${kit.join(', ')}`:''}. Plain solid white background: no room, desk, furniture, screens or scenery, just the character, full body and centred, like the original design. Keep it simple, at most one small prop.`;
+  }
+
   // Re-skin every marketplace agent in the chosen look, each dressed for its own job.
   // Cheap fingerprint of a data URI — enough to tell one hatched character from another.
   function imageKey(src){src=String(src||'');let h=5381;for(let i=0;i<src.length;i+=7)h=((h*33)^src.charCodeAt(i))>>>0;return src.length+':'+h.toString(36);}
@@ -1850,7 +1871,7 @@
       if(drawing.has(agent.id))return;drawing.add(agent.id);
       try{
       let img = state.marketImages[agent.id] || baked[agent.id];
-      if(!img && useLive) img = await fetchImage({brief:state.look,name:agent.name,role:agent.scene,image:ref,company:co(),industry:industryLabel,variant:state.variant||0});
+      if(!img && useLive) img = await fetchImage({brief:state.look,name:agent.name,role:cardRole(agent.name,agent.scene),image:ref,company:co(),industry:industryLabel,variant:state.variant||0});
       const minMs=1100+idx*500;const wait=Math.max(0,minMs-(Date.now()-started));if(wait)await sleep(wait);  // let the loader show
       if(!img){marketFailed.add(agent.id);const thumb=root.querySelector(`[data-thumb="${agent.id}"]`);if(thumb){thumb.innerHTML=`<img src="${agent.portrait}" alt="${escapeHtml(agent.name)}">`;thumb.classList.remove('is-loading');}return;}
       state.marketImages[agent.id]=img;saveSession();
@@ -1864,7 +1885,7 @@
     // costume. A failed call settles on the prospect's own avatar — never a stranger.
     await Promise.all(EXTRA_PROFILES.map(async p=>{
       let img=state.marketImages[p.id]||baked[p.id];
-      if(!img&&useLive) img=await fetchImage({brief:state.look,name:p.name,role:p.scene,image:ref,company:co(),industry:industryLabel,variant:state.variant||0});
+      if(!img&&useLive) img=await fetchImage({brief:state.look,name:p.name,role:cardRole(p.name,p.scene),image:ref,company:co(),industry:industryLabel,variant:state.variant||0});
       state.marketImages[p.id]=img||state.selectedImage||p.portrait;saveSession();
       root.querySelectorAll(`[data-xav="${p.id}"]`).forEach(el=>{el.src=state.marketImages[p.id];el.classList.remove('egg');});
     }));
