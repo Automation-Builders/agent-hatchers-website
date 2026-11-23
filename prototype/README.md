@@ -6,13 +6,13 @@ Each prospect receives an unlisted GitHub Pages route at `/prototype/<company-sl
 
 Every page runs the same hatching experience (shared code in `app.js` / `styles.css`):
 
-1. **What can our agents do for you?** — one box: the prospect types what their business
-   does (or taps an example). Written for people who have never used an AI agent.
-2. **Your team** — the five/six agents that fit that business, one plain-English line each,
-   and a "how they work together" hand-off chain. Ends with "Ready to hatch your first agent?".
-3. **Create a profile** — company, agent name, type of company (prefilled) and the look.
-4. **Hatch** — three eggs hatch into three different designs; click one to pick it.
-5. **Dashboard** — a mimic of the live dashboard (`Hermes-Dashboard`, its v5 look in dark: cool
+1. **What can our agents do for you?** — industry, what the business does, website and tools.
+   Written for people who have never used an AI agent. (The separate "Your team" screen was
+   removed in September; the researched team shows up in the dashboard.)
+2. **Create a profile** — company, agent name, type of company (prefilled) and the look.
+3. **Hatch** — three eggs hatch into three different designs behind frosted glass until the
+   prospect gives a name and email; then they click one to pick it.
+4. **Dashboard** — a mimic of the live dashboard (`Hermes-Dashboard`, its v5 look in dark: cool
    neutrals, Hatch Blue, thin cards, a 72px labelled rail that opens to 280px), populated with
    the hatched character. The rail follows the dashboard's: New chat (the one filled control)
    and Search, then Home and Team, then Agents, Analytics (locked here), Marketplace, Merch and
@@ -20,14 +20,32 @@ Every page runs the same hatching experience (shared code in `app.js` / `styles.
    and the account row at the rail's foot. Phones get the bottom tab bar, which keeps Chats.
    The dashboard shows Agents–Feed to admins only, under an "Admin" heading; the prototype
    keeps them (they are what a prospect came to see) and drops the heading.
-6. **Connect** — the dashboard's first-run screen for an account with no box yet
+5. **Connect** — the dashboard's first-run screen for an account with no box yet
    ("It's time to hatch…", Book a call, or "I have my own box" for the inline Connect Your Agent
    form).
 
-Steps 1–4 and Connect wear the dashboard's onboarding frame (`SelfServeChrome.tsx`: dark page,
+Steps 1–3 and Connect wear the dashboard's onboarding frame (`SelfServeChrome.tsx`: dark page,
 big centred heading, full-width pills); their styles are the `.ob` block at the end of
-`styles.css`. `dashboard-sync.json` records the Hermes-Dashboard commit the prototype was last
-matched to — the daily sync routine reads it and opens a PR when the dashboard changes.
+`styles.css`.
+
+## Keeping the dashboard copy in sync
+
+`dashboard-sync.json` records the Hermes-Dashboard commit the playground was last matched to
+(`dashboardCommit`, `syncedAt`) and the dashboard files it copies (`watch`). Hermes-Dashboard's
+`playground-copy` check reads `watch` on every dashboard pull request and, when one changes a
+watched file, labels the PR `playground-copy` and comments with the files. That is the signal to
+re-match the playground:
+
+1. Compare the flagged screens on agenthatchers.ai with the playground, at 1280px and 390px.
+2. Change the matching view in `app.js` and its rules in the `.dx` / `.ob` blocks; keep each
+   view's comment naming the component it copies.
+3. Update `dashboardCommit`, `syncedAt` and, if the playground starts or stops copying a file,
+   `watch`.
+
+If the check stops appearing on dashboard PRs that touch these files, it is broken: look at
+`.github/workflows/playground-copy.yml` in Hermes-Dashboard. (Before 20 Nov the README said a
+"daily sync routine" kept this up to date; it lived in one person's Claude account and opened
+nothing between 10 Oct and 23 Nov.)
 
 When the dashboard finishes generating (every marketplace and "Other profiles" portrait is
 drawn), a **Download your image** pop hands the prospect their hatched character as a PNG
@@ -53,7 +71,7 @@ page falls back to keyword ranking with the stock names.
 The dashboard markup is `marketScreen()` and the views it picks from (`homeView`, `teamView`,
 `profilesBoard`, `chatsView`, `marketplaceView`, …) in `app.js`; its styles are the `.dx` block at
 the end of `styles.css`, built from the dashboard's own tokens (`client/src/v4theme.css`). Each
-view names the dashboard component it copies — check that file when the dashboard changes.
+view names the dashboard component it copies — check that file when the dashboard changes, and keep `watch` in `dashboard-sync.json` in step with those comments.
 As in the dashboard, a Marketplace card opens the agent's side peek and **Install** lives there;
 Create offers New Chat, New Agent and New Skill.
 
@@ -97,7 +115,7 @@ opened; **Stop sharing** kills the link. The sessions page itself stays behind t
    - `recommendedAgents`: optional agent IDs to boost in the marketplace ranking
    - `portraitEndpoint` *(optional)*: override the image-generation endpoint (see below)
    - `generatePortraits` *(optional)*: set `false` to skip generation and always use the
-     built-in simulated mascots
+     stock mascot
 3. Keep the `noindex,nofollow,noarchive` robots directive intact.
 4. Open the resulting unlisted URL and complete the whole flow on desktop and mobile.
 
@@ -105,8 +123,20 @@ opened; **Stop sharing** kills the link. The sessions page itself stays behind t
 
 Step 4 POSTs `{ brief, name, role, company, industry, variant }` (`variant` is `0|1|2`) to
 `portraitEndpoint` for each of the three designs and expects JSON `{ "image": "<url-or-data-uri>" }`
-back. **If the call fails, the egg falls back to an on-brand simulated mascot**, so a prospect
-never sees a broken page — real images appear automatically once the endpoint is live.
+back. **If a design can't be drawn** (the call fails, times out or is refused), that egg stays shut
+and says "Couldn't draw this one" with **Try again**; when all three fail, the hatch screen says so
+and offers Try again for all of them. A failed design is never pickable, and Try again redraws only
+that design without counting as another hatch (`hatchOne` / `retryDesigns` in `app.js`,
+`prototype/tests/hatch-failure-browser.cjs`). Before 22 Nov a failed draw silently became the stock
+mascot, so a refused page showed the same robot three times as "three takes on your description".
+
+The proxy only answers pages on the domains in its `ALLOWED_ORIGINS` (by default
+`agenthatchers.com`, `www.agenthatchers.com` and `localhost:8799`). Until the proxy from PR #58
+is live, a Vercel preview of this repo (`agent-hatchers-website-…-agenthatchers.vercel.app`) is not
+allowed, so the browser refuses every AI call there: designs fail, team research falls back to
+keyword picks and chat answers offline. Check the AI parts on agenthatchers.com. Once #58 is live
+the proxy also accepts this repo's own previews, under the same limits; previews always call the
+production proxy, so a preview only works once the production proxy allows it.
 
 A static host (GitHub Pages / GoDaddy) can't hold an API key, so generation runs through a small
 serverless proxy that keeps the key server-side. That proxy lives in **`../portrait-proxy/`**
@@ -121,7 +151,7 @@ portraitEndpoint: "https://<your-vercel-url>/api/prototype-portrait"
 
 (or map `api.agenthatchers.com` to the Vercel project and use that). To make every page use it
 without per-page config, change the `portraitEndpoint` default near the top of `app.js`.
-Until the proxy is wired, pages work now with simulated designs.
+With `generatePortraits: false` a page skips the proxy on purpose and shows the stock mascot.
 
 ## Shared files
 
@@ -132,6 +162,8 @@ Selection regressions (Node 18+): `node --test prototype/tests/industry-selectio
 Research regressions (Playwright, served repo root as below): `node prototype/tests/research-browser.cjs`
 — the researched team must survive the prospect editing "Type of company" while research is still
 running, and a failed first run is retried (with the company name) when they hatch.
+Hatch-failure regression (same server): `node prototype/tests/hatch-failure-browser.cjs` — a design
+the proxy can't draw shows as not drawn with Try again, is never pickable, and a working retry hatches.
 
 Rendered desktop/mobile check (Playwright and Chromium installed): serve the repo root with
 `python3 -m http.server 8768 --bind 127.0.0.1`, then run
