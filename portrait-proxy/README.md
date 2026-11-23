@@ -70,12 +70,16 @@ two model calls (logic in `lib/team-research.js`, tests in `tests/team-research.
    attempt adds OpenRouter's web plugin (`plugins:[{id:'web'}]`, ~US$0.02/call; set
    `TEAM_WEB_SEARCH=0` to turn it off); if that fails it retries without, and if research fails
    altogether the designer still runs (flagged `researched:false`).
-2. **Design** — six agents from the brief, each a named role for this business ("Recall &
-   Rebooking Agent", "HICAPS Claims Agent"), pinned to the closest catalog `base` for artwork,
-   category and hand-offs. Stock catalog names are rejected server-side.
+2. **Design** — two calls started together on the same brief. *Team*: six agents, each a named
+   role for this business ("Recall & Rebooking Agent", "HICAPS Claims Agent"), pinned to the
+   closest catalog `base` for artwork, category and hand-offs. *More*: ten marketplace extras,
+   the next jobs down the list (never a team name or job again). Stock catalog names are
+   rejected server-side. Until Nov 2026 one call wrote all sixteen and the six waited for the ten.
 
-Response: `{ intro, team:[{id, name, does, job, outcomes[5], mcps[3-5], scene}], researched,
-brief, v:2 }`. Models: `OPENROUTER_TEAM_MODEL` (default `google/gemini-3.7-flash`) for design,
+Response: `{ intro, team:[{id, name, does, job, outcomes[5], mcps[3-5], scene}], more:[…],
+researched, brief, v:3 }`. With `stream:true` in the body it is two NDJSON lines instead: the
+team line as soon as the team is valid, then `{ more }`. Every stage in the logged `trace` has
+`ms` (its duration) and `at` (ms since the request started). Models: `OPENROUTER_TEAM_MODEL` (default `google/gemini-3.7-flash`) for design,
 `OPENROUTER_RESEARCH_MODEL` (defaults to the team model) for research. The page keeps the stock
 names if the proxy is unreachable or still returns the old v1 shape.
 
