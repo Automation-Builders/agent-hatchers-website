@@ -12,15 +12,19 @@ Every page runs the same hatching experience (shared code in `app.js` / `styles.
    and a "how they work together" hand-off chain. Ends with "Ready to hatch your first agent?".
 3. **Create a profile** — company, agent name, type of company (prefilled) and the look.
 4. **Hatch** — three eggs hatch into three different designs; click one to pick it.
-5. **Dashboard** — a mimic of the live dashboard (`Hermes-Dashboard`, its v4 look: black,
-   pills, left sidebar), populated with the hatched character. Same sections in the same order
-   as the dashboard's sidebar: Home (the morning briefing), Agents, Chats, Feed (Soon),
-   Analytics (locked here), Config, Marketplace and Merch. Phones get the bottom tab bar.
+5. **Dashboard** — a mimic of the live dashboard (`Hermes-Dashboard`, its v5 look in dark: cool
+   neutrals, Hatch Blue, thin cards, a 72px labelled rail that opens to 280px), populated with
+   the hatched character. The rail follows the dashboard's: New chat (the one filled control)
+   and Search, then Home and Team, then Agents, Analytics (locked here), Marketplace, Merch and
+   Feed (Soon, last). Chats is reached from New chat; Config is now Settings, reached from Apps
+   and the account row at the rail's foot. Phones get the bottom tab bar, which keeps Chats.
+   The dashboard shows Agents–Feed to admins only, under an "Admin" heading; the prototype
+   keeps them (they are what a prospect came to see) and drops the heading.
 6. **Connect** — the dashboard's first-run screen for an account with no box yet
    ("It's time to hatch…", Book a call, or "I have my own box" for the inline Connect Your Agent
    form).
 
-Steps 1–4 and Connect wear the dashboard's v4 onboarding frame (`SelfServeChrome.tsx`: black page,
+Steps 1–4 and Connect wear the dashboard's onboarding frame (`SelfServeChrome.tsx`: dark page,
 big centred heading, full-width pills); their styles are the `.ob` block at the end of
 `styles.css`. `dashboard-sync.json` records the Hermes-Dashboard commit the prototype was last
 matched to — the daily sync routine reads it and opens a PR when the dashboard changes.
@@ -46,7 +50,7 @@ team and ahead of the stock leftovers; every one gets a portrait in the hatched 
 research request and response go through the eligibility gate below; if the proxy is down the
 page falls back to keyword ranking with the stock names.
 
-The dashboard markup is `marketScreen()` and the views it picks from (`homeView`,
+The dashboard markup is `marketScreen()` and the views it picks from (`homeView`, `teamView`,
 `profilesBoard`, `chatsView`, `marketplaceView`, …) in `app.js`; its styles are the `.dx` block at
 the end of `styles.css`, built from the dashboard's own tokens (`client/src/v4theme.css`). Each
 view names the dashboard component it copies — check that file when the dashboard changes.
