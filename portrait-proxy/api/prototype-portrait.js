@@ -51,6 +51,17 @@ export default async function handler(req, res) {
   const variant = Math.max(0, Math.min(2, parseInt(body.variant, 10) || 0));
   // A reference image turns this into an EDIT: keep the same character, re-dress it on plain white.
   const ref = typeof body.image === 'string' && /^data:image\//.test(body.image) ? body.image : '';
+  // Dashboard cards are shown cut out (transparent). The model can't paint transparency, so the
+  // page asks for a flat chroma-key colour it then removes: magenta, or green when the character
+  // itself is pink/magenta. Without `bg` the background stays plain white, as before.
+  const KEYS = { magenta: 'pure magenta (#FF00FF)', green: 'pure green (#00FF00)' };
+  const key = ref && KEYS[body.bg] ? KEYS[body.bg] : '';
+  const backdrop = key
+    ? `Solid flat ${key} chroma-key background filling the whole frame, perfectly even: no gradient, floor, ` +
+      `shadow or reflection of it on the character. Keep the character's own colours exactly. Full body and centred: ` +
+      `no room, desk, furniture, screens or scenery. `
+    : `Plain solid white background, soft even studio lighting, full body and centred: no room, desk, furniture, ` +
+      `screens or scenery. `;
   // Inspiration (create screen): a photo of a person and/or a website's brand cues. Unlike
   // `image`, these are NOT the character — they steer a brand-new design.
   const insp = body.inspiration && typeof body.inspiration === 'object' ? body.inspiration : null;
@@ -112,8 +123,7 @@ export default async function handler(req, res) {
       `reference image — identical body shape, proportions, colours, materials, markings and face. ` +
       `Do not restyle, recolour or redesign it. ${role ? `${role} ` : ''}` +
       `Dress the very same character for that job with at most one small accessory and one small prop. ` +
-      `Plain solid white background, soft even studio lighting, full body and centred: no room, desk, furniture, ` +
-      `screens or scenery. Keep it simple. ` +
+      `${backdrop}Keep it simple. ` +
       `Polished, high-quality, sharp 3D cartoon render, the same character throughout, no text, no watermark.`
     : `${brief}. A friendly 3D cartoon mascot character named "${name}": a robot unless the description ` +
       `names another subject, in which case it is that subject. ` +
