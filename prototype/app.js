@@ -49,9 +49,10 @@
 
   const industry = config.industry || 'professional-services';
   const industryLabel = config.industryLabel || 'Your industry';
-  // Real portrait generation. Point portraitEndpoint at a callable endpoint and it upgrades
-  // automatically; until then each egg falls back to an on-brand simulated mascot so the
-  // prospect experience is never broken. Set generatePortraits:false to skip the call entirely.
+  // Real portrait generation through the proxy. If a design can't be drawn (proxy down, page
+  // served from a domain the proxy doesn't allow, a used-up limit), that egg says so and offers
+  // Try again; it never stands in the stock mascot as if it were a design. generatePortraits:false
+  // skips the call on purpose and shows the stock mascot.
   const portraitEndpoint = config.portraitEndpoint || 'https://agent-hatchers-portrait-proxy.vercel.app/api/prototype-portrait';
   const usePortraits = config.generatePortraits !== false && !!portraitEndpoint;
   const chatEndpoint = config.chatEndpoint || portraitEndpoint.replace('prototype-portrait','prototype-chat');
@@ -739,7 +740,9 @@
   }
   const hx6Shell=(extra,p)=>`<div class="hx6 ${extra||''}"><img class="hx6-pop" alt=""><div class="hx6-wrap" aria-hidden="true"><img class="hx6-bottom" src="/egg-closed.webp" alt="" style="clip-path:polygon(0 50.69%,${HX5_SEAM_UP},100% 51.01%,100% 100%,0 100%)"><img class="hx6-lid" src="/egg-closed.webp" alt="" style="clip-path:polygon(0 0,100% 0,100% 51.61%,${HX5_SEAM},0 51.29%)">${hx6Cracks(p||0)}</div></div>`;
   function eggScene(i){
-    const slot=state.slots[i];const ready=!!(slot&&slot.status==='ready');const img=ready?(slot.image||'/hatchy-pop.webp'):'';const sel=state.variant===i;
+    const slot=state.slots[i];
+    if(slot&&slot.status==='failed')return `<div class="egg-cell is-failed" data-egg="${i}"><div class="hx6" data-i="${i}"><div class="hx6-wrap" aria-hidden="true"><img class="hx6-bottom" src="/egg-closed.webp" alt=""></div></div><span class="hatch-number">Design ${i+1}</span><span class="egg-fail">Couldn’t draw this one</span><button type="button" class="egg-retry" data-egg-retry="${i}">Try again</button></div>`;
+    const ready=!!(slot&&slot.status==='ready');const img=ready?(slot.image||'/hatchy-pop.webp'):'';const sel=state.variant===i;
     const cut=img&&cutDone.get(img);const shown=cut&&cut!==img?cut:img;
     return `<div class="egg-cell ${ready?'is-ready':''} ${sel?'selected':''}" data-egg="${i}" role="button" tabindex="0" aria-pressed="${sel}"><div class="hx6 ${ready?'done':''}" data-i="${i}">
     <img class="hx6-pop ${shown!==img?'is-cut':''}" ${img?`src="${escapeHtml(shown)}" data-orig="${escapeHtml(img)}"`:''} alt="">
@@ -752,6 +755,8 @@
   function hatchActionsBar(){
     const settled=state.slots.length&&state.slots.every(Boolean);
     const anyReady=state.slots.some(s=>s&&s.status==='ready');
+    const failed=state.slots.map((s,i)=>s&&s.status==='failed'?i:-1).filter(i=>i>=0);
+    if(!anyReady&&settled&&failed.length) return `<p class="hatch-status is-failed">We couldn’t draw ${escapeHtml(state.name||'your agent')} just now. Try again in a moment.</p>${pill('Try again','retry-designs')}`;
     if(!anyReady) return `<p class="hatch-status"><i></i>Hatching your designs…${gated()?'':' click your favourite as soon as it pops out.'}</p>`;
     if(gated()) return `<p class="hatch-status is-gate">Add your name and email above to meet ${escapeHtml(state.name||'your agent')}.</p>`;
     // A picked design can be tweaked right here ("nearly there, but…") before it becomes the avatar.
@@ -800,7 +805,11 @@
   // Review/share of a session that never reached the dashboard: its team portraits were never
   // generated. A still egg says so honestly — the stock Hatchy art looked like a different robot.
   const marketUnhatched='<div class="hatch-loader is-still"><img class="loader-egg" src="/egg-closed.webp" alt=""><span class="loader-txt">Not hatched</span></div>';
-  function willGenerate(agent){if(VIEW_ONLY)return false;   // review mode shows what was stored, no egg loaders
+  // Agents whose portrait couldn't be drawn this hatch: their card settles on the agent's own
+  // stock picture. Without this a re-render brought the "Hatching…" egg back for good, because
+  // the drawing had already finished (22 Nov).
+  const marketFailed=new Set();
+  function willGenerate(agent){if(VIEW_ONLY||marketFailed.has(agent.id))return false;   // review mode shows what was stored, no egg loaders
     return (usePortraits&&config.marketPortraits!==false&&state.variant!==null)||!!(config.bakedMarket&&config.bakedMarket[agent.id]);}
   // ===== Dashboard (step 4) — a mimic of the live dashboard (Hermes-Dashboard, v4 look) =====
   // Black Grok-style frame: a top bar with the workspace switcher and Create, a left sidebar
@@ -1801,6 +1810,7 @@
     const useLive = usePortraits && config.marketPortraits!==false && state.variant!==null;
     if(!useLive && !Object.keys(baked).length) return;   // nothing to hatch; cards keep mascot
     state.marketStarted = true;
+    marketFailed.clear();   // every (re)start of the drawing gets a fresh try
     // Every catalog agent gets a portrait in the hatched character's style — recommended
     // six first, the rest right behind — so no card ever mixes in off-style stock art.
     const agents = rankAgents().map(r=>r.agent);
@@ -1820,7 +1830,7 @@
       let img = state.marketImages[agent.id] || baked[agent.id];
       if(!img && useLive) img = await fetchImage({brief:state.look,name:agent.name,role:agent.scene,image:ref,company:co(),industry:industryLabel,variant:state.variant||0});
       const minMs=1100+idx*500;const wait=Math.max(0,minMs-(Date.now()-started));if(wait)await sleep(wait);  // let the loader show
-      if(!img){const thumb=root.querySelector(`[data-thumb="${agent.id}"]`);if(thumb){thumb.innerHTML=`<img src="${agent.portrait}" alt="${escapeHtml(agent.name)}">`;thumb.classList.remove('is-loading');}return;}
+      if(!img){marketFailed.add(agent.id);const thumb=root.querySelector(`[data-thumb="${agent.id}"]`);if(thumb){thumb.innerHTML=`<img src="${agent.portrait}" alt="${escapeHtml(agent.name)}">`;thumb.classList.remove('is-loading');}return;}
       state.marketImages[agent.id]=img;saveSession();
       const thumb = root.querySelector(`[data-thumb="${agent.id}"]`);
       if(thumb){thumb.innerHTML=`<img src="${escapeHtml(img)}" alt="${escapeHtml(agent.name)}">`;thumb.classList.remove('is-loading');thumb.classList.add('is-generated');}
@@ -1887,20 +1897,36 @@
     const lookTa=document.getElementById('agent-look');if(lookTa&&lookTa.value.trim())state.look=lookTa.value.trim();
     dealDesignAxes();
     state.slots=[null,null,null];state.variant=null;state.selectedImage='';state.marketImages={};state.marketStarted=false;state.marketRefKey='';state.step=3;state.downloadOffered=false;render();
-    const refreshBar=()=>{const bar=root.querySelector('.hatch-actions');if(bar){bar.innerHTML=hatchActionsBar();bind();}};
-    const sceneOf=i=>()=>root.querySelector(`.hx6[data-i="${i}"]`);
-    [0,1,2].forEach(i=>crackStart('d'+i,sceneOf(i),true));   // the crack creeps while the model draws
-    await Promise.all([0,1,2].map(async i=>{
-      const image=await fetchPortrait(i);
-      state.slots[i]={status:'ready',image};saveSession();
-      let hatched=false;const done=()=>{hatched=true;};
-      armHatch(sceneOf(i),'d'+i,image||'/hatchy-pop.webp','/hatchy-pop.webp',done);
-      const cell=root.querySelector(`.egg-cell[data-egg="${i}"]`);if(cell)cell.classList.add('is-ready');
-      refreshBar();               // selectable the moment the first design is out
-      for(let t=0;t<40&&!hatched;t++)await sleep(150);   // cut-out + rush + pop, whichever comes first
-    }));
-    celebrate();
-    refreshBar();
+    await Promise.all([0,1,2].map(hatchOne));
+    if(state.slots.some(s=>s&&s.status==='ready'))celebrate();
+    refreshHatchBar();
+  }
+  const sceneOf=i=>()=>root.querySelector(`.hx6[data-i="${i}"]`);
+  const refreshHatchBar=()=>{const bar=root.querySelector('.hatch-actions');if(bar){bar.innerHTML=hatchActionsBar();bind();}};
+  // One design: the crack creeps while the model draws, then it hatches. A design the proxy
+  // couldn't draw is 'failed' (not saved, not pickable) and its egg offers Try again, which
+  // redraws just that one and doesn't count as another hatch.
+  async function hatchOne(i){
+    crackStart('d'+i,sceneOf(i),true);
+    const image=await fetchPortrait(i);
+    if(!image&&usePortraits&&!VIEW_ONLY){
+      crackStop('d'+i);state.slots[i]={status:'failed'};
+      const cell=root.querySelector(`.egg-cell[data-egg="${i}"]`);if(cell)cell.outerHTML=eggScene(i);
+      bind();refreshHatchBar();return;
+    }
+    state.slots[i]={status:'ready',image};saveSession();
+    let hatched=false;const done=()=>{hatched=true;};
+    armHatch(sceneOf(i),'d'+i,image||'/hatchy-pop.webp','/hatchy-pop.webp',done);
+    const cell=root.querySelector(`.egg-cell[data-egg="${i}"]`);if(cell)cell.classList.add('is-ready');
+    refreshHatchBar();          // selectable the moment the first design is out
+    for(let t=0;t<40&&!hatched;t++)await sleep(150);   // cut-out + rush + pop, whichever comes first
+  }
+  async function retryDesigns(list){
+    list.forEach(i=>{state.slots[i]=null;const cell=root.querySelector(`.egg-cell[data-egg="${i}"]`);if(cell)cell.outerHTML=eggScene(i);});
+    bind();refreshHatchBar();
+    await Promise.all(list.map(hatchOne));
+    if(list.some(i=>state.slots[i]&&state.slots[i].status==='ready'))celebrate();
+    refreshHatchBar();
   }
   function bind(){
     bindWho();
@@ -1917,6 +1943,7 @@
         render()}
       if(a==='generate'){const input=document.getElementById('agent-name');const name=input.value.trim();if(!name){input.focus();input.setAttribute('aria-invalid','true');return}state.name=name;const coIn=document.getElementById('agent-co');if(coIn)state.company=coIn.value.trim();const bizIn=document.getElementById('agent-biz');state.biz=bizIn?bizIn.value.trim():'';const lookTa=document.getElementById('agent-look');state.look=(lookTa&&lookTa.value.trim())||(hasReference()?'a friendly robot mascot':'a friendly rounded robot in blue and white');if(needsResearch())rerunResearch();generateAgents()}
       if(a==='redesign'){if(hatchesLeft()){state.step=2;render()}else hatchPop()}
+      if(a==='retry-designs'){retryDesigns(state.slots.map((x,i)=>x&&x.status==='failed'?i:-1).filter(i=>i>=0));return;}
       if(a==='edit-look'){openEditLook()}
       if(a==='own-box'){state.ownBox=true;render();document.getElementById('ci-base')?.focus();}
       if(a==='connect-save'){el.textContent='Connecting…';el.disabled=true;setTimeout(()=>{state.ownBox=false;state.done=true;render();celebrate();},900);}
@@ -1942,6 +1969,7 @@
         document.querySelectorAll('.confetti').forEach(c=>c.remove());if(window.ahTrack)ahTrack('DemoComplete');state.step=4;render();generateMarket()}
       if(a==='reset'){researchPopStop();state.step=0;state.you='';state.email='';state.contactSaved=false;state.name='';state.company='';state.biz='';state.industry='';state.website='';state.tools=[];state.toolsOpen=false;state.look='';state.team=null;state.teamBusy=false;state.refPhoto='';state.brand=null;state.refBusy=false;state.refError='';state.slots=[];state.variant=null;state.selectedImage='';state.done=false;state.ownBox=false;state.marketImages={};state.marketStarted=false;state.added=[];state.tab='profiles';state.chatActive=0;state.chatExtra={};state.chatTyping={};state.editUses=0;state.downloadOffered=false;state.profiles=[];state.sid='';state.startedAt=0;notifHidden=false;drawNotifs();clearSession();state.merch={robot:'__you',product:'tee',color:0,size:'S',qty:1,basket:[],note:false};document.querySelectorAll('.confetti').forEach(c=>c.remove());render()}
     });
+    root.querySelectorAll('[data-egg-retry]').forEach(b=>b.onclick=e=>{e.stopPropagation();retryDesigns([+b.dataset.eggRetry]);});
     root.querySelectorAll('[data-egg]').forEach(el=>{
       // Select a design the moment it's hatched — direct DOM updates only, so picking
       // one egg never restarts the others' hatch animations.
