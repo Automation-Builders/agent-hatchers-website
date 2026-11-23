@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normaliseInput, buildResearchPrompt, buildDesignPrompt, validateBrief, validateTeam, researchTeam, parseJson } from '../lib/team-research.js';
+import { normaliseInput, buildResearchPrompt, buildDesignPrompt, validateBrief, validateTeam, validateMore, researchTeam, parseJson, MORE_ASK } from '../lib/team-research.js';
 
 const ROSTER = [
   { id: 'logistics', name: 'Logistics Agent', summary: 'Tracks every order and shipment.' },
@@ -121,69 +121,119 @@ test('validateTeam keeps bespoke roles, drops stock labels and duplicate bases',
   assert.equal(validateTeam({ team: DENTAL_TEAM.team.slice(0, 3) }, ROSTER), null, 'fewer than four usable agents is not a team');
 });
 
-test('marketplace extras are validated like the team, may share bases, never repeat a name', () => {
-  const extra = (base, name) => ({ base, name, does: `Handles the ${name.toLowerCase()} side of your clinic every week.`, job: 'does the thing', outcomes: ['one two three', 'four five six', 'seven eight nine', 'ten eleven twelve', 'thirteen'], mcps: ['Gmail', 'Xero'], scene: 'It is a small agent in the clinic.' });
-  const out = validateTeam({
-    intro: 'ok', team: DENTAL_TEAM.team,
-    more: [extra('support', 'Emergency Triage'), extra('support', 'Waitlist Filler'), extra('invoices', 'HICAPS Claims Agent'), extra('operations', 'Operations Agent'), extra('nope', 'Ghost'), extra('documents', 'Referral Letter')]
-  }, ROSTER);
-  assert.equal(out.team.length, 6);
-  assert.deepEqual(out.more.map(m => [m.id, m.base, m.name]), [['more-1', 'support', 'Emergency Triage Agent'], ['more-2', 'support', 'Waitlist Filler Agent'], ['more-3', 'documents', 'Referral Letter Agent']]);
-  assert.deepEqual(validateTeam({ team: DENTAL_TEAM.team }, ROSTER).more, [], 'missing extras is fine');
-  const p = buildDesignPrompt(normaliseInput({ business: 'dental clinic', roster: ROSTER }), null);
-  assert.match(p.system, /"more": exactly 10 further entries/);
+test('marketplace extras are validated like the team, may share bases, never repeat a team name or job', () => {
+  const extra = (base, name, job = 'does the thing') => ({ base, name, does: `Handles the ${name.toLowerCase()} side of your clinic every week.`, job, outcomes: ['one two three', 'four five six', 'seven eight nine', 'ten eleven twelve', 'thirteen'], mcps: ['Gmail', 'Xero'], scene: 'It is a small agent in the clinic.' });
+  const { team } = validateTeam(DENTAL_TEAM, ROSTER);
+  const more = validateMore({
+    more: [extra('support', 'Emergency Triage'), extra('support', 'Waitlist Filler'), extra('invoices', 'HICAPS Claims Agent'), extra('operations', 'Operations Agent'), extra('nope', 'Ghost'), extra('sales', 'Plan Follow-up', 'Chases the treatment plans.'), extra('documents', 'Referral Letter')]
+  }, ROSTER, team);
+  assert.equal(team.length, 6);
+  assert.deepEqual(more.map(m => [m.id, m.base, m.name]), [['more-1', 'support', 'Emergency Triage Agent'], ['more-2', 'support', 'Waitlist Filler Agent'], ['more-3', 'documents', 'Referral Letter Agent']]);
+  assert.deepEqual(validateMore({}, ROSTER, team), [], 'missing extras is fine');
+  assert.deepEqual(validateMore(null, ROSTER, team), []);
 });
 
-test('researchTeam researches with web search first, then designs from the brief', async () => {
-  const { calls, callModel } = fakeModel([ok(DENTAL_BRIEF), ok(DENTAL_TEAM)]);
+test('the team prompt asks for six only; the more prompt asks for the next jobs down the list', () => {
+  const input = normaliseInput({ business: 'dental clinic', roster: ROSTER });
+  const team = buildDesignPrompt(input, null).system;
+  assert.doesNotMatch(team, /"more"/);
+  assert.match(team, /"team": exactly 6 entries/);
+  const more = buildDesignPrompt(input, validateBrief(DENTAL_BRIEF), { part: 'more' }).system;
+  assert.match(more, new RegExp(`"more": exactly ${MORE_ASK} entries`));
+  assert.match(more, /core team of 6 agents already covers/);
+  assert.match(more, /RESEARCH BRIEF/);
+  assert.doesNotMatch(more, /"intro"/);
+});
+
+// Answers by which prompt was asked, so concurrent calls get the right script whatever their order.
+// `script.research|team|more` are lists played in order; `gate.more` holds the more call open.
+function routedModel(script, gate = {}) {
+  const calls = [], seen = { research: 0, team: 0, more: 0 };
+  const callModel = async (params) => {
+    const part = /researcher preparing a brief/.test(params.system) ? 'research' : /MORE agents for its marketplace/.test(params.system) ? 'more' : 'team';
+    calls.push({ ...params, part });
+    if (gate[part]) await gate[part];
+    const list = script[part] || [fail()];
+    const step = list[Math.min(seen[part]++, list.length - 1)];
+    return typeof step === 'function' ? step(params) : step;
+  };
+  return { calls, callModel };
+}
+const EXTRAS = { more: Array.from({ length: 12 }, (_, i) => ({ base: ROSTER[i % ROSTER.length].id, name: `Clinic Extra ${i + 1} Agent`, does: 'Handles one more weekly chore at your clinic, start to finish.', job: `does chore ${i + 1}`, outcomes: ['one two three', 'four five six', 'seven eight nine', 'ten eleven twelve'], mcps: ['Gmail'], scene: 'It is a helper.' })) };
+
+test('researchTeam researches with web search first, then designs the team and the extras at the same time', async () => {
+  let release; const gate = { more: new Promise(r => { release = r; }) };
+  const { calls, callModel } = routedModel({ research: [ok(DENTAL_BRIEF)], team: [ok(DENTAL_TEAM)], more: [ok(EXTRAS)] }, gate);
   const input = normaliseInput({ business: 'two-chair dental clinic', industry: 'Health & wellness', website: 'smile.com.au', roster: ROSTER });
-  const out = await researchTeam(input, { callModel, researchModel: 'r-model', designModel: 'd-model', webSearch: true });
+  const order = [];
+  const pending = researchTeam(input, { callModel, researchModel: 'r-model', designModel: 'd-model', webSearch: true, onTeam: t => { order.push(['team', calls.length, t.team.length, t.researched]); } });
+  await new Promise(r => setTimeout(r, 5));
+  assert.deepEqual(calls.map(c => c.part).sort(), ['more', 'research', 'team'], 'team and more are both asked before the more call answers');
+  assert.deepEqual(order, [['team', 3, 6, true]], 'onTeam fires while the extras are still being written');
+  release();
+  const out = await pending;
   assert.equal(out.ok, true);
   assert.equal(out.researched, true);
-  assert.equal(calls.length, 2);
   assert.deepEqual(calls[0].plugins, [{ id: 'web', max_results: 5 }]);
   assert.equal(calls[0].model, 'r-model');
   assert.match(calls[0].user, /smile\.com\.au/);
-  assert.equal(calls[1].model, 'd-model');
-  assert.match(calls[1].system, /RESEARCH BRIEF[\s\S]*Bounced HICAPS claims/);
-  assert.equal(out.team.length, 6);
+  for (const c of calls.slice(1)) { assert.equal(c.model, 'd-model'); assert.match(c.system, /RESEARCH BRIEF[\s\S]*Bounced HICAPS claims/); }
   assert.deepEqual(out.team.map(t => t.name), ['Recall & Rebooking Agent', 'HICAPS Claims Agent', 'Treatment Plan Agent', 'Consumables Agent', 'Sterilisation Log Agent', 'Google Reviews Agent']);
   assert.equal(new Set(out.team.map(t => t.id)).size, 6);
+  assert.equal(out.more.length, 10, 'twelve asked, ten kept');
   assert.equal(out.brief.software[1], 'HICAPS');
-  assert.deepEqual(out.trace.map(t => [t.stage, t.valid]), [['research', true], ['design', true]]);
+  assert.deepEqual(out.trace.map(t => [t.stage, t.valid]), [['research', true], ['team', true], ['more', true]]);
+  assert.ok(out.trace.every(t => Number.isFinite(t.ms) && Number.isFinite(t.at)), 'every stage carries its timing');
 });
 
-test('a generic first draft is rejected and the design step escalates', async () => {
+test('a generic first draft is rejected and the team design escalates', async () => {
   const generic = { intro: 'meh', team: ROSTER.slice(0, 6).map(a => ({ base: a.id, name: a.name, does: 'Does the generic thing for your business every day.', job: 'does things', outcomes: [], mcps: [] })) };
-  const { calls, callModel } = fakeModel([ok(DENTAL_BRIEF), ok(generic), ok(DENTAL_TEAM)]);
+  const { calls, callModel } = routedModel({ research: [ok(DENTAL_BRIEF)], team: [ok(generic), ok(DENTAL_TEAM)], more: [ok(EXTRAS)] });
   const out = await researchTeam(normaliseInput({ business: 'dental clinic', roster: ROSTER }), { callModel, researchModel: 'm', designModel: 'm', webSearch: false });
   assert.equal(out.ok, true);
-  assert.equal(calls.length, 3);
-  assert.equal(calls[1].response_format.type, 'json_object');
-  assert.deepEqual(calls[2].reasoning, { effort: 'low' });
-  assert.equal(calls[2].response_format, undefined);
-  assert.equal(out.trace[1].valid, false);
+  const team = calls.filter(c => c.part === 'team');
+  assert.equal(team.length, 2);
+  assert.equal(team[0].response_format.type, 'json_object');
+  assert.deepEqual(team[1].reasoning, { effort: 'low' });
+  assert.equal(team[1].response_format, undefined);
+  assert.equal(out.trace.find(t => t.stage === 'team').valid, false);
   assert.equal(out.team[0].name, 'Recall & Rebooking Agent');
 });
 
+test('when the extras fail the team still comes back, with an empty marketplace list', async () => {
+  const { callModel } = routedModel({ research: [ok(DENTAL_BRIEF)], team: [ok(DENTAL_TEAM)], more: [fail(502)] });
+  const out = await researchTeam(normaliseInput({ business: 'dental clinic', roster: ROSTER }), { callModel, researchModel: 'm', designModel: 'm', webSearch: false });
+  assert.equal(out.ok, true);
+  assert.equal(out.team.length, 6);
+  assert.deepEqual(out.more, []);
+  assert.deepEqual(out.trace.filter(t => t.stage === 'more').map(t => t.valid), [false, false], 'two tries at the extras, then give up');
+});
+
 test('when research fails the designer still returns a team, flagged as unresearched', async () => {
-  const { calls, callModel } = fakeModel([fail(502), fail(502), fail(502), ok(DENTAL_TEAM)]);
+  const { calls, callModel } = routedModel({ research: [fail(502)], team: [ok(DENTAL_TEAM)], more: [ok(EXTRAS)] });
   const out = await researchTeam(normaliseInput({ business: 'dental clinic', roster: ROSTER }), { callModel, researchModel: 'm', designModel: 'm', webSearch: true });
   assert.equal(out.ok, true);
   assert.equal(out.researched, false);
   assert.equal(out.brief, null);
-  assert.equal(calls.length, 4);
-  assert.equal(calls[1].plugins, undefined, 'second research attempt drops the web plugin');
-  assert.equal(calls[2].reasoning, undefined, 'third research attempt is the model default');
-  assert.match(calls[3].system, /No research brief is available/);
+  const research = calls.filter(c => c.part === 'research');
+  assert.equal(research.length, 3);
+  assert.equal(research[1].plugins, undefined, 'second research attempt drops the web plugin');
+  assert.equal(research[2].reasoning, undefined, 'third research attempt is the model default');
+  assert.match(calls.find(c => c.part === 'team').system, /No research brief is available/);
   for (const c of calls) assert.notEqual(c.reasoning && c.reasoning.enabled, false, 'never send reasoning:{enabled:false} — the model rejects it');
 });
 
 test('a model that throws or returns prose never crashes the pipeline', async () => {
-  const { callModel } = fakeModel([() => { throw new Error('socket hang up'); }, { ok: true, status: 200, text: 'Sure! Here is the brief you asked for.' }, fail(), { ok: true, status: 200, text: 'I think you should get a Support Agent.' }, fail(), fail()]);
-  const out = await researchTeam(normaliseInput({ business: 'dental clinic', roster: ROSTER }), { callModel, researchModel: 'm', designModel: 'm', webSearch: true });
+  const { callModel } = routedModel({
+    research: [() => { throw new Error('socket hang up'); }, { ok: true, status: 200, text: 'Sure! Here is the brief you asked for.' }, fail()],
+    team: [{ ok: true, status: 200, text: 'I think you should get a Support Agent.' }, fail(), fail()],
+    more: [fail()]
+  });
+  let called = false;
+  const out = await researchTeam(normaliseInput({ business: 'dental clinic', roster: ROSTER }), { callModel, researchModel: 'm', designModel: 'm', webSearch: true, onTeam: () => { called = true; } });
   assert.equal(out.ok, false);
-  assert.equal(out.trace.length, 6);
+  assert.equal(called, false, 'no team, no onTeam');
+  assert.equal(out.trace.filter(t => t.stage !== 'more').length, 6);
   assert.equal(parseJson('```json\n{"a":1}\n```').a, 1);
   assert.equal(parseJson('Here you go: {"a":2} hope that helps').a, 2);
 });
@@ -191,33 +241,18 @@ test('a model that throws or returns prose never crashes the pipeline', async ()
 // A clock the fake model moves forward, so the 60-second budget can be tested without waiting.
 function slowModel(script, msPerCall) {
   let now = 0;
-  const { calls, callModel } = fakeModel(script);
+  const { calls, callModel } = routedModel(script);
   return { calls, clock: () => now, callModel: async p => { now += msPerCall; return callModel(p); } };
 }
 
 test('slow research is cut off so the design still runs inside the function limit', async () => {
   const bad = { ok: true, status: 200, error: null, text: 'no json here' };
-  const { calls, clock, callModel } = slowModel([bad, bad, bad, ok(DENTAL_TEAM)], 15000);
+  const { calls, clock, callModel } = slowModel({ research: [bad], team: [ok(DENTAL_TEAM)], more: [ok(EXTRAS)] }, 15000);
   const out = await researchTeam(normaliseInput({ business: 'dental clinic', roster: ROSTER }), { callModel, clock, researchModel: 'm', designModel: 'm', webSearch: true });
   assert.equal(out.ok, true);
   assert.equal(out.researched, false);
-  // one research call fits in its ~21s share; the full design tries at 15s, then the lean one
-  // takes over once less than 30s is left (and the model's bad drafts are retried)
-  assert.deepEqual(out.trace.map(t => t.stage), ['research', 'design', 'design-lean', 'design-lean']);
+  // one research call fits in its ~21s share; then the team and the extras both still fit
+  assert.deepEqual(out.trace.map(t => t.stage).sort(), ['more', 'research', 'team']);
+  assert.equal(out.trace[0].ms, 15000);
   assert.ok(calls.every(c => c.timeoutMs > 0 && c.timeoutMs <= 52000));
-});
-
-test('with plenty of time the design asks for the marketplace extras too', async () => {
-  const { calls, clock, callModel } = slowModel([ok(DENTAL_BRIEF), ok(DENTAL_TEAM)], 5000);
-  const out = await researchTeam(normaliseInput({ business: 'dental clinic', roster: ROSTER }), { callModel, clock, researchModel: 'm', designModel: 'm', webSearch: true });
-  assert.equal(out.ok, true);
-  assert.match(calls[1].system, /MORE agents for its marketplace/);
-  assert.equal(out.trace[1].stage, 'design');
-});
-
-test('the lean design prompt asks for the team only', () => {
-  const input = normaliseInput({ business: 'dental clinic', roster: ROSTER });
-  const lean = buildDesignPrompt(input, null, { more: false }).system;
-  assert.doesNotMatch(lean, /"more"/);
-  assert.match(lean, /exactly 6 entries/);
 });

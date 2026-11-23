@@ -7,7 +7,10 @@
 // available, and only then DESIGN six agents from that brief. Each agent comes back as a named
 // role for this business (not a catalog label) pinned to the closest catalog base:
 //   POST { business, industry, company, website, tools:[...], connectors:[...], roster:[{id,name,summary}] }
-//   → { intro, team:[{id, name, does, job, outcomes[5], mcps[3-5], scene}], more:[…10 more, id "more-n", base], researched, brief, v:2 }
+//   → { intro, team:[{id, name, does, job, outcomes[5], mcps[3-5], scene}], more:[…10 more, id "more-n", base], researched, brief, v:3 }
+// With `stream: true` in the body the answer is two NDJSON lines instead: the team as soon as it
+// is ready ({ intro, team, researched, brief, v, business }), then { more } when the extras land,
+// so the Agents cards don't wait for the Marketplace. Without it, one JSON object as before.
 // The client falls back to its keyword ranking if this is unreachable. All the reasoning
 // lives in ../lib/team-research.js so it can be tested with a fake model.
 
@@ -60,15 +63,25 @@ export default async function handler(req, res) {
   if (input.roster.length < 3) { res.status(400).json({ error: 'roster missing' }); return; }
   if (!(await guard(req, res, 'team'))) return;
 
+  const stream = body && body.stream === true;
+  const head = t => ({ team: t.team, intro: t.intro, researched: t.researched, brief: t.brief, v: 3, business: input.business });
   try {
     const out = await researchTeam(input, {
       callModel, researchModel: RESEARCH_MODEL, designModel: TEAM_MODEL, webSearch: WEB_SEARCH,
-      log: r => console.log(JSON.stringify({ fn: 'prototype-team', business: input.business, website: input.website, ...r }))
+      log: r => console.log(JSON.stringify({ fn: 'prototype-team', business: input.business, website: input.website, ...r })),
+      onTeam: stream ? t => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/x-ndjson');
+        res.setHeader('Cache-Control', 'no-store');
+        res.write(JSON.stringify(head(t)) + '\n');
+      } : null
     });
-    if (!out.ok) { res.status(502).json({ error: 'No usable team', v: 2, trace: out.trace }); return; }
+    if (stream && res.headersSent) { res.end(JSON.stringify({ more: out.more || [] }) + '\n'); return; }
+    if (!out.ok) { res.status(502).json({ error: 'No usable team', v: 3, trace: out.trace }); return; }
     res.setHeader('Cache-Control', 'no-store');
-    res.status(200).json({ team: out.team, more: out.more, intro: out.intro, researched: out.researched, brief: out.brief, v: 2, business: input.business });
+    res.status(200).json({ ...head(out), more: out.more });
   } catch (e) {
-    res.status(502).json({ error: 'Upstream request failed: ' + (e && e.message), v: 2 });
+    if (res.headersSent) { res.end(); return; }
+    res.status(502).json({ error: 'Upstream request failed: ' + (e && e.message), v: 3 });
   }
 }
