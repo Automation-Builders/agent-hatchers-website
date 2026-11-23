@@ -230,6 +230,17 @@ test('who is counted: Vercel IP headers, IPv6 grouped by /64, visitor id only wh
   assert.equal(subjectOf({ headers: { 'x-ah-visitor': 'bad id!', 'x-real-ip': '203.0.113.1' } }), 'ip:203.0.113.1');
 });
 
+test('CORS allows the website\'s own Vercel previews, not look-alikes', async () => {
+  const { originAllowed } = guardLib;
+  for (const o of ['https://agenthatchers.com', 'https://agent-hatchers-website-git-design-playground-v5-agenthatchers.vercel.app',
+    'https://agent-hatchers-website-git-fix-playground-608ff6-agenthatchers.vercel.app', 'https://agent-hatchers-website-k3j2h1g0f-agenthatchers.vercel.app'])
+    assert.equal(originAllowed(o), true, o);
+  for (const o of ['', 'https://evil.example', 'http://agent-hatchers-website-git-x-agenthatchers.vercel.app',
+    'https://agent-hatchers-website-git-x-agenthatchers.vercel.app.evil.example', 'https://agent-hatchers-website-git-x-agenthatchers2.vercel.app',
+    'https://other-project-git-x-agenthatchers.vercel.app'])
+    assert.equal(originAllowed(o), false, o);
+});
+
 test('CORS lets the page send the visitor id and staff pass', async () => {
   fresh();
   const { default: handler } = await import('../api/prototype-portrait.js');

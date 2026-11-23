@@ -42,6 +42,17 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 export const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
   'https://agenthatchers.com,https://www.agenthatchers.com,http://localhost:8799')
   .split(',').map(s => s.trim()).filter(Boolean);
+// The website's own Vercel previews (agent-hatchers-website-git-<branch>-agenthatchers.vercel.app
+// and the per-commit agent-hatchers-website-<hash>-agenthatchers.vercel.app), so a preview of a
+// page change can use the real AI. CORS only decides which pages may READ the answer; the guard
+// below counts these calls like any other, so allowing them costs nothing in protection.
+// Override with ALLOWED_ORIGIN_PATTERN (a regular expression), or set it to "none".
+const ORIGIN_PATTERN = (() => {
+  const raw = process.env.ALLOWED_ORIGIN_PATTERN;
+  if (raw === 'none') return null;
+  try { return new RegExp(raw || '^https://agent-hatchers-website-[a-z0-9-]+-agenthatchers\\.vercel\\.app$'); } catch { return null; }
+})();
+export const originAllowed = origin => !!origin && (ALLOWED_ORIGINS.includes(origin) || !!(ORIGIN_PATTERN && ORIGIN_PATTERN.test(origin)));
 
 // `cents` is an estimate of what one call costs us on OpenRouter, used only for the global cap.
 // A portrait is one image (~1,290 output tokens on the default image model, about 8 US cents);
@@ -92,7 +103,7 @@ const ipCapCents = () => centsEnv('IP_SPEND_CAP_CENTS', DEFAULT_IP_CAP_CENTS);
 // ---------- CORS (headers only; the guard below is what refuses) ----------
 export function applyCors(req, res, methods = 'POST,OPTIONS', extraHeaders = '') {
   const origin = (req && req.headers && req.headers.origin) || '';
-  const allow = ALLOWED_ORIGINS.includes('*') ? '*' : (ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]);
+  const allow = ALLOWED_ORIGINS.includes('*') ? '*' : (originAllowed(origin) ? origin : ALLOWED_ORIGINS[0]);
   res.setHeader('Access-Control-Allow-Origin', allow);
   res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', methods);

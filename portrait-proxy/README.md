@@ -132,6 +132,11 @@ shows, and nothing upstream is called.
   parallel or spread-out calls can get past. Until Upstash is connected, the OpenRouter key's
   spending cap is what bounds the money.
 
+**Website previews.** CORS also allows the website's own Vercel previews
+(`agent-hatchers-website-…-agenthatchers.vercel.app`), so a page change can be tried with the real
+AI before it merges. Those calls are counted and limited like any other. `ALLOWED_ORIGIN_PATTERN`
+overrides the pattern (`none` turns it off).
+
 **Rollout order.** Build 87 of the page sends `x-ah-visitor`, which a proxy older than this one
 refuses in its CORS preflight. The page then retries with the plain header (counted per IP), so a
 mid-deploy or rolled-back proxy only costs a second request. Still, ship the proxy first and the
