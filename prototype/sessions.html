@@ -51,7 +51,7 @@
 </head>
 <body>
 <header><img src="/agent-hatchers-mark.png" alt=""><h1>Prototype sessions</h1>
-  <form class="key" id="keyform"><input id="by" placeholder="Your name" autocomplete="name" title="Deletes and dashboard opens are logged under this name"><input id="key" type="password" placeholder="Sessions key" autocomplete="current-password"><button class="btn" type="submit">Load</button><button class="btn sec" type="button" id="refresh">Refresh</button><span class="live" id="live" hidden><i></i><span id="livetxt">Live</span></span></form>
+  <form class="key" id="keyform"><input id="by" placeholder="Your name" autocomplete="name" title="Deletes and dashboard opens are logged under this name"><input id="key" type="password" placeholder="Sessions key" autocomplete="current-password"><button class="btn" type="submit">Load</button><button class="btn sec" type="button" id="refresh">Refresh</button><button class="btn sec" type="button" id="demo">Demo mode: off</button><span class="live" id="live" hidden><i></i><span id="livetxt">Live</span></span></form>
 </header>
 <main>
   <div id="err" class="err" hidden></div>
@@ -77,6 +77,22 @@
   try{const k=localStorage.getItem('ah-sessions-key');if(k){$('key').value=k;}const b=localStorage.getItem('ah-sessions-by');if(b)$('by').value=b;}catch(e){}
   $('by').oninput=()=>{try{localStorage.setItem('ah-sessions-by',$('by').value.trim());}catch(e){}};
   const who=()=>$('by').value.trim();
+  // Demo mode: a signed pass that lifts the playground's free limits in THIS browser (the proxy
+  // checks it on every call). It replaces ?unlimited=1, which any visitor could type. 30 days.
+  const PASS_KEY='ah-staff-pass';
+  const passExp=()=>{try{const p=localStorage.getItem(PASS_KEY)||'';return JSON.parse(atob(p.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).exp||0;}catch(e){return 0;}};
+  function drawDemo(){const exp=passExp(),on=exp>Date.now();$('demo').textContent=on?`Demo mode: on until ${new Date(exp).toLocaleDateString()}`:'Demo mode: off';$('demo').title=on?'Free limits are off for the playground in this browser. Click to turn demo mode off.':'Turn off the playground’s free limits in this browser (logged under your name)';}
+  $('demo').onclick=async()=>{
+    if(passExp()>Date.now()){try{localStorage.removeItem(PASS_KEY);}catch(e){}drawDemo();toast('Demo mode is off. This browser has the normal free limits again.');return;}
+    const by=who();if(!by){alert('Put your name in the box at the top first — demo passes are logged.');$('by').focus();return;}
+    // On someone else's computer (a demo at a prospect's office) the pass lasts 12 hours, not 30 days.
+    const own=confirm('Is this your own computer?\n\nOK: demo mode for 30 days.\nCancel: 12 hours only, for a demo on someone else\u2019s computer (remember to clear the sessions key there too).');
+    try{const r=await fetch(ENDPOINT+'?key='+encodeURIComponent($('key').value.trim())+'&by='+encodeURIComponent(by)+'&pass=1'+(own?'':'&hours=12'),{cache:'no-store'});const j=await r.json().catch(()=>({}));
+      if(!r.ok||!j.pass)throw new Error(j.error||('HTTP '+r.status));
+      localStorage.setItem(PASS_KEY,j.pass);drawDemo();toast(`Demo mode is on in this browser for ${own?'30 days':'12 hours'}: hatch, redesign, add profiles and chat without the free limits.`);
+    }catch(e){alert('Could not turn on demo mode: '+e.message);}
+  };
+  drawDemo();
   // The dashboard link: the page they used (per-prospect route or the generic one) in review mode.
   const pageOf=s=>s.page&&/^\/prototype\/[a-z0-9_.\/-]*$/i.test(s.page)&&!/sessions/i.test(s.page)?s.page.replace(/index\.html$/,''):'/prototype/';
   const dashUrl=s=>pageOf(s)+'?session='+encodeURIComponent(s.sid);
@@ -130,7 +146,7 @@
   async function loadLog(){
     try{const r=await fetch(ENDPOINT+'?key='+encodeURIComponent($('key').value.trim())+'&log=1',{cache:'no-store'});if(!r.ok)return;const j=await r.json();const log=j.log||[];
       $('log').hidden=false;
-      $('logrows').innerHTML=log.length?`<table>${log.map(e=>`<tr><td class="who">${esc(e.by||'unknown')}</td><td class="act ${e.action==='delete'?'del':e.action==='restore'?'res':''}">${({delete:'deleted',restore:'restored',share:'made a share link for',unshare:'stopped sharing',view:'opened the shared preview of'})[e.action]||'opened the dashboard of'}</td><td>${esc(e.company||'an unnamed company')}${e.name?` · ${esc(e.name)}`:''}<div class="mono">${esc(e.sid)}</div></td><td class="mono">${esc(fmt(e.at))}<br>${esc(e.ip||'')}</td></tr>`).join('')}</table>`:'<p style="color:#6b7480;margin:10px 0 0">Nothing yet. Deletes and dashboard opens land here with the name typed at the top.</p>';}
+      $('logrows').innerHTML=log.length?`<table>${log.map(e=>`<tr><td class="who">${esc(e.by||'unknown')}</td><td class="act ${e.action==='delete'?'del':e.action==='restore'?'res':''}">${({delete:'deleted',restore:'restored',share:'made a share link for',unshare:'stopped sharing',view:'opened the shared preview of',pass:'turned on demo mode in'})[e.action]||'opened the dashboard of'}</td><td>${esc(e.company||'an unnamed company')}${e.name?` · ${esc(e.name)}`:''}<div class="mono">${esc(e.sid)}</div></td><td class="mono">${esc(fmt(e.at))}<br>${esc(e.ip||'')}</td></tr>`).join('')}</table>`:'<p style="color:#6b7480;margin:10px 0 0">Nothing yet. Deletes and dashboard opens land here with the name typed at the top.</p>';}
     catch(e){}
   }
   async function loadTrash(expect,tries=0){
