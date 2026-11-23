@@ -113,10 +113,12 @@ that design without counting as another hatch (`hatchOne` / `retryDesigns` in `a
 mascot, so a refused page showed the same robot three times as "three takes on your description".
 
 The proxy only answers pages on the domains in its `ALLOWED_ORIGINS` (by default
-`agenthatchers.com`, `www.agenthatchers.com` and `localhost:8799`). A Vercel preview of this repo
-(`…vercel.app`) is not on that list, so the browser refuses every AI call there: designs fail,
-team research falls back to keyword picks and chat answers offline. Check the AI parts on
-agenthatchers.com, or add the preview domain to the proxy's `ALLOWED_ORIGINS` first.
+`agenthatchers.com`, `www.agenthatchers.com` and `localhost:8799`). Until the proxy from PR #58
+is live, a Vercel preview of this repo (`agent-hatchers-website-…-agenthatchers.vercel.app`) is not
+allowed, so the browser refuses every AI call there: designs fail, team research falls back to
+keyword picks and chat answers offline. Check the AI parts on agenthatchers.com. Once #58 is live
+the proxy also accepts this repo's own previews, under the same limits; previews always call the
+production proxy, so a preview only works once the production proxy allows it.
 
 A static host (GitHub Pages / GoDaddy) can't hold an API key, so generation runs through a small
 serverless proxy that keeps the key server-side. That proxy lives in **`../portrait-proxy/`**
