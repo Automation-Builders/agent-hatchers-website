@@ -115,7 +115,7 @@ opened; **Stop sharing** kills the link. The sessions page itself stays behind t
    - `recommendedAgents`: optional agent IDs to boost in the marketplace ranking
    - `portraitEndpoint` *(optional)*: override the image-generation endpoint (see below)
    - `generatePortraits` *(optional)*: set `false` to skip generation and always use the
-     built-in simulated mascots
+     stock mascot
 3. Keep the `noindex,nofollow,noarchive` robots directive intact.
 4. Open the resulting unlisted URL and complete the whole flow on desktop and mobile.
 
@@ -123,8 +123,18 @@ opened; **Stop sharing** kills the link. The sessions page itself stays behind t
 
 Step 4 POSTs `{ brief, name, role, company, industry, variant }` (`variant` is `0|1|2`) to
 `portraitEndpoint` for each of the three designs and expects JSON `{ "image": "<url-or-data-uri>" }`
-back. **If the call fails, the egg falls back to an on-brand simulated mascot**, so a prospect
-never sees a broken page — real images appear automatically once the endpoint is live.
+back. **If a design can't be drawn** (the call fails, times out or is refused), that egg stays shut
+and says "Couldn't draw this one" with **Try again**; when all three fail, the hatch screen says so
+and offers Try again for all of them. A failed design is never pickable, and Try again redraws only
+that design without counting as another hatch (`hatchOne` / `retryDesigns` in `app.js`,
+`prototype/tests/hatch-failure-browser.cjs`). Before 22 Nov a failed draw silently became the stock
+mascot, so a refused page showed the same robot three times as "three takes on your description".
+
+The proxy only answers pages on the domains in its `ALLOWED_ORIGINS` (by default
+`agenthatchers.com`, `www.agenthatchers.com` and `localhost:8799`). A Vercel preview of this repo
+(`…vercel.app`) is not on that list, so the browser refuses every AI call there: designs fail,
+team research falls back to keyword picks and chat answers offline. Check the AI parts on
+agenthatchers.com, or add the preview domain to the proxy's `ALLOWED_ORIGINS` first.
 
 A static host (GitHub Pages / GoDaddy) can't hold an API key, so generation runs through a small
 serverless proxy that keeps the key server-side. That proxy lives in **`../portrait-proxy/`**
@@ -139,7 +149,7 @@ portraitEndpoint: "https://<your-vercel-url>/api/prototype-portrait"
 
 (or map `api.agenthatchers.com` to the Vercel project and use that). To make every page use it
 without per-page config, change the `portraitEndpoint` default near the top of `app.js`.
-Until the proxy is wired, pages work now with simulated designs.
+With `generatePortraits: false` a page skips the proxy on purpose and shows the stock mascot.
 
 ## Shared files
 
@@ -150,6 +160,8 @@ Selection regressions (Node 18+): `node --test prototype/tests/industry-selectio
 Research regressions (Playwright, served repo root as below): `node prototype/tests/research-browser.cjs`
 — the researched team must survive the prospect editing "Type of company" while research is still
 running, and a failed first run is retried (with the company name) when they hatch.
+Hatch-failure regression (same server): `node prototype/tests/hatch-failure-browser.cjs` — a design
+the proxy can't draw shows as not drawn with Try again, is never pickable, and a working retry hatches.
 
 Rendered desktop/mobile check (Playwright and Chromium installed): serve the repo root with
 `python3 -m http.server 8768 --bind 127.0.0.1`, then run

@@ -17,6 +17,9 @@ const assert=require('node:assert/strict');
     await context.route('**/*',route=>{const u=new URL(route.request().url());
       if(u.origin===origin)return route.continue();
       if(/prototype-session/.test(u.pathname)&&route.request().method()==='POST'){try{saves.push(JSON.parse(route.request().postData()));}catch(e){}return route.fulfill({status:200,contentType:'application/json',body:'{"ok":true}'});}
+      // A drawn design (a 1x1 PNG): since the hatch no longer passes a failed draw off as a design,
+      // the gate needs the portrait call to succeed.
+      if(/prototype-portrait/.test(u.pathname))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({image:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='})});
       return route.fulfill({status:400,contentType:'application/json',body:'{}'});});
     await page.goto(origin+'/prototype/');await page.waitForSelector('#biz-intro');
     await page.fill('#biz-intro','small Brisbane plumbing business');
