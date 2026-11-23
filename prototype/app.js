@@ -76,9 +76,17 @@
   // The proxy refused: today's free limit is used up (429) or can't be checked (503). Say so
   // once (calls arrive in bursts) and tell the caller not to retry.
   let limitShownAt=0;
+  // The proxy's message is kept for an hour, so a screen that would say "try again in a moment"
+  // can show it instead (limitMessage()): a used-up daily limit won't come back in a moment.
+  let limitMsg='',limitAt=0;
+  const limitMessage=()=>Date.now()-limitAt<3600000?limitMsg:'';
   function limitHit(res,body){
     if(res.status!==429&&res.status!==503)return false;
-    if(res.status===429&&Date.now()-limitShownAt>8000){limitShownAt=Date.now();payPop((body&&body.error)||'You’ve reached today’s free limit for the playground.');}
+    if(res.status===429){
+      limitMsg=String((body&&body.error)||'You’ve reached today’s free limit for the playground.');limitAt=Date.now();
+      // It stays until closed: the visitor has to be able to read why nothing was drawn.
+      if(Date.now()-limitShownAt>8000){limitShownAt=Date.now();payPop(limitMsg,{sticky:true});}
+    }
     return true;
   }
   const recommended = new Set(config.recommendedAgents||[]);
@@ -1385,15 +1393,18 @@
   const hatchPop=()=>payPop(`You’ve used your ${FREE} free hatches — please pay for your agent to keep designing.`);
   const liveProfiles=()=>state.profiles.filter(p=>p.status==='running'||p.status==='complete');
   const runningJobs=()=>state.profiles.filter(p=>p.status==='running');
-  function payPop(msg){
+  function payPop(msg,opts){
     document.querySelectorAll('.create-pop').forEach(p=>p.remove());
     const pop=document.createElement('div');pop.className='create-pop';
     // Hitting a free limit is the second place the trial is offered (decision 3, 19 Nov 2026).
     const offer=!VIEW_ONLY&&!!state.selectedImage;
-    pop.innerHTML=`${ci.key}<span>${escapeHtml(msg)}${offer?'<br><button type="button" class="pop-trial">Start 30-day free trial →</button>':''}</span>`;
+    const sticky=!!(opts&&opts.sticky);   // the proxy's daily limit: stays until closed
+    pop.innerHTML=`${ci.key}<span>${escapeHtml(msg)}${offer?'<br><button type="button" class="pop-trial">Start 30-day free trial →</button>':''}</span>${sticky?'<button type="button" class="pop-close" aria-label="Close" style="background:none;border:0;color:inherit;font-size:18px;line-height:1;cursor:pointer;margin-left:8px;padding:0 2px">×</button>':''}`;
     if(offer)pop.querySelector('.pop-trial').onclick=e=>startTrial(e.currentTarget,'limit');
+    const hide=()=>{pop.classList.remove('show');setTimeout(()=>pop.remove(),300);};
     document.body.appendChild(pop);setTimeout(()=>pop.classList.add('show'),10);
-    setTimeout(()=>{pop.classList.remove('show');setTimeout(()=>pop.remove(),300)},offer?9000:4600);
+    if(sticky)pop.querySelector('.pop-close').onclick=hide;
+    else setTimeout(hide,offer?9000:4600);
   }
   // An agent made from Create → New Agent: an egg while it hatches, then a card like the rest.
   function profileCard(p){

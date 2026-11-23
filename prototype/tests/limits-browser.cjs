@@ -52,6 +52,9 @@ const LIMIT_MSG='You’ve reached today’s free limit for the playground. Start
     await page.waitForSelector('.create-pop',{timeout:15000});
     assert.match(await page.textContent('.create-pop'),/free limit/,'limit message shown');
     await page.waitForTimeout(6000);
+    assert.ok(await page.$('.create-pop .pop-close'),'the limit message stays on screen until closed');
+    await page.click('.create-pop .pop-close');await page.waitForTimeout(500);
+    assert.equal(await page.$$eval('.create-pop',els=>els.length),0,'and closes');
     const refused=portraits.length-3;
     const pops=await page.$$eval('.create-pop',els=>els.length);
     assert.ok(refused>0,'marketplace asked for portraits');
