@@ -9,7 +9,7 @@ process.env.SESSIONS_KEY = 'a-long-test-sessions-key';
 process.env.STAFF_PASS_SECRET = 'p'.repeat(40);
 
 const guardLib = await import('../lib/guard.js');
-const { allow, clientIp, subjectOf, mintStaffPass, verifyStaffPass, _resetMemory } = guardLib;
+const { allow, refund, clientIp, subjectOf, mintStaffPass, verifyStaffPass, _resetMemory } = guardLib;
 
 // Every call to OpenRouter (or anything else) the endpoints make is counted here.
 let upstream = [];
@@ -129,7 +129,7 @@ test('a 12-hour pass for someone else\'s computer expires after 12 hours; no pas
   } finally { process.env.STAFF_PASS_SECRET = secret; }
 });
 
-test('on Vercel with no counter store connected yet, limits still count (in memory) and Slack is told once', async () => {
+test('on Vercel with no counter store connected yet, limits still count (in memory) and Slack is not flooded', async () => {
   fresh({ portrait: { visitor: 2, ip: 5 } });
   process.env.VERCEL = '1'; process.env.SLACK_BOT_TOKEN = 'xoxb-test';
   const realFetch = globalThis.fetch, slack = [];
@@ -139,8 +139,7 @@ test('on Vercel with no counter store connected yet, limits still count (in memo
     for (let i = 0; i < 3; i++) codes.push((await allow(req(), 'portrait')).ok);
     assert.deepEqual(codes, [true, true, false], 'the playground keeps working and the limit still holds');
     assert.equal((await allow(req(), 'session')).ok, true);
-    assert.equal(slack.length, 1);
-    assert.match(slack[0], /no Upstash store/);
+    assert.equal(slack.length, 0, 'every cold start is a new instance, so this is logged, not posted');
   } finally { globalThis.fetch = realFetch; delete process.env.VERCEL; delete process.env.SLACK_BOT_TOKEN; }
 });
 
@@ -207,6 +206,34 @@ test('Slack hears when the day passes 80% and 100% of the budget, once each', as
     assert.equal(up.slack.length, 2);
     assert.match(up.slack[0], /80%/);
     assert.match(up.slack[1], /reached/);
+  });
+});
+
+test('an image call OpenRouter refuses gets its estimated spend back, but still counts as a request', async () => {
+  fresh({ portrait: { visitor: 100, ip: 6, cents: 8 } });
+  process.env.DAILY_SPEND_CAP_CENTS = '16';   // room for two images
+  const { default: handler } = await import('../api/prototype-portrait.js');
+  const realFetch = globalThis.fetch;
+  try {
+    globalThis.fetch = async () => new Response(JSON.stringify({ error: { message: 'provider down' } }), { status: 503 });
+    for (let i = 0; i < 4; i++) assert.equal((await call(handler, req({}, ENDPOINTS.portrait[1]))).c, 502, 'an outage is not reported as a used-up budget');
+    globalThis.fetch = realFetch;
+    const codes = [];
+    for (let i = 0; i < 3; i++) codes.push((await call(handler, req({}, ENDPOINTS.portrait[1]))).c);
+    assert.deepEqual(codes, [200, 200, 429], 'the whole budget is still there after the outage; the IP request limit (6) then holds');
+  } finally { globalThis.fetch = realFetch; }
+});
+
+test('a refund that takes the day back under a line does not make Slack hear about it twice', async () => {
+  fresh({ portrait: { visitor: 100, ip: 100, cents: 10 } });
+  process.env.DAILY_SPEND_CAP_CENTS = '50';
+  await withStore(async () => {
+    const up = fakeUpstash(); globalThis.fetch = up.fetchImpl;
+    for (let i = 0; i < 4; i++) assert.equal((await allow(req(), 'portrait')).ok, true);   // 40 of 50: crosses 80%
+    await refund(req(), 'portrait');                                                        // back to 30
+    assert.equal((await allow(req(), 'portrait')).ok, true);                                // 40 again
+    assert.equal(up.slack.length, 1);
+    assert.match(up.slack[0], /80%/);
   });
 });
 

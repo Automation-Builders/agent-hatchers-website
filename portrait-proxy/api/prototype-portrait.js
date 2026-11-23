@@ -5,7 +5,7 @@
 // The OpenRouter key lives ONLY in this function's environment variable and never
 // reaches the browser. See README.md for deploy + env setup.
 
-import { applyCors, guard } from '../lib/guard.js';
+import { applyCors, guard, refund } from '../lib/guard.js';
 
 // Default: Nano Banana 2 (higher quality). Override with OPENROUTER_MODEL — e.g.
 // google/gemini-3.1-flash-lite-image for cheaper/faster but rougher output. Note: text
@@ -154,6 +154,7 @@ export default async function handler(req, res) {
     const data = await upstream.json().catch(() => ({}));
     if (!upstream.ok) {
       const msg = (data && (data.error?.message || data.error)) || `Provider error ${upstream.status}`;
+      await refund(req, 'portrait');   // the provider refused, so this call cost nothing
       res.status(502).json({ error: String(msg) });
       return;
     }

@@ -106,10 +106,11 @@ shows, and nothing upstream is called.
 - **A day** runs midnight to midnight Australian Eastern Standard Time (UTC+10), so limits reset
   overnight for our prospects (00:00 AEST, 01:00 during daylight saving).
 - **Spend caps:** each paid call has an estimated cost (`cents` in `DEFAULT_LIMITS`). One IP may
-  spend `IP_SPEND_CAP_CENTS` a day (default 1500 = US$15, one visitor who uses every free hatch,
+  spend `IP_SPEND_CAP_CENTS` a day (default 3000 = US$30, two visitors on one office network who each use every free hatch,
   edit, profile and chat). All visitors together may spend `DAILY_SPEND_CAP_CENTS` a day (default
   5000 = US$50). Past that, free use pauses until midnight and Slack is told at 80% and 100%.
-  Calls refused by their own limits are not added. It takes four or more addresses at full use to
+  Calls refused by their own limits are not added, and an image call that OpenRouter itself
+  refuses gets its estimate back (`refund()`), so a provider outage doesn't use up the day. It takes two or more addresses at full use to
   pause the day. The spending cap on the OpenRouter key is the hard backstop above all of this.
 - **Cost per hatch:** one hatch is up to ~29 image calls (3 designs, then the marketplace and the six
   other profiles are re-dressed in the chosen look). A kept look edit redraws the marketplace again.
@@ -127,7 +128,8 @@ shows, and nothing upstream is called.
   private, loopback and link-local addresses, including ones that carry an IPv4 address inside
   IPv6 (`127.0.0.1.nip.io` is refused).
 - **Counter store:** the limits are exact only with Upstash connected. With no store yet, or if
-  it fails at run time, counting falls back to each function instance's memory and Slack is told.
+  it fails at run time, counting falls back to each function instance's memory. A failing store
+  tells Slack; a store that was never connected is only logged (each cold start would post again).
   The playground keeps working, and a plain script hammering the endpoints is still stopped, but
   parallel or spread-out calls can get past. Until Upstash is connected, the OpenRouter key's
   spending cap is what bounds the money.
@@ -147,7 +149,7 @@ Default limits per day (session saves: per hour):
 
 | Class | Endpoint | Per visitor | Per IP |
 |---|---|---|---|
-| `portrait` | prototype-portrait | 180 | 200 |
+| `portrait` | prototype-portrait | 180 | 400 |
 | `team` | prototype-team | 10 | 30 |
 | `profile` | prototype-profile | 6 | 15 |
 | `chat` | prototype-chat | 150 | 300 |
@@ -162,7 +164,7 @@ Default limits per day (session saves: per hour):
 | `KV_REST_API_URL`, `KV_REST_API_TOKEN` | strongly recommended | Upstash Redis REST credentials. Connect Upstash from Vercel → Storage / Marketplace to this project (Production and Preview) and these are injected (`UPSTASH_REDIS_REST_URL` / `_TOKEN` also work). |
 | `STAFF_PASS_SECRET` | for demo mode | 32+ random characters. Signs demo passes. Rotate it to revoke them all. |
 | `DAILY_SPEND_CAP_CENTS` | no | estimated US cents per day across all visitors (default 5000) |
-| `IP_SPEND_CAP_CENTS` | no | estimated US cents per day per IP (default 1500) |
+| `IP_SPEND_CAP_CENTS` | no | estimated US cents per day per IP (default 3000) |
 | `RATE_LIMITS` | no | JSON override, e.g. `{"portrait":{"visitor":120,"ip":150}}` |
 
 ## `api/prototype-profile.js` (build 41, Sep 2026)

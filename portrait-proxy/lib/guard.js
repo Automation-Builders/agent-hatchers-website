@@ -28,7 +28,9 @@
 // Counters live in Upstash Redis (Vercel Marketplace), read through its REST API with plain
 // fetch, so there is no new dependency. Locally and in tests (no VERCEL env) an in-memory map
 // stands in. With no store connected yet, or if the store fails at run time, counting falls
-// back to each function instance's memory and Slack is told (once an hour per instance). That
+// back to each function instance's memory. A failing store tells Slack (once an hour per
+// instance); a store that was never connected is only logged, because every cold start is a new
+// instance and would post again. That
 // still stops a plain script hammering a warm function, but parallel or spread-out calls can
 // slip past, so the spending cap on the OpenRouter key is what bounds the money until Upstash
 // is connected. Connecting it needs no redeploy of this code to take effect beyond env vars.
@@ -61,7 +63,7 @@ export const originAllowed = origin => !!origin && (ALLOWED_ORIGINS.includes(ori
 // re-dressed in the chosen look), and a kept look edit redraws the marketplace again, so the
 // portrait numbers are sized for a visitor who uses all three hatches and all three edits.
 export const DEFAULT_LIMITS = {
-  portrait: { visitor: 180, ip: 200, cents: 8, paid: true },
+  portrait: { visitor: 180, ip: 400, cents: 8, paid: true },   // ip: two full visitors on one office network
   team:     { visitor: 10,  ip: 30,  cents: 4, paid: true },
   profile:  { visitor: 6,   ip: 15,  cents: 2, paid: true },
   chat:     { visitor: 150, ip: 300, cents: 1, paid: true },   // 5 free turns per thread, 20+ threads
@@ -73,9 +75,10 @@ export const DEFAULT_LIMITS = {
   handoff:  { ip: 20 },
 };
 const DEFAULT_CAP_CENTS = 5000;           // US$50 a day across all paid endpoints
-// One IP can spend at most this much a day, so a couple of addresses can't use up the shared cap
-// for every prospect. Sized for one visitor who uses every free hatch, edit, profile and chat.
-const DEFAULT_IP_CAP_CENTS = 1500;
+// One IP can spend at most this much a day, so a single address can't use up the shared cap for
+// every prospect. Sized for two visitors on one network (colleagues in one office) who each use
+// every free hatch, edit, profile and chat; at 1500 the second colleague was cut off partway.
+const DEFAULT_IP_CAP_CENTS = 3000;
 // "A day" runs midnight to midnight Australian Eastern Standard Time (UTC+10), where our
 // prospects are, not UTC, which would reset at 10-11am Sydney time.
 const DAY_OFFSET_MS = 10 * 3600000;
@@ -220,12 +223,11 @@ export async function allow(req, cls, { now = Date.now() } = {}) {
   if (staff) return { ok: true, staff: staff.name || true };
 
   const store = storeConfig();
-  if (store.unconfigured) {
+  // Logged once per instance and never sent to Slack: every cold start is a new instance, so a
+  // Slack note here would repeat on each one for as long as no store is connected.
+  if (store.unconfigured && !alertAt.unconfigured) {
+    alertAt.unconfigured = now;
     console.error(JSON.stringify({ fn: 'guard', cls, error: 'no counter store configured (KV_REST_API_URL / KV_REST_API_TOKEN); counting in memory' }));
-    if (now - alertAt.unconfigured > 3600000) {
-      alertAt.unconfigured = now;
-      await notify(':warning: Playground limits are counting per function instance: no Upstash store is connected to portrait-proxy yet (KV_REST_API_URL / KV_REST_API_TOKEN).');
-    }
   }
   try {
     return await count(store, req, cls, rule, now);
@@ -238,7 +240,24 @@ export async function allow(req, cls, { now = Date.now() } = {}) {
     return count({ memory: true }, req, cls, rule, now);
   }
 }
-const alertAt = { unconfigured: 0, failed: 0 };   // one Slack note an hour per instance, per problem
+const alertAt = { unconfigured: 0, failed: 0 };   // unconfigured: logged once per instance; failed: one Slack note an hour per instance
+
+// The two spend counters a paid call adds to: what this IP has spent today, then the shared total.
+function spendItems(ip, cents, now) {
+  const day = dayStart(now);
+  const ttl = Math.ceil((day + 86400000 - now) / 1000) + 3600;
+  return [{ key: `spend-ip:${ip}:${day}`, by: cents, ttl }, { key: `spend:${day}`, by: cents, ttl }];
+}
+
+// Give back the estimated spend of a call the provider refused (it answered with an error, so
+// it cost us nothing). Only the spend is returned: the call still counts toward the caller's
+// own request limits, so failing calls can't be used to reach the provider without limit.
+// A refund that fails is skipped, which only over-counts.
+export async function refund(req, cls, { now = Date.now() } = {}) {
+  const rule = limits()[cls];
+  if (!rule || !rule.cents || verifyStaffPass(header(req, 'x-ah-pass'), now)) return;
+  try { await incr(storeConfig(), spendItems(clientIp(req), -rule.cents, now), now); } catch { /* over-counts, which is the safe side */ }
+}
 
 async function count(store, req, cls, rule, now) {
   const window = Number(rule.window) > 0 ? Number(rule.window) * 1000 : 86400000;
@@ -257,18 +276,20 @@ async function count(store, req, cls, rule, now) {
   // hammering past its limit can't use up everyone's day.
   if (rule.cents) {
     const day = dayStart(now);
-    const dayTtl = Math.ceil((day + 86400000 - now) / 1000) + 3600;
     const dayLeft = Math.max(1, Math.ceil((day + 86400000 - now) / 1000));
     // First what this IP has spent today, then the shared total. A call refused here is not
     // added to the shared total.
-    const [ipSpent] = await incr(store, [{ key: `spend-ip:${ip}:${day}`, by: rule.cents, ttl: dayTtl }], now);
+    const [ipItem, dayItem] = spendItems(ip, rule.cents, now);
+    const [ipSpent] = await incr(store, [ipItem], now);
     if (ipSpent > ipCapCents()) return { ok: false, status: 429, scope: 'ip', retryAfter: dayLeft, message: MESSAGES.ip };
-    const [spent] = await incr(store, [{ key: `spend:${day}`, by: rule.cents, ttl: dayTtl }], now);
+    const [spent] = await incr(store, [dayItem], now);
     const cap = capCents();
-    // The counter only goes up, so exactly one call crosses each line: that call tells Slack.
+    // The call that crosses a line tells Slack. A refund can take the total back under a line,
+    // so a marker per line and day keeps a second crossing quiet.
     for (const [share, text] of [[0.8, 'has used 80% of'], [1, 'has reached']]) {
       const line = cap * share;
-      if (!store.memory && cap > 0 && spent - rule.cents < line && spent >= line) {
+      if (!store.memory && cap > 0 && spent - rule.cents < line && spent >= line &&
+          (await incr(store, [{ key: `alerted:${share}:${day}`, by: 1, ttl: dayItem.ttl }], now))[0] === 1) {
         await notify(`:money_with_wings: The playground ${text} today’s estimated AI budget (US$${(cap / 100).toFixed(0)}).` +
           (share === 1 ? ' Free use is paused until midnight (Sydney); team demo passes still work.' : ''));
       }
