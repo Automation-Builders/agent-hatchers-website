@@ -2,16 +2,18 @@
 //  1. a slow research answer was thrown away when "Type of company" no longer matched the intro
 //     answer word for word, leaving the stock team;
 //  2. a first run that failed was never retried, even once the company name was known.
+// And (build 89) a streamed answer: the team line lands first, the marketplace extras after it.
 // Serve the repo root at PROTOTYPE_TEST_URL (default http://127.0.0.1:8768). No remote calls.
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
 const ROLES=[['support','Booking Change Agent'],['sales','Group Quote Agent'],['documents','Itinerary Pack Agent'],['invoices','Supplier Payment Agent'],['marketing','Deal Alert Agent'],['website','Fare Page Agent']];
 const team=()=>({intro:'You juggle fares and changes all week.',researched:true,team:ROLES.map(([id,name])=>({id,name,does:`Handles your ${name.toLowerCase()} work.`,job:'does the job'})),more:[]});
+const EXTRAS=[['support','Visa Reminder Agent'],['marketing','Cruise Deal Agent']].map(([base,name])=>({base,name,does:`Handles your ${name.toLowerCase()} work.`,job:'does more'}));
 (async()=>{
   const origin=process.env.PROTOTYPE_TEST_URL||'http://127.0.0.1:8768';
   const browser=await chromium.launch({headless:true});
   try{
-    for(const mode of ['slow','fail-then-ok']){
+    for(const mode of ['slow','fail-then-ok','stream']){
       const context=await browser.newContext({viewport:{width:1280,height:900}});
       const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
       const asks=[];
@@ -21,6 +23,7 @@ const team=()=>({intro:'You juggle fares and changes all week.',researched:true,
           const body=JSON.parse(route.request().postData()||'{}');asks.push(body);
           if(mode==='fail-then-ok'&&asks.length<=2)return route.fulfill({status:502,contentType:'application/json',body:'{"error":"No usable team"}'});
           if(mode==='slow')await new Promise(r=>setTimeout(r,4000));
+          if(mode==='stream'){const {more,...head}=team();return route.fulfill({status:200,contentType:'application/x-ndjson',body:JSON.stringify(head)+'\n'+JSON.stringify({more:EXTRAS})+'\n'});}
           return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(team())});
         }
         if(url.origin!==origin)return route.fulfill({status:400,contentType:'application/json',body:'{}'});
@@ -40,6 +43,9 @@ const team=()=>({intro:'You juggle fares and changes all week.',researched:true,
       await page.waitForFunction(()=>{const t=window.testApp.state.team;return t&&!window.testApp.state.teamBusy&&t.source!=='fallback';},null,{timeout:20000});
       const t=await page.evaluate(()=>window.testApp.state.team);
       assert.equal(t.agents.support.name,'Booking Change Agent');
+      assert.equal(asks[0].stream,true,'the page asks for the streamed answer');
+      if(mode==='stream'){await page.waitForFunction(()=>window.testApp.state.team.extras.length===2,null,{timeout:5000});
+        assert.deepEqual((await page.evaluate(()=>window.testApp.state.team.extras)).map(e=>[e.id,e.base,e.name]),[['more-1','support','Visa Reminder Agent'],['more-2','marketing','Cruise Deal Agent']]);}
       if(mode==='fail-then-ok')assert.equal(asks.at(-1).company,'Y Travels','the retry knows the company');
       assert.deepEqual(errors,[]);
       console.log(JSON.stringify({mode,asks:asks.length,team:Object.values(t.agents).map(a=>a.name)}));

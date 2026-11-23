@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 88;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 89;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -153,31 +153,43 @@
   // field's 60-character cut of a longer intro answer — threw a slow answer away and left the
   // prospect with the generic stock team.)
   let teamRun=0;
+  // One researched entry → the fields that override its base (null if it is just a stock label).
+  const bespoke=(t,a)=>{const name=String(t.name||'').trim();if(!name||name.toLowerCase()===a.name.toLowerCase())return null;
+    const o={name:name.slice(0,44),summary:String(t.does||a.summary).slice(0,170)};
+    const outcomes=(Array.isArray(t.outcomes)?t.outcomes:[]).map(x=>String(x).trim()).filter(Boolean).slice(0,5);if(outcomes.length>=4)o.outcomes=outcomes;
+    const mcps=[...new Set((Array.isArray(t.mcps)?t.mcps:[]).map(x=>String(x).trim()).filter(Boolean))].slice(0,6);if(mcps.length>=2)o.mcps=mcps;
+    const scene=String(t.scene||'').trim();if(/^it is a/i.test(scene))o.scene=scene.slice(0,300);
+    return o;};
+  // Ten more for the marketplace: same bar, pinned to an eligible base, own id, no name twice.
+  const addExtras=(more,extras,names,eligible)=>(Array.isArray(more)?more:[]).forEach(t=>{const a=t&&eligible.find(x=>x.id===(t.base||t.id));if(!a||extras.length>=10)return;const o=bespoke(t,a);if(!o||names.has(o.name.toLowerCase()))return;names.add(o.name.toLowerCase());extras.push({...o,id:'more-'+(extras.length+1),base:a.id,job:String(t.job||'').slice(0,48)});});
+  // The proxy streams NDJSON (build 89): the team line first, the marketplace extras when they
+  // land. Returns the first line now and the rest as a promise. An older proxy's single JSON
+  // object, or an error body, is just a first line with nothing after it.
+  async function firstLine(res){
+    if(!res.body||!res.body.getReader){const [head='',...rest]=(await res.text()).split('\n');return {head,rest:Promise.resolve(rest)};}
+    const reader=res.body.getReader(),dec=new TextDecoder();let buf='';
+    while(!buf.includes('\n')){const {done,value}=await reader.read();if(done)break;buf+=dec.decode(value,{stream:true});}
+    const i=buf.indexOf('\n');if(i<0)return {head:buf,rest:Promise.resolve([])};
+    const rest=(async()=>{let more=buf.slice(i+1);for(;;){const {done,value}=await reader.read();if(done)break;more+=dec.decode(value,{stream:true});}return more.split('\n');})().catch(()=>[]);
+    return {head:buf.slice(0,i),rest};
+  }
   async function researchTeam(biz,research=biz,extra={}){
     state.team=null;state.teamBusy=true;state.teamFor=biz;
     const started=Date.now();const run=++teamRun;
     const eligible=eligibleAgents();
     const roster=eligible.map(a=>({id:a.id,name:a.name,summary:a.summary}));
-    let result=null;
+    let result=null,later=null,names=null;
     for(let attempt=0;attempt<2&&!result;attempt++){
       if(attempt) await sleep(600);
       try{
-        const res=await proxyPost(teamEndpoint,{business:research,industry:extra.industry||'',company:state.company||config.company||'',website:state.website||'',tools:state.tools||[],connectors:extra.connectors||[],roster});
-        const body=await res.json().catch(()=>({}));
+        const res=await proxyPost(teamEndpoint,{business:research,industry:extra.industry||'',company:state.company||config.company||'',website:state.website||'',tools:state.tools||[],connectors:extra.connectors||[],roster,stream:true});
+        const {head,rest}=await firstLine(res);let body={};try{body=JSON.parse(head)||{};}catch(e){}
         if(res.ok&&body&&Array.isArray(body.team)&&body.team.length>=4){
           const lines={};const ids=[];const agents={};
-          // One researched entry → the fields that override its base (null if it is just a stock label).
-          const bespoke=(t,a)=>{const name=String(t.name||'').trim();if(!name||name.toLowerCase()===a.name.toLowerCase())return null;
-            const o={name:name.slice(0,44),summary:String(t.does||a.summary).slice(0,170)};
-            const outcomes=(Array.isArray(t.outcomes)?t.outcomes:[]).map(x=>String(x).trim()).filter(Boolean).slice(0,5);if(outcomes.length>=4)o.outcomes=outcomes;
-            const mcps=[...new Set((Array.isArray(t.mcps)?t.mcps:[]).map(x=>String(x).trim()).filter(Boolean))].slice(0,6);if(mcps.length>=2)o.mcps=mcps;
-            const scene=String(t.scene||'').trim();if(/^it is a/i.test(scene))o.scene=scene.slice(0,300);
-            return o;};
           body.team.forEach(t=>{const a=eligible.find(x=>x.id===t?.id);if(a&&!ids.includes(a.id)){ids.push(a.id);lines[a.id]={does:String(t.does||PLAIN[a.id].does),job:String(t.job||PLAIN[a.id].job)};const o=bespoke(t,a);if(o)agents[a.id]=o;}});
-          // Ten more for the marketplace: same bar, pinned to an eligible base, own id.
-          const extras=[];const names=new Set(Object.values(agents).map(o=>o.name.toLowerCase()));
-          (Array.isArray(body.more)?body.more:[]).forEach(t=>{const a=t&&eligible.find(x=>x.id===(t.base||t.id));if(!a||extras.length>=10)return;const o=bespoke(t,a);if(!o||names.has(o.name.toLowerCase()))return;names.add(o.name.toLowerCase());extras.push({...o,id:'more-'+(extras.length+1),base:a.id,job:String(t.job||'').slice(0,48)});});
-          if(ids.length>=4) result={ids:ids.slice(0,6),lines,agents,extras,intro:String(body.intro||''),source:body.researched?'research':'ai',researched:!!body.researched};
+          const extras=[];names=new Set(Object.values(agents).map(o=>o.name.toLowerCase()));
+          addExtras(body.more,extras,names,eligible);   // an older proxy sends them with the team
+          if(ids.length>=4){result={ids:ids.slice(0,6),lines,agents,extras,intro:String(body.intro||''),source:body.researched?'research':'ai',researched:!!body.researched};later=rest;}
         }
         if(res.status===400||limitHit(res,body)) break;
       }catch(e){/* retry then fall back */}
@@ -191,6 +203,10 @@
     const wait=Math.max(0,2400-(Date.now()-started));if(wait) await sleep(wait);
     if(run!==teamRun) return;   // a newer run (they changed the business) owns the result
     state.team=result;state.teamBusy=false;
+    // The marketplace extras arrive after the team: add them to this run's team and redraw.
+    if(later) later.then(rest=>{if(run!==teamRun||state.team!==result)return;const n=result.extras.length;
+      rest.forEach(l=>{try{addExtras(JSON.parse(l).more,result.extras,names,eligible);}catch(e){}});
+      if(result.extras.length>n)teamLanded();});
   }
 
   // The create screen's "Type of company" can differ from the first answer, and by then the
