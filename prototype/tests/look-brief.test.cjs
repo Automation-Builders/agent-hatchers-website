@@ -16,8 +16,8 @@ test('their words open and close the brief',()=>{
   const b=brief('an airplane');
   assert.ok(b.startsWith('The customer’s words for the look: "an airplane"'),b);
   assert.ok(b.endsWith("The character's body: an airplane."),b);
-  assert.match(b,/the character IS that/);
-  assert.match(b,/Keep it simple/);
+  assert.match(b,/the character IS it/);
+  assert.match(b,/Simple and understated/);
   assert.doesNotMatch(b,/Show ONE robot/);
 });
 test('the three designs differ',()=>{
@@ -28,7 +28,7 @@ test('fits the proxy limit and never loses the rule',()=>{
     for(const v of [0,1,2,3]){
       const b=brief('w'.repeat(n),v);
       assert.ok(b.length<=590,`${n} chars → ${b.length}`);
-      assert.match(b,/Keep it simple/);
+      assert.match(b,/Simple and understated/);
     }
   }
 });

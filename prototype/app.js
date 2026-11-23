@@ -25,7 +25,7 @@
   const DESIGN_AXES={
     build:['compact and chibi, with a big round head and stubby limbs','tall and slender','chunky and sturdy','small and rounded, hovering just off the ground'],
     face:['two big expressive round eyes','a single friendly camera-lens eye','a wide glowing visor face','a pixel-matrix screen face with a smiley expression'],
-    finish:['smooth glossy surfaces','a soft matte finish','smooth vinyl like a designer toy','clean moulded plastic like a premium toy']
+    finish:['a soft matte finish','smooth satin surfaces','matte vinyl like a designer toy','clean matte moulded plastic']
   };
   const shuffle=a=>{const c=[...a];for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[c[i],c[j]]=[c[j],c[i]];}return c;};
   // With a reference photo the three designs must ALL be recognisably that person, so the
@@ -61,9 +61,9 @@
     // variety line before it loses words.
     const look=String(words||'').trim();
     const vary=` Make it ${pick('build')}, ${pick('finish')}.`;
-    const simple=' Keep it simple: smooth rounded shapes, flat colours, few details, at most one small prop.';
+    const simple=' Simple and understated: one main colour plus one accent, soft muted tones, rounded shapes, few details, no props or one small one.';
     if(!look)return `A friendly robot with ${pick('face')}.${simple}${vary}`;
-    const rule=`". If they name a thing, animal or person, the character IS that, as a friendly 3D cartoon mascot, not a robot holding or wearing it, with a light tech touch like glowing eyes. If they name only colours, mood or style, make a friendly robot with ${pick('face')}.${simple}`;
+    const rule=`". If they name a thing, animal or person, the character IS it (a friendly 3D cartoon mascot, not a robot holding it), with glowing eyes as its tech touch. If they name only colours or mood, it is a friendly robot with ${pick('face')}.${simple}`;
     // Their words open the brief and close it: said once, a short subject ("an airplane") lost to
     // the robot wording about one design in three on the live proxy.
     const close=w=>` The character's body: ${w}.`;
