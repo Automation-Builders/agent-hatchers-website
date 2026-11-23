@@ -162,6 +162,10 @@ Selection regressions (Node 18+): `node --test prototype/tests/industry-selectio
 Research regressions (Playwright, served repo root as below): `node prototype/tests/research-browser.cjs`
 — the researched team must survive the prospect editing "Type of company" while research is still
 running, and a failed first run is retried (with the company name) when they hatch.
+Design brief (Node 18+): `node --test prototype/tests/look-brief.test.cjs` — the prospect's words
+lead the brief and decide what the character is ("an airplane" is an airplane mascot, not a robot
+holding a plane; colours or mood alone give a robot), and the brief stays under the proxy's
+600-character cut without losing the rule.
 Hatch-failure regression (same server): `node prototype/tests/hatch-failure-browser.cjs` — a design
 the proxy can't draw shows as not drawn with Try again, is never pickable, and a working retry hatches.
 
