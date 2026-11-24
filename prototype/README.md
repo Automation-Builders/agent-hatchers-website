@@ -2,6 +2,8 @@
 
 Each prospect receives an unlisted GitHub Pages route at `/prototype/<company-slug>/`.
 
+Build 92 (24 Nov): a tab closed while the team research was running asks again on reload, instead of keeping the stock names for good.
+
 Build 91 (24 Nov): dashboard cards use chroma-key cut-outs on dark surfaces, including the prospect’s own agent. Saved market and profile portraits keep transparency with WebP (PNG fallback).
 
 ## The flow
