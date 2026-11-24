@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 91;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 92;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -2168,5 +2168,7 @@
   }
   root.dataset.build=BUILD;console.info('Agent Hatchers prototype · build '+BUILD);
   if(VIEW_ONLY)reviewSession();
-  else restoreSession().then(back=>{render();if(back){welcomeBack();if(state.step===4)generateMarket();}});
+  // 24 Nov: a tab closed while the team research was still running came back with no team and
+  // never asked again, so the prospect kept the stock names for good. Resume it on restore.
+  else restoreSession().then(back=>{render();if(back){welcomeBack();if(state.biz&&(!state.team||state.team.source==='fallback'))rerunResearch();if(state.step===4)generateMarket();}});
 })();
