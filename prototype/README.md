@@ -2,6 +2,8 @@
 
 Each prospect receives an unlisted GitHub Pages route at `/prototype/<company-slug>/`.
 
+Build 93 (27 Nov): the dashboard has no top bar. The workspace switcher and Create head the left rail (folded: the avatar and a round + button); the Create menu opens from the button.
+
 Build 92 (24 Nov): a tab closed while the team research was running asks again on reload, instead of keeping the stock names for good.
 
 Build 91 (24 Nov): dashboard cards use chroma-key cut-outs on dark surfaces, including the prospect’s own agent. Saved market and profile portraits keep transparency with WebP (PNG fallback).

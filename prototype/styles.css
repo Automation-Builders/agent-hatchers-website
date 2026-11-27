@@ -867,7 +867,7 @@ h1{font-weight:800}h2{font-weight:700}
   
   
   
-  .create-menu{right:0}
+
   
   /* chats: the profile rail becomes a horizontal strip above the thread */
   
@@ -957,7 +957,7 @@ h1{font-weight:800}h2{font-weight:700}
 .tool-sel button{display:grid;place-items:center;width:18px;height:18px;padding:0;margin-left:2px;border-radius:50%;background:#ffffff26;opacity:1;transition:background .15s}
 .tool-sel button:hover{background:#ffffff55}
 /* Create ▾ menu gets the same spring, with icons in soft tiles */
-.create-menu{padding:6px;border:1px solid rgba(214,228,238,.9);border-radius:18px;background:#fff;box-shadow:0 1px 0 #fff inset,0 24px 60px -18px rgba(20,40,80,.35);transform-origin:top right;animation:ddIn .24s cubic-bezier(.2,1.2,.4,1) both;min-width:220px}
+.create-menu{padding:6px;border:1px solid rgba(214,228,238,.9);border-radius:18px;background:#fff;box-shadow:0 1px 0 #fff inset,0 24px 60px -18px rgba(20,40,80,.35);transform-origin:top left;animation:ddIn .24s cubic-bezier(.2,1.2,.4,1) both;min-width:220px}
 .create-menu button{padding:8px 10px;border-radius:12px;transition:background .15s,color .15s;animation:ddItem .3s ease both}
 .create-menu button:nth-child(2){animation-delay:.03s}.create-menu button:nth-child(3){animation-delay:.06s}.create-menu button:nth-child(4){animation-delay:.09s}
 .create-menu button svg{width:32px;height:32px;padding:7.5px;box-sizing:border-box;flex:0 0 32px;border-radius:10px;background:#eef4f9;color:#3d5570;transition:background .15s,color .15s,transform .2s cubic-bezier(.3,1.6,.5,1)}
@@ -981,8 +981,16 @@ h1{font-weight:800}h2{font-weight:700}
 .dx-muted{color:var(--v4-muted)}
 .dx :focus-visible{outline:2px solid var(--sky);outline-offset:2px}
 .dx input:focus-visible{outline:none}
-/* top bar (TopNav) */
-.dx-top{height:48px;flex:0 0 48px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 8px 0 6px;background:var(--v4-panel);border-bottom:1px solid var(--v4-line)}
+/* sidebar head: the workspace switcher and Create (there is no top bar) */
+.dx-side-head{display:flex;align-items:center;gap:8px}
+.dx-side.is-folded .dx-side-head{flex-direction:column;gap:4px;padding-bottom:8px;margin-bottom:4px;border-bottom:1px solid var(--v4-line);width:32px;align-self:center}
+.dx-side-head .dx-ws{flex:1;min-width:0;max-width:none}
+.dx-side.is-folded .dx-side-head .dx-ws{flex:0 0 auto;width:36px;padding:0;justify-content:center;border:0;background:none;border-radius:50%}
+.dx-side.is-folded .dx-side-head .dx-ws:hover{background:var(--v4-tint)}
+.dx-side.is-folded .dx-ws-name,.dx-side.is-folded .dx-ws .lu{display:none}
+.dx-side-head .dx-create{flex:0 0 auto}
+.dx-side.is-folded .dx-create{width:36px;padding:0;justify-content:center;border-radius:50%}
+.dx-side.is-folded .dx-create span{display:none}
 .dx-ws{height:36px;max-width:15rem;display:flex;align-items:center;gap:8px;padding:0 6px;border:1px solid var(--hair);border-radius:10px;background:var(--v4-card);transition:background .15s,border-color .15s}
 .dx-ws:hover{background:var(--v4-raised-hover);border-color:rgba(255,255,255,.12)}
 .dx-ws-av{position:relative;width:24px;height:24px;flex:0 0 auto}
@@ -990,7 +998,6 @@ h1{font-weight:800}h2{font-weight:700}
 .dx-ws-av i{position:absolute;right:-1px;bottom:-1px;width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 2px var(--v4-card)}
 .dx-ws-name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dx-ws .lu{color:var(--v4-fg-2)}
-.dx-top-r{display:flex;align-items:center;gap:8px;position:relative}
 .dx-create{height:36px;display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:8px;background:var(--v4-accent);color:var(--v4-on-accent);font-weight:500;transition:background .15s,transform .15s}
 .dx-create:hover{background:var(--v4-accent-hover)}
 .dx-create:active{transform:scale(.97)}
@@ -1468,8 +1475,6 @@ h1{font-weight:800}h2{font-weight:700}
   .dx-tab{position:relative}
   .dx-lock-note.is-up{left:50%;top:auto;bottom:calc(100% + 8px);transform:translateX(-50%);font-weight:400}
   .dx-mhead{display:flex;align-items:center;justify-content:center;flex:0 0 48px;font-size:15px;font-weight:500}
-  .dx-create{width:36px;padding:0;justify-content:center;border-radius:50%}
-  .dx-create span{display:none}
   .dx-toolbar{flex-direction:column;padding:8px 16px}
   .dx-toolbar .dx-drop,.dx-mkt-h .dx-drop,.dx-mkt-h .dx-ph{display:none}
   .dx-search{width:100%}

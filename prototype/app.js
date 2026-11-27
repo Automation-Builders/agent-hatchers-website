@@ -1,5 +1,5 @@
 (() => {
-  const BUILD = 92;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
+  const BUILD = 93;  // bump with ?v= in the pages — lets anyone confirm which build a browser is running
   const config = window.PROTOTYPE_CONFIG || {};
   // Each agent has a keyword set tuned to the kinds of businesses that genuinely need it
   // (typed "type of company" text drives the ranking) and a deliberately DISTINCT scene —
@@ -841,8 +841,8 @@
   function willGenerate(agent){if(VIEW_ONLY||marketFailed.has(agent.id))return false;   // review mode shows what was stored, no egg loaders
     return (usePortraits&&config.marketPortraits!==false&&state.variant!==null)||!!(config.bakedMarket&&config.bakedMarket[agent.id]);}
   // ===== Dashboard (step 4) — a mimic of the live dashboard (Hermes-Dashboard, v4 look) =====
-  // Black Grok-style frame: a top bar with the workspace switcher and Create, a left sidebar
-  // with the sections (client/src/components/Nav/sectionNav.ts — same names, order and icons),
+  // Black Grok-style frame with no top bar: a left sidebar headed by the workspace switcher and
+  // Create, then the sections (client/src/components/Nav/sectionNav.ts — same names, order and icons),
   // and pills instead of bordered boxes. Each view names the page it copies. The icons are
   // lucide's, the set the dashboard draws with.
   const LU={
@@ -954,8 +954,15 @@
       :`<button type="button" class="dx-nav-item dx-search-row" data-noop="1">${L('search')}<span class="dx-nav-label">Search</span><kbd>⌘K</kbd></button>`;
     const everyday=DX_SECTIONS.filter(s=>s.everyday),rest=DX_SECTIONS.filter(s=>!s.everyday);
     const onSet=state.tab==='config';
+    // There is no top bar: the workspace switcher and Create head the rail. Folded, the switcher
+    // is just the avatar and Create a round + button.
+    const head=`<div class="dx-side-head">
+          <button type="button" class="dx-ws" data-noop="1" aria-label="Switch workspace: ${escapeHtml(co())}"${folded?` title="${escapeHtml(co())}"`:''}><span class="dx-ws-av"><img src="${escapeHtml(yourAvatar())}" alt=""><i></i></span><span class="dx-ws-name">${escapeHtml(co())}</span>${L('upDown')}</button>
+          <button type="button" class="dx-create" data-create="1"${folded?' aria-label="Create" title="Create"':''}>${L('plus')}<span>Create</span></button>
+        </div>`;
     return `<aside class="dx-side${folded?' is-folded':''}">
       <div class="dx-side-top">
+        ${head}
         <div class="dx-rail-tools">${fold}${newChat}${search}${folded?'<span class="dx-rail-sep"></span>':''}</div>
         <nav class="dx-nav" aria-label="Sections">${everyday.map(item).join('')}<span class="dx-rail-sep"></span>${rest.map(item).join('')}</nav>
       </div>
@@ -1277,10 +1284,6 @@
       ?`<div class="dx-foot is-share"><span class="dx-foot-txt">Like what you see? This is what your team could look like.</span><div class="dx-foot-btns">${state.selectedImage?`<button type="button" class="dx-pill" data-action="download">${L('download')}<span>Download your image</span></button>`:''}<a class="dx-pill" href="${escapeHtml(location.pathname)}">Hatch your own agent →</a><button type="button" class="dx-pill is-white" data-action="book" data-source="share">Book a call →</button></div></div>`
       :`<div class="dx-foot"><div class="dx-foot-btns"><button type="button" class="dx-pill" data-action="back">${L('back')}<span>Back</span></button><button type="button" class="dx-pill" data-action="reset">${L('redo')}<span>Start over</span></button><button type="button" class="dx-pill" data-action="next"><span>Connect your agent</span>${L('arrowRight')}</button>${state.selectedImage?`<button type="button" class="dx-pill" data-action="download">${L('download')}<span>Download your image</span></button>`:''}<button type="button" class="dx-pill" data-action="book" data-source="dashboard"><span>Book a call</span></button></div><button type="button" class="dx-pill is-white" data-action="trial" data-source="dashboard">Start 30-day free trial →</button></div>`;
     return `<div class="dx" data-tab-on="${t}">
-      <header class="dx-top">
-        <button type="button" class="dx-ws" data-noop="1" aria-label="Switch workspace"><span class="dx-ws-av"><img src="${escapeHtml(yourAvatar())}" alt=""><i></i></span><span class="dx-ws-name">${escapeHtml(co())}</span>${L('upDown')}</button>
-        <div class="dx-top-r"><button type="button" class="dx-create" data-create="1">${L('plus')}<span>Create</span></button><span class="dx-me" aria-label="Account">${escapeHtml(firstInitial())}</span></div>
-      </header>
       <div class="dx-body">
         ${dxSidebar()}
         <main class="dx-main">${t==='merch'||t==='feed'||t==='home'||t==='team'?'':`<div class="dx-mhead">${sec.label}</div>`}${body}</main>
@@ -1423,7 +1426,10 @@
     const old=document.querySelector('.create-menu');if(old){old.remove();return;}
     const menu=document.createElement('div');menu.className='create-menu';menu.setAttribute('role','menu');
     menu.innerHTML=[['chat','New Chat'],['profile','New Agent'],['skill','New Skill']].map(([k,l])=>`<button type="button" role="menuitem" data-cm="${k}">${L({chat:'chatPlus',profile:'bot',skill:'wrench'}[k])}<span>${l}</span></button>`).join('');
-    btn.parentElement.appendChild(menu);
+    // Fixed to the button, so the rail (which clips its overflow) can't cut the menu off.
+    const r=btn.getBoundingClientRect();
+    menu.style.cssText=`position:fixed;top:${Math.round(r.bottom+8)}px;left:${Math.round(r.left)}px;right:auto`;
+    document.body.appendChild(menu);
     const close=()=>{menu.remove();document.removeEventListener('mousedown',outside);document.removeEventListener('keydown',esc);};
     const outside=e=>{if(!menu.contains(e.target)&&e.target!==btn&&!btn.contains(e.target))close();};
     const esc=e=>{if(e.key==='Escape')close();};
