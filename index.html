@@ -36,7 +36,7 @@
       "url": "https://agenthatchers.com/",
       "logo": "https://agenthatchers.com/agent-hatchers-logo.png",
       "image": "https://agenthatchers.com/agent-hatchers-logo.png",
-      "description": "Australian AI studio. We hatch AI agents for your business on Hermes — your own AI platform, where each agent owns one business job from request to finished deliverable. A$500 per month, with a one-time payment option on request. AI usage billed separately at cost through OpenRouter.",
+      "description": "Australian AI studio. We hatch AI agents for your business on your own AI platform, where each agent owns one business job from request to finished deliverable. A$500 per month, with a one-time payment option on request. AI usage billed separately at cost through OpenRouter.",
       "foundingLocation": { "@type": "Place", "name": "Australia" },
       "areaServed": { "@type": "Country", "name": "Australia" },
       "founder": [
@@ -51,7 +51,7 @@
       "inLanguage": "en-AU",
       "knowsAbout": [
         "AI agents for business",
-        "Hermes AI platform installation",
+        "AI platform installation",
         "AI agent development",
         "Business process automation",
         "OpenRouter model routing",
@@ -96,10 +96,10 @@
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "What is Hermes?",
+          "name": "What exactly do you install?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Hermes is the AI platform we install in your business — the nest your agents hatch into. It comes with hundreds of pre-installed skills, connects to the tools you already use, and learns how your business sounds — so the work it produces sounds like you, not like a chatbot."
+            "text": "The AI platform we install in your business — the nest your agents hatch into. It comes with hundreds of pre-installed skills, connects to the tools you already use, and learns how your business sounds — so the work it produces sounds like you, not like a chatbot."
           }
         },
         {
@@ -123,7 +123,7 @@
           "name": "Why not just use ChatGPT or Claude?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Three reasons. Cost: those are fixed per-seat subscriptions you pay whether you use them or not — Hermes runs pay-per-use through OpenRouter, so you only pay for what you use. Voice: generic chatbots sound generic — your hatched agents come with hundreds of pre-installed skills and learn your business, so everything sounds like you. Flexibility: you can swap the underlying AI model with one click whenever a better or cheaper one comes out. You're never locked in."
+            "text": "Three reasons. Cost: those are fixed per-seat subscriptions you pay whether you use them or not — your platform runs pay-per-use through OpenRouter, so you only pay for what you use. Voice: generic chatbots sound generic — your hatched agents come with hundreds of pre-installed skills and learn your business, so everything sounds like you. Flexibility: you can swap the underlying AI model with one click whenever a better or cheaper one comes out. You're never locked in."
           }
         },
         {
@@ -139,7 +139,7 @@
           "name": "Is my data safe? Do you need my passwords?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "We never ask for passwords — we connect through each app's official 'Sign in with…' approval screen, and you can revoke any connection yourself at any time. Hermes is installed for your business alone — on its own Linode server, with your files in a private storage bucket just for your business — each agent gets access only to the tools its job needs, by default anything customer-facing waits for a person to approve it, and we don't use your data to train AI models."
+            "text": "We never ask for passwords — we connect through each app's official 'Sign in with…' approval screen, and you can revoke any connection yourself at any time. Your platform is installed for your business alone — on its own Linode server, with your files in a private storage bucket just for your business — each agent gets access only to the tools its job needs, by default anything customer-facing waits for a person to approve it, and we don't use your data to train AI models."
           }
         },
         {
@@ -1589,42 +1589,11 @@ html.lenis,html.lenis body{height:auto;}
   </div>
 </nav>
 
-<!-- HERMES LETTER-RAIN — "powered by Hermes" letters fall from the top of
-     the page and land left→right above the hero headline -->
-<style>
-.hermes-rain{
-  font-family:var(--font-s);font-style:italic;font-weight:400;
-  font-size:clamp(24px,3.2vw,52px);
-  line-height:1.08;letter-spacing:.01em;
-  color:var(--ink);
-  margin-bottom:clamp(14px,2vw,26px);
-  min-height:1.1em;              /* space is reserved, so nothing shifts when letters land */
-}
-.hermes-rain .hr-hermes{color:var(--accent);font-weight:400;}
-.hermes-rain .hl{display:inline-block;will-change:transform;}
-.hermes-rain.is-rain .hl{
-  animation:hl-fall .9s cubic-bezier(.36,.9,.4,1) both;
-  animation-delay:calc(var(--d)*1ms);
-}
-@keyframes hl-fall{
-  0%  {transform:translateY(-105vh) rotate(var(--r,0deg));}
-  62% {transform:translateY(0)      rotate(0deg);}
-  78% {transform:translateY(-.2em)  rotate(calc(var(--r,0deg) * -.2));}
-  100%{transform:translateY(0)      rotate(0deg);}
-}
-@media (prefers-reduced-motion: reduce){
-  .hermes-rain.is-rain .hl{animation:none;}
-}
-</style>
-
 <main id="top">
 
 <!-- HERO — the egg -->
 <header class="hero">
   <div class="wrap">
-    <p class="hermes-rain" aria-label="Agent Hatchers is powered by Hermes">
-      <span class="hr-seg" aria-hidden="true">Agent Hatchers is powered by </span><span class="hr-seg hr-hermes" aria-hidden="true">Hermes</span>
-    </p>
     <div class="hero-grid">
       <div>
         <h1 class="hero-title">
@@ -2019,7 +1988,7 @@ html.lenis,html.lenis body{height:auto;}
         <div class="safe-img"><img src="hatchy-sec-storage.webp" alt="Hatchy resting a hand on its own little storage cabinet" width="640" height="640" loading="lazy"></div>
         <div class="safe-body">
           <h3>Your own server, your own storage</h3>
-          <p>Hermes isn't a shared app you log into next to a thousand other companies. It runs on <strong>its own Linode server, set up for your business alone,</strong> and your files live in <strong>a private storage bucket just for your business.</strong> Your server's disk and your storage are encrypted, nobody else's data shares the space — and if you leave, you can request a handover of your data and agent configuration within the exit period in our Terms. A handover does not include server handover or migration. We delete your data as described in the Terms, subject to legal retention requirements.</p>
+          <p>Your platform isn't a shared app you log into next to a thousand other companies. It runs on <strong>its own Linode server, set up for your business alone,</strong> and your files live in <strong>a private storage bucket just for your business.</strong> Your server's disk and your storage are encrypted, nobody else's data shares the space — and if you leave, you can request a handover of your data and agent configuration within the exit period in our Terms. A handover does not include server handover or migration. We delete your data as described in the Terms, subject to legal retention requirements.</p>
         </div>
       </div>
       <div class="safe reveal">
@@ -2063,8 +2032,8 @@ html.lenis,html.lenis body{height:auto;}
       <h2 class="sec-title">Questions <em>people ask.</em></h2>
     </div>
     <div class="faq-list">
-      <details class="faq-item reveal" id="faq-hermes">
-        <summary>What exactly is Hermes?<span class="faq-icon">+</span></summary>
+      <details class="faq-item reveal" id="faq-install">
+        <summary>What exactly do you install?<span class="faq-icon">+</span></summary>
         <div class="faq-body">The AI platform we install in your business — the nest your agents hatch into. It comes with hundreds of pre-installed skills, connects to the tools you already use, and learns how your business sounds. So the work it produces sounds like you, not like a chatbot.</div>
       </details>
       <details class="faq-item reveal" id="faq-agent">
@@ -2077,7 +2046,7 @@ html.lenis,html.lenis body{height:auto;}
       </details>
       <details class="faq-item reveal" id="faq-chatgpt">
         <summary>Why not just use ChatGPT or Claude?<span class="faq-icon">+</span></summary>
-        <div class="faq-body">Three reasons. Cost: those are fixed per-seat subscriptions you pay whether you use them or not — Hermes is pay-per-use, so quiet weeks cost almost nothing. Voice: generic chatbots sound generic — your agents learn your business, so everything sounds like you. Flexibility: when a better or cheaper model comes out, you swap it in with one click. You're never locked in. The <a href="#compare" class="tlink">comparison table</a> has the whole argument.</div>
+        <div class="faq-body">Three reasons. Cost: those are fixed per-seat subscriptions you pay whether you use them or not — your platform is pay-per-use, so quiet weeks cost almost nothing. Voice: generic chatbots sound generic — your agents learn your business, so everything sounds like you. Flexibility: when a better or cheaper model comes out, you swap it in with one click. You're never locked in. The <a href="#compare" class="tlink">comparison table</a> has the whole argument.</div>
       </details>
       <details class="faq-item reveal" id="faq-technical">
         <summary>Do I need to be technical?<span class="faq-icon">+</span></summary>
@@ -2085,7 +2054,7 @@ html.lenis,html.lenis body{height:auto;}
       </details>
       <details class="faq-item reveal" id="faq-data">
         <summary>Is my data safe? Do you need my passwords?<span class="faq-icon">+</span></summary>
-        <div class="faq-body">Never a password — we connect through each app's official "Sign in with…" approval screen, and you can revoke any connection yourself, at any time, from your own admin settings. Hermes is installed for your business alone — on its own Linode server, with your files in a private storage bucket just for your business — each agent gets access only to the tools its job needs, by default anything customer-facing waits for a person to approve it, and we don't use your data to train AI models. More in the <a href="#security" class="tlink">security section</a>.</div>
+        <div class="faq-body">Never a password — we connect through each app's official "Sign in with…" approval screen, and you can revoke any connection yourself, at any time, from your own admin settings. Your platform is installed for your business alone — on its own Linode server, with your files in a private storage bucket just for your business — each agent gets access only to the tools its job needs, by default anything customer-facing waits for a person to approve it, and we don't use your data to train AI models. More in the <a href="#security" class="tlink">security section</a>.</div>
       </details>
       <details class="faq-item reveal" id="faq-offboard">
         <summary>What if I want out, or something breaks?<span class="faq-icon">+</span></summary>
@@ -2612,32 +2581,6 @@ async function postLead(kind, payload){
     return false;
   }
 }
-
-/* ── HERMES LETTER-RAIN — split the line into letters, drop them in order ── */
-(function hermesRain(){
-  const p = document.querySelector('.hermes-rain');
-  if (!p) return;
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return; // line stays static
-  let i = 0;
-  p.querySelectorAll('.hr-seg').forEach(seg => {
-    const chars = seg.textContent.split('');
-    seg.textContent = '';
-    chars.forEach(ch => {
-      if (ch === ' ') {                    // spaces don't fall — real spaces so the line can wrap
-        seg.appendChild(document.createTextNode(' '));
-        return;
-      }
-      const s = document.createElement('span');
-      s.className = 'hl';
-      s.textContent = ch;
-      s.style.setProperty('--d', 380 + i * 55);
-      s.style.setProperty('--r', ((i % 2 ? 1 : -1) * (6 + (i * 7) % 11)) + 'deg');
-      i++;
-      seg.appendChild(s);
-    });
-  });
-  requestAnimationFrame(() => requestAnimationFrame(() => p.classList.add('is-rain')));
-})();
 
 /* ── HERO LINE REVEAL ── */
 (function heroLines(){
