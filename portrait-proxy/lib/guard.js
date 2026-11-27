@@ -84,9 +84,9 @@ const DEFAULT_IP_CAP_CENTS = 3000;
 const DAY_OFFSET_MS = 10 * 3600000;
 
 const MESSAGES = {
-  visitor: 'You’ve reached today’s free limit for the playground. Start your 30-day free trial to keep going, or come back tomorrow.',
-  ip: 'You’ve reached today’s free limit for the playground. Start your 30-day free trial to keep going, or come back tomorrow.',
-  daily: 'The playground is very busy today, so free designs are paused until tomorrow. Start your 30-day free trial to keep going.',
+  visitor: 'You’ve reached today’s free limit for the playground. Start your plan to keep going, or come back tomorrow.',
+  ip: 'You’ve reached today’s free limit for the playground. Start your plan to keep going, or come back tomorrow.',
+  daily: 'The playground is very busy today, so free designs are paused until tomorrow. Start your plan to keep going.',
 };
 
 function limits() {
