@@ -1,5 +1,5 @@
 // Playground → dashboard handoff (setup snapshot v1).
-// A visitor who hatched an agent in /prototype/ presses "Start 30-day free trial". The page asks
+// A visitor who hatched an agent in /prototype/ presses "Get started". The page asks
 // /api/playground-handoff for a one-time link; this file builds what that link carries.
 //
 // Only the token travels in the address. The dashboard server (agenthatchers.ai) then reads the

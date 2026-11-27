@@ -223,13 +223,16 @@ class PrototypeContractTests(unittest.TestCase):
         self.assertIn(".dl-modal", self.css)
 
     def test_trial_hands_the_agent_to_sign_up_with_only_a_token(self):
-        # 19 Nov 2026 (playground-to-box step 6): "Start 30-day free trial" is the main action on
+        # 19 Nov 2026 (playground-to-box step 6): the sign-up button is the main action on
         # the dashboard footer and the Connect screen, and comes back when a free limit is hit.
+        # 27 Nov 2026: no free trial any more (Hyein), so the button says "Get started".
         # The page saves the session, asks the proxy for a one-time link and goes there; the
         # address carries only the token, never the email or business details.
         self.assertIn('data-action="trial" data-source="dashboard"', self.app)
         self.assertIn('data-action="trial" data-source="connect"', self.app)
         self.assertIn("if(a==='trial'){startTrial(el,", self.app)
+        self.assertIn('data-source="dashboard">Get started →', self.app)
+        self.assertNotIn("30-day free trial", self.app)
         trial = self.app.split("async function startTrial(el,source){")[1].split("// Faithful port")[0]
         self.assertIn("await pushSession();", trial)
         self.assertIn("body:JSON.stringify({sid:state.sid})", trial)

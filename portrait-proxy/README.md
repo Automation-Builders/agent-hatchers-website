@@ -233,7 +233,7 @@ Anything older than `TRASH_DAYS` (default 30) is purged the next time the trash 
 
 ## `api/playground-handoff.js` — playground to sign-up (Nov 2026)
 
-"Start 30-day free trial" in the prototype hands the hatched agent to sign-up on
+"Get started" in the prototype hands the hatched agent to sign-up on
 agenthatchers.ai. The page saves the session, then `POST {sid}` here returns
 `{ ok, url, expiresAt }`, with `url` = `https://agenthatchers.ai/register?v=4&setup=<token>`.
 A cleaned copy of the session (setup snapshot v1, `lib/handoff.js`) is frozen at

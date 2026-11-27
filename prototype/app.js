@@ -1275,7 +1275,7 @@
     const sec={label:DX_PAGE_LABEL[t]||(DX_SECTIONS.find(s=>s.k===t)||{label:'Agents'}).label};
     const foot=SHARE_TOKEN
       ?`<div class="dx-foot is-share"><span class="dx-foot-txt">Like what you see? This is what your team could look like.</span><div class="dx-foot-btns">${state.selectedImage?`<button type="button" class="dx-pill" data-action="download">${L('download')}<span>Download your image</span></button>`:''}<a class="dx-pill" href="${escapeHtml(location.pathname)}">Hatch your own agent →</a><button type="button" class="dx-pill is-white" data-action="book" data-source="share">Book a call →</button></div></div>`
-      :`<div class="dx-foot"><div class="dx-foot-btns"><button type="button" class="dx-pill" data-action="back">${L('back')}<span>Back</span></button><button type="button" class="dx-pill" data-action="reset">${L('redo')}<span>Start over</span></button><button type="button" class="dx-pill" data-action="next"><span>Connect your agent</span>${L('arrowRight')}</button>${state.selectedImage?`<button type="button" class="dx-pill" data-action="download">${L('download')}<span>Download your image</span></button>`:''}<button type="button" class="dx-pill" data-action="book" data-source="dashboard"><span>Book a call</span></button></div><button type="button" class="dx-pill is-white" data-action="trial" data-source="dashboard">Start 30-day free trial →</button></div>`;
+      :`<div class="dx-foot"><div class="dx-foot-btns"><button type="button" class="dx-pill" data-action="back">${L('back')}<span>Back</span></button><button type="button" class="dx-pill" data-action="reset">${L('redo')}<span>Start over</span></button><button type="button" class="dx-pill" data-action="next"><span>Connect your agent</span>${L('arrowRight')}</button>${state.selectedImage?`<button type="button" class="dx-pill" data-action="download">${L('download')}<span>Download your image</span></button>`:''}<button type="button" class="dx-pill" data-action="book" data-source="dashboard"><span>Book a call</span></button></div><button type="button" class="dx-pill is-white" data-action="trial" data-source="dashboard">Get started →</button></div>`;
     return `<div class="dx" data-tab-on="${t}">
       <header class="dx-top">
         <button type="button" class="dx-ws" data-noop="1" aria-label="Switch workspace"><span class="dx-ws-av"><img src="${escapeHtml(yourAvatar())}" alt=""><i></i></span><span class="dx-ws-name">${escapeHtml(co())}</span>${L('upDown')}</button>
@@ -1296,9 +1296,9 @@
   function connectScreen(){
     const name=escapeHtml(state.name||'your agent');
     let panel;
-    if(state.done)panel=`<div class="ob-nobox"><span class="ob-ok">${L('check')}Connected</span><h2>${name} is connected</h2><p>Thanks, ${escapeHtml(co())}. Start your free trial and we’ll bring ${name} online.</p><button type="button" class="ob-pill" data-action="trial" data-source="connected">Start 30-day free trial</button><button type="button" class="ob-link" data-action="book" data-source="connected">Book a call</button><button type="button" class="ob-link" data-action="reset">Start over</button></div>`;
+    if(state.done)panel=`<div class="ob-nobox"><span class="ob-ok">${L('check')}Connected</span><h2>${name} is connected</h2><p>Thanks, ${escapeHtml(co())}. Start your plan and we’ll bring ${name} online.</p><button type="button" class="ob-pill" data-action="trial" data-source="connected">Get started</button><button type="button" class="ob-link" data-action="book" data-source="connected">Book a call</button><button type="button" class="ob-link" data-action="reset">Start over</button></div>`;
     else if(state.ownBox)panel=`<div class="ob-connect"><h2>Connect Your Agent</h2>${CONNECT_FIELDS.map(([id,icon,label,ph,secret])=>`<label class="ob-cf" for="${id}"><span class="ob-cf-l">${L(icon)}${label}</span><input id="${id}" type="${secret?'password':'text'}" placeholder="${escapeHtml(ph)}" autocomplete="off" spellcheck="false" autocapitalize="none"></label>`).join('')}<button type="button" class="ob-save" data-action="connect-save">Save and test connection</button></div>`;
-    else panel=`<div class="ob-nobox"><h2>${name}’s computer isn’t set up yet</h2><p>Start a 30-day free trial and ${name} moves into its own computer, ready to work. Questions first? Book a call.</p><button type="button" class="ob-pill" data-action="trial" data-source="connect">Start 30-day free trial</button><button type="button" class="ob-link" data-action="book" data-source="connect">Book a call</button><button type="button" class="ob-link" data-action="own-box">I have my own box</button></div>`;
+    else panel=`<div class="ob-nobox"><h2>${name}’s computer isn’t set up yet</h2><p>Start your plan and ${name} moves into its own computer, ready to work. Questions first? Book a call.</p><button type="button" class="ob-pill" data-action="trial" data-source="connect">Get started</button><button type="button" class="ob-link" data-action="book" data-source="connect">Book a call</button><button type="button" class="ob-link" data-action="own-box">I have my own box</button></div>`;
     return `<div class="ob ob-connect-page"><header class="ob-top"><div class="ob-brand"><img src="/hatchy-pop.webp" alt=""><span>Agent Hatchers</span></div><button type="button" class="ob-link" data-action="back">${L('back')}Back to the dashboard</button></header><main class="ob-cmain"><div class="ob-chead"><img src="${escapeHtml(state.selectedImage||'/hatchy-pop.webp')}" alt=""><h1>It’s time to hatch ${name}</h1></div><div class="ob-panel">${panel}</div></main></div>`;
   }
   // ---------- Book a call (Calendly) ----------
@@ -1333,7 +1333,7 @@
   // Only Calendly's own event_scheduled message counts as a booking (same rule as index.html).
   addEventListener('message',e=>{if(e.origin!=='https://calendly.com'||!e.data||typeof e.data.event!=='string')return;if(!window.ahTrack)return;if(e.data.event==='calendly.event_type_viewed')ahTrack('Contact',{source:'prototype'});/* calendar opened */if(e.data.event==='calendly.event_scheduled')ahTrack('Schedule',{source:'prototype'});});
 
-  // ---------- Start 30-day free trial: hand the hatched agent to sign-up on agenthatchers.ai ----------
+  // ---------- Get started (no free trial since 2026-11-27): hand the hatched agent to sign-up on agenthatchers.ai ----------
   // The page saves the session one last time, asks the proxy for a one-time link
   // (portrait-proxy/api/playground-handoff.js) and goes there. Only the link's token travels:
   // the dashboard server reads the setup from the proxy itself. If no link can be made, the
@@ -1405,9 +1405,9 @@
   function payPop(msg){
     document.querySelectorAll('.create-pop').forEach(p=>p.remove());
     const pop=document.createElement('div');pop.className='create-pop';
-    // Hitting a free limit is the second place the trial is offered (decision 3, 19 Nov 2026).
+    // Hitting a free limit is the second place the plan is offered (decision 3, 19 Nov 2026; no free trial since 27 Nov 2026).
     const offer=!VIEW_ONLY&&!!state.selectedImage;
-    pop.innerHTML=`${ci.key}<span>${escapeHtml(msg)}${offer?'<br><button type="button" class="pop-trial">Start 30-day free trial →</button>':''}</span>`;
+    pop.innerHTML=`${ci.key}<span>${escapeHtml(msg)}${offer?'<br><button type="button" class="pop-trial">Get started →</button>':''}</span>`;
     if(offer)pop.querySelector('.pop-trial').onclick=e=>startTrial(e.currentTarget,'limit');
     document.body.appendChild(pop);setTimeout(()=>pop.classList.add('show'),10);
     setTimeout(()=>{pop.classList.remove('show');setTimeout(()=>pop.remove(),300)},offer?9000:4600);
